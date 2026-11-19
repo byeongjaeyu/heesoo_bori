@@ -99,7 +99,7 @@ function pvpFight(opp) {
   fadeTo(() => startPvpArena(opp), `VS ${opp.nickname}`);
 }
 function startPvpArena(opp) {
-  G.pvp = { opp, t: PVP_TIME, over: false }; G.inf = null;
+  G.pvp = { opp, t: PVP_TIME, over: false }; G.inf = null; G.auto = false; G.autoMove = null;
   G.zone = 0; G.world = buildWorld(0); const W = G.world;
   G.enemies = []; G.projs = []; G.fx = []; G.drops = []; G.parts = []; G.texts = []; G.bubbles = [];
   G.zoneKills = 0; G.bossSpawned = true; G.bossDefeated = false; G.exitOpen = false; G.spawnT = 99; G.ult = null; G.pendingEvent = null;

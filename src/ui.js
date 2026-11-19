@@ -79,6 +79,7 @@ function updateHUD() {
     hset(bid + 'd', v => $('#' + bid + ' .cd').style.setProperty('--cd', v), Math.round(cd / tot * 50) / 50);
     hset(bid + 't', v => $('#' + bid + ' .cdT').textContent = v, cd > 0 ? String(Math.ceil(cd)) : '');
   }
+  { const left = autoLeft(); hset('autoShow', v => $('#bAuto').hidden = !v, !G.pvp); hset('autoCls', v => $('#bAuto').className = v, 'food auto' + (G.auto ? ' on' : '') + (left <= 0 ? ' empty' : '')); hset('autoT', v => $('#bAuto span').textContent = v, mmss(left)); }
   hset('qhide', v => { $('#bHP').hidden = v; $('#bMP').hidden = v; }, sk('feed') > 0 && !!pd.boriJoined);
   for (const k of ['hp', 'mp']) {
     const pick = pickQuickFood(k, k === 'hp' ? st.hp - P.hp : st.mp - P.mp);
@@ -228,7 +229,7 @@ function updateSndBtn() { $('#sndBtn').textContent = SND.on ? '♪' : '×'; }
 
 // ---------- screens ----------
 function showTitle() {
-  G.inf = null; G.state = 'title'; showHUD(false); if (typeof e2HideAll === 'function') e2HideAll(); $('#title').hidden = false; $('#endScr').hidden = true; $('#death').hidden = true; $('#dlg').hidden = true; $('#skip').hidden = true; $('#mission').hidden = true;
+  G.inf = null; G.auto = false; G.autoMove = null; G.state = 'title'; showHUD(false); if (typeof e2HideAll === 'function') e2HideAll(); $('#title').hidden = false; $('#endScr').hidden = true; $('#death').hidden = true; $('#dlg').hidden = true; $('#skip').hidden = true; $('#mission').hidden = true;
   const saved = hasSave() ? loadGame() : null;
   let e2s = null; try { e2s = JSON.parse(localStorage.getItem(E2KEY) || 'null'); } catch (e) { }
   const e2n = e2s ? (e2s.stars || []).reduce((a, b) => a + (b || 0), 0) : 0;
@@ -251,7 +252,7 @@ function showTitle() {
   playBgm('story');
 }
 function newGame() { G.pd = newPD(); saveGame(); $('#title').hidden = true; G.world = null; calcStats(); playCut(INTRO, () => startZone(0)); }
-function showDeath() { $('#death').hidden = false; }
+function showDeath() { $('#death p').innerHTML = G.inf ? '할로윈파티에선 병원비 없이<br>바로 다시 일어나요!' : '폰 배터리도 0%...<br>병원비로 골드 10%를 내고 다시 일어나요.'; $('#death').hidden = false; }
 function showEnd() {
   G.state = 'end'; $('#endScr h2').textContent = '희수와 보리의 에버랜드 대탈출'; const s = G.pd.stats; showHUD(false);
   $('#endStats').innerHTML = `최종 레벨 <b>Lv.${G.pd.lv}</b><br>처치한 몬스터 <b>${s.kills}</b>마리<br>멘헤라 공격 <b>${s.ults}</b>회<br>먹은 음식 <b>${s.eaten}</b>개 · 기절 <b>${s.deaths}</b>회<br>플레이 시간 <b>${fmtTime(s.time)}</b>`;

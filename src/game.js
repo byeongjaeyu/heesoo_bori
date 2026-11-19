@@ -88,7 +88,7 @@ function updatePlayer(dt) {
   P.atkCd -= dt; P.atkAnim -= dt; P.inv -= dt; P.flash -= dt; P.castT -= dt; P.eatCd -= dt;
   for (const k in P.cds) if (P.cds[k] > 0) P.cds[k] -= dt;
   for (const k in P.buffs) { const b = P.buffs[k]; b.t -= dt; if (Math.random() < dt * 6) G.parts.push({ x: P.x + rand(-6, 6), y: P.y - rand(2, 18), vx: 0, vy: -20, life: 0.5, max: 0.5, col: b.crit ? '#ffd84a' : '#ff6b5a', sz: 1, grav: 0 }); if (b.t <= 0) { delete P.buffs[k]; calcStats(); toast(`${b.name} 보양 효과가 끝났어요`, 'sub'); } }
-  if (INP.atk && P.atkCd <= 0 && P.castT <= 0) doAttack();
+  if ((INP.atk || (G.auto && G.autoAtk)) && P.atkCd <= 0 && P.castT <= 0) doAttack();
   const onPhone = isOnPhone();
   if (onPhone && !P.wasPhone) { G.fx.push({ k: 'icon', x: P.x + 6, y: P.y - 14, icon: 'phonePop', t: 0, dur: 0.35 }); }
   P.wasPhone = onPhone;
@@ -402,7 +402,7 @@ function updateDrops(dt) {
     d.t += dt;
     if (d.z > 0 || d.vz > 0) { d.vz -= 220 * dt; d.z += d.vz * dt; if (d.z <= 0) { d.z = 0; d.vz = Math.abs(d.vz) > 25 ? -d.vz * 0.4 : 0; } d.x += d.vx * dt; d.y += d.vy * dt; d.vx *= Math.pow(0.05, dt); d.vy *= Math.pow(0.05, dt); }
     const dd = Math.hypot(P.x - d.x, P.y - 4 - d.y);
-    if (d.t > 0.45 && (dd < 44 || d.mag)) { d.mag = true; moveToward(d, P.x, P.y - 4, 160 + d.t * 40, dt); }
+    if (d.t > 0.45 && (dd < (G.auto ? 90 : 44) || d.mag)) { d.mag = true; moveToward(d, P.x, P.y - 4, 160 + d.t * 40, dt); }
     if (d.t > 0.45 && dd < 8) { pickup(d); d.gone = true; }
     if (d.kind !== 'item' && d.t > 45) d.gone = true;
   }
@@ -623,6 +623,7 @@ function updateCam(dt) {
 function handleActions() {
   for (const a of INP.act) {
     if (a === 's1') trySkill('smash'); else if (a === 's2') trySkill('nag'); else if (a === 's3') trySkill('flash'); else if (a === 'ult') trySkill('menhera');
+    else if (a === 'auto') autoToggle();
     else if ((a === 'hp' || a === 'mp') && G.pvp) toast('PvP에선 음식을 먹을 수 없어요!', 'warn');
     else if (a === 'hp') quickFood('hp'); else if (a === 'mp') quickFood('mp');
     else if ((a === 'menu' || a === 'esc') && G.pvp) pvpForfeit();
@@ -638,6 +639,7 @@ function update(dt) {
   if (G.state !== 'play') return;
   if (G.ult) updateUlt(dt);
   const frozen = G.ult && G.ult.t < 0.95;
+  if (G.state === 'play') autoTick(dt); else { G.autoMove = null; G.autoAtk = false; }
   updatePlayer(dt);
   if (!frozen) {
     updateBori(dt);

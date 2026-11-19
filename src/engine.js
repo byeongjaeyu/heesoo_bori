@@ -180,7 +180,7 @@ function bgmTick() {
 // ---------- input ----------
 const INP = { k: {}, atk: false, act: new Set(), joy: { on: false, id: -1, ox: 0, oy: 0, dx: 0, dy: 0 } };
 const KEYMOVE = { ArrowUp: 'u', KeyW: 'u', ArrowDown: 'd', KeyS: 'd', ArrowLeft: 'l', KeyA: 'l', ArrowRight: 'r', KeyD: 'r' };
-const KEYACT = { ArrowUp: 'kup', ArrowDown: 'kdown', ArrowLeft: 'kleft', ArrowRight: 'kright', KeyK: 's1', Digit1: 's1', KeyL: 's2', Digit2: 's2', Semicolon: 's3', Digit3: 's3', KeyU: 'ult', Digit4: 'ult', KeyR: 'ult', KeyQ: 'hp', KeyE: 'mp', KeyI: 'menu', KeyM: 'menu', Tab: 'menu', Escape: 'esc', Enter: 'ok' };
+const KEYACT = { KeyO: 'auto', ArrowUp: 'kup', ArrowDown: 'kdown', ArrowLeft: 'kleft', ArrowRight: 'kright', KeyK: 's1', Digit1: 's1', KeyL: 's2', Digit2: 's2', Semicolon: 's3', Digit3: 's3', KeyU: 'ult', Digit4: 'ult', KeyR: 'ult', KeyQ: 'hp', KeyE: 'mp', KeyI: 'menu', KeyM: 'menu', Tab: 'menu', Escape: 'esc', Enter: 'ok' };
 window.addEventListener('keydown', e => {
   if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
   audioInit();
@@ -198,6 +198,7 @@ function moveVec() {
   if (INP.k.l) x -= 1; if (INP.k.r) x += 1; if (INP.k.u) y -= 1; if (INP.k.d) y += 1;
   if (x || y) { const m = Math.hypot(x, y); return [x / m, y / m]; }
   if (INP.joy.on) return [INP.joy.dx, INP.joy.dy];
+  if (typeof G !== 'undefined' && G.autoMove && (G.autoMove[0] || G.autoMove[1])) return G.autoMove;
   return [0, 0];
 }
 const JOYR = 46;
