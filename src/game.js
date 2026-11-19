@@ -15,7 +15,7 @@ function newPD() {
     lv: 1, xp: 0, gold: 30, sp: 1, skills: {},
     inv: { fist: 1, cap_grey: 1, fleece: 1, sneakers: 1, silverbag: 1 },
     eq: { weapon: 'fist', hat: 'cap_grey', armor: 'fleece', shoes: 'sneakers', bag: 'silverbag' },
-    foods: { persimmon: 3, popcorn: 3 }, enh: {}, zone: 0, boriJoined: false, cleared: 0, beq: { bcloth: null, btoy: null },
+    foods: { persimmon: 3, popcorn: 3 }, enh: {}, stones: 0, zone: 0, boriJoined: false, cleared: 0, beq: { bcloth: null, btoy: null },
     stats: { kills: 0, ults: 0, deaths: 0, time: 0, eaten: 0 }
   };
 }
@@ -26,7 +26,7 @@ function loadGame() {
     const d = JSON.parse(s); const pd = newPD();
     for (const k in d) pd[k] = d[k];
     pd.stats = Object.assign(newPD().stats, d.stats || {});
-    pd.beq = Object.assign({ bcloth: null, btoy: null }, d.beq || {}); pd.enh = d.enh || {};
+    pd.beq = Object.assign({ bcloth: null, btoy: null }, d.beq || {}); pd.enh = d.enh || {}; pd.stones = d.stones || 0;
     for (const sl of SLOTS) if (!ITEMS[pd.eq[sl]]) pd.eq[sl] = newPD().eq[sl];
     return pd;
   } catch (e) { return null; }
@@ -401,13 +401,34 @@ function pickup(d) {
   else if (d.kind === 'food') { pd.foods[d.id] = (pd.foods[d.id] || 0) + 1; addText(P.x, P.y - 30, '+' + FOODS[d.id].name, 'food'); sfx('ding'); if (PREMIUM.includes(d.id)) toast(`${FOODS[d.id].name} 획득! 최고급 보양식`, 'lvl'); }
   else if (d.kind === 'item') {
     const it = ITEMS[d.id];
-    if (pd.inv[d.id]) { const g = sellPrice(d.id); pd.gold += g; toast(`${it.name} (중복) → ${g}G로 바꿨어요`, 'sub'); sfx('coin'); }
+    if (pd.inv[d.id]) { const s = stoneYield(d.id); pd.stones = (pd.stones || 0) + s; toast(`${it.name} (중복) → 강화석 ${s}개`, 'sub'); sfx('coin'); }
     else if (it.bori) { pd.inv[d.id] = 1; if (!pd.beq[it.slot]) { pd.beq[it.slot] = d.id; calcStats(); toast(`${it.name} 획득! 보리가 바로 ${it.slot === 'btoy' ? '물었어요' : '입었어요'}`, 'item r' + it.rar); if (G.bori) bubble(G.bori, '멍멍! (신남)', 1.4); } else { pd.newBori = true; toast(`보리 장비 획득: ${it.name}! (메뉴 → 보리)`, 'item r' + it.rar); } sfx('ding'); }
     else { pd.inv[d.id] = 1; pd.newItem = true; toast(`새 장비 획득: ${it.name}! (메뉴 → 장비)`, 'item r' + it.rar); sfx('ding'); }
   }
 }
-const enhCost = lv => Math.round(50 * Math.pow(1.5, lv));
-const ENH_MAX = 10;
+// ---------- 강화 (+20, 확률) · 강화석 ----------
+const ENH_MAX = 20, ENH_RESET = 12;
+const ENH_P    = [1, .95, .9, .85, .8, .75, .7, .65, .6, .55, .5, .45, .4, .35, .3, .3, .25, .2, .15, .1];
+const ENH_DOWN = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .1, .15, .2, .25, .3, .35, .4, .45, .5];
+const ENH_DEST = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .01, .02, .03, .04, .05, .06, .08, .1];
+const enhCost = lv => Math.round(50 * Math.pow(1.3, lv));
+const enhStoneCost = lv => lv < 10 ? 1 : lv < 15 ? 3 : lv < 18 ? 6 : 10;
+const STONE_YIELD = [1, 3, 8, 20, 50, 120];
+const stoneYield = id => STONE_YIELD[ITEMS[id].rar] || 1;
+function canDismantle(id) { const it = ITEMS[id], pd = G.pd; return !!(it && !it.start && pd.inv[id] && pd.eq[it.slot] !== id && (pd.beq || {})[it.slot] !== id && !((pd.enh || {})[id] > 0)); }
+function dismantle(ids) { let s = 0, n = 0; for (const id of ids) { if (!canDismantle(id)) continue; s += stoneYield(id); n++; delete G.pd.inv[id]; } G.pd.stones = (G.pd.stones || 0) + s; return { n, s }; }
+function enhOdds(lv, useStone) { let p = ENH_P[lv], dn = ENH_DOWN[lv], ds = ENH_DEST[lv]; if (useStone) { const add = Math.min(0.1, 1 - p); p += add; const take = Math.min(add, dn); dn -= take; } return { p, dn, ds, protect: !!useStone }; }
+function tryEnhance(useStone) {
+  const pd = G.pd, wid = pd.eq.weapon; pd.enh = pd.enh || {}; const en = pd.enh[wid] || 0; if (en >= ENH_MAX) return null;
+  const cost = enhCost(en), sc = enhStoneCost(en); if (pd.gold < cost || (useStone && (pd.stones || 0) < sc)) return null;
+  pd.gold -= cost; if (useStone) pd.stones -= sc;
+  const o = enhOdds(en, useStone), r = Math.random(); let res;
+  if (r < o.p) { pd.enh[wid] = en + 1; res = 'up'; }
+  else if (r < o.p + o.dn) { pd.enh[wid] = Math.max(0, en - 1); res = 'down'; }
+  else if (r < o.p + o.dn + o.ds) { if (o.protect) { pd.enh[wid] = Math.max(0, en - 1); res = 'saved'; } else { pd.enh[wid] = Math.min(en, ENH_RESET); res = 'boom'; } }
+  else res = 'keep';
+  calcStats(); saveGame(); return { res, from: en, to: pd.enh[wid] };
+}
 const sellPrice = id => { const it = ITEMS[id]; return it.price ? Math.floor(it.price * 0.3) : [40, 150, 400, 800, 1600, 3200][it.rar]; };
 
 // ---------- food ----------

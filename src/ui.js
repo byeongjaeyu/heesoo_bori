@@ -125,17 +125,17 @@ const MREN = {
   equip() {
     const pd = G.pd, st = G.st;
     let h = `<div class="stats"><div>공격력<b>${st.atk}</b></div><div>방어력<b>${st.def}</b></div><div>치명타<b>${Math.round(st.crit * 100)}%</b></div><div>최대 HP<b>${st.hp}</b></div><div>최대 MP<b>${st.mp}</b></div><div>이동속도<b>${Math.round(st.spd * 100)}%</b></div></div>`;
-    { const wid = pd.eq.weapon, w = ITEMS[wid], en = (pd.enh || {})[wid] || 0, cost = enhCost(en), max = en >= ENH_MAX;
-      h += `<div class="card enh"><div class="ic"><img src="${wid === 'fist' ? iconURL('sk_fist', ICONS.fist) : itemURL(wid)}"></div><div class="mid"><div class="nm">무기 강화 <span class="r${w.rar}">${w.name}${en ? ' +' + en : ''}</span></div><div class="ds">현재 공격 +${(2.5 * en).toFixed(1).replace('.0', '')} · 치명 +${(1.5 * en).toFixed(1).replace('.0', '')}%${max ? '' : `<br><b>+${en + 1} 강화</b> 시 공격 +2.5 · 치명 +1.5% 추가`}</div><div class="nx">${max ? 'MAX 강화 완료!' : `강화 비용 ${cost.toLocaleString()}G · 보유 ${pd.gold.toLocaleString()}G · 실패 없음`}</div></div><button class="btn pk" data-m="enhance" ${!max && pd.gold >= cost ? '' : 'disabled'}>${max ? 'MAX' : '강화'}</button></div>`; }
+    { const wid = pd.eq.weapon, w = ITEMS[wid], en = (pd.enh || {})[wid] || 0, cost = enhCost(en), max = en >= ENH_MAX, sc = enhStoneCost(en), stn = pd.stones || 0, o = max ? null : enhOdds(en, false), pct = x => Math.round(x * 100) + '%';
+      h += `<div class="card enh"><div class="ic"><img src="${wid === 'fist' ? iconURL('sk_fist', ICONS.fist) : itemURL(wid)}"></div><div class="mid"><div class="nm">무기 강화 <span class="r${w.rar}">${w.name}${en ? ' +' + en : ''}</span></div><div class="ds">현재 공격 +${(2.5 * en).toFixed(1).replace('.0', '')} · 치명 +${(1.5 * en).toFixed(1).replace('.0', '')}%${max ? '' : `<br><b>+${en} → +${en + 1}</b> 성공 <b class="ok">${pct(o.p)}</b>${o.dn ? ` · 하락 ${pct(o.dn)}` : ''}${o.ds ? ` · <b class="bad">파괴 ${pct(o.ds)}</b>` : ''}`}</div><div class="nx">${max ? 'MAX +20 강화 완료!' : `비용 ${cost.toLocaleString()}G · 보유 ${pd.gold.toLocaleString()}G · 강화석 ${stn}개`}</div></div>${max ? '<button class="btn pk" disabled>MAX</button>' : `<div class="enhbtns"><button class="btn pk" data-m="enhance" ${pd.gold >= cost ? '' : 'disabled'}>강화</button><button class="btn stone" data-m="enhanceS" ${pd.gold >= cost && stn >= sc ? '' : 'disabled'}>강화석 ${sc}개<small>+10%·파괴방지</small></button></div>`}</div>`; }
     h += `<div class="slots">${SLOTS.map(sl => { const it = ITEMS[pd.eq[sl]]; return `<div class="slot"><img src="${itemURL(pd.eq[sl])}">${SLOTNAME[sl]}<br><b class="r${it.rar}">${it.name}${sl === 'weapon' && (pd.enh || {})[pd.eq[sl]] ? ' +' + pd.enh[pd.eq[sl]] : ''}</b></div>`; }).join('')}</div>`;
     h += `<div class="gbar" style="margin-top:8px"><span>보리 옷·장난감은 '보리' 탭에 있어요</span><button class="btn" data-m="tab" data-v="bori" style="padding:3px 9px;font-size:12px">보리 탭</button></div>`;
-    h += `<h3 style="margin-top:16px">희수 장비 목록</h3>`;
+    h += `<h3 style="margin-top:16px">희수 장비 목록</h3>` + `<div class="gbar dis"><span>강화석 <b>${pd.stones || 0}</b>개</span><span class="disb">일괄 분해 <button class="btn sm" data-m="bulk" data-v="0">일반</button><button class="btn sm" data-m="bulk" data-v="1">희귀↓</button><button class="btn sm" data-m="bulk" data-v="2">영웅↓</button></span></div>`;
     for (const sl of SLOTS) {
       const ids = Object.keys(pd.inv).filter(id => ITEMS[id] && ITEMS[id].slot === sl).sort((a, b) => (ITEMS[a].rar - ITEMS[b].rar) || ((ITEMS[a].tier || 0) - (ITEMS[b].tier || 0)));
       h += `<h3>${SLOTNAME[sl]} <small>${ids.length}개 보유</small></h3>`;
       for (const id of ids) {
         const it = ITEMS[id], eq = pd.eq[sl] === id;
-        h += `<div class="card"><div class="ic"><img src="${itemURL(id)}"></div><div class="mid"><div class="nm"><span class="r${it.rar}">${it.name}</span><span class="tag">${RARITY[it.rar]}</span></div><div class="ds">${statStr(it)}${it.desc ? `<br><small>${it.desc}</small>` : ''}</div></div>${eq ? '<span class="badge-eq">장착중</span>' : `<div style="display:flex;flex-direction:column;gap:4px"><button class="btn gr" data-m="equip" data-v="${id}">장착</button>${it.start ? '' : `<button class="btn wh" data-m="sell" data-v="${id}">판매 ${sellPrice(id)}G</button>`}</div>`}</div>`;
+        h += `<div class="card"><div class="ic"><img src="${itemURL(id)}"></div><div class="mid"><div class="nm"><span class="r${it.rar}">${it.name}</span><span class="tag">${RARITY[it.rar]}</span></div><div class="ds">${statStr(it)}${it.desc ? `<br><small>${it.desc}</small>` : ''}</div></div>${eq ? '<span class="badge-eq">장착중</span>' : `<div style="display:flex;flex-direction:column;gap:4px"><button class="btn gr" data-m="equip" data-v="${id}">장착</button>${it.start ? '' : `<button class="btn wh" data-m="sell" data-v="${id}">판매 ${sellPrice(id)}G</button>`}${canDismantle(id) ? `<button class="btn sm stone" data-m="dis" data-v="${id}">분해 +${stoneYield(id)}</button>` : ''}</div>`}</div>`;
       }
     }
     return h;
@@ -145,11 +145,12 @@ const MREN = {
     if (!pd.boriJoined) h += `<p class="ds" style="margin:4px">Lv3에 보리를 찾으면 입히고 물려줄 수 있어요.</p>`;
     else {
       h += `<div class="bprev"><img src="${boriPreviewURL()}"><div><b>보리</b><br>귀여워서 무적이라<br>장비는 전부 공격 보너스!</div></div><div class="gbar"><span>보리 공격 보너스</span><span>+${Math.round((st.boriMul - 1) * 100)}%</span></div><div class="slots" style="grid-template-columns:repeat(2,1fr)">${BSLOTS.map(sl => { const id = pd.beq[sl], it = ITEMS[id]; return `<div class="slot">${it ? `<img src="${itemURL(id)}">` : '<div style="height:34px;line-height:34px;color:#aaa">없음</div>'}${SLOTNAME[sl]}<br><b class="r${it ? it.rar : 0}">${it ? it.name : '-'}</b></div>`; }).join('')}</div>`;
+      h += `<div class="gbar dis"><span>강화석 <b>${pd.stones || 0}</b>개</span><span class="disb">일괄 분해 <button class="btn sm" data-m="bulk" data-v="0">일반</button><button class="btn sm" data-m="bulk" data-v="1">희귀↓</button><button class="btn sm" data-m="bulk" data-v="2">영웅↓</button></span></div>`;
       for (const sl of BSLOTS) {
         const ids = Object.keys(pd.inv).filter(id => ITEMS[id] && ITEMS[id].slot === sl).sort((a, b) => ITEMS[a].rar - ITEMS[b].rar);
         h += `<h3>${SLOTNAME[sl]} <small>${ids.length}개 보유${sl === 'btoy' ? ' · 항상 입에 물고 다녀요' : ''}</small></h3>`;
         if (!ids.length) h += `<p class="ds" style="margin:4px;font-size:11px;color:#8a6a7a">보스를 잡거나 배달앱에서 구할 수 있어요.</p>`;
-        for (const id of ids) { const it = ITEMS[id], eq = pd.beq[sl] === id; h += `<div class="card"><div class="ic"><img src="${itemURL(id)}"></div><div class="mid"><div class="nm"><span class="r${it.rar}">${it.name}</span><span class="tag">${RARITY[it.rar]}</span></div><div class="ds">보리 공격 +${Math.round(it.bdmg * 100)}%<br><small>${it.desc}</small></div></div>${eq ? '<span class="badge-eq">장착중</span>' : `<div style="display:flex;flex-direction:column;gap:4px"><button class="btn gr" data-m="equip" data-v="${id}">장착</button><button class="btn wh" data-m="sell" data-v="${id}">판매 ${sellPrice(id)}G</button></div>`}</div>`; }
+        for (const id of ids) { const it = ITEMS[id], eq = pd.beq[sl] === id; h += `<div class="card"><div class="ic"><img src="${itemURL(id)}"></div><div class="mid"><div class="nm"><span class="r${it.rar}">${it.name}</span><span class="tag">${RARITY[it.rar]}</span></div><div class="ds">보리 공격 +${Math.round(it.bdmg * 100)}%<br><small>${it.desc}</small></div></div>${eq ? '<span class="badge-eq">장착중</span>' : `<div style="display:flex;flex-direction:column;gap:4px"><button class="btn gr" data-m="equip" data-v="${id}">장착</button><button class="btn wh" data-m="sell" data-v="${id}">판매 ${sellPrice(id)}G</button>${canDismantle(id) ? `<button class="btn sm stone" data-m="dis" data-v="${id}">분해 +${stoneYield(id)}</button>` : ''}</div>`}</div>`; }
       }
     }
     return h;
@@ -204,7 +205,19 @@ function menuClick(e) {
   if (m === 'eat') { G.P.eatCd = 0; eatFood(v); G.P.eatCd = 0; renderMenu(); return; }
   if (m === 'buy') { const f = FOODS[v]; if (pd.gold < f.price) return; pd.gold -= f.price; pd.foods[v] = (pd.foods[v] || 0) + 1; sfx('coin'); renderMenu(); return; }
   if (m === 'buyItem') { const it = ITEMS[v]; if (pd.gold < it.price || pd.inv[v]) return; pd.gold -= it.price; pd.inv[v] = 1; sfx('ding'); if (it.bori) { pd.beq[it.slot] = v; calcStats(); toast(`${it.name} 구매! 보리가 바로 ${it.slot === 'btoy' ? '물었어요' : '입었어요'} (보리 탭)`, 'item r' + it.rar); if (G.bori) bubble(G.bori, '멍멍! (신남)', 1.4); } else toast(`${it.name} 구매! 장비 탭에서 장착하세요`, 'item r' + it.rar); renderMenu(); saveGame(); return; }
-  if (m === 'enhance') { const wid = pd.eq.weapon, en = (pd.enh || {})[wid] || 0, cost = enhCost(en); if (en >= ENH_MAX || pd.gold < cost) return; pd.gold -= cost; pd.enh = pd.enh || {}; pd.enh[wid] = en + 1; calcStats(); sfx('lvl'); toast(`강화 성공! ${ITEMS[wid].name} +${en + 1}`, 'lvl'); if (G.P) { G.fx.push({ k: 'lvl', x: G.P.x, y: G.P.y, t: 0, dur: 1.0 }); bubble(G.P, choice(['더 세졌다!', '반짝반짝~', '이걸로 등짝을...']), 1.3); } renderMenu(); saveGame(); return; }
+  if (m === 'enhance' || m === 'enhanceS') {
+    const r = tryEnhance(m === 'enhanceS'); if (!r) return; const nm = ITEMS[pd.eq.weapon].name, P = G.P;
+    if (r.res === 'up') { sfx('lvl'); toast(`강화 성공! ${nm} +${r.to}`, 'lvl'); if (P) { G.fx.push({ k: 'lvl', x: P.x, y: P.y, t: 0, dur: 1.0 }); bubble(P, choice(['더 세졌다!', '반짝반짝~', '이걸로 등짝을...']), 1.3); } }
+    else if (r.res === 'keep') { sfx('warn'); toast(`강화 실패... +${r.to} 유지`, 'sub'); if (P) bubble(P, choice(['아깝다...', '한 번만 더!']), 1.2); }
+    else if (r.res === 'down') { sfx('hurt'); toast(`강화 실패! +${r.from} → +${r.to} 하락`, 'warn'); if (P) bubble(P, '흐엉...', 1.2); }
+    else if (r.res === 'saved') { sfx('hurt'); toast(`파괴될 뻔! 강화석이 막아줬어요 (+${r.from} → +${r.to})`, 'item r2'); if (P) bubble(P, '휴... 강화석 최고', 1.3); }
+    else { sfx('slam'); G.shake = 8; toast(`파괴!! ${nm} +${r.from} → +${r.to}`, 'warn'); if (P) bubble(P, '안 돼애애애!!', 1.6); }
+    renderMenu(); return;
+  }
+  if (m === 'dis') { const it = ITEMS[v]; if (!canDismantle(v)) return; confirmBox(`${it.name}을(를) 분해할까요? (강화석 +${stoneYield(v)})`, () => { const r = dismantle([v]); sfx('coin'); toast(`분해 완료! 강화석 +${r.s}`, 'sub'); renderMenu(); saveGame(); }); return; }
+  if (m === 'bulk') { const mx = +v, ids = Object.keys(pd.inv).filter(id => canDismantle(id) && ITEMS[id].rar <= mx), s = ids.reduce((a, id) => a + stoneYield(id), 0);
+    if (!ids.length) { toast(`분해할 ${['일반', '희귀 이하', '영웅 이하'][mx]} 장비가 없어요 (장착중·강화된 무기는 제외)`, 'sub'); return; }
+    confirmBox(`장착 안 한 ${['일반', '희귀 이하', '영웅 이하'][mx]} 장비 ${ids.length}개를 분해할까요?\n(희수·보리 장비 모두 · 강화된 무기 제외)\n강화석 +${s}`, () => { const r = dismantle(ids); sfx('coin'); toast(`${r.n}개 분해! 강화석 +${r.s}`, 'lvl'); renderMenu(); saveGame(); }); return; }
   if (m === 'sound') { setSound(!SND.on); renderMenu(); updateSndBtn(); return; }
   if (m === 'title') { saveGame(); $('#menu').hidden = true; showTitle(); return; }
   if (m === 'restart') { confirmBox('정말 처음부터 다시 할까요? 지금 진행이 사라져요.', () => { $('#menu').hidden = true; newGame(); }); return; }

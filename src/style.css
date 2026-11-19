@@ -226,3 +226,12 @@ button{font-family:inherit;color:inherit;border:none;background:none;padding:0;c
 .pvl{display:flex;align-items:center;gap:8px;background:#fff;border:3px solid var(--ink);border-radius:10px;padding:8px 10px;font-size:13px}.pvl b{color:#fff;border-radius:6px;padding:2px 6px}.pvl.w b{background:#3aa04a}.pvl.l b{background:#c0306a}.pvl span{flex:1}.pvl i{font-style:normal;font-weight:bold}
 #pvpNickIn{width:100%;font:inherit;font-size:18px;padding:10px;border:3px solid var(--ink);border-radius:10px;margin:4px 0 10px;user-select:text;-webkit-user-select:text}
 #pvpResT.w{color:#3aa04a}#pvpResT.l{color:#c0306a}
+
+/* 강화·강화석 */
+.enhbtns{display:flex;flex-direction:column;gap:4px;flex:0 0 auto}
+.btn.stone{background:#6a3ac0;color:#fff}.btn.stone small{display:block;font-size:9px;opacity:.85}
+.btn.sm{padding:3px 8px;font-size:11px}
+.card.enh .ok{color:#3aa04a}.card.enh .bad{color:#e0306a}
+.gbar.dis{flex-wrap:wrap;gap:6px}.gbar.dis .disb{display:flex;align-items:center;gap:4px;font-size:12px;color:#fff}
+.gbar.dis .btn.sm{background:#fff;color:var(--ink)}
+#confirmT{white-space:pre-line}
