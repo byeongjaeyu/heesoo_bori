@@ -15,7 +15,7 @@ function newPD() {
     lv: 1, xp: 0, gold: 30, sp: 1, skills: {},
     inv: { fist: 1, cap_grey: 1, fleece: 1, sneakers: 1, silverbag: 1 },
     eq: { weapon: 'fist', hat: 'cap_grey', armor: 'fleece', shoes: 'sneakers', bag: 'silverbag' },
-    foods: { persimmon: 3, popcorn: 3 }, enh: {}, stones: 0, zone: 0, boriJoined: false, cleared: 0, beq: { bcloth: null, btoy: null },
+    foods: { persimmon: 3, popcorn: 3 }, enh: {}, ilv: {}, iexp: {}, stones: 0, zone: 0, boriJoined: false, cleared: 0, beq: { bcloth: null, btoy: null },
     stats: { kills: 0, ults: 0, deaths: 0, time: 0, eaten: 0 }
   };
 }
@@ -26,7 +26,7 @@ function loadGame() {
     const d = JSON.parse(s); const pd = newPD();
     for (const k in d) pd[k] = d[k];
     pd.stats = Object.assign(newPD().stats, d.stats || {});
-    pd.beq = Object.assign({ bcloth: null, btoy: null }, d.beq || {}); pd.enh = d.enh || {}; pd.stones = d.stones || 0;
+    pd.beq = Object.assign({ bcloth: null, btoy: null }, d.beq || {}); pd.enh = d.enh || {}; pd.ilv = d.ilv || {}; pd.iexp = d.iexp || {}; pd.stones = d.stones || 0;
     for (const sl of SLOTS) if (!ITEMS[pd.eq[sl]]) pd.eq[sl] = newPD().eq[sl];
     return pd;
   } catch (e) { return null; }
@@ -34,17 +34,32 @@ function loadGame() {
 function hasSave() { try { return !!localStorage.getItem(SAVEKEY); } catch (e) { return false; } }
 const sk = id => (G.pd && G.pd.skills[id]) || 0;
 
+// 장비 레벨: 착용 장비와 같은 부위·같은 등급 장비를 ILV_NEED개 주우면 Lv+1, 레벨당 기본 스탯 +5%
+const ILV_NEED = 5, ILV_BONUS = 0.05;
+const ilvOf = id => ((G.pd && G.pd.ilv) || {})[id] || 0;
+const ilvMul = id => 1 + ILV_BONUS * ilvOf(id);
+function feedEquip(it) {
+  const pd = G.pd, cur = it.bori ? (pd.beq || {})[it.slot] : pd.eq[it.slot], ci = ITEMS[cur];
+  if (!ci || ci.rar !== it.rar) return false;
+  pd.ilv = pd.ilv || {}; pd.iexp = pd.iexp || {}; const n = (pd.iexp[cur] || 0) + 1;
+  if (n >= ILV_NEED) {
+    pd.iexp[cur] = 0; pd.ilv[cur] = (pd.ilv[cur] || 0) + 1; calcStats(); sfx('lvl');
+    toast(`장비 레벨업! ${ci.name} Lv.${pd.ilv[cur]} (기본 스탯 +${Math.round(ILV_BONUS * 100 * pd.ilv[cur])}%)`, 'lvl');
+    const who = it.bori ? G.bori : G.P; if (who) { G.fx.push({ k: 'lvl', x: who.x, y: who.y, t: 0, dur: 1.0 }); bubble(who, it.bori ? '멍멍!! (더 좋아졌다)' : '장비가 손에 착 붙는다!', 1.3); }
+  } else { pd.iexp[cur] = n; toast(`${it.name} → ${ci.name} 경험치 ${n}/${ILV_NEED}`, 'sub'); sfx('coin'); }
+  return true;
+}
 function calcStats() {
   const pd = G.pd, lv = pd.lv;
   const st = { hp: 100 + (lv - 1) * 22, mp: 50 + (lv - 1) * 8, atk: 10 + (lv - 1) * 3.5, def: 2 + (lv - 1) * 1.2, spd: 1, crit: 0.08, critMul: 1.6 };
-  for (const slot of SLOTS) { const it = ITEMS[pd.eq[slot]]; if (!it) continue; st.hp += it.hp || 0; st.mp += it.mp || 0; st.atk += it.atk || 0; st.def += it.def || 0; st.spd += it.spd || 0; st.crit += it.crit || 0; }
+  for (const slot of SLOTS) { const it = ITEMS[pd.eq[slot]]; if (!it) continue; const m = ilvMul(pd.eq[slot]); st.hp += (it.hp || 0) * m; st.mp += (it.mp || 0) * m; st.atk += (it.atk || 0) * m; st.def += (it.def || 0) * m; st.spd += (it.spd || 0) * m; st.crit += (it.crit || 0) * m; }
   st.spd += 0.05 * sk('shop'); st.goldMul = 1 + 0.15 * sk('shop');
   st.hp = Math.round(st.hp * (1 + 0.05 * sk('mukbang'))); st.foodMul = 1 + 0.2 * sk('mukbang');
   const en = (pd.enh || {})[pd.eq.weapon] || 0; st.atk += 2.5 * en; st.crit += 0.01 * en; st.enh = en;
   if (G.P && G.P.buffs) { let ba = 0, bc = 0; for (const k in G.P.buffs) { ba += G.P.buffs[k].atk || 0; bc += G.P.buffs[k].crit || 0; } st.atk *= 1 + ba; st.crit += bc; }
   st.atk = Math.round(st.atk); st.def = Math.round(st.def); st.mp = Math.round(st.mp);
   st.weapon = ITEMS[pd.eq.weapon].w; st.moveSpd = 66 * st.spd;
-  st.boriMul = 1; for (const sl of BSLOTS) { const it = ITEMS[(pd.beq || {})[sl]]; if (it) st.boriMul += it.bdmg || 0; }
+  st.boriMul = 1; for (const sl of BSLOTS) { const it = ITEMS[(pd.beq || {})[sl]]; if (it) st.boriMul += (it.bdmg || 0) * ilvMul(pd.beq[sl]); }
   st.toyEnh = (pd.enh || {})[(pd.beq || {}).btoy] || 0; st.boriMul += TOY_ENH * st.toyEnh;
   G.st = st;
   if (G.P) { G.P.hp = Math.min(G.P.hp, st.hp); G.P.mp = Math.min(G.P.mp, st.mp); }
@@ -439,7 +454,8 @@ function pickup(d) {
   else if (d.kind === 'food') { pd.foods[d.id] = (pd.foods[d.id] || 0) + 1; addText(P.x, P.y - 30, '+' + FOODS[d.id].name, 'food'); sfx('ding'); if (PREMIUM.includes(d.id)) toast(`${FOODS[d.id].name} 획득! 최고급 보양식`, 'lvl'); }
   else if (d.kind === 'item') {
     const it = ITEMS[d.id];
-    if (pd.inv[d.id]) { const s = stoneYield(d.id); pd.stones = (pd.stones || 0) + s; toast(`${it.name} (중복) → 강화석 ${s}개`, 'sub'); sfx('coin'); }
+    const fed = feedEquip(it);
+    if (pd.inv[d.id]) { if (fed) return; const s = stoneYield(d.id); pd.stones = (pd.stones || 0) + s; toast(`${it.name} (중복) → 강화석 ${s}개`, 'sub'); sfx('coin'); }
     else if (it.bori) { pd.inv[d.id] = 1; if (!pd.beq[it.slot]) { pd.beq[it.slot] = d.id; calcStats(); toast(`${it.name} 획득! 보리가 바로 ${it.slot === 'btoy' ? '물었어요' : '입었어요'}`, 'item r' + it.rar); if (G.bori) bubble(G.bori, '멍멍! (신남)', 1.4); } else { pd.newBori = true; toast(`보리 장비 획득: ${it.name}! (메뉴 → 보리)`, 'item r' + it.rar); } sfx('ding'); }
     else { pd.inv[d.id] = 1; pd.newItem = true; toast(`새 장비 획득: ${it.name}! (메뉴 → 장비)`, 'item r' + it.rar); sfx('ding'); }
   }
@@ -453,7 +469,7 @@ const enhCost = lv => Math.round(50 * Math.pow(1.3, lv));
 const enhStoneCost = lv => lv < 10 ? 1 : lv < 15 ? 3 : lv < 18 ? 6 : 10;
 const STONE_YIELD = [1, 3, 8, 20, 50, 120];
 const stoneYield = id => STONE_YIELD[ITEMS[id].rar] || 1;
-function canDismantle(id) { const it = ITEMS[id], pd = G.pd; return !!(it && !it.start && pd.inv[id] && pd.eq[it.slot] !== id && (pd.beq || {})[it.slot] !== id && !((pd.enh || {})[id] > 0)); }
+function canDismantle(id) { const it = ITEMS[id], pd = G.pd; return !!(it && !it.start && pd.inv[id] && pd.eq[it.slot] !== id && (pd.beq || {})[it.slot] !== id && !((pd.enh || {})[id] > 0) && !ilvOf(id) && !((pd.iexp || {})[id] > 0)); }
 function dismantle(ids) { let s = 0, n = 0; for (const id of ids) { if (!canDismantle(id)) continue; s += stoneYield(id); n++; delete G.pd.inv[id]; } G.pd.stones = (G.pd.stones || 0) + s; return { n, s }; }
 function enhOdds(lv, useStone) { let p = ENH_P[lv], dn = ENH_DOWN[lv], ds = ENH_DEST[lv]; if (useStone) { const add = Math.min(0.1, 1 - p); p += add; const take = Math.min(add, dn); dn -= take; } return { p, dn, ds, protect: !!useStone }; }
 const TOY_ENH = 0.03; // 보리 장난감 강화 1단계당 보리 공격 +3%
