@@ -39,6 +39,7 @@ function dBench() {
 }
 function dBalloonCart() {
   const c = mkCanvas(18, 32), g = c.getContext('2d');
+  /** @type {[number, number, string][]} */
   const bl = [[5, 5, '#ff6b8a'], [12, 4, '#6fb8ff'], [9, 9, '#ffd84a'], [14, 10, '#7ccf5a'], [4, 11, '#b45cff']];
   for (const [x, y] of bl) { g.fillStyle = '#9aa0aa'; for (let yy = y + 3; yy < 22; yy++) g.fillRect(Math.round(lerp(x, 9, (yy - y) / (22 - y))), yy, 1, 1); }
   for (const [x, y, col] of bl) { pCirc(g, x, y, 3, OK); pCirc(g, x, y, 2, col); pRect(g, x - 1, y - 1, 1, 1, '#fff'); }

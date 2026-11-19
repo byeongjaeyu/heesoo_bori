@@ -50,7 +50,7 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&a
 function pvpRender(html) {
   const me = PV.me;
   $('#pvpInfo').innerHTML = me ? `<b>${esc(me.nickname)}</b> · 점수 ${me.rating} · ${me.wins}승 ${me.losses}패` : '';
-  for (const b of document.querySelectorAll('#pvpTabs button')) b.classList.toggle('on', b.dataset.t === PV.tab);
+  for (const b of document.querySelectorAll(/** @type {'button'} */ ('#pvpTabs button'))) b.classList.toggle('on', b.dataset.t === PV.tab);
   $('#pvpList').innerHTML = html;
 }
 function pvpCard(f, btn) {

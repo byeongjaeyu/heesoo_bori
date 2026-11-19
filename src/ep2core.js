@@ -126,7 +126,7 @@ function e2MenuClick(e) {
   else if (a === 'wardrobe') e2Wardrobe();
   else if (a === 'wear') { const s = EP2.save; if (v === 'none-cloth') s.cloth = null; else if (v === 'none-toy') s.toy = null; else { const it = ITEMS[v]; if (it.slot === 'btoy') s.toy = v; else s.cloth = v; } e2SaveNow(); e2Wardrobe(); }
   else if (a === 'prologue') { e2HideAll(); e2Prologue(true); }
-  else if (a === 'ending') { e2HideAll(); e2Ending(true); }
+  else if (a === 'ending') { e2HideAll(); e2Ending(); }
   else if (a === 'title') { e2HideAll(); showTitle(); }
 }
 function e2Play(i) {

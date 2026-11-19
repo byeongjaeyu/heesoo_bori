@@ -182,7 +182,7 @@ const INP = { k: {}, atk: false, act: new Set(), joy: { on: false, id: -1, ox: 0
 const KEYMOVE = { ArrowUp: 'u', KeyW: 'u', ArrowDown: 'd', KeyS: 'd', ArrowLeft: 'l', KeyA: 'l', ArrowRight: 'r', KeyD: 'r' };
 const KEYACT = { KeyO: 'auto', ArrowUp: 'kup', ArrowDown: 'kdown', ArrowLeft: 'kleft', ArrowRight: 'kright', KeyK: 's1', Digit1: 's1', KeyL: 's2', Digit2: 's2', Semicolon: 's3', Digit3: 's3', KeyU: 'ult', Digit4: 'ult', KeyR: 'ult', KeyQ: 'hp', KeyE: 'mp', KeyI: 'menu', KeyM: 'menu', Tab: 'menu', Escape: 'esc', Enter: 'ok' };
 window.addEventListener('keydown', e => {
-  if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+  const tg = /** @type {HTMLElement|null} */ (e.target); if (tg && (tg.tagName === 'INPUT' || tg.tagName === 'TEXTAREA')) return;
   audioInit();
   const k = KEYMOVE[e.code]; if (k) { INP.k[k] = true; e.preventDefault(); }
   if (e.code === 'KeyJ' || e.code === 'Space') { INP.atk = true; e.preventDefault(); if (!e.repeat) INP.act.add('ok'); }
@@ -228,7 +228,7 @@ function setupTouch() {
   });
   const end = e => { if (G.state === 'ep2' && !EP2.useJoy) { e2Ptr('up', e); } if (e.pointerId !== INP.joy.id) return; INP.joy.on = false; INP.joy.id = -1; INP.joy.dx = INP.joy.dy = 0; hideJoy(); };
   layer.addEventListener('pointerup', end); layer.addEventListener('pointercancel', end);
-  document.querySelectorAll('[data-act]').forEach(btn => {
+  document.querySelectorAll('[data-act]').forEach((/** @type {HTMLElement} */ btn) => {
     const act = btn.dataset.act;
     btn.addEventListener('pointerdown', e => {
       audioInit(); e.preventDefault(); e.stopPropagation();

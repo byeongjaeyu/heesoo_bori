@@ -295,5 +295,6 @@ const ST_BOSSFISH = {
 return [ST_HOME, ST_RUN, ST_MARKET, ST_CAT, ST_CAFE, ST_VET, ST_FISH, ST_BOSSFISH];
 
 })();
+/** @type {any[]} 일반/원터치 스테이지 목록 중 현재 모드 */
 let E2STAGES = E2STAGES_NORMAL;
 function e2ApplyMode() { E2STAGES = FORCE_EASY || (EP2.save && EP2.save.mode === 'easy') ? E2STAGES_EASY : E2STAGES_NORMAL; }

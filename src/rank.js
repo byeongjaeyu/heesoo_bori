@@ -20,7 +20,7 @@ function rankOpen(from) {
 }
 function rankClose() { $('#rank').hidden = true; if (location.hash === '#ranking') history.replaceState(null, '', location.pathname); showTitle(); }
 async function rankTab(t) {
-  RK.tab = t; for (const b of document.querySelectorAll('#rankTabs button')) b.classList.toggle('on', b.dataset.rt === t);
+  RK.tab = t; for (const b of document.querySelectorAll(/** @type {'button'} */ ('#rankTabs button'))) b.classList.toggle('on', b.dataset.rt === t);
   $('#rankSum').innerHTML = ''; $('#rankList').innerHTML = '<div class="pvmsg">랭킹을 불러오는 중...</div>';
   try {
     await sbInit(); if (!RK.synced) { RK.synced = true; await Promise.race([rankSync(true), new Promise(r => setTimeout(r, 4000))]); }

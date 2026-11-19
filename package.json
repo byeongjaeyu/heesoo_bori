@@ -1,0 +1,14 @@
+{
+  "name": "heesoo-bori",
+  "private": true,
+  "version": "1.0.0",
+  "description": "희수와 보리의 대모험 - 도트 웹게임",
+  "scripts": {
+    "build": "python3 build.py",
+    "typecheck": "tsc -p tsconfig.json",
+    "typecheck:noimplicit": "tsc -p tsconfig.json --noImplicitAny"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

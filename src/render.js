@@ -319,7 +319,7 @@ function drawPark(SW, SH, mid, gy, dark, withGate, T) {
   for (let x = -4; x < SW + 8; x += 8) pc(x, gy - 2, 5, hg);
   fr(0, gy, SW, SH - gy, mixHex('#ead9b6', '#5a4a6a', dark));
   const ln = mixHex('#d6c39a', '#4a3a5a', dark); for (let y = gy + 4; y < SH; y += 8) fr(0, y, SW, 1, ln); for (let y = gy; y < SH; y += 8) for (let x = ((y / 8) % 2) * 8; x < SW; x += 16) fr(x, y, 1, 8, ln);
-  if (withGate) { const img = dGateCached(false); ctx.drawImage(img, Math.round(mid + 36 * CUTK - img.width / 2), Math.round(gy + 6 - img.height)); }
+  if (withGate) { const img = dGateCached(); ctx.drawImage(img, Math.round(mid + 36 * CUTK - img.width / 2), Math.round(gy + 6 - img.height)); }
 }
 let GATECACHE = null; function dGateCached() { return GATECACHE || (GATECACHE = dGate(false)); }
 function drawHome(SW, SH, mid, gy, T, A) {
