@@ -240,6 +240,23 @@ function rollItem(minRar, legendChance) {
   if (leg.length && Math.random() < (legendChance || 0)) return choice(leg); return rest.length ? choice(rest) : (leg.length ? choice(leg) : null);
 }
 
+function loopIntro(L) {
+  const n = L + 1, LM = loopMul();
+  const lines = L === 1 ? [
+    { who: 'sys', text: '다시 에버랜드에 발을 들인 순간...\n공기가 확 달라졌다.' },
+    { who: 'sys', text: '【2회차】 한층 더 강해진 몬스터들이 훨씬 더 많이 몰려온다!\n황금 왕관을 쓴 「정예 몬스터」까지 어슬렁거린다.' },
+    { who: 'sys', text: '대신 이런 소문이 돌고 있다.\n이번 회차부터 아무도 본 적 없는 「신화」 장비가 떨어진다고...' },
+    { who: 'sys', text: '그리고 3회차까지 살아남으면,\n그보다 더 위인 「초월」 장비까지 손에 넣을 수 있다고!' },
+    { who: 'hee', text: '신화...? 초월...?\n그건 못 참지. 싹 다 털어간다!!' },
+    { who: 'bori', text: '멍멍!! (나도 황금 뼈다구 갖고 싶어!)' }
+  ] : [
+    { who: 'sys', text: `【${n}회차】 몬스터가 또 한 번 강해졌다!\n체력 ×${LM.hp.toFixed(1)} · 공격 ×${LM.atk.toFixed(2).replace(/0$/, '')} · 정예 출현 ${Math.round(LM.elite * 100)}%` },
+    { who: 'sys', text: L === 2 ? '드디어 「초월」 장비가 풀렸다!\n보상도 골드 ×' + LM.gold.toFixed(1) + ' · 아이템 ×' + LM.item.toFixed(1) + '로 늘었다.' : `보상도 골드 ×${LM.gold.toFixed(1)} · 아이템 ×${LM.item.toFixed(1)}!\n신화·초월 장비가 더 자주, 더 앞 스테이지에서 나온다.` },
+    { who: 'hee', text: choice(['아직 배고프다. 더 강한 걸로 가져와!', '이번엔 초월 풀세트 맞춘다!', '보리야, 오늘도 털러 가자!']) }
+  ];
+  dialog(lines);
+}
+
 // ---------- enemies ----------
 function spawnEnemy(type, x, y) {
   const m = MONS[type], s = monSpr(m.spr), sc = m.scale || 1;
@@ -493,7 +510,7 @@ function startZone(i) {
   for (let k = 0; k < 5; k++) { const e = spawnAround(wpick(ZONES[i].mons), 140, 260); if (e) e.spawnT = 0; }
   G.cam.x = clamp(G.P.x - VW / 2, 0, Math.max(0, W.W - VW)); G.cam.y = clamp(G.P.y - 12 - VH / 2, 0, Math.max(0, W.H - VH));
   G.state = 'play'; playBgm('field'); showHUD(true); saveGame();
-  { const L = loopLv(); banner(L ? `${L + 1}회차 · ${ZONES[i].sub}` : ZONES[i].sub, ZONES[i].name, 'stage'); if (L && i === 0) setTimeout(() => toast(`${L + 1}회차! 몬스터 HP ×${loopMul().hp.toFixed(1)} · 보상 ×${loopMul().gold.toFixed(1)} · 왕관 정예 출현`, 'lvl'), 1600); }
+  { const L = loopLv(); banner(L ? `${L + 1}회차 · ${ZONES[i].sub}` : ZONES[i].sub, ZONES[i].name, 'stage'); if (L && i === 0) setTimeout(() => { if (G.state === 'play' && !G.pvp) loopIntro(L); }, 1700); }
   if (!G.pd.boriJoined) { if (G.pd.lv >= 3) G.pendingEvent = 'bori'; else setTimeout(() => { if (G.state === 'play' && !G.pd.boriJoined) bubble(G.P, '보리야... 어디 있어ㅠㅠ', 2.6); }, 1800); }
 }
 function playerDie() {
