@@ -413,7 +413,7 @@ const sellPrice = id => { const it = ITEMS[id]; return it.price ? Math.floor(it.
 // ---------- food ----------
 function eatFood(id) {
   const pd = G.pd, P = G.P, f = FOODS[id]; if (!pd.foods[id] || P.eatCd > 0) return false;
-  pd.foods[id]--; P.eatCd = 0.5; P.idleT = 0;
+  pd.foods[id]--; P.eatCd = 0.5; P.idleT = 0; if (f.eatLine) bubble(P, choice(f.eatLine), 1.4);
   const m = G.st.foodMul, hp = Math.round(G.st.hp * f.hp * m), mp = Math.round(G.st.mp * f.mp * m);
   if (f.buff) { P.buffs[f.buff.id] = Object.assign({}, f.buff); calcStats(); toast(`${f.name} 보양! ${f.buff.t}초간 ` + [f.buff.atk ? `공격력 +${Math.round(f.buff.atk * 100)}%` : '', f.buff.crit ? `치명타 +${Math.round(f.buff.crit * 100)}%` : ''].filter(Boolean).join(' · '), 'lvl'); }
   P.hp = Math.min(G.st.hp, P.hp + hp); P.mp = Math.min(G.st.mp, P.mp + mp);
@@ -497,8 +497,8 @@ function goNextZone() {
   if (G.state !== 'play') return;
   G.state = 'trans'; sfx('open');
   if (G.zone >= ZONES.length - 1) { G.pd.cleared = (G.pd.cleared || 0) + 1; saveGame(); fadeTo(() => startEnding()); return; }
-  G.pd.zone = G.zone + 1; saveGame();
-  fadeTo(() => startZone(G.pd.zone));
+  G.pd.zone = G.zone + 1; const n = 2 + Math.floor(loopLv() / 2); G.pd.foods.gimbap = (G.pd.foods.gimbap || 0) + n; G.pd.foods.drink = (G.pd.foods.drink || 0) + n; saveGame();
+  fadeTo(() => { startZone(G.pd.zone); setTimeout(() => { if (G.state === 'play' || G.state === 'dialog') { toast(`스마트 푸드 센터 재고떨이! 유통기한 임박 김밥 ×${n} · 음료수 ×${n}`, 'item r2'); sfx('coin'); if (G.P) bubble(G.P, '공짜는 못 참지!', 1.4); } }, 2900); });
 }
 function startZone(i) {
   G.pvp = null;

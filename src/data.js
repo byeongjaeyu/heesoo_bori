@@ -6,11 +6,13 @@ const FOODS = {
   watermelon: { name: '수박',       icon: 'watermelon', hp: 0.20, mp: 0.20, price: 55,  w: 12, desc: '시원한 수박. HP·MP 20% 회복' },
   gangjeong:  { name: '닭강정',     icon: 'gangjeong',  hp: 0.50, mp: 0,    price: 80,  w: 8,  desc: '달콤바삭 닭강정. HP 50% 회복' },
   cake:       { name: '초코케이크', icon: 'cake',       hp: 0.10, mp: 0.50, price: 90,  w: 6,  desc: '꾸덕한 초코케이크. MP 50% + HP 10% 회복' },
+  gimbap:     { name: '유통기한 임박 김밥', icon: 'gimbap', hp: 0.40, mp: 0, w: 0, noShop: 1, eatLine: ['유통기한... 오늘까지네? 괜찮겠지!', '냠. 아직 멀쩡해!', '단무지가 살짝 시큼한데?'], desc: '스마트 푸드 센터 재고떨이. 유통기한이 얼마 안 남았다... HP 40% 회복' },
+  drink:      { name: '유통기한 임박 음료수', icon: 'drink', hp: 0, mp: 0.40, w: 0, noShop: 1, eatLine: ['캬~ 아직 탄산 살아있다!', '유통기한 D-1... 원샷!', '미지근하지만 괜찮아'], desc: '스마트 푸드 센터 재고떨이. 유통기한이 얼마 안 남았다... MP 40% 회복' },
   banhmi:     { name: '그리팅 반미',   icon: 'banhmi',   hp: 1, mp: 1, price: 900, w: 0.5, rar: 3, buff: { id: 'banhmi', name: '반미', t: 60, atk: 0.4 }, desc: '최고급! HP·MP 전부 회복 + 60초간 공격력 +40%' },
   jjukkumi:   { name: '그리팅 쭈꾸미', icon: 'jjukkumi', hp: 1, mp: 1, price: 900, w: 0.5, rar: 3, buff: { id: 'jjukkumi', name: '쭈꾸미', t: 60, atk: 0.15, crit: 0.25 }, desc: '최고급! HP·MP 전부 회복 + 60초간 치명타 +25%·공격력 +15%' },
   eel:        { name: '민물장어',   icon: 'eel',        hp: 1,    mp: 1,    price: 400, w: 1,  rar: 2, buff: { id: 'eel', name: '장어', t: 30, atk: 0.3 }, desc: '최강 보양식! HP·MP 전부 회복 + 30초간 공격력 +30%' }
 };
-const FOOD_ORDER = ['popcorn', 'persimmon', 'cornflakes', 'watermelon', 'gangjeong', 'cake', 'eel', 'banhmi', 'jjukkumi'];
+const FOOD_ORDER = ['popcorn', 'persimmon', 'cornflakes', 'watermelon', 'gangjeong', 'cake', 'gimbap', 'drink', 'eel', 'banhmi', 'jjukkumi'];
 const PREMIUM = ['eel', 'banhmi', 'jjukkumi'];
 
 const RARITY = ['일반', '희귀', '영웅', '전설', '신화', '초월'];

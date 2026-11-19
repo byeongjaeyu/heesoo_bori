@@ -356,6 +356,26 @@ const MONSPR = {
 
 // ---------- ICONS ----------
 const ICONS = {
+  gimbap:[
+".KKKKKKK.",
+"K4444444K",
+"K4IIIII4K",
+"K4I3R1I4K",
+"K4IA2II4K",
+"K4IIIII4K",
+"K4444444K",
+".KKKKKKK."],
+  drink:[
+"..KKK..",
+"..KJK..",
+".KKKKK.",
+"KUUUUUK",
+"KIIIIIK",
+"KIRRRIK",
+"KIIIIIK",
+"KUUUUUK",
+"KuuuuuK",
+".KKKKK."],
   persimmon:[
 "...K2K...",
 "..K212K..",
