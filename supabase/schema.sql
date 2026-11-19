@@ -103,3 +103,4 @@ revoke all on function public.hb_report_battle(uuid, boolean) from public, anon;
 grant execute on function public.hb_report_battle(uuid, boolean) to authenticated;
 revoke all on function public.hb_opponents() from public, anon;
 grant execute on function public.hb_opponents() to authenticated;
+revoke all on function public.hb_touch() from public, anon, authenticated;
