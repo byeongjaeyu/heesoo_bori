@@ -31,9 +31,9 @@ export function sourceFiles() {
 }
 
 /** 파일들을 이어 붙인 JS (TS 는 타입만 제거) */
-export async function buildJs() {
+export async function buildJs({ exclude = [] } = {}) {
   const parts = [];
-  for (const f of sourceFiles()) {
+  for (const f of sourceFiles().filter(f => !exclude.includes(path.basename(f).replace(/\.(js|ts)$/, '')))) {
     let code = fs.readFileSync(f, 'utf8');
     if (f.endsWith('.ts')) code = (await transformWithEsbuild(code, f, { loader: 'ts', target: 'es2022', format: undefined, sourcemap: false })).code.replace(/\n$/, '');
     parts.push(code);

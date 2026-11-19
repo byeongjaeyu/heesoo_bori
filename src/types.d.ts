@@ -75,5 +75,4 @@ interface ItemDef {
   style?: string;
   /** 무기 판정 */
   w?: { reach: number; rate: number; [k: string]: any };
-  [k: string]: any;
 }

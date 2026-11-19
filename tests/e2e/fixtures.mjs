@@ -1,0 +1,52 @@
+import { test as base, expect } from '@playwright/test';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+const DIST = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../dist');
+export const URL_MAIN = 'file://' + path.join(DIST, 'index.html');
+export const URL_ONETOUCH = 'file://' + path.join(DIST, 'onetouch/index.html');
+
+/** 가짜 Supabase (메모리). page.evaluate 로 주입 */
+export const MOCK_SB = `(() => {
+  window.__rows = window.__rows || [];
+  window.__grants = window.__grants || [];
+  const q = () => { const st = { f: [], head: false, single: false, upd: null };
+    const run = () => { const rows = __rows.filter(r => st.f.every(([k, v]) => r[k] === v)); if (st.upd) { rows.forEach(r => Object.assign(r, st.upd)); return { error: null }; }
+      if (st.single) return { data: rows[0] || null, error: null }; if (st.head) return { count: rows.length, error: null }; return { data: rows, error: null }; };
+    const o = { select(c, opt) { if (opt && opt.head) st.head = true; return o; }, limit() { return o; }, order() { return o; }, eq(k, v) { st.f.push([k, v]); return o; },
+      maybeSingle() { st.single = true; return Promise.resolve(run()); }, insert(row) { __rows.push(Object.assign({ user_id: 'u-me', rating: 1000, wins: 0, losses: 0 }, row)); return Promise.resolve({ error: null }); },
+      update(u) { st.upd = u; return o; }, then(res, rej) { return Promise.resolve(run()).then(res, rej); } };
+    return o; };
+  const rpc = async (name) => { if (name === 'hb_claim_grants') { const d = __grants; __grants = []; return { data: d, error: null }; } return { data: null, error: null }; };
+  SB = { from: q, rpc }; PV.uid = 'u-me';
+  sbInit = async () => { SB = { from: q, rpc }; PV.uid = 'u-me'; };
+})()`;
+
+export const test = base.extend({
+  page: async ({ page }, use) => {
+    const errors = [];
+    page.on('pageerror', e => errors.push(String(e)));
+    // 실제 서버/외부 CDN 은 막음 (테스트가 운영 DB 를 건드리지 않게)
+    await page.route(/supabase\.co|cdn\.jsdelivr\.net/, r => r.abort());
+    page.errors = errors;
+    await use(page);
+    expect(errors, '페이지 JS 오류').toEqual([]);
+  }
+});
+export { expect };
+
+/** 세이브를 심고 새로고침 (기본: 보리 합류 완료 → 스토리 대화가 끼어들지 않게) */
+export async function withSave(page, url, patch = {}) {
+  await page.goto(url);
+  await page.evaluate(p => { const pd = Object.assign(newPD(), { boriJoined: true }, p); localStorage.setItem(SAVEKEY, JSON.stringify(pd)); }, patch);
+  await page.reload(); await page.waitForTimeout(500);
+}
+/** 게임 화면으로 바로 진입 */
+export async function enterZone(page, zone = 1) {
+  await page.evaluate(z => { G.pd = loadGame(); calcStats(); startZone(z); document.querySelector('#title').hidden = true; }, zone);
+  await page.waitForFunction(() => G.state === 'play');
+}
+/** 메뉴 탭 열기 */
+export async function openTab(page, tab) {
+  await page.evaluate(t => { if (G.state === 'menu') { MTAB = t; renderMenu(true); } else openMenu(t); }, tab);
+  await page.locator('#menu').waitFor({ state: 'visible' });
+}
