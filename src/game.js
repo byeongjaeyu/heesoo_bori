@@ -56,10 +56,12 @@ function calcStats() {
   st.spd += 0.05 * sk('shop'); st.goldMul = 1 + 0.15 * sk('shop');
   st.hp = Math.round(st.hp * (1 + 0.05 * sk('mukbang'))); st.foodMul = 1 + 0.2 * sk('mukbang');
   const en = (pd.enh || {})[pd.eq.weapon] || 0; st.atk += 2.5 * en; st.crit += 0.01 * en; st.enh = en;
+  st.atk += AWK.atk.per * awkLv('atk'); st.def += AWK.def.per * awkLv('def'); st.hp += AWK.hp.per * awkLv('hp'); st.mp += AWK.mp.per * awkLv('mp'); st.crit += AWK.crit.per * awkLv('crit');
+  st.skillMul = 1 + AWK.skill.per * awkLv('skill');
   if (G.P && G.P.buffs) { let ba = 0, bc = 0; for (const k in G.P.buffs) { ba += G.P.buffs[k].atk || 0; bc += G.P.buffs[k].crit || 0; } st.atk *= 1 + ba; st.crit += bc; }
   st.atk = Math.round(st.atk); st.def = Math.round(st.def); st.mp = Math.round(st.mp);
   st.weapon = ITEMS[pd.eq.weapon].w; st.moveSpd = 66 * st.spd;
-  st.boriMul = 1; for (const sl of BSLOTS) { const it = ITEMS[(pd.beq || {})[sl]]; if (it) st.boriMul += (it.bdmg || 0) * ilvMul(pd.beq[sl]); }
+  st.boriMul = 1 + AWK.bori.per * awkLv('bori'); for (const sl of BSLOTS) { const it = ITEMS[(pd.beq || {})[sl]]; if (it) st.boriMul += (it.bdmg || 0) * ilvMul(pd.beq[sl]); }
   st.toyEnh = (pd.enh || {})[(pd.beq || {}).btoy] || 0; st.boriMul += TOY_ENH * st.toyEnh;
   G.st = st;
   if (G.P) { G.P.hp = Math.min(G.P.hp, st.hp); G.P.mp = Math.min(G.P.mp, st.mp); }
@@ -171,7 +173,7 @@ function trySkill(id) {
   if ((P.cds[id] || 0) > 0) return;
   if (P.mp < S.mp) { toast('MP가 부족해요! 가만히 있으면 폰 보면서 MP가 빨리 차요', 'warn'); sfx('warn'); return; }
   P.mp -= S.mp; P.cds[id] = S.cd(lv); P.idleT = 0;
-  CAST[id](lv);
+  const keepAtk = G.st.atk; G.st.atk = Math.round(keepAtk * (G.st.skillMul || 1)); try { CAST[id](lv); } finally { G.st.atk = keepAtk; }
 }
 function aimNearest(range) { const P = G.P; const t = nearestEnemy(P.x, P.y - 6, range); if (t) { const a = Math.atan2((t.y - t.h * 0.35) - (P.y - 8), t.x - P.x); P.fx = Math.cos(a); P.fy = Math.sin(a); P.dir = dirOf(P.fx, P.fy); } return Math.atan2(P.fy, P.fx); }
 const ULT_SLOTS = [[0.3, 0.19], [0.7, 0.215], [0.28, 0.45], [0.72, 0.5], [0.3, 0.58], [0.7, 0.65], [0.3, 0.73], [0.68, 0.8]];
@@ -206,7 +208,7 @@ function updateUlt(dt) {
   const U = G.ult; U.t += dt;
   if (!U.applied && U.t >= 0.95) {
     U.applied = true; G.shake = 9; G.flash = 0.2;
-    const dmg = G.st.atk * (10 + 5 * U.lv);
+    const dmg = G.st.atk * (G.st.skillMul || 1) * (10 + 5 * U.lv);
     for (const e of G.enemies) { if (e.dead) continue; e.spawnT = 0; dealDamage(e, dmg, { trueDmg: true, confuse: 4, col: 'mental', noCrit: true }); if (!e.dead) e.mental = 4; }
     for (let i = 0; i < 26; i++) G.parts.push({ x: G.cam.x + rand(0, VW), y: G.cam.y + rand(-20, VH * 0.6), vx: rand(-10, 10), vy: rand(30, 70), life: rand(1, 1.8), max: 1.8, col: choice(['#b45cff', '#ff7ab8', '#ffb3d9']), sz: 3, grav: 20, heart: true });
   }
@@ -516,11 +518,20 @@ function pickQuickFood(kind, missing) {
 // ---------- progression ----------
 const MAX_LV = 50;
 function gainXp(x) {
-  const pd = G.pd; if (pd.lv >= MAX_LV) return; pd.xp += x;
+  const pd = G.pd; if (pd.lv >= MAX_LV) { awkGain(x); return; } pd.xp += x;
   let up = false;
   while (pd.lv < MAX_LV && pd.xp >= xpNeed(pd.lv)) { pd.xp -= xpNeed(pd.lv); pd.lv++; pd.sp++; up = true; }
   if (up) levelUp();
 }
+function awkGain(x) {
+  const pd = G.pd; pd.aw = pd.aw || 0; pd.ap = pd.ap || 0; pd.xp += x; let n = 0;
+  while (pd.xp >= awkNeed(pd.aw)) { pd.xp -= awkNeed(pd.aw); pd.aw++; pd.ap++; n++; }
+  if (!n) return;
+  calcStats(); G.fx.push({ k: 'lvl', x: G.P.x, y: G.P.y, t: 0, dur: 1.3 }); sfx('lvl');
+  toast(`각성! ★${pd.aw}`, 'lvl'); toast('각성 포인트 +' + n + ' · 메뉴 → 스킬에서 능력치를 올려주세요', 'sub');
+  bubble(G.P, choice(['아직 더 강해질 수 있어!', '한계 돌파~!', '각성했다!']), 1.2); saveGame();
+}
+const awkLv = k => ((G.pd && G.pd.awp) || {})[k] || 0;
 function levelUp() {
   const pd = G.pd; calcStats(); G.P.hp = G.st.hp; G.P.mp = G.st.mp;
   G.fx.push({ k: 'lvl', x: G.P.x, y: G.P.y, t: 0, dur: 1.3 }); sfx('lvl');

@@ -269,3 +269,10 @@ button{font-family:inherit;color:inherit;border:none;background:none;padding:0;c
 .ilv{color:#3a8a3a}
 .rjoin{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 10px;padding:10px 12px;background:#fff4c8;border:3px solid #2a1d2e;border-radius:10px;font-size:13px}.rjoin .btn{white-space:nowrap}
 #pvpNick{z-index:80}
+.awk{background:#fff;border:3px solid var(--ink);border-radius:12px;padding:10px;margin-bottom:12px}
+.awk.dim{opacity:.7;font-size:13px}
+.awkh{display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap}
+.awkbar{height:8px;background:#eee;border:2px solid var(--ink);border-radius:6px;margin:6px 0 4px;overflow:hidden}.awkbar i{display:block;height:100%;background:linear-gradient(90deg,#ffd84a,#ff7ab8)}
+.awkr{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px dashed #ddd}.awkr img{width:28px;height:28px;image-rendering:pixelated}.awkr span{flex:1;display:flex;flex-direction:column}.awkr em{font-style:normal}.awkr small{color:#777;font-size:11px}.awkr.dim{opacity:.45}
+.pf span.aw{font-size:8px;letter-spacing:-.5px}
+.awkr .btn:disabled{background:#ddd;color:#999}

@@ -23,10 +23,10 @@ function pvErr(e) { const m = (e && (e.message || e.msg)) || String(e); if (/ano
 function pvpSnap() {
   const keepP = G.P; G.P = null; const st = calcStats(); G.P = keepP; const pd = G.pd, w = st.weapon;
   const skl = {}; for (const id of ['fist', 'smash', 'nag', 'flash', 'menhera', 'mukbang', 'shop']) skl[id] = sk(id);
-  const snap = { v: 1, lv: pd.lv, hp: st.hp, atk: st.atk, def: st.def, crit: Math.round(st.crit * 1000) / 1000, critMul: st.critMul, spd: Math.round(st.spd * 100) / 100, enh: st.enh || 0, tenh: st.toyEnh || 0,
+  const snap = { v: 1, lv: pd.lv, aw: pd.aw || 0, hp: st.hp, atk: st.atk, def: st.def, crit: Math.round(st.crit * 1000) / 1000, critMul: st.critMul, spd: Math.round(st.spd * 100) / 100, enh: st.enh || 0, tenh: st.toyEnh || 0,
     w: { id: pd.eq.weapon, mul: w.mul, rate: w.rate, reach: w.reach, arc: w.arc, style: w.style }, eq: Object.assign({}, pd.eq), sk: skl,
     bori: !!pd.boriJoined, beq: pd.boriJoined ? Object.assign({}, pd.beq) : null, boriMul: Math.round((st.boriMul || 1) * 100) / 100, cleared: pd.cleared || 0, infBest: pd.infBest || 0 };
-  const power = Math.round(st.atk * 4 + st.hp * 0.5 + st.def * 6 + st.crit * 300 + Math.max(0, st.spd - 1) * 150 + (pd.boriJoined ? 50 + ((st.boriMul || 1) - 1) * 300 : 0) + (skl.smash + skl.nag + skl.flash + skl.fist) * 12 + skl.menhera * 40);
+  const power = Math.round(st.atk * 4 + st.hp * 0.5 + st.def * 6 + st.crit * 300 + Math.max(0, st.spd - 1) * 150 + (pd.boriJoined ? 50 + ((st.boriMul || 1) - 1) * 300 : 0) + (skl.smash + skl.nag + skl.flash + skl.fist) * 12 + skl.menhera * 40 + ((st.skillMul || 1) - 1) * 600);
   if (keepP) calcStats();
   return { snap, power };
 }

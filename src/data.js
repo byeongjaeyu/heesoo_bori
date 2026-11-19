@@ -125,3 +125,15 @@ const MENHERA_LINES = ['나 사랑해? 얼마나?', '왜 답장 안 해?', '읽�
 const PHONE_WORDS = ['ㅋㅋㅋ', '♥', '좋아요', 'DM', '♪', 'ㅎㅎ', '인스타', '쇼핑중'];
 
 function xpNeed(lv) { return Math.round(30 * Math.pow(lv, 1.8)); }
+
+// ===== 각성 (Lv50 이후): 경험치가 계속 쌓여 각성 포인트 → 능력치·스킬 강화 =====
+const AWK = {
+  atk:   { name: '공격력',   icon: 'fist',   per: 3,     fmt: v => `+${v}` },
+  def:   { name: '방어력',   icon: 'house',  per: 2,     fmt: v => `+${v}` },
+  hp:    { name: '최대 HP',  icon: 'heart',  per: 25,    fmt: v => `+${v}` },
+  mp:    { name: '최대 MP',  icon: 'sound',  per: 8,     fmt: v => `+${v}` },
+  crit:  { name: '치명타',   icon: 'bolt',   per: 0.003, max: 50, fmt: v => `+${(v * 100).toFixed(1).replace('.0', '')}%` },
+  skill: { name: '스킬 위력', icon: 'bubble', per: 0.02,  fmt: v => `+${Math.round(v * 100)}%`, desc: '등짝 스매싱·잔소리·집에 갈래·멘헤라 피해' },
+  bori:  { name: '보리 공격', icon: 'paw',   per: 0.02,  bori: 1, fmt: v => `+${Math.round(v * 100)}%`, desc: '보리 물기·멍멍·우다다 피해' }
+};
+const awkNeed = aw => Math.round(xpNeed(50) * (1 + 0.03 * aw));

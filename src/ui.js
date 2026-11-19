@@ -53,12 +53,12 @@ function setHudImages() {
 function updateHUD() {
   const P = G.P, st = G.st, pd = G.pd; if (!P || !st) return;
   if (!HE) HE = { lv: $('#lv'), hpF: $('#hpF'), hpT: $('#hpT'), mpF: $('#mpF'), mpT: $('#mpT'), xpF: $('#xpF'), gold: $('#goldT'), zone: $('#zoneT'), quest: $('#questT'), bossBar: $('#bossBar'), bossName: $('#bossName'), bossF: $('#bossF'), badge: $('#spBadge'), boriHud: $('#boriHud'), hp: $('#bHP'), mp: $('#bMP') };
-  hset('lv', v => HE.lv.textContent = v, 'Lv.' + pd.lv);
+  hset('lv', v => { HE.lv.textContent = v; HE.lv.classList.toggle('aw', v.length > 6); }, pd.aw ? 'Lv' + pd.lv + '★' + pd.aw : 'Lv.' + pd.lv);
   hset('hpF', v => HE.hpF.style.width = v + '%', Math.round(P.hp / st.hp * 1000) / 10);
   hset('hpT', v => HE.hpT.textContent = v, Math.ceil(P.hp) + '/' + st.hp);
   hset('mpF', v => HE.mpF.style.width = v + '%', Math.round(P.mp / st.mp * 1000) / 10);
   hset('mpT', v => HE.mpT.textContent = v, Math.floor(P.mp) + '/' + st.mp);
-  hset('xpF', v => HE.xpF.style.width = v + '%', Math.round(pd.xp / xpNeed(pd.lv) * 1000) / 10);
+  hset('xpF', v => HE.xpF.style.width = v + '%', Math.round(Math.min(1, pd.xp / (pd.lv >= MAX_LV ? awkNeed(pd.aw || 0) : xpNeed(pd.lv))) * 1000) / 10);
   hset('gold', v => HE.gold.textContent = v, pd.gold.toLocaleString());
   hset('zone', v => HE.zone.textContent = v, G.pvp ? 'PvP 아레나' : G.inf ? `할로윈파티 · WAVE ${G.inf.wave}` : ZONES[G.zone].name + (loopLv() ? ` · ${loopLv() + 1}회차` : ''));
   const Z = ZONES[G.zone];
@@ -110,6 +110,14 @@ function statStr(it) {
   if (it.w) a.push(`사거리 ${it.w.reach} · 공속 ${it.w.rate}`);
   return a.join(' · ') || '능력치 없음';
 }
+function awkPanel() {
+  const pd = G.pd;
+  if (pd.lv < MAX_LV) return `<div class="awk dim"><b>각성</b> <small>Lv${MAX_LV}부터 열려요 · 그 뒤로도 경험치가 쌓여 능력치를 계속 올릴 수 있어요</small></div>`;
+  const ap = pd.ap || 0, aw = pd.aw || 0, spent = Object.values(pd.awp || {}).reduce((a, b) => a + b, 0), pct = Math.min(100, Math.round(pd.xp / awkNeed(aw) * 100));
+  const rows = Object.keys(AWK).map(k => { const A = AWK[k], lv = awkLv(k), full = A.max && lv >= A.max, lock = A.bori && !pd.boriJoined;
+    return `<div class="awkr${lock ? ' dim' : ''}"><img src="${iconURL('sk_' + A.icon, ICONS[A.icon])}"><span><em>${A.name} <b>${A.fmt(A.per * lv)}</b></em><small>${lv}pt · 1pt당 ${A.fmt(A.per)}${A.max ? ` · 최대 ${A.max}pt` : ''}${A.desc ? '<br>' + A.desc : ''}</small></span><button class="btn pk sm" data-m="awk" data-v="${k}" ${ap > 0 && !full && !lock ? '' : 'disabled'}>${full ? 'MAX' : '+1'}</button></div>`; }).join('');
+  return `<div class="awk"><div class="awkh"><span><b>각성 ★${aw}</b> <small>다음 각성까지 ${pct}%</small></span><span>각성 포인트 <b class="ok">${ap}</b> <button class="btn wh sm" data-m="awkReset" ${spent ? '' : 'disabled'}>초기화</button></span></div><div class="awkbar"><i style="width:${pct}%"></i></div>${rows}</div>`;
+}
 function skillCard(id) {
   const s = SKILLS[id], lv = sk(id), pd = G.pd; const locked = s.who === 'b' && !pd.boriJoined; const reqOk = pd.lv >= s.req;
   const can = pd.sp > 0 && lv < s.max && reqOk && !locked;
@@ -122,7 +130,7 @@ function skillCard(id) {
 const MREN = {
   skill() {
     const pd = G.pd; const used = Object.values(pd.skills).reduce((a, b) => a + b, 0);
-    return `<div class="sprow"><span>스킬 포인트 <b>${pd.sp}</b></span><button class="btn wh" data-m="reset" ${used ? '' : 'disabled'}>초기화 (무료)</button></div>
+    return awkPanel() + `<div class="sprow"><span>스킬 포인트 <b>${pd.sp}</b></span><button class="btn wh" data-m="reset" ${used ? '' : 'disabled'}>초기화 (무료)</button></div>
       <h3>희수 <small>레벨업마다 포인트 +1</small></h3>${Object.keys(SKILLS).filter(k => SKILLS[k].who === 'h').map(skillCard).join('')}
       <h3>보리 ${pd.boriJoined ? '<small>보리 스킬은 자동으로 발동해요</small>' : '<small>(Lv3에 보리를 찾으면 열려요)</small>'}</h3>${Object.keys(SKILLS).filter(k => SKILLS[k].who === 'b').map(skillCard).join('')}`;
   },
@@ -207,6 +215,8 @@ function menuClick(e) {
   if (m === 'close') { closeMenu(); return; }
   if (m === 'tab') { MTAB = v; renderMenu(true); sfx('select'); return; }
   if (m === 'learn') { const s = SKILLS[v], lv = sk(v); if (pd.sp <= 0 || lv >= s.max || pd.lv < s.req) return; pd.sp--; pd.skills[v] = lv + 1; calcStats(); sfx('ding'); if (!lv && s.btn) toast(`${s.name} 버튼이 활성화됐어요!`, 'item r2'); renderMenu(); saveGame(); return; }
+  if (m === 'awk') { const A = AWK[v], lv = awkLv(v); if (!A || !(pd.ap > 0) || (A.max && lv >= A.max) || (A.bori && !pd.boriJoined)) return; pd.ap--; pd.awp = pd.awp || {}; pd.awp[v] = lv + 1; calcStats(); sfx('ding'); renderMenu(); saveGame(); return; }
+  if (m === 'awkReset') { confirmBox('각성 포인트를 전부 돌려받고 다시 찍을까요?', () => { const n = Object.values(pd.awp || {}).reduce((a, b) => a + b, 0); pd.ap = (pd.ap || 0) + n; pd.awp = {}; calcStats(); renderMenu(); sfx('select'); saveGame(); }); return; }
   if (m === 'reset') { confirmBox('스킬 포인트를 전부 돌려받고 다시 찍을까요?', () => { const used = Object.values(pd.skills).reduce((a, b) => a + b, 0); pd.sp += used; pd.skills = {}; G.P.cds = {}; calcStats(); renderMenu(); sfx('select'); saveGame(); }); return; }
   if (m === 'equip') { const it = ITEMS[v]; if (it.bori) { pd.beq[it.slot] = v; if (G.bori) bubble(G.bori, it.slot === 'btoy' ? '앙! (꼬옥)' : '멍멍! (신남)', 1.4); } else pd.eq[it.slot] = v; calcStats(); sfx('ding'); renderMenu(); saveGame(); return; }
   if (m === 'sell') { const it = ITEMS[v]; confirmBox(`${it.name}을(를) ${sellPrice(v)}G에 팔까요?`, () => { delete pd.inv[v]; pd.gold += sellPrice(v); sfx('coin'); renderMenu(); saveGame(); }); return; }
