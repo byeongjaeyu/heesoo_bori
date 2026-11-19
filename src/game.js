@@ -390,7 +390,7 @@ function pickup(d) {
 }
 const enhCost = lv => Math.round(50 * Math.pow(1.5, lv));
 const ENH_MAX = 10;
-const sellPrice = id => { const it = ITEMS[id]; return it.price ? Math.floor(it.price * 0.3) : [40, 150, 400, 800][it.rar]; };
+const sellPrice = id => { const it = ITEMS[id]; return it.price ? Math.floor(it.price * 0.3) : [40, 150, 400, 800, 1600, 3200][it.rar]; };
 
 // ---------- food ----------
 function eatFood(id) {

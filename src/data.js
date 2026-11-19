@@ -13,7 +13,7 @@ const FOODS = {
 const FOOD_ORDER = ['popcorn', 'persimmon', 'cornflakes', 'watermelon', 'gangjeong', 'cake', 'eel', 'banhmi', 'jjukkumi'];
 const PREMIUM = ['eel', 'banhmi', 'jjukkumi'];
 
-const RARITY = ['일반', '희귀', '영웅', '전설'];
+const RARITY = ['일반', '희귀', '영웅', '전설', '신화', '초월'];
 const SLOTS = ['weapon', 'hat', 'armor', 'shoes', 'bag'];
 const BSLOTS = ['bcloth', 'btoy'];
 const SLOTNAME = { weapon: '무기', hat: '모자', armor: '옷', shoes: '신발', bag: '가방', bcloth: '보리 옷', btoy: '장난감' };
@@ -23,7 +23,7 @@ const ITEMS = {
   selfie:     { slot: 'weapon', name: '셀카봉',       rar: 1, atk: 10, icon: 'selfie',     tier: 2, price: 520,  w: { reach: 28, arc: 60,  mul: 1, rate: 2.5, kb: 50, style: 'poke' }, desc: '길어서 멀리 찌른다' },
   umbrella:   { slot: 'weapon', name: '장우산',       rar: 1, atk: 16, icon: 'umbrella',   tier: 3, price: 950,  w: { reach: 25, arc: 150, mul: 1, rate: 2.1, kb: 90, style: 'swing' }, desc: '넓게 휘두르는 튼튼한 우산' },
   handbag:    { slot: 'weapon', name: '명품 핸드백',  rar: 3, atk: 24, crit: 0.06, icon: 'handbag', tier: 3, w: { reach: 22, arc: 150, mul: 1, rate: 2.1, kb: 130, style: 'swing' }, desc: '맞으면 정신이 번쩍. 곰인형의 보물' },
-  pan:        { slot: 'weapon', name: '프라이팬',     rar: 2, atk: 28, icon: 'pan',        tier: 4, price: 2100, w: { reach: 22, arc: 140, mul: 1, rate: 2.1, kb: 110, style: 'swing' }, desc: '땡! 소리가 경쾌하다' },
+  pan:        { slot: 'weapon', name: '프라이팬',     rar: 3, atk: 28, icon: 'pan',        tier: 4, price: 2100, w: { reach: 22, arc: 140, mul: 1, rate: 2.1, kb: 110, style: 'swing' }, desc: '땡! 소리가 경쾌하다' },
   lightstick: { slot: 'weapon', name: '반짝 응원봉',  rar: 3, atk: 36, crit: 0.05, icon: 'lightstick', tier: 4, price: 4200, w: { reach: 26, arc: 130, mul: 1, rate: 2.8, kb: 70, style: 'swing' }, desc: '빠르고 반짝이는 최강 무기' },
 
   cap_grey:  { slot: 'hat', name: '회색 볼캡', rar: 0, def: 1, color: '#8d939e', icon: 'hat', start: 1, desc: '희수의 최애 모자' },
@@ -48,12 +48,34 @@ const ITEMS = {
   ecobag:    { slot: 'bag', name: '에코백',        rar: 0, hp: 20, mp: 15, color: '#e8dcc0', icon: 'bag', tier: 1, price: 130 },
   crossbag:  { slot: 'bag', name: '미니 크로스백', rar: 1, mp: 30, atk: 2, color: '#d05a6a', icon: 'bag', tier: 2, price: 500 },
   backpack:  { slot: 'bag', name: '귀여운 백팩',   rar: 2, hp: 60, mp: 40, atk: 4, color: '#7ab0e0', icon: 'bag', tier: 3, price: 1100 },
-  b_knit:    { slot: 'bcloth', bori: 1, name: '엄마가 짜준 털옷',   rar: 1, bdmg: 0.2,  color: '#e8606e', pat: 'knit', icon: 'bknit', tier: 1, price: 240,  desc: '한 땀 한 땀 정성 가득. 신나서 더 세게 문다' },
+  b_knit:    { slot: 'bcloth', bori: 1, name: '엄마가 짜준 털옷',   rar: 0, bdmg: 0.2,  color: '#e8606e', pat: 'knit', icon: 'bknit', tier: 1, price: 240,  desc: '한 땀 한 땀 정성 가득. 신나서 더 세게 문다' },
   b_pad:     { slot: 'bcloth', bori: 1, name: '용인시장 강아지패딩', rar: 2, bdmg: 0.45, color: '#f0b440', pat: 'pad',  icon: 'bpad',  tier: 3, price: 1300, desc: '시장표 빵빵 패딩. 따뜻해서 보리 컨디션 최고' },
   toy_melon: { slot: 'btoy',   bori: 1, name: '수박장난감',         rar: 0, bdmg: 0.15, icon: 'tmelon', tier: 1, price: 180,  desc: '삑삑 소리 나는 수박. 물고 다니면 기분 UP' },
   toy_doll:  { slot: 'btoy',   bori: 1, name: '인형장난감',         rar: 1, bdmg: 0.3,  icon: 'tdoll',  tier: 2, price: 650,  desc: '보리 최애 애착인형' },
   toy_bone:  { slot: 'btoy',   bori: 1, name: '뼈다구장난감',       rar: 3, bdmg: 0.55, icon: 'tbone',  tier: 3, price: 1900, desc: '세상에서 제일 소중한 뼈다구' },
-  clutch:    { slot: 'bag', name: '명품 클러치',   rar: 3, atk: 8, mp: 60, crit: 0.04, color: '#e0c060', icon: 'bag', tier: 4, price: 3100 }
+  clutch:    { slot: 'bag', name: '명품 클러치',   rar: 3, atk: 8, mp: 60, crit: 0.04, color: '#e0c060', icon: 'bag', tier: 4, price: 3100 },
+
+  // ---- 4단계 보리 (상점) ----
+  b_jump:    { slot: 'bcloth', bori: 1, name: '방한 점프슈트',      rar: 3, bdmg: 0.55, color: '#4a7ad0', pat: 'pad',  icon: 'bpad',  tier: 4, price: 3300, desc: '눈밭도 끄떡없는 전신 점프슈트' },
+  toy_duck:  { slot: 'btoy',   bori: 1, name: '삑삑이 오리',         rar: 3, bdmg: 0.65, icon: 'tdoll',  tier: 4, price: 3600, desc: '물 때마다 삑! 적들이 깜짝 놀란다' },
+
+  // ---- 5단계 · 신화 (2회차부터 드롭 전용) ----
+  goldpan:    { slot: 'weapon', name: '황금 프라이팬', rar: 4, atk: 48, crit: 0.06, icon: 'pan', tier: 5, w: { reach: 24, arc: 145, mul: 1, rate: 2.3, kb: 120, style: 'swing' }, desc: '회차 전용. 땡~ 소리마저 황금빛' },
+  cap_rainbow:{ slot: 'hat', name: '무지개 볼캡', rar: 4, def: 14, mp: 95, crit: 0.06, color: '#b45cff', icon: 'hat', tier: 5, desc: '회차 전용' },
+  goosepad:   { slot: 'armor', name: '구스 롱패딩', rar: 4, def: 25, hp: 230, crit: 0.02, color: '#f0f0f6', icon: 'jacket', tier: 5, desc: '회차 전용' },
+  airshoes:   { slot: 'shoes', name: '에어 운동화', rar: 4, def: 7, spd: 0.26, color: '#7ec8ff', icon: 'shoes', tier: 5, desc: '회차 전용' },
+  limitbag:   { slot: 'bag', name: '리미티드 클러치', rar: 4, atk: 12, mp: 85, crit: 0.05, color: '#c0306a', icon: 'bag', tier: 5, desc: '회차 전용' },
+  b_xmas:     { slot: 'bcloth', bori: 1, name: '크리스마스 니트', rar: 4, bdmg: 0.68, color: '#3aa04a', pat: 'knit', icon: 'bknit', tier: 5, desc: '회차 전용' },
+  toy_goldbone:{ slot: 'btoy', bori: 1, name: '황금 뼈다구', rar: 4, bdmg: 0.75, icon: 'tbone', tier: 5, desc: '회차 전용' },
+
+  // ---- 6단계 · 초월 (3회차부터 드롭 전용) ----
+  starstick:  { slot: 'weapon', name: '별빛 응원봉', rar: 5, atk: 64, crit: 0.08, icon: 'lightstick', tier: 6, w: { reach: 28, arc: 140, mul: 1, rate: 3.0, kb: 80, style: 'swing' }, desc: '회차 전용. 휘두르면 별이 쏟아진다' },
+  cap_tiara:  { slot: 'hat', name: '티아라 볼캡', rar: 5, def: 19, mp: 130, crit: 0.08, color: '#ffd1e6', icon: 'hat', tier: 6, desc: '회차 전용' },
+  aurorapad:  { slot: 'armor', name: '오로라 패딩', rar: 5, def: 33, hp: 320, crit: 0.03, color: '#9fe8ff', icon: 'jacket', tier: 6, desc: '회차 전용' },
+  wingshoes:  { slot: 'shoes', name: '날개 스니커즈', rar: 5, def: 9, spd: 0.3, color: '#ffe68a', icon: 'shoes', tier: 6, desc: '회차 전용' },
+  aurorabag:  { slot: 'bag', name: '오로라 미니백', rar: 5, atk: 17, mp: 115, crit: 0.07, color: '#7ef08a', icon: 'bag', tier: 6, desc: '회차 전용' },
+  b_royal:    { slot: 'bcloth', bori: 1, name: '왕자님 망토', rar: 5, bdmg: 0.85, color: '#7a3ac0', pat: 'pad', icon: 'bpad', tier: 6, desc: '회차 전용' },
+  toy_carp:   { slot: 'btoy', bori: 1, name: '전설의 월척 인형', rar: 5, bdmg: 0.95, icon: 'tdoll', tier: 6, desc: '회차 전용' }
 };
 
 const SKILLS = {
