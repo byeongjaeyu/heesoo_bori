@@ -57,7 +57,7 @@ const ITEMS = {
   clutch:    { slot: 'bag', name: '명품 핸드백',   rar: 3, atk: 8, mp: 60, crit: 0.04, color: '#e0c060', icon: 'handbag', tier: 4, price: 3100 },
 
   // ---- 4단계 보리 (상점) ----
-  b_jump:    { slot: 'bcloth', bori: 1, name: '방한 점프슈트',      rar: 3, bdmg: 0.55, color: '#4a7ad0', pat: 'pad',  icon: 'bpad',  tier: 4, price: 3300, desc: '눈밭도 끄떡없는 전신 점프슈트' },
+  b_jump:    { slot: 'bcloth', bori: 1, name: '이마트 강아지패딩',  rar: 3, bdmg: 0.55, color: '#4a7ad0', pat: 'pad',  icon: 'bpad',  tier: 4, price: 3300, desc: '장 보러 갔다가 엄마가 한눈에 반해 사 온 패딩' },
   toy_duck:  { slot: 'btoy',   bori: 1, name: '삑삑이 오리',         rar: 3, bdmg: 0.65, icon: 'tdoll',  tier: 4, price: 3600, desc: '물 때마다 삑! 적들이 깜짝 놀란다' },
 
   // ---- 5단계 · 신화 (2회차부터 드롭 전용) ----
