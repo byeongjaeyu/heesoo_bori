@@ -1,0 +1,580 @@
+// ===================== GAME CORE =====================
+const G = {
+  state: 'title', zone: 0, world: null, time: 0, pd: null, st: null, P: null, bori: null,
+  enemies: [], projs: [], fx: [], drops: [], parts: [], texts: [], bubbles: [],
+  cam: { x: 0, y: 0 }, shake: 0, hitstop: 0, flash: 0,
+  zoneKills: 0, bossSpawned: false, bossDefeated: false, boss: null, exitOpen: false, spawnT: 1, eid: 0,
+  pendingEvent: null, ult: null, evt: null, saveT: 0
+};
+const monSpr = n => spr('m_' + n, MONSPR[n]);
+
+// ---------- persistent data ----------
+const SAVEKEY = 'heesu_bori_save_v1';
+function newPD() {
+  return {
+    lv: 1, xp: 0, gold: 30, sp: 1, skills: {},
+    inv: { fist: 1, cap_grey: 1, fleece: 1, sneakers: 1, silverbag: 1 },
+    eq: { weapon: 'fist', hat: 'cap_grey', armor: 'fleece', shoes: 'sneakers', bag: 'silverbag' },
+    foods: { persimmon: 3, popcorn: 3 }, enh: {}, zone: 0, boriJoined: false, cleared: 0, beq: { bcloth: null, btoy: null },
+    stats: { kills: 0, ults: 0, deaths: 0, time: 0, eaten: 0 }
+  };
+}
+function saveGame() { if (!G.pd) return; try { localStorage.setItem(SAVEKEY, JSON.stringify(G.pd)); } catch (e) { } }
+function loadGame() {
+  try {
+    const s = localStorage.getItem(SAVEKEY); if (!s) return null;
+    const d = JSON.parse(s); const pd = newPD();
+    for (const k in d) pd[k] = d[k];
+    pd.stats = Object.assign(newPD().stats, d.stats || {});
+    pd.beq = Object.assign({ bcloth: null, btoy: null }, d.beq || {}); pd.enh = d.enh || {};
+    for (const sl of SLOTS) if (!ITEMS[pd.eq[sl]]) pd.eq[sl] = newPD().eq[sl];
+    return pd;
+  } catch (e) { return null; }
+}
+function hasSave() { try { return !!localStorage.getItem(SAVEKEY); } catch (e) { return false; } }
+const sk = id => (G.pd && G.pd.skills[id]) || 0;
+
+function calcStats() {
+  const pd = G.pd, lv = pd.lv;
+  const st = { hp: 100 + (lv - 1) * 22, mp: 50 + (lv - 1) * 8, atk: 10 + (lv - 1) * 3.5, def: 2 + (lv - 1) * 1.2, spd: 1, crit: 0.08, critMul: 1.6 };
+  for (const slot of SLOTS) { const it = ITEMS[pd.eq[slot]]; if (!it) continue; st.hp += it.hp || 0; st.mp += it.mp || 0; st.atk += it.atk || 0; st.def += it.def || 0; st.spd += it.spd || 0; st.crit += it.crit || 0; }
+  st.spd += 0.05 * sk('shop'); st.goldMul = 1 + 0.15 * sk('shop');
+  st.hp = Math.round(st.hp * (1 + 0.05 * sk('mukbang'))); st.foodMul = 1 + 0.2 * sk('mukbang');
+  const en = (pd.enh || {})[pd.eq.weapon] || 0; st.atk += 2.5 * en; st.crit += 0.015 * en; st.enh = en;
+  if (G.P && G.P.buffs) { let ba = 0, bc = 0; for (const k in G.P.buffs) { ba += G.P.buffs[k].atk || 0; bc += G.P.buffs[k].crit || 0; } st.atk *= 1 + ba; st.crit += bc; }
+  st.atk = Math.round(st.atk); st.def = Math.round(st.def); st.mp = Math.round(st.mp);
+  st.weapon = ITEMS[pd.eq.weapon].w; st.moveSpd = 66 * st.spd;
+  st.boriMul = 1; for (const sl of BSLOTS) { const it = ITEMS[(pd.beq || {})[sl]]; if (it) st.boriMul += it.bdmg || 0; }
+  G.st = st;
+  if (G.P) { G.P.hp = Math.min(G.P.hp, st.hp); G.P.mp = Math.min(G.P.mp, st.mp); }
+  return st;
+}
+
+// ---------- entities ----------
+function newPlayer(x, y) { return { x, y, hp: G.st.hp, mp: G.st.mp, fx: 0, fy: 1, dir: 'down', walkT: 0, moving: false, idleT: 1, atkCd: 0, atkAnim: 0, punch: 0, inv: 0, flash: 0, cds: {}, buffs: {}, eatCd: 0, castT: 0, kbx: 0, kby: 0, phoneT: 0.5, wasPhone: false }; }
+function newBori(x, y) { return { x, y, t: 0, face: 1, biteCd: 0, barkCd: 3, zoomCd: 6, target: null, run: false, zoom: null, jump: 0 }; }
+const dirOf = (fx, fy) => Math.abs(fx) > Math.abs(fy) * 1.05 ? (fx > 0 ? 'right' : 'left') : (fy > 0 ? 'down' : 'up');
+function isOnPhone() { const P = G.P; return !!P && G.state === 'play' && P.idleT > 0.3 && P.atkAnim <= 0 && P.castT <= 0 && !G.ult; }
+
+function collide(o, r) {
+  const W = G.world;
+  for (const s of W.solids) { const dx = o.x - s.x, dy = o.y - s.y, d = Math.hypot(dx, dy), m = s.r + r; if (d < m && d > 0.001) { o.x = s.x + dx / d * m; o.y = s.y + dy / d * m; } }
+  o.x = clamp(o.x, 20, W.W - 20); o.y = clamp(o.y, 34, W.H - 14);
+}
+function moveToward(e, tx, ty, sp, dt) { const dx = tx - e.x, dy = ty - e.y, d = Math.hypot(dx, dy); if (d < 0.5) return; const s = Math.min(d, sp * dt); e.x += dx / d * s; e.y += dy / d * s; if (Math.abs(dx) > 1) e.face = dx > 0 ? 1 : -1; }
+function wander(e, sp, dt, ch) { e.wT -= dt; if (e.wT <= 0) { e.wT = rand(ch * 0.6, ch * 1.4); const a = rand(0, Math.PI * 2), go = Math.random() < 0.7; e.wx = go ? Math.cos(a) : 0; e.wy = go ? Math.sin(a) : 0; } e.x += e.wx * sp * dt; e.y += e.wy * sp * dt; if (e.wx) e.face = e.wx > 0 ? 1 : -1; }
+function moveAway(e, sp, dt) { const a = Math.atan2(e.y - G.P.y, e.x - G.P.x); e.x += Math.cos(a) * sp * dt; e.y += Math.sin(a) * sp * dt; e.face = Math.cos(a) > 0 ? 1 : -1; }
+function nearestEnemy(x, y, maxD) { let best = null, bd = maxD; for (const e of G.enemies) { if (e.dead || e.spawnT > 0) continue; const d = Math.hypot(e.x - x, e.y - y) - e.r; if (d < bd) { bd = d; best = e; } } return best; }
+
+// ---------- text / fx helpers ----------
+function addText(x, y, txt, kind) { G.texts.push({ x: x + rand(-3, 3), y, txt: String(txt), kind: kind || 'dmg', t: 0, dur: kind === 'crit' ? 0.9 : 0.75 }); if (G.texts.length > 60) G.texts.shift(); }
+function bubble(ent, txt, dur) { G.bubbles = G.bubbles.filter(b => b.ent !== ent); G.bubbles.push({ ent, txt, t: 0, dur: dur || 1.6 }); }
+function burst(x, y, col, n, spd) { for (let i = 0; i < n; i++) { const a = rand(0, Math.PI * 2), s = rand(20, spd || 70); G.parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 20, life: rand(0.3, 0.6), max: 0.6, col, sz: Math.random() < 0.3 ? 2 : 1, grav: 120 }); } }
+function word(x, y, txt, col, size) { G.fx.push({ k: 'word', x, y, txt, col: col || '#fff', size: size || 1.6, t: 0, dur: 0.7 }); }
+
+// ---------- player ----------
+function updatePlayer(dt) {
+  const P = G.P, st = G.st;
+  const [mx, my] = moveVec(); const mag = Math.hypot(mx, my);
+  P.moving = mag > 0.18 && P.castT <= 0;
+  if (P.moving) {
+    const sp = st.moveSpd * (P.atkAnim > 0 ? 0.62 : 1) * clamp(mag, 0.55, 1);
+    P.x += mx / mag * sp * dt; P.y += my / mag * sp * dt;
+    if (P.atkAnim <= 0) { P.fx = mx / mag; P.fy = my / mag; P.dir = dirOf(P.fx, P.fy); }
+    P.walkT += dt; P.idleT = 0;
+  } else P.idleT += dt;
+  if (P.kbx || P.kby) { P.x += P.kbx * dt; P.y += P.kby * dt; const k = Math.pow(0.002, dt); P.kbx *= k; P.kby *= k; if (Math.abs(P.kbx) + Math.abs(P.kby) < 2) P.kbx = P.kby = 0; }
+  collide(P, 5);
+  P.atkCd -= dt; P.atkAnim -= dt; P.inv -= dt; P.flash -= dt; P.castT -= dt; P.eatCd -= dt;
+  for (const k in P.cds) if (P.cds[k] > 0) P.cds[k] -= dt;
+  for (const k in P.buffs) { const b = P.buffs[k]; b.t -= dt; if (Math.random() < dt * 6) G.parts.push({ x: P.x + rand(-6, 6), y: P.y - rand(2, 18), vx: 0, vy: -20, life: 0.5, max: 0.5, col: b.crit ? '#ffd84a' : '#ff6b5a', sz: 1, grav: 0 }); if (b.t <= 0) { delete P.buffs[k]; calcStats(); toast(`${b.name} 보양 효과가 끝났어요`, 'sub'); } }
+  if (INP.atk && P.atkCd <= 0 && P.castT <= 0) doAttack();
+  const onPhone = isOnPhone();
+  if (onPhone && !P.wasPhone) { G.fx.push({ k: 'icon', x: P.x + 6, y: P.y - 14, icon: 'phonePop', t: 0, dur: 0.35 }); }
+  P.wasPhone = onPhone;
+  const wag = G.bori && Math.hypot(G.bori.x - P.x, G.bori.y - P.y) < 42 ? sk('wag') : 0;
+  P.hp = Math.min(st.hp, P.hp + st.hp * (0.004 + (onPhone ? 0.012 : 0) + wag * 0.006) * dt);
+  P.mp = Math.min(st.mp, P.mp + st.mp * (0.012 + (onPhone ? 0.03 : 0) + wag * 0.006) * dt);
+  if (onPhone) { P.phoneT -= dt; if (P.phoneT <= 0) { P.phoneT = rand(1.1, 1.8); G.fx.push({ k: 'phone', x: P.x + rand(-4, 6), y: P.y - 25, txt: choice(PHONE_WORDS), t: 0, dur: 1.2 }); } }
+}
+
+function doAttack() {
+  const P = G.P, w = G.st.weapon, fl = sk('fist');
+  const t = nearestEnemy(P.x, P.y - 6, w.reach + 28);
+  if (t) { const a = Math.atan2((t.y - t.h * 0.35) - (P.y - 8), t.x - P.x); P.fx = Math.cos(a); P.fy = Math.sin(a); P.dir = dirOf(P.fx, P.fy); }
+  P.atkCd = 1 / (w.rate * (1 + 0.03 * fl)); P.atkAnim = 0.2; P.punch ^= 1; P.idleT = 0;
+  const ang = Math.atan2(P.fy, P.fx);
+  G.fx.push({ k: 'swing', x: P.x, y: P.y - 8, a: ang, reach: w.reach, arc: w.arc * Math.PI / 180, t: 0, dur: 0.18, style: w.style, wpn: G.pd.eq.weapon, side: P.punch });
+  let hit = false;
+  for (const e of G.enemies) {
+    if (e.dead || e.spawnT > 0) continue;
+    const dx = e.x - P.x, dy = (e.y - e.h * 0.35) - (P.y - 8), d = Math.hypot(dx, dy);
+    if (d < w.reach + e.r && (d < e.r + 5 || angDiff(Math.atan2(dy, dx), ang) < w.arc * Math.PI / 360 + 0.25)) {
+      dealDamage(e, G.st.atk * w.mul * (1 + 0.1 * fl), { kb: w.kb, ang }); hit = true;
+    }
+  }
+  sfx(hit ? 'punch' : 'swing');
+  if (hit) { G.hitstop = 0.03; G.shake = Math.max(G.shake, 1.2); }
+}
+
+function dealDamage(e, raw, o) {
+  o = o || {}; if (e.dead) return 0;
+  const crit = !o.noCrit && Math.random() < G.st.crit + (o.critAdd || 0);
+  let dmg = o.trueDmg ? raw : Math.max(raw * 0.2, raw - e.def * 0.5);
+  dmg *= rand(0.9, 1.1); if (crit) dmg *= G.st.critMul; dmg = Math.max(1, Math.round(dmg));
+  e.hp -= dmg; e.flash = 0.12;
+  if (o.kb && !e.boss) { e.kbx += Math.cos(o.ang) * o.kb; e.kby += Math.sin(o.ang) * o.kb; }
+  if (o.stun) e.stun = Math.max(e.stun, e.boss ? o.stun * 0.35 : o.stun);
+  if (o.slow) e.slow = Math.max(e.slow, o.slow);
+  if (o.fear) e.fear = Math.max(e.fear, e.boss ? 0 : o.fear);
+  if (o.confuse) e.confuse = Math.max(e.confuse, e.boss ? o.confuse * 0.4 : o.confuse);
+  addText(e.x, e.y - e.h - 2, dmg, o.col || (crit ? 'crit' : 'dmg'));
+  burst(e.x, e.y - e.h / 2, e.col, crit ? 7 : 3);
+  if (crit) sfx('crit'); else sfx('hit');
+  if (e.hp <= 0) killEnemy(e);
+  return dmg;
+}
+
+function hurtPlayer(raw, src) {
+  const P = G.P; if (P.inv > 0 || G.state !== 'play' || G.ult) return;
+  let dmg = raw * 60 / (60 + G.st.def); dmg = Math.max(1, Math.round(dmg * rand(0.9, 1.1)));
+  P.hp -= dmg; P.inv = 0.5; P.flash = 0.15;
+  addText(P.x, P.y - 24, dmg, 'hurt'); G.shake = Math.max(G.shake, 3); sfx('hurt');
+  if (src) { const a = Math.atan2(P.y - src.y, P.x - src.x); P.kbx += Math.cos(a) * 70; P.kby += Math.sin(a) * 70; }
+  if (Math.random() < 0.15) bubble(P, choice(['아야!', '아 진짜!', '앗 뜨거', '으악!', '감히 나를?!']), 1);
+  if (P.hp <= 0) { P.hp = 0; playerDie(); }
+}
+
+// ---------- skills ----------
+function trySkill(id) {
+  const lv = sk(id), S = SKILLS[id], P = G.P;
+  if (!lv) { toast(`${S.name}: 아직 안 배웠어요 (메뉴 → 스킬)`, 'warn'); sfx('warn'); return; }
+  if ((P.cds[id] || 0) > 0) return;
+  if (P.mp < S.mp) { toast('MP가 부족해요! 가만히 있으면 폰 보면서 MP가 빨리 차요', 'warn'); sfx('warn'); return; }
+  P.mp -= S.mp; P.cds[id] = S.cd(lv); P.idleT = 0;
+  CAST[id](lv);
+}
+function aimNearest(range) { const P = G.P; const t = nearestEnemy(P.x, P.y - 6, range); if (t) { const a = Math.atan2((t.y - t.h * 0.35) - (P.y - 8), t.x - P.x); P.fx = Math.cos(a); P.fy = Math.sin(a); P.dir = dirOf(P.fx, P.fy); } return Math.atan2(P.fy, P.fx); }
+const ULT_SLOTS = [[0.3, 0.19], [0.7, 0.215], [0.28, 0.45], [0.72, 0.5], [0.3, 0.58], [0.7, 0.65], [0.3, 0.73], [0.68, 0.8]];
+const CAST = {
+  smash(lv) {
+    const P = G.P, a = aimNearest(46);
+    P.x += Math.cos(a) * 7; P.y += Math.sin(a) * 7; collide(P, 5);
+    P.atkAnim = 0.3; P.castT = 0.15;
+    const hx = P.x + Math.cos(a) * 14, hy = P.y - 8 + Math.sin(a) * 14;
+    G.fx.push({ k: 'slap', x: hx, y: hy, a, t: 0, dur: 0.45 });
+    for (const e of G.enemies) { if (e.dead || e.spawnT > 0) continue; const dx = e.x - P.x, dy = (e.y - e.h * 0.35) - (P.y - 8), d = Math.hypot(dx, dy); if (d < 30 + e.r && (d < e.r + 8 || angDiff(Math.atan2(dy, dx), a) < 1.3)) dealDamage(e, G.st.atk * (2.2 + 0.4 * (lv - 1)), { kb: 170, ang: a, stun: 0.6, critAdd: 0.1 }); }
+    G.shake = 4; G.hitstop = 0.06; sfx('smash'); word(hx, hy - 10, '짝!', '#ffd84a', 2.2);
+  },
+  nag(lv) {
+    const P = G.P, a0 = aimNearest(130), n = 4 + lv, spread = 0.95;
+    for (let i = 0; i < n; i++) { const a = a0 - spread / 2 + spread * i / (n - 1); G.projs.push({ k: 'nag', x: P.x, y: P.y - 12, vx: Math.cos(a) * 150, vy: Math.sin(a) * 150, r: 6, dmg: G.st.atk * (0.9 + 0.15 * (lv - 1)), life: 0.95, pierce: 3, hit: new Set(), word: choice(NAG_WORDS), mine: true }); }
+    P.castT = 0.2; P.atkAnim = 0.2; sfx('nag'); bubble(P, choice(['잔소리 시작한다?!', '내가 몇 번 말했어!', '앉아봐. 얘기 좀 해']), 1.2);
+  },
+  flash(lv) {
+    const P = G.P, r = 56 + 4 * lv; P.castT = 0.45; P.dir = 'down';
+    G.shake = 5; G.fx.push({ k: 'ring', x: P.x, y: P.y - 8, r, col: '#ff7ab8', t: 0, dur: 0.5 }); G.fx.push({ k: 'ring', x: P.x, y: P.y - 8, r: r * 0.7, col: '#ffffff', t: 0, dur: 0.4 }); G.fx.push({ k: 'house', x: P.x, y: P.y - 26, t: 0, dur: 0.7 });
+    for (const e of G.enemies) { if (e.dead || e.spawnT > 0) continue; if (Math.hypot(e.x - P.x, e.y - P.y) < r + e.r) { const st = 1.2 + 0.2 * lv; dealDamage(e, G.st.atk * (1.5 + 0.3 * (lv - 1)), { stun: st }); if (!e.dead) { e.panic = e.boss ? st * 0.35 : st; burst(e.x, e.y - e.h - 2, '#7ec8ff', 3, 30); } } }
+    sfx('gohome'); word(P.x, P.y - 36, '나 집에 갈래!!', '#ffd1e6', 1.5); bubble(P, choice(['다리 아파...', '힘들어 집에 갈래ㅠ', '나 진짜 간다?!']), 1.3);
+  },
+  menhera(lv) {
+    const lines = MENHERA_LINES.slice().sort(() => Math.random() - 0.5).slice(0, 8);
+    G.ult = { t: 0, lv, dur: 3.0, applied: false, lines: lines.map((txt, i) => { const sl = ULT_SLOTS[i]; return { txt, x: sl[0] + rand(-0.06, 0.06), y: sl[1] + rand(-0.02, 0.02), d: 0.15 + i * 0.13, rot: rand(-0.14, 0.14), s: rand(0.9, 1.12) }; }) };
+    G.pd.stats.ults++; G.P.inv = 3.2; G.P.castT = 0.9; sfx('ult');
+  }
+};
+function updateUlt(dt) {
+  const U = G.ult; U.t += dt;
+  if (!U.applied && U.t >= 0.95) {
+    U.applied = true; G.shake = 9; G.flash = 0.2;
+    const dmg = G.st.atk * (10 + 5 * U.lv);
+    for (const e of G.enemies) { if (e.dead) continue; e.spawnT = 0; dealDamage(e, dmg, { trueDmg: true, confuse: 4, col: 'mental', noCrit: true }); if (!e.dead) e.mental = 4; }
+    for (let i = 0; i < 26; i++) G.parts.push({ x: G.cam.x + rand(0, VW), y: G.cam.y + rand(-20, VH * 0.6), vx: rand(-10, 10), vy: rand(30, 70), life: rand(1, 1.8), max: 1.8, col: choice(['#b45cff', '#ff7ab8', '#ffb3d9']), sz: 3, grav: 20, heart: true });
+  }
+  if (U.t >= U.dur) G.ult = null;
+}
+
+// ---------- bori ----------
+function updateBori(dt) {
+  const B = G.bori; if (!B || B.hidden) return; const P = G.P;
+  B.t += dt; B.biteCd -= dt; B.barkCd -= dt; B.zoomCd -= dt; if (B.jump > 0) B.jump -= dt;
+  if (B.zoom) {
+    const z = B.zoom; z.t += dt; const pt = z.pts[z.i];
+    if (pt) { moveToward(B, pt.x, pt.y, 230, dt); if (Math.hypot(pt.x - B.x, pt.y - B.y) < 4) z.i++; } else z.i = 999;
+    for (const e of G.enemies) { if (e.dead || z.hit.has(e.id)) continue; if (Math.hypot(e.x - B.x, e.y - B.y) < e.r + 7) { z.hit.add(e.id); dealDamage(e, G.st.atk * (1.2 + 0.4 * z.lv) * G.st.boriMul, { kb: 80, ang: Math.atan2(e.y - B.y, e.x - B.x) }); } }
+    if (Math.random() < dt * 30) G.parts.push({ x: B.x, y: B.y, vx: rand(-15, 15), vy: rand(-10, 0), life: 0.35, max: 0.35, col: '#e8dcc8', sz: 2, grav: 0 });
+    B.run = true; if (z.i >= z.pts.length || z.t > 2.2) B.zoom = null;
+    collide(B, 3); return;
+  }
+  const bl = sk('bark');
+  if (bl && B.barkCd <= 0) { const r = 45 + 5 * bl; const ns = G.enemies.filter(e => !e.dead && e.spawnT <= 0 && Math.hypot(e.x - B.x, e.y - B.y) < r + e.r); if (ns.length) { B.barkCd = 9 - 0.6 * (bl - 1); sfx('bark'); bubble(B, '멍멍!', 1); G.fx.push({ k: 'ring', x: B.x, y: B.y - 5, r, col: '#ffd84a', t: 0, dur: 0.45 }); for (const e of ns) dealDamage(e, G.st.atk * (0.6 + 0.2 * bl) * G.st.boriMul, { fear: 1.6, kb: 90, ang: Math.atan2(e.y - B.y, e.x - B.x) }); } }
+  const zl = sk('zoomies');
+  if (zl && B.zoomCd <= 0) { const ns = G.enemies.filter(e => !e.dead && e.spawnT <= 0 && Math.hypot(e.x - P.x, e.y - P.y) < 95); if (ns.length >= 2) { B.zoomCd = 12; ns.sort((a, b) => Math.hypot(a.x - B.x, a.y - B.y) - Math.hypot(b.x - B.x, b.y - B.y)); const pts = ns.slice(0, 6).map(e => ({ x: e.x + rand(-4, 4), y: e.y + rand(-3, 3) })); pts.push({ x: P.x + 10, y: P.y + 3 }); B.zoom = { t: 0, i: 0, pts, hit: new Set(), lv: zl }; bubble(B, '우다다다!', 1.2); } }
+  let tgt = null;
+  if (B.target && !B.target.dead && Math.hypot(B.target.x - P.x, B.target.y - P.y) < 115) tgt = B.target;
+  else { tgt = null; let bd = 75; for (const e of G.enemies) { if (e.dead || e.spawnT > 0) continue; if (Math.hypot(e.x - P.x, e.y - P.y) > 105) continue; const d = Math.hypot(e.x - B.x, e.y - B.y); if (d < bd) { bd = d; tgt = e; } } B.target = tgt; }
+  if (tgt) {
+    const d = Math.hypot(tgt.x - B.x, tgt.y - B.y);
+    if (d > tgt.r + 6) { moveToward(B, tgt.x, tgt.y, 100, dt); B.run = true; }
+    else { B.run = false; B.face = tgt.x > B.x ? 1 : -1; if (B.biteCd <= 0) { B.biteCd = 0.75; dealDamage(tgt, G.st.atk * (0.4 + 0.15 * sk('bite')) * G.st.boriMul, { kb: 30, ang: Math.atan2(tgt.y - B.y, tgt.x - B.x) }); G.fx.push({ k: 'bite', x: tgt.x, y: tgt.y - tgt.h * 0.5, t: 0, dur: 0.3 }); if (Math.random() < 0.15) bubble(B, choice(['앙!', '왈!', '으르릉']), 0.8); } }
+  } else {
+    const side = B.x < P.x ? -1 : 1; const tx = P.x + side * 13, ty = P.y + 3; const d = Math.hypot(tx - B.x, ty - B.y);
+    if (d > 5) { moveToward(B, tx, ty, Math.max(G.st.moveSpd * 1.2, d > 60 ? 160 : 75), dt); B.run = d > 7; } else B.run = false;
+    if (!B.run && isOnPhone()) B.face = P.x > B.x ? 1 : -1;
+  }
+  if (Math.hypot(P.x - B.x, P.y - B.y) > 220) { B.x = P.x - 12; B.y = P.y + 3; }
+  B.x = clamp(B.x, 20, G.world.W - 20); B.y = clamp(B.y, 34, G.world.H - 14);
+}
+
+// ---------- enemies ----------
+function spawnEnemy(type, x, y) {
+  const m = MONS[type], s = monSpr(m.spr), sc = m.scale || 1;
+  const e = { type, m, x, y, hp: m.hp, maxHp: m.hp, atk: m.atk, def: m.def, spd: m.spd, r: m.r, h: s.H * sc, w: s.W * sc, sc, boss: !!m.boss, col: m.col, t: rand(0, 10), atkCd: rand(0.5, 1.2), kbx: 0, kby: 0, stun: 0, slow: 0, fear: 0, confuse: 0, mental: 0, flash: 0, wx: 0, wy: 0, wT: 0, st: 'idle', stT: 0, spawnT: 0.45, id: ++G.eid, fly: !!m.fly, face: 1, hopY: 0 };
+  G.enemies.push(e); return e;
+}
+const AI = {
+  hop(e, dt, sp, dP) { const c = e.t % 1.1; e.hopY = c < 0.45 ? Math.sin(c / 0.45 * Math.PI) * 4 : 0; if (dP < 130) { if (c < 0.45) moveToward(e, G.P.x, G.P.y, sp * 2.3, dt); } else wander(e, sp, dt, 1.5); },
+  float(e, dt, sp, dP) { e.hopY = 3 + Math.sin(e.t * 3) * 2; if (dP < 140) { const a = Math.atan2(G.P.y - e.y, G.P.x - e.x) + Math.sin(e.t * 2) * 0.9; e.x += Math.cos(a) * sp * dt; e.y += Math.sin(a) * sp * dt; e.face = Math.cos(a) > 0 ? 1 : -1; } else wander(e, sp, dt, 1.2); },
+  chase(e, dt, sp, dP) { if (dP < 150) moveToward(e, G.P.x, G.P.y, sp, dt); else wander(e, sp * 0.6, dt, 1.5); },
+  charge(e, dt, sp, dP) {
+    if (e.st === 'tele') { e.stT -= dt; if (e.stT <= 0) { e.st = 'dash'; e.stT = 0.55; } return; }
+    if (e.st === 'dash') { e.stT -= dt; e.x += e.dx * sp * 3.6 * dt; e.y += e.dy * sp * 3.6 * dt; if (Math.random() < dt * 20) G.parts.push({ x: e.x, y: e.y, vx: 0, vy: -8, life: 0.3, max: 0.3, col: '#e8dcc8', sz: 2, grav: 0 }); if (e.stT <= 0) { e.st = 'rest'; e.stT = 1.0; } return; }
+    if (e.st === 'rest') { e.stT -= dt; if (e.stT <= 0) e.st = 'idle'; return; }
+    if (dP < 78 && dP > 18) { e.st = 'tele'; e.stT = 0.6; const a = Math.atan2(G.P.y - e.y, G.P.x - e.x); e.dx = Math.cos(a); e.dy = Math.sin(a); e.face = e.dx > 0 ? 1 : -1; G.fx.push({ k: 'line', x: e.x, y: e.y - 4, a, len: sp * 3.6 * 0.55, w: 8, t: 0, dur: 0.6 }); return; }
+    if (dP < 150) moveToward(e, G.P.x, G.P.y, sp, dt); else wander(e, sp * 0.6, dt, 1.5);
+  },
+  ranged(e, dt, sp, dP) {
+    if (dP < 155) {
+      if (dP > 85) moveToward(e, G.P.x, G.P.y, sp, dt); else if (dP < 55) moveAway(e, sp, dt);
+      e.face = G.P.x > e.x ? 1 : -1;
+      if (e.shootT == null) e.shootT = rand(0.8, 1.8);
+      e.shootT -= dt; if (e.shootT <= 0) { e.shootT = 2.3 + rand(0, 0.6); shootAt(e, e.m.proj); }
+    } else wander(e, sp * 0.6, dt, 1.5);
+  },
+  boss1(e, dt, sp, dP) {
+    e.hopY = 6 + Math.sin(e.t * 2) * 3; moveToward(e, G.P.x, G.P.y - 18, sp * (dP > 40 ? 1 : 0.3), dt);
+    e.pat = (e.pat == null ? 2 : e.pat) - dt;
+    if (e.pat <= 0) {
+      const enr = e.hp < e.maxHp * 0.5; e.pat = enr ? 2.6 : 3.6; e.pc = (e.pc || 0) + 1;
+      if (e.pc % 2) { const n = enr ? 14 : 10, off = rand(0, 6.28); for (let i = 0; i < n; i++) shootAt(e, 'balloon', off + i / n * 6.283, 58); sfx('pop'); }
+      else { for (let i = 0; i < (enr ? 3 : 2); i++) { const a = rand(0, 6.28); spawnEnemy('balloon', e.x + Math.cos(a) * 26, e.y + Math.sin(a) * 16); } bubble(e, '풍선 친구들 나와라~!', 1.4); }
+    }
+  },
+  boss2(e, dt, sp, dP) {
+    const enr = e.hp < e.maxHp * 0.5, W = G.world; e.stT -= dt;
+    if (e.st === 'idle') { e.st = 'roam'; e.stT = 2.2; }
+    if (e.st === 'roam') { moveToward(e, G.P.x, G.P.y, sp, dt); if (e.stT <= 0) { e.st = 'tele'; e.stT = 0.8; const a = Math.atan2(G.P.y - e.y, G.P.x - e.x); e.dx = Math.cos(a); e.dy = Math.sin(a); G.fx.push({ k: 'line', x: e.x, y: e.y - 8, a, len: 200, w: e.r * 1.6, t: 0, dur: 0.8 }); bubble(e, '빙글빙글~!', 1); } }
+    else if (e.st === 'tele') { if (e.stT <= 0) { e.st = 'dash'; e.stT = 1.1; } }
+    else if (e.st === 'dash') { e.x += e.dx * 220 * dt; e.y += e.dy * 220 * dt; if (e.x < 30 || e.x > W.W - 30) e.dx *= -1; if (e.y < 50 || e.y > W.H - 30) e.dy *= -1; if (Math.random() < dt * 30) G.parts.push({ x: e.x + rand(-10, 10), y: e.y, vx: 0, vy: -10, life: 0.4, max: 0.4, col: '#ffd1e6', sz: 2, grav: 0 }); if (e.stT <= 0) { e.st = 'spin'; e.stT = 1.3; e.burst = 0; e.burstT = 0; } }
+    else if (e.st === 'spin') { e.burstT -= dt; if (e.burstT <= 0 && e.burst < (enr ? 3 : 2)) { e.burst++; e.burstT = 0.42; const n = 12, off = e.burst * 0.26; for (let i = 0; i < n; i++) shootAt(e, 'tea', off + i / n * 6.283, 78); sfx('pop'); } if (e.stT <= 0) { e.st = 'roam'; e.stT = enr ? 1.5 : 2.3; } }
+    e.face = (Math.floor(e.t * (e.st === 'dash' ? 12 : 4)) % 2) ? 1 : -1;
+  },
+  boss3(e, dt, sp, dP) {
+    const enr = e.hp < e.maxHp * 0.4;
+    if (e.st === 'jump') {
+      e.stT -= dt; const p = clamp(1 - e.stT / e.jdur, 0, 1);
+      e.hopY = Math.sin(p * Math.PI) * 42; e.x = lerp(e.jx0, e.jx1, p); e.y = lerp(e.jy0, e.jy1, p);
+      if (e.stT <= 0) {
+        e.hopY = 0; e.st = 'land'; e.stT = 0.6; G.shake = 7; sfx('slam');
+        G.fx.push({ k: 'ring', x: e.x, y: e.y - 2, r: e.slamR, col: '#d9a560', t: 0, dur: 0.4 }); burst(e.x, e.y, '#c9b08a', 16, 90);
+        if (Math.hypot(G.P.x - e.x, G.P.y - e.y) < e.slamR + 4) hurtPlayer(e.atk * 1.5, e);
+        e.jumps = (e.jumps || 0) + 1; if (e.jumps % 3 === 0) { for (let i = 0; i < 2; i++) spawnEnemy('bear', e.x + (i ? 30 : -30), e.y + 10); bubble(e, '친구들아 도와줘!', 1.4); }
+      } return;
+    }
+    if (e.st === 'land') { e.stT -= dt; if (e.stT <= 0) { e.st = 'walk'; e.stT = enr ? 1.6 : 2.6; } return; }
+    if (e.st === 'idle') { e.st = 'walk'; e.stT = 2.5; }
+    e.stT -= dt; moveToward(e, G.P.x, G.P.y, sp * (enr ? 1.3 : 1), dt);
+    if (e.stT <= 0) { e.st = 'jump'; e.jdur = 1.0; e.stT = e.jdur; e.jx0 = e.x; e.jy0 = e.y; e.jx1 = G.P.x; e.jy1 = G.P.y; e.slamR = enr ? 42 : 34; G.fx.push({ k: 'circle', x: G.P.x, y: G.P.y, r: e.slamR, t: 0, dur: e.jdur }); }
+  },
+  boss4(e, dt, sp, dP) {
+    const enr = e.hp < e.maxHp * 0.5; e.hopY = Math.abs(Math.sin(e.t * 4)) * 2;
+    if (e.st === 'idle') { e.st = 'walk'; e.stT = 2; e.cyc = 0; }
+    e.stT -= dt;
+    if (e.st === 'walk') {
+      moveToward(e, G.P.x, G.P.y - 10, sp, dt);
+      if (e.stT <= 0) {
+        e.cyc++; const pat = ['spiral', 'burst', 'summon', 'spiral', 'march'][e.cyc % 5];
+        e.st = pat; e.stT = { spiral: 3.2, burst: 1.9, summon: 1.0, march: 1.6 }[pat]; e.shT = 0; e.sa = rand(0, 6.28);
+        if (pat === 'summon') { spawnEnemy('clown', e.x - 30, e.y + 8); spawnEnemy('clown', e.x + 30, e.y + 8); if (enr) spawnEnemy('coaster', e.x, e.y + 26); bubble(e, '퍼레이드를 시작하지!', 1.5); }
+        if (pat === 'march') { bubble(e, '행진하라!!', 1.2); for (const k of [-1, 0, 1]) { const ly = clamp(G.P.y - 8 + k * 34, 50, G.world.H - 30); G.fx.push({ k: 'line', x: 22, y: ly, a: 0, len: G.world.W - 44, w: 12, t: 0, dur: 0.95, onEnd: () => { for (let x = 30; x < G.world.W - 30; x += 12) G.parts.push({ x, y: ly, vx: rand(-20, 20), vy: rand(-40, -10), life: 0.5, max: 0.5, col: choice(['#ff7ab8', '#ffd84a', '#6fb8ff', '#b45cff']), sz: 2, grav: 80 }); if (Math.abs(G.P.y - 8 - ly) < 10) hurtPlayer(e.atk * 1.3, null); sfx('slam'); } }); } }
+      } return;
+    }
+    if (e.st === 'spiral') { e.shT -= dt; if (e.shT <= 0) { e.shT = enr ? 0.085 : 0.115; e.sa += 0.38; shootAt(e, 'note', e.sa, 68); if (enr) shootAt(e, 'note', e.sa + Math.PI, 68); } }
+    if (e.st === 'burst') { e.shT -= dt; if (e.shT <= 0) { e.shT = 0.6; const n = enr ? 18 : 14, off = rand(0, 1); for (let i = 0; i < n; i++) shootAt(e, 'confetti', off + i / n * 6.283, 80); sfx('pop'); } }
+    if (e.stT <= 0) { e.st = 'walk'; e.stT = enr ? 1.2 : 2.0; }
+  }
+};
+function shootAt(e, kind, ang, spd) {
+  const sy = e.y - e.h * 0.5 - (e.hopY || 0);
+  const a = ang != null ? ang : Math.atan2(G.P.y - 8 - sy, G.P.x - e.x);
+  const sp = spd || 92;
+  G.projs.push({ k: kind, x: e.x, y: sy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: 3, dmg: e.atk * 0.8, life: 3.2, enemy: true, rot: rand(0, 6), col: choice(['#ff7ab8', '#ffd84a', '#6fb8ff', '#7ccf5a', '#b45cff']) });
+}
+function updateEnemy(e, dt) {
+  e.t += dt; if (e.flash > 0) e.flash -= dt;
+  if (e.dead) { e.deadT -= dt; if (e.deadT <= 0) e.gone = true; return; }
+  if (e.spawnT > 0) { e.spawnT -= dt; return; }
+  e.x += e.kbx * dt; e.y += e.kby * dt; const kd = Math.pow(0.003, dt); e.kbx *= kd; e.kby *= kd;
+  e.atkCd -= dt; if (e.slow > 0) e.slow -= dt; if (e.mental > 0) e.mental -= dt; if (e.panic > 0) e.panic -= dt;
+  const P = G.P, dP = Math.hypot(P.x - e.x, P.y - e.y);
+  const sp = e.spd * (e.slow > 0 ? 0.55 : 1);
+  if (e.stun > 0) e.stun -= dt;
+  else if (e.confuse > 0) { e.confuse -= dt; wander(e, sp * 0.8, dt, 0.4); }
+  else if (e.fear > 0) { e.fear -= dt; moveAway(e, sp * 1.2, dt); }
+  else AI[e.m.ai](e, dt, sp, dP);
+  if (e.stun <= 0 && e.confuse <= 0 && e.fear <= 0 && (e.hopY || 0) < 9 && dP < e.r + 6 && e.atkCd <= 0) { hurtPlayer(e.atk, e); e.atkCd = 1.0; }
+  if (!e.fly) collide(e, e.r * 0.7); else { e.x = clamp(e.x, 20, G.world.W - 20); e.y = clamp(e.y, 34, G.world.H - 14); }
+}
+function separateEnemies() {
+  const L = G.enemies;
+  for (let i = 0; i < L.length; i++) { const a = L[i]; if (a.dead) continue; for (let j = i + 1; j < L.length; j++) { const b = L[j]; if (b.dead) continue; const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy), m = (a.r + b.r) * 0.8; if (d < m && d > 0.01) { const p = (m - d) / 2, wa = a.boss ? 0.1 : 1, wb = b.boss ? 0.1 : 1; a.x -= dx / d * p * wa; a.y -= dy / d * p * wa; b.x += dx / d * p * wb; b.y += dy / d * p * wb; } } }
+}
+function killEnemy(e) {
+  e.dead = true; e.deadT = 0.25; e.hp = 0; G.pd.stats.kills++;
+  burst(e.x, e.y - e.h / 2, e.col, e.boss ? 40 : 10, e.boss ? 140 : 80); burst(e.x, e.y - e.h / 2, '#ffffff', 4);
+  sfx('pop'); gainXp(e.m.xp);
+  const gold = Math.round(randi(e.m.gold[0], e.m.gold[1]) * G.st.goldMul);
+  if (gold > 0) { const n = Math.min(e.boss ? 12 : 4, Math.max(1, Math.ceil(gold / 6))); let left = gold; for (let i = 0; i < n; i++) { const a = i === n - 1 ? left : Math.floor(gold / n); left -= a; spawnDrop('gold', null, a, e.x, e.y); } }
+  if (e.boss) { spawnDrop('food', 'eel', 1, e.x, e.y); if (G.zone >= 1) spawnDrop('food', G.zone % 2 ? 'banhmi' : 'jjukkumi', 1, e.x, e.y); for (let i = 0; i < 3; i++) spawnDrop('food', rollFood(), 1, e.x, e.y); for (const id of (e.m.drops || [])) spawnDrop('item', id, 1, e.x, e.y); }
+  else {
+    if (Math.random() < 0.14) spawnDrop('food', rollFood(), 1, e.x, e.y);
+    if (Math.random() < 0.045) { const pool = Object.keys(ITEMS).filter(id => ITEMS[id].tier && ITEMS[id].tier <= G.zone + 1 && ITEMS[id].rar < 3 && (!ITEMS[id].bori || G.pd.boriJoined)); if (pool.length) spawnDrop('item', choice(pool), 1, e.x, e.y); }
+  }
+  if (e.boss) onBossDefeated(e); else if (!G.bossSpawned) G.zoneKills++;
+}
+const rollFood = () => wpick(FOOD_ORDER.map(id => [id, FOODS[id].w]));
+
+// ---------- drops ----------
+function spawnDrop(kind, id, amt, x, y) { const a = rand(0, 6.28), s = rand(15, 45); G.drops.push({ kind, id, amt, x, y, z: 4, vz: rand(40, 70), vx: Math.cos(a) * s, vy: Math.sin(a) * s * 0.6, t: 0 }); }
+function updateDrops(dt) {
+  const P = G.P;
+  for (const d of G.drops) {
+    d.t += dt;
+    if (d.z > 0 || d.vz > 0) { d.vz -= 220 * dt; d.z += d.vz * dt; if (d.z <= 0) { d.z = 0; d.vz = Math.abs(d.vz) > 25 ? -d.vz * 0.4 : 0; } d.x += d.vx * dt; d.y += d.vy * dt; d.vx *= Math.pow(0.05, dt); d.vy *= Math.pow(0.05, dt); }
+    const dd = Math.hypot(P.x - d.x, P.y - 4 - d.y);
+    if (d.t > 0.45 && (dd < 44 || d.mag)) { d.mag = true; moveToward(d, P.x, P.y - 4, 160 + d.t * 40, dt); }
+    if (d.t > 0.45 && dd < 8) { pickup(d); d.gone = true; }
+    if (d.kind !== 'item' && d.t > 45) d.gone = true;
+  }
+  G.drops = G.drops.filter(d => !d.gone);
+}
+function pickup(d) {
+  const pd = G.pd, P = G.P;
+  if (d.kind === 'gold') { pd.gold += d.amt; addText(P.x, P.y - 28, '+' + d.amt + 'G', 'gold'); sfx('coin'); }
+  else if (d.kind === 'food') { pd.foods[d.id] = (pd.foods[d.id] || 0) + 1; addText(P.x, P.y - 30, '+' + FOODS[d.id].name, 'food'); sfx('ding'); if (PREMIUM.includes(d.id)) toast(`${FOODS[d.id].name} 획득! 최고급 보양식`, 'lvl'); }
+  else if (d.kind === 'item') {
+    const it = ITEMS[d.id];
+    if (pd.inv[d.id]) { const g = sellPrice(d.id); pd.gold += g; toast(`${it.name} (중복) → ${g}G로 바꿨어요`, 'sub'); sfx('coin'); }
+    else if (it.bori) { pd.inv[d.id] = 1; if (!pd.beq[it.slot]) { pd.beq[it.slot] = d.id; calcStats(); toast(`${it.name} 획득! 보리가 바로 ${it.slot === 'btoy' ? '물었어요' : '입었어요'}`, 'item r' + it.rar); if (G.bori) bubble(G.bori, '멍멍! (신남)', 1.4); } else { pd.newBori = true; toast(`보리 장비 획득: ${it.name}! (메뉴 → 보리)`, 'item r' + it.rar); } sfx('ding'); }
+    else { pd.inv[d.id] = 1; pd.newItem = true; toast(`새 장비 획득: ${it.name}! (메뉴 → 장비)`, 'item r' + it.rar); sfx('ding'); }
+  }
+}
+const enhCost = lv => Math.round(50 * Math.pow(1.5, lv));
+const ENH_MAX = 10;
+const sellPrice = id => { const it = ITEMS[id]; return it.price ? Math.floor(it.price * 0.3) : [40, 150, 400, 800][it.rar]; };
+
+// ---------- food ----------
+function eatFood(id) {
+  const pd = G.pd, P = G.P, f = FOODS[id]; if (!pd.foods[id] || P.eatCd > 0) return false;
+  pd.foods[id]--; P.eatCd = 0.5; P.idleT = 0;
+  const m = G.st.foodMul, hp = Math.round(G.st.hp * f.hp * m), mp = Math.round(G.st.mp * f.mp * m);
+  if (f.buff) { P.buffs[f.buff.id] = Object.assign({}, f.buff); calcStats(); toast(`${f.name} 보양! ${f.buff.t}초간 ` + [f.buff.atk ? `공격력 +${Math.round(f.buff.atk * 100)}%` : '', f.buff.crit ? `치명타 +${Math.round(f.buff.crit * 100)}%` : ''].filter(Boolean).join(' · '), 'lvl'); }
+  P.hp = Math.min(G.st.hp, P.hp + hp); P.mp = Math.min(G.st.mp, P.mp + mp);
+  if (hp) addText(P.x - 7, P.y - 26, '+' + hp, 'heal'); if (mp) addText(P.x + 7, P.y - 26, '+' + mp, 'mana');
+  G.fx.push({ k: 'eat', x: P.x, y: P.y - 24, icon: f.icon, t: 0, dur: 0.8 });
+  bubble(P, choice(['냠냠', '맛있다!', '존맛탱', '살 것 같아~', '하나 더?']), 1);
+  sfx('eat'); pd.stats.eaten++; return true;
+}
+function quickFood(kind) {
+  const P = G.P, st = G.st, missing = kind === 'hp' ? st.hp - P.hp : st.mp - P.mp;
+  const pick = pickQuickFood(kind, missing);
+  if (!pick) { toast(kind === 'hp' ? 'HP 회복 음식이 없어요! (메뉴 → 배달앱)' : 'MP 회복 음식이 없어요! (메뉴 → 배달앱)', 'warn'); sfx('warn'); return; }
+  eatFood(pick);
+}
+function pickQuickFood(kind, missing) {
+  const st = G.st; const cands = FOOD_ORDER.filter(id => G.pd.foods[id] > 0 && FOODS[id][kind] > 0 && !PREMIUM.includes(id));
+  if (!cands.length) return PREMIUM.find(id => G.pd.foods[id] > 0) || null;
+  const val = id => FOODS[id][kind] * (kind === 'hp' ? st.hp : st.mp) * st.foodMul;
+  cands.sort((a, b) => val(a) - val(b));
+  return cands.find(id => val(id) >= missing) || cands[cands.length - 1];
+}
+
+// ---------- progression ----------
+function gainXp(x) {
+  const pd = G.pd; if (pd.lv >= 30) return; pd.xp += x;
+  let up = false;
+  while (pd.lv < 30 && pd.xp >= xpNeed(pd.lv)) { pd.xp -= xpNeed(pd.lv); pd.lv++; pd.sp++; up = true; }
+  if (up) levelUp();
+}
+function levelUp() {
+  const pd = G.pd; calcStats(); G.P.hp = G.st.hp; G.P.mp = G.st.mp;
+  G.fx.push({ k: 'lvl', x: G.P.x, y: G.P.y, t: 0, dur: 1.3 }); sfx('lvl');
+  toast(`LEVEL UP!  Lv.${pd.lv}`, 'lvl'); toast('스킬 포인트 +1 · 메뉴에서 스킬을 찍어주세요', 'sub');
+  for (const id in SKILLS) { const s = SKILLS[id]; if (s.req === pd.lv && (s.who === 'h' || pd.boriJoined)) toast(`새 스킬 해금: ${s.name}`, 'item r2'); }
+  if (pd.lv >= 3 && !pd.boriJoined) G.pendingEvent = 'bori';
+  bubble(G.P, choice(['강해졌다!', '레벨업~!', '느낌 좋아!']), 1.2);
+  saveGame();
+}
+
+// ---------- spawning / quest ----------
+function updateSpawner(dt) {
+  const Z = ZONES[G.zone]; if (G.bossDefeated) return;
+  const alive = G.enemies.filter(e => !e.dead && !e.boss).length;
+  const max = G.bossSpawned ? 3 + G.zone : Z.max;
+  G.spawnT -= dt;
+  if (G.spawnT <= 0 && alive < max) { G.spawnT = Z.spawnInt * (G.bossSpawned ? 2.2 : 1); spawnAround(wpick(Z.mons)); }
+}
+function spawnAround(type, minD, maxD) {
+  const W = G.world, P = G.P;
+  for (let k = 0; k < 12; k++) {
+    const a = rand(0, 6.28), d = rand(minD || 120, maxD || 190), x = P.x + Math.cos(a) * d, y = P.y + Math.sin(a) * d;
+    if (x < 30 || x > W.W - 30 || y < 50 || y > W.H - 30) continue;
+    if (W.solids.some(s => Math.hypot(x - s.x, y - s.y) < s.r + 8)) continue;
+    return spawnEnemy(type, x, y);
+  }
+  return null;
+}
+function updateQuest() {
+  const Z = ZONES[G.zone], W = G.world;
+  if (!G.bossSpawned && G.zoneKills >= Z.quota) spawnBoss();
+  if (G.exitOpen && Math.hypot(G.P.x - W.gate.x, G.P.y - (W.gate.y + 4)) < 16) goNextZone();
+}
+function spawnBoss() {
+  const Z = ZONES[G.zone], W = G.world, P = G.P; G.bossSpawned = true;
+  let x = W.W / 2, y = 290; if (Math.hypot(P.x - x, P.y - y) < 90) y = P.y > 400 ? P.y - 130 : P.y + 130;
+  y = clamp(y, 120, W.H - 80);
+  const b = spawnEnemy(Z.boss, x, y); b.spawnT = 1.3; G.boss = b;
+  banner('BOSS', MONS[Z.boss].name + ' 출현!', 'boss'); sfx('boss'); playBgm('boss'); G.shake = 6;
+  G.fx.push({ k: 'ring', x, y: y - 10, r: 50, col: '#ff4d6d', t: 0, dur: 0.9 });
+  bubble(P, choice(['뭐야 저 거대한 건...!', '보스다! 정신 차리자', '저거 잡으면 나갈 수 있겠지?']), 1.8);
+}
+function onBossDefeated(e) {
+  G.bossDefeated = true; G.boss = null; G.exitOpen = true;
+  for (const o of G.enemies) if (!o.dead && o !== e) { o.dead = true; o.deadT = 0.25; burst(o.x, o.y - o.h / 2, o.col, 6); }
+  G.projs = G.projs.filter(p => !p.enemy);
+  setTimeout(() => { if (G.state === 'play') banner('CLEAR!', G.zone < 3 ? '출구가 열렸다! 위쪽 출구로 가자' : '탈출구가 열렸다! 위쪽으로 탈출하자!', 'clear'); }, 600);
+  sfx('open'); playBgm('field'); G.shake = 8; saveGame();
+  bubble(G.P, choice(['해냈다!!', '나 좀 멋있는 듯?', '보리야 봤어?!']), 1.8);
+}
+function goNextZone() {
+  if (G.state !== 'play') return;
+  G.state = 'trans'; sfx('open');
+  if (G.zone >= ZONES.length - 1) { G.pd.cleared = (G.pd.cleared || 0) + 1; saveGame(); fadeTo(() => startEnding()); return; }
+  G.pd.zone = G.zone + 1; saveGame();
+  fadeTo(() => startZone(G.pd.zone));
+}
+function startZone(i) {
+  G.zone = i; G.pd.zone = i; G.world = buildWorld(i); const W = G.world;
+  G.enemies = []; G.projs = []; G.fx = []; G.drops = []; G.parts = []; G.texts = []; G.bubbles = [];
+  G.zoneKills = 0; G.bossSpawned = false; G.bossDefeated = false; G.boss = null; G.exitOpen = false; G.spawnT = 1.5; G.ult = null;
+  G.P = null; calcStats(); G.P = newPlayer(W.start.x, W.start.y); G.P.fy = -1; G.P.dir = 'up';
+  G.bori = G.pd.boriJoined ? newBori(W.start.x + 14, W.start.y + 3) : null;
+  for (let k = 0; k < 5; k++) { const e = spawnAround(wpick(ZONES[i].mons), 140, 260); if (e) e.spawnT = 0; }
+  G.cam.x = clamp(G.P.x - VW / 2, 0, Math.max(0, W.W - VW)); G.cam.y = clamp(G.P.y - 12 - VH / 2, 0, Math.max(0, W.H - VH));
+  G.state = 'play'; playBgm('field'); showHUD(true); saveGame();
+  banner(ZONES[i].sub, ZONES[i].name, 'stage');
+  if (!G.pd.boriJoined) { if (G.pd.lv >= 3) G.pendingEvent = 'bori'; else setTimeout(() => { if (G.state === 'play' && !G.pd.boriJoined) bubble(G.P, '보리야... 어디 있어ㅠㅠ', 2.6); }, 1800); }
+}
+function playerDie() {
+  G.state = 'dead'; G.pd.stats.deaths++; INP.atk = false;
+  burst(G.P.x, G.P.y - 10, '#ffffff', 20);
+  setTimeout(() => showDeath(), 700);
+}
+function respawn() {
+  const pd = G.pd, W = G.world; const lost = Math.floor(pd.gold * 0.1); pd.gold -= lost;
+  G.P.x = W.start.x; G.P.y = W.start.y; G.P.hp = G.st.hp; G.P.mp = G.st.mp; G.P.inv = 2; G.P.kbx = G.P.kby = 0;
+  if (G.bori) { G.bori.x = G.P.x + 14; G.bori.y = G.P.y + 3; G.bori.zoom = null; }
+  G.projs = []; for (const e of G.enemies) if (!e.boss && Math.hypot(e.x - G.P.x, e.y - G.P.y) < 140) e.gone = true;
+  if (G.boss) { G.boss.hp = G.boss.maxHp; G.boss.st = 'idle'; G.boss.x = W.W / 2; G.boss.y = 290; G.boss.hopY = 0; }
+  G.state = 'play'; if (lost) toast(`병원비로 ${lost}G를 썼어요...`, 'sub');
+  bubble(G.P, '다시 해보자...!', 1.5);
+}
+
+// ---------- bori event ----------
+function boriEvent() {
+  const P = G.P, W = G.world; G.state = 'event';
+  const sx = P.x + 64 < W.W - 30 ? P.x + 64 : P.x - 64, sy = clamp(P.y - 6, 50, W.H - 30);
+  G.bori = newBori(sx, sy); G.bori.hidden = true;
+  G.evt = { t: 0, sx, sy, popped: false, arrived: false, talked: false };
+  P.fx = sx > P.x ? 1 : -1; P.fy = 0; P.dir = P.fx > 0 ? 'right' : 'left'; P.idleT = 0; INP.atk = false;
+  bubble(P, '...응? 저 소리는?', 1.6);
+}
+function updateEvent(dt) {
+  const E = G.evt, B = G.bori, P = G.P; E.t += dt;
+  if (!E.popped && E.t > 1.2) { E.popped = true; B.hidden = false; B.jump = 0.4; sfx('bark'); bubble(B, '멍!', 1.2); burst(E.sx, E.sy - 4, '#4f9a3f', 14, 60); }
+  if (E.popped && !E.arrived) { if (E.t > 1.7) { moveToward(B, P.x + (E.sx > P.x ? 11 : -11), P.y + 2, 90, dt); B.run = true; B.t += dt; if (Math.hypot(B.x - P.x, B.y - P.y) < 14) { E.arrived = true; B.run = false; B.jump = 0.5; sfx('ding'); for (let i = 0; i < 10; i++) G.parts.push({ x: P.x + rand(-10, 10), y: P.y - 10, vx: rand(-25, 25), vy: rand(-60, -30), life: 1.2, max: 1.2, col: '#ff7ab8', sz: 3, grav: 30, heart: true }); E.at = E.t; } } }
+  if (E.arrived && !E.talked && E.t > E.at + 0.8) {
+    E.talked = true;
+    dialog([
+      { who: 'bori', text: '멍! 멍멍멍!! (꼬리 프로펠러 가동)' },
+      { who: 'hee', text: '보리야!!! 어디 갔었어ㅠㅠㅠ 언니가 얼마나 찾았는데!!' },
+      { who: 'bori', text: '끼잉~ (얼굴을 비비적비비적)' },
+      { who: 'hee', text: '이제 절대 안 놓쳐. 같이 여기서 나가자!' },
+      { who: 'sys', text: '보리가 동료가 되었습니다!' },
+      { who: 'sys', text: '보리는 알아서 몬스터를 물어요. 너무 귀여워서 몬스터들은 보리를 공격하지 못해요.' },
+      { who: 'sys', text: '보너스 스킬 포인트 +1! 메뉴 → 스킬에서 보리 스킬도 찍을 수 있어요.' }
+    ], () => { G.pd.boriJoined = true; G.pd.sp += 1; G.evt = null; G.state = 'play'; showHUD(true); saveGame(); toast('보리 합류! 스킬 포인트 +1', 'lvl'); });
+  }
+  updateFx(dt); updateCam(dt);
+}
+
+// ---------- fx update ----------
+function updateProjs(dt) {
+  const P = G.P;
+  for (const p of G.projs) {
+    p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; p.rot += dt * 8;
+    if (p.x < 0 || p.x > G.world.W || p.y < 0 || p.y > G.world.H) p.life = 0;
+    if (p.enemy) { if (Math.hypot(P.x - p.x, P.y - 9 - p.y) < p.r + 5) { hurtPlayer(p.dmg, null); p.life = 0; burst(p.x, p.y, p.col || '#fff', 4); } }
+    else {
+      for (const e of G.enemies) { if (e.dead || e.spawnT > 0 || p.hit.has(e.id)) continue; if (Math.hypot(e.x - p.x, (e.y - e.h * 0.4) - p.y) < e.r + p.r) { p.hit.add(e.id); dealDamage(e, p.dmg, { slow: p.slow || 2, kb: 40, ang: Math.atan2(p.vy, p.vx) }); if (--p.pierce <= 0) { p.life = 0; break; } } }
+    }
+  }
+  G.projs = G.projs.filter(p => p.life > 0);
+}
+function updateFx(dt) {
+  for (const f of G.fx) { f.t += dt; if (f.t >= f.dur && f.onEnd && !f.ended) { f.ended = true; f.onEnd(); } }
+  G.fx = G.fx.filter(f => f.t < f.dur);
+  for (const p of G.parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += p.grav * dt; p.life -= dt; }
+  G.parts = G.parts.filter(p => p.life > 0);
+  for (const t of G.texts) t.t += dt; G.texts = G.texts.filter(t => t.t < t.dur);
+  updateBubbles(dt);
+}
+function updateBubbles(dt) { for (const b of G.bubbles) b.t += dt; G.bubbles = G.bubbles.filter(b => b.t < b.dur && !(b.ent && b.ent.gone)); }
+function updateCam(dt) {
+  const W = G.world, P = G.P;
+  let tx = P.x - VW / 2, ty = P.y - 12 - VH / 2;
+  tx = W.W <= VW ? (W.W - VW) / 2 : clamp(tx, 0, W.W - VW); ty = W.H <= VH ? (W.H - VH) / 2 : clamp(ty, 0, W.H - VH);
+  const k = 1 - Math.pow(0.0005, dt); G.cam.x = lerp(G.cam.x, tx, k); G.cam.y = lerp(G.cam.y, ty, k);
+}
+
+function handleActions() {
+  for (const a of INP.act) {
+    if (a === 's1') trySkill('smash'); else if (a === 's2') trySkill('nag'); else if (a === 's3') trySkill('flash'); else if (a === 'ult') trySkill('menhera');
+    else if (a === 'hp') quickFood('hp'); else if (a === 'mp') quickFood('mp');
+    else if (a === 'menu' || a === 'esc') openMenu();
+  }
+  INP.act.clear();
+}
+
+function update(dt) {
+  G.time += dt; G.pd.stats.time += dt;
+  if (G.hitstop > 0) { G.hitstop -= dt; for (const t of G.texts) t.t += dt; return; }
+  handleActions();
+  if (G.state !== 'play') return;
+  if (G.ult) updateUlt(dt);
+  const frozen = G.ult && G.ult.t < 0.95;
+  updatePlayer(dt);
+  if (!frozen) {
+    updateBori(dt);
+    for (const e of G.enemies) updateEnemy(e, dt);
+    separateEnemies(); updateProjs(dt); updateSpawner(dt);
+  }
+  G.enemies = G.enemies.filter(e => !e.gone);
+  updateDrops(dt); updateFx(dt);
+  if (G.state === 'play') updateQuest();
+  updateCam(dt);
+  if (G.shake > 0) G.shake = Math.max(0, G.shake - dt * 14);
+  if (G.flash > 0) G.flash -= dt;
+  G.saveT += dt; if (G.saveT > 15) { G.saveT = 0; saveGame(); }
+  if (G.pendingEvent && !G.ult && G.state === 'play') { const ev = G.pendingEvent; G.pendingEvent = null; if (ev === 'bori') boriEvent(); }
+}
