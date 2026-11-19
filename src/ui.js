@@ -60,10 +60,10 @@ function updateHUD() {
   hset('mpT', v => HE.mpT.textContent = v, Math.floor(P.mp) + '/' + st.mp);
   hset('xpF', v => HE.xpF.style.width = v + '%', Math.round(pd.xp / xpNeed(pd.lv) * 1000) / 10);
   hset('gold', v => HE.gold.textContent = v, pd.gold.toLocaleString());
-  hset('zone', v => HE.zone.textContent = v, G.pvp ? 'PvP 아레나' : ZONES[G.zone].name + (loopLv() ? ` · ${loopLv() + 1}회차` : ''));
+  hset('zone', v => HE.zone.textContent = v, G.pvp ? 'PvP 아레나' : G.inf ? `할로윈파티 · WAVE ${G.inf.wave}` : ZONES[G.zone].name + (loopLv() ? ` · ${loopLv() + 1}회차` : ''));
   const Z = ZONES[G.zone];
   const zq = zoneQuota(Z); const q = !G.bossSpawned ? `몬스터 처치 ${Math.min(G.zoneKills, zq)}/${zq}` : (G.boss ? '보스를 쓰러뜨려라!' : (G.zone < 3 ? '↑ 출구로 이동!' : '↑ 탈출구로 탈출!'));
-  hset('quest', v => HE.quest.textContent = v, G.pvp ? `VS ${G.pvp.opp.nickname} · 남은 시간 ${Math.ceil(G.pvp.t)}초` : q);
+  hset('quest', v => HE.quest.textContent = v, G.pvp ? `VS ${G.pvp.opp.nickname} · 남은 시간 ${Math.ceil(G.pvp.t)}초` : G.inf ? (G.boss && !G.boss.dead ? `할로윈 보스 등장! · 처치 ${G.inf.kills}` : `처치 ${G.inf.kills} · 다음 웨이브 ${G.inf.waveKills}/${INF_WAVE_KILLS}`) : q);
   const b = G.boss && !G.boss.dead ? G.boss : null;
   hset('bossOn', v => HE.bossBar.hidden = !v, !!b);
   if (b) { hset('bossName', v => HE.bossName.textContent = v, b.m.name); hset('bossF', v => HE.bossF.style.width = v + '%', Math.round(Math.max(0, b.hp) / b.maxHp * 1000) / 10); }
@@ -185,7 +185,7 @@ const MREN = {
       <p>· 골드가 남으면 장비 탭에서 무기를 강화하세요 (+10까지, 실패 없음). 공격력·치명타가 올라요.</p>
       <h3>기록</h3>
       <p>플레이 시간 ${fmtTime(s.time)} · 처치 ${s.kills}마리 · 멘헤라 ${s.ults}회 · 먹은 음식 ${s.eaten}개 · 기절 ${s.deaths}회</p>
-      <div class="row"><button class="btn wh" data-m="sound">소리 ${SND.on ? '끄기' : '켜기'}</button><button class="btn wh" data-m="title">타이틀로</button><button class="btn wh" data-m="restart">처음부터 다시</button></div></div>`;
+      <div class="row"><button class="btn wh" data-m="sound">소리 ${SND.on ? '끄기' : '켜기'}</button>${G.inf ? '<button class="btn pk" data-m="infLeave">할로윈파티 나가기</button>' : ''}<button class="btn wh" data-m="title">타이틀로</button><button class="btn wh" data-m="restart">처음부터 다시</button></div></div>`;
   }
 };
 function boriPreviewURL() {
@@ -220,6 +220,7 @@ function menuClick(e) {
     if (!ids.length) { toast(`분해할 ${['일반', '희귀 이하', '영웅 이하'][mx]} 장비가 없어요 (장착중·강화된 무기는 제외)`, 'sub'); return; }
     confirmBox(`장착 안 한 ${['일반', '희귀 이하', '영웅 이하'][mx]} 장비 ${ids.length}개를 분해할까요?\n(희수·보리 장비 모두 · 강화된 무기 제외)\n강화석 +${s}`, () => { const r = dismantle(ids); sfx('coin'); toast(`${r.n}개 분해! 강화석 +${r.s}`, 'lvl'); renderMenu(); saveGame(); }); return; }
   if (m === 'sound') { setSound(!SND.on); renderMenu(); updateSndBtn(); return; }
+  if (m === 'infLeave') { infLeave(); return; }
   if (m === 'title') { saveGame(); $('#menu').hidden = true; showTitle(); return; }
   if (m === 'restart') { confirmBox('정말 처음부터 다시 할까요? 지금 진행이 사라져요.', () => { $('#menu').hidden = true; newGame(); }); return; }
 }
@@ -227,7 +228,7 @@ function updateSndBtn() { $('#sndBtn').textContent = SND.on ? '♪' : '×'; }
 
 // ---------- screens ----------
 function showTitle() {
-  G.state = 'title'; showHUD(false); if (typeof e2HideAll === 'function') e2HideAll(); $('#title').hidden = false; $('#endScr').hidden = true; $('#death').hidden = true; $('#dlg').hidden = true; $('#skip').hidden = true; $('#mission').hidden = true;
+  G.inf = null; G.state = 'title'; showHUD(false); if (typeof e2HideAll === 'function') e2HideAll(); $('#title').hidden = false; $('#endScr').hidden = true; $('#death').hidden = true; $('#dlg').hidden = true; $('#skip').hidden = true; $('#mission').hidden = true;
   const saved = hasSave() ? loadGame() : null;
   let e2s = null; try { e2s = JSON.parse(localStorage.getItem(E2KEY) || 'null'); } catch (e) { }
   const e2n = e2s ? (e2s.stars || []).reduce((a, b) => a + (b || 0), 0) : 0;
@@ -239,10 +240,11 @@ function showTitle() {
   }
   $('#tbtns').innerHTML = (saved ? `<button class="btn pk" id="tCont">1탄 · 에버랜드 대탈출<small>이어하기 · ${saved.cleared ? (saved.cleared + 1) + '회차 · ' : ''}Lv.${saved.lv} ${ZONES[saved.zone] ? ZONES[saved.zone].name : ''}</small></button>` : `<button class="btn pk" id="tNew">1탄 · 에버랜드 대탈출<small>희수의 도트 액션 RPG</small></button>`) +
     `<button class="btn e2new" id="tEp2">2탄 · 보리 주세요<small>${e2s ? '보리 단독 외전 · 별 ' + e2n + '/24' : '보리 단독 외전 · 미니게임 · NEW'}</small></button>` +
+    (saved ? `<button class="btn infbtn" id="tInf">에버랜드: 할로윈파티<small>무한던전 · ${infBasisLabel(infBasis(saved))} 몬스터 기준${saved.infBest ? ' · 최고 WAVE ' + saved.infBest : ''}</small></button>` : '') +
     (saved ? `<button class="btn pvpbtn" id="tPvp">희수 PvP 아레나<small>내가 키운 희수 vs 친구가 키운 희수</small></button>` : '') +
     `<div class="tsmall">${saved ? '<button class="btn wh" id="tNew">1탄 처음부터</button>' : ''}<button class="btn wh" id="tSnd">소리 ${SND.on ? '켜짐 ♪' : '꺼짐'}</button></div><div class="tsub">♥ 희수 & 보리 ♥</div>`;
   $('#tEp2').onclick = () => { audioInit(); e2Open(); };
-  if (saved) $('#tPvp').onclick = () => { audioInit(); pvpOpen(); };
+  if (saved) { $('#tPvp').onclick = () => { audioInit(); pvpOpen(); }; $('#tInf').onclick = () => { audioInit(); fadeTo(startInfinite, '에버랜드: 할로윈파티'); }; }
   if (saved) $('#tCont').onclick = () => { audioInit(); G.pd = saved; $('#title').hidden = true; fadeTo(() => startZone(G.pd.zone)); };
   $('#tNew').onclick = () => { audioInit(); if (saved) confirmBox('저장된 진행이 사라져요. 처음부터 시작할까요?', newGame); else newGame(); };
   $('#tSnd').onclick = () => { audioInit(); setSound(!SND.on); showTitle(); };

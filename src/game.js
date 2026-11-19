@@ -244,7 +244,7 @@ function updateBori(dt) {
 
 // ---------- 회차 (NG+) ----------
 const LOOP_CAP = 10;
-function loopLv() { return G.pvp ? 0 : Math.min(LOOP_CAP, (G.pd && G.pd.cleared) || 0); }
+function loopLv() { return G.pvp ? 0 : G.inf ? G.inf.loop : Math.min(LOOP_CAP, (G.pd && G.pd.cleared) || 0); }
 function loopMul() { const L = loopLv(); return { L, hp: 1 + 0.6 * L, atk: 1 + 0.35 * L, def: 3 * L, spd: Math.min(1.3, 1 + 0.05 * L), xp: 1 + 0.5 * L, gold: 1 + 0.6 * L, item: Math.min(3.5, 1 + 0.6 * L), cnt: Math.min(2, 1 + 0.25 * L), elite: Math.min(0.25, 0.07 * L), legend: Math.min(0.3, 0.08 * L) }; }
 const zoneQuota = Z => Math.round(Z.quota * loopMul().cnt);
 function rollItem(minRar, legendChance) {
@@ -274,8 +274,8 @@ function loopIntro(L) {
 function spawnEnemy(type, x, y) {
   const m = MONS[type], s = monSpr(m.spr), sc = m.scale || 1;
   const LM = loopMul(); let sc2 = sc, hpM = LM.hp, atkM = LM.atk; const elite = LM.L > 0 && !m.boss && !G.pvp && Math.random() < LM.elite; if (elite) { hpM *= 2.5; atkM *= 1.3; sc2 = sc * 1.25; }
-  const hp0 = Math.round(m.hp * hpM);
-  const e = { type, m, x, y, hp: hp0, maxHp: hp0, atk: m.atk * atkM, def: m.def + LM.def, spd: m.spd * LM.spd, elite, r: m.r, h: s.H * sc2, w: s.W * sc2, sc: sc2, boss: !!m.boss, col: m.col, t: rand(0, 10), atkCd: rand(0.5, 1.2), kbx: 0, kby: 0, stun: 0, slow: 0, fear: 0, confuse: 0, mental: 0, flash: 0, wx: 0, wy: 0, wT: 0, st: 'idle', stT: 0, spawnT: 0.45, id: ++G.eid, fly: !!m.fly, face: 1, hopY: 0 };
+  const WM = infWaveMul(); const hp0 = Math.round(m.hp * hpM * WM.hp);
+  const e = { type, m, x, y, hp: hp0, maxHp: hp0, atk: m.atk * atkM * WM.atk, def: m.def + LM.def, spd: m.spd * LM.spd, elite, r: m.r, h: s.H * sc2, w: s.W * sc2, sc: sc2, boss: !!m.boss, col: m.col, t: rand(0, 10), atkCd: rand(0.5, 1.2), kbx: 0, kby: 0, stun: 0, slow: 0, fear: 0, confuse: 0, mental: 0, flash: 0, wx: 0, wy: 0, wT: 0, st: 'idle', stT: 0, spawnT: 0.45, id: ++G.eid, fly: !!m.fly, face: 1, hopY: 0 };
   G.enemies.push(e); return e;
 }
 const AI = {
@@ -379,9 +379,9 @@ function killEnemy(e) {
   if (e.rival) { e.hp = 0; pvpEnd(true, `${e.nick}의 희수 KO!`); return; }
   e.dead = true; e.deadT = 0.25; e.hp = 0; G.pd.stats.kills++;
   burst(e.x, e.y - e.h / 2, e.col, e.boss ? 40 : 10, e.boss ? 140 : 80); burst(e.x, e.y - e.h / 2, '#ffffff', 4);
-  const LM = loopMul(), em = e.elite ? 1 : 0;
-  sfx('pop'); gainXp(Math.round(e.m.xp * LM.xp * (em ? 3 : 1)));
-  const gold = Math.round(randi(e.m.gold[0], e.m.gold[1]) * G.st.goldMul * LM.gold * (em ? 4 : 1));
+  const LM = loopMul(), em = e.elite ? 1 : 0, RW = infWaveMul().rew;
+  sfx('pop'); gainXp(Math.round(e.m.xp * LM.xp * (em ? 3 : 1) * RW));
+  const gold = Math.round(randi(e.m.gold[0], e.m.gold[1]) * G.st.goldMul * LM.gold * (em ? 4 : 1) * RW);
   if (em) { addText(e.x, e.y - e.h - 8, '정예 처치!', 'crit'); G.shake = 3; }
   if (gold > 0) { const n = Math.min(e.boss ? 12 : 4, Math.max(1, Math.ceil(gold / 6))); let left = gold; for (let i = 0; i < n; i++) { const a = i === n - 1 ? left : Math.floor(gold / n); left -= a; spawnDrop('gold', null, a, e.x, e.y); } }
   if (e.boss) { spawnDrop('food', 'eel', 1, e.x, e.y); if (G.zone >= 1) spawnDrop('food', G.zone % 2 ? 'banhmi' : 'jjukkumi', 1, e.x, e.y); for (let i = 0; i < 3; i++) spawnDrop('food', rollFood(), 1, e.x, e.y); for (const id of (e.m.drops || [])) spawnDrop('item', id, 1, e.x, e.y); for (let i = 0; i < LM.L && i < 3; i++) { const id = rollItem(1, LM.legend * 1.5); if (id) spawnDrop('item', id, 1, e.x, e.y); } }
@@ -390,7 +390,7 @@ function killEnemy(e) {
     if (em) { const id = rollItem(1, LM.legend * 2); if (id) spawnDrop('item', id, 1, e.x, e.y); spawnDrop('food', rollFood(), 1, e.x, e.y); }
     else if (Math.random() < 0.045 * LM.item) { const id = rollItem(0, LM.legend); if (id) spawnDrop('item', id, 1, e.x, e.y); }
   }
-  if (e.boss) onBossDefeated(e); else if (!G.bossSpawned) G.zoneKills++;
+  if (G.inf) infKill(e); else if (e.boss) onBossDefeated(e); else if (!G.bossSpawned) G.zoneKills++;
 }
 const rollFood = () => wpick(FOOD_ORDER.map(id => [id, FOODS[id].w]));
 
@@ -535,7 +535,7 @@ function goNextZone() {
   fadeTo(() => { startZone(G.pd.zone); setTimeout(() => { if (G.state === 'play' || G.state === 'dialog') { toast(`스마트 푸드 센터 재고떨이! 유통기한 임박 김밥 ×${n} · 음료수 ×${n}`, 'item r2'); sfx('coin'); if (G.P) bubble(G.P, '공짜는 못 참지!', 1.4); } }, 2900); });
 }
 function startZone(i) {
-  G.pvp = null;
+  G.pvp = null; G.inf = null;
   G.zone = i; G.pd.zone = i; G.world = buildWorld(i); const W = G.world;
   G.enemies = []; G.projs = []; G.fx = []; G.drops = []; G.parts = []; G.texts = []; G.bubbles = [];
   G.zoneKills = 0; G.bossSpawned = false; G.bossDefeated = false; G.boss = null; G.exitOpen = false; G.spawnT = 1.5; G.ult = null;
@@ -554,11 +554,11 @@ function playerDie() {
   setTimeout(() => showDeath(), 700);
 }
 function respawn() {
-  const pd = G.pd, W = G.world; const lost = Math.floor(pd.gold * 0.1); pd.gold -= lost;
+  const pd = G.pd, W = G.world; const lost = G.inf ? 0 : Math.floor(pd.gold * 0.1); pd.gold -= lost;
   G.P.x = W.start.x; G.P.y = W.start.y; G.P.hp = G.st.hp; G.P.mp = G.st.mp; G.P.inv = 2; G.P.kbx = G.P.kby = 0;
   if (G.bori) { G.bori.x = G.P.x + 14; G.bori.y = G.P.y + 3; G.bori.zoom = null; }
   G.projs = []; for (const e of G.enemies) if (!e.boss && Math.hypot(e.x - G.P.x, e.y - G.P.y) < 140) e.gone = true;
-  if (G.boss) { G.boss.hp = G.boss.maxHp; G.boss.st = 'idle'; G.boss.x = W.W / 2; G.boss.y = 290; G.boss.hopY = 0; }
+  if (G.boss && !G.inf) { G.boss.hp = G.boss.maxHp; G.boss.st = 'idle'; G.boss.x = W.W / 2; G.boss.y = 290; G.boss.hopY = 0; }
   G.state = 'play'; if (lost) toast(`병원비로 ${lost}G를 썼어요...`, 'sub');
   bubble(G.P, '다시 해보자...!', 1.5);
 }
@@ -642,11 +642,11 @@ function update(dt) {
   if (!frozen) {
     updateBori(dt);
     for (const e of G.enemies) updateEnemy(e, dt);
-    separateEnemies(); updateProjs(dt); if (!G.pvp) updateSpawner(dt); else pvpUpdate(dt);
+    separateEnemies(); updateProjs(dt); if (G.pvp) pvpUpdate(dt); else if (G.inf) infSpawner(dt); else updateSpawner(dt);
   }
   G.enemies = G.enemies.filter(e => !e.gone);
   updateDrops(dt); updateFx(dt);
-  if (G.state === 'play' && !G.pvp) updateQuest();
+  if (G.state === 'play' && !G.pvp && !G.inf) updateQuest();
   updateCam(dt);
   if (G.shake > 0) G.shake = Math.max(0, G.shake - dt * 14);
   if (G.flash > 0) G.flash -= dt;

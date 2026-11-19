@@ -235,3 +235,5 @@ button{font-family:inherit;color:inherit;border:none;background:none;padding:0;c
 .gbar.dis{flex-wrap:wrap;gap:6px}.gbar.dis .disb{display:flex;align-items:center;gap:4px;font-size:12px;color:#fff}
 .gbar.dis .btn.sm{background:#fff;color:var(--ink)}
 #confirmT{white-space:pre-line}
+
+.tbtns .btn.infbtn{background:linear-gradient(90deg,#ff8a3c,#7a3ac0);color:#fff}
