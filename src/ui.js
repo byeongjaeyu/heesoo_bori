@@ -60,15 +60,15 @@ function updateHUD() {
   hset('mpT', v => HE.mpT.textContent = v, Math.floor(P.mp) + '/' + st.mp);
   hset('xpF', v => HE.xpF.style.width = v + '%', Math.round(pd.xp / xpNeed(pd.lv) * 1000) / 10);
   hset('gold', v => HE.gold.textContent = v, pd.gold.toLocaleString());
-  hset('zone', v => HE.zone.textContent = v, ZONES[G.zone].name);
+  hset('zone', v => HE.zone.textContent = v, G.pvp ? 'PvP 아레나' : ZONES[G.zone].name);
   const Z = ZONES[G.zone];
   const q = !G.bossSpawned ? `몬스터 처치 ${Math.min(G.zoneKills, Z.quota)}/${Z.quota}` : (G.boss ? '보스를 쓰러뜨려라!' : (G.zone < 3 ? '↑ 출구로 이동!' : '↑ 탈출구로 탈출!'));
-  hset('quest', v => HE.quest.textContent = v, q);
+  hset('quest', v => HE.quest.textContent = v, G.pvp ? `VS ${G.pvp.opp.nickname} · 남은 시간 ${Math.ceil(G.pvp.t)}초` : q);
   const b = G.boss && !G.boss.dead ? G.boss : null;
   hset('bossOn', v => HE.bossBar.hidden = !v, !!b);
   if (b) { hset('bossName', v => HE.bossName.textContent = v, b.m.name); hset('bossF', v => HE.bossF.style.width = v + '%', Math.round(Math.max(0, b.hp) / b.maxHp * 1000) / 10); }
   hset('badge', v => { HE.badge.hidden = !v; HE.badge.textContent = v; }, pd.sp > 0 ? String(pd.sp) : (pd.newItem || pd.newBori ? 'N' : ''));
-  hset('bori', v => HE.boriHud.hidden = !v, !!pd.boriJoined);
+  hset('bori', v => HE.boriHud.hidden = !v, !!pd.boriJoined && !G.pvp);
   const bt = Object.values(P.buffs || {}).map(b => `${b.name} ${Math.ceil(b.t)}초`).join(' · ');
   hset('buff', v => { const el = $('#buffHud'); el.hidden = !v; el.textContent = v; }, bt);
   for (const [id, bid] of SKBTN) {
@@ -225,8 +225,10 @@ function showTitle() {
   }
   $('#tbtns').innerHTML = (saved ? `<button class="btn pk" id="tCont">1탄 · 에버랜드 대탈출<small>이어하기 · Lv.${saved.lv} ${ZONES[saved.zone] ? ZONES[saved.zone].name : ''}</small></button>` : `<button class="btn pk" id="tNew">1탄 · 에버랜드 대탈출<small>희수의 도트 액션 RPG</small></button>`) +
     `<button class="btn e2new" id="tEp2">2탄 · 보리 주세요<small>${e2s ? '보리 단독 외전 · 별 ' + e2n + '/24' : '보리 단독 외전 · 미니게임 · NEW'}</small></button>` +
+    (saved ? `<button class="btn pvpbtn" id="tPvp">희수 PvP 아레나<small>내가 키운 희수 vs 친구가 키운 희수</small></button>` : '') +
     `<div class="tsmall">${saved ? '<button class="btn wh" id="tNew">1탄 처음부터</button>' : ''}<button class="btn wh" id="tSnd">소리 ${SND.on ? '켜짐 ♪' : '꺼짐'}</button></div><div class="tsub">♥ 희수 & 보리 ♥</div>`;
   $('#tEp2').onclick = () => { audioInit(); e2Open(); };
+  if (saved) $('#tPvp').onclick = () => { audioInit(); pvpOpen(); };
   if (saved) $('#tCont').onclick = () => { audioInit(); G.pd = saved; $('#title').hidden = true; fadeTo(() => startZone(G.pd.zone)); };
   $('#tNew').onclick = () => { audioInit(); if (saved) confirmBox('저장된 진행이 사라져요. 처음부터 시작할까요?', newGame); else newGame(); };
   $('#tSnd').onclick = () => { audioInit(); setSound(!SND.on); showTitle(); };
@@ -245,6 +247,9 @@ function showEnd() {
 function startEnding() { showHUD(false); playCut(ENDING, () => { showEnd(); }); }
 
 function setupUI() {
+  $('#pvp').addEventListener('click', pvpClick); $('#pvpRes').addEventListener('click', pvpResClick);
+  $('#pvpNickOk').onclick = () => pvpNickSave(); $('#pvpNickNo').onclick = () => { $('#pvpNick').hidden = true; if (!PV.me) { $('#pvp').hidden = true; showTitle(); } };
+  $('#pvpNickIn').addEventListener('keydown', e => { if (e.key === 'Enter') pvpNickSave(); });
   $('#menu').addEventListener('click', menuClick);
   $('#menuBtn').addEventListener('click', () => { audioInit(); openMenu(); });
   $('#sndBtn').addEventListener('click', () => { audioInit(); setSound(!SND.on); updateSndBtn(); });

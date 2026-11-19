@@ -121,6 +121,7 @@ function dealDamage(e, raw, o) {
   o = o || {}; if (e.dead) return 0;
   const crit = !o.noCrit && Math.random() < G.st.crit + (o.critAdd || 0);
   let dmg = o.trueDmg ? raw : Math.max(raw * 0.2, raw - e.def * 0.5);
+  if (e.rival) dmg *= o.col === 'mental' ? PVP_MUL * 0.35 : PVP_MUL;
   dmg *= rand(0.9, 1.1); if (crit) dmg *= G.st.critMul; dmg = Math.max(1, Math.round(dmg));
   e.hp -= dmg; e.flash = 0.12;
   if (o.kb && !e.boss) { e.kbx += Math.cos(o.ang) * o.kb; e.kby += Math.sin(o.ang) * o.kb; }
@@ -137,6 +138,7 @@ function dealDamage(e, raw, o) {
 
 function hurtPlayer(raw, src) {
   const P = G.P; if (P.inv > 0 || G.state !== 'play' || G.ult) return;
+  if (G.pvp) raw *= PVP_MUL;
   let dmg = raw * 60 / (60 + G.st.def); dmg = Math.max(1, Math.round(dmg * rand(0.9, 1.1)));
   P.hp -= dmg; P.inv = 0.5; P.flash = 0.15;
   addText(P.x, P.y - 24, dmg, 'hurt'); G.shake = Math.max(G.shake, 3); sfx('hurt');
@@ -330,6 +332,7 @@ function separateEnemies() {
   for (let i = 0; i < L.length; i++) { const a = L[i]; if (a.dead) continue; for (let j = i + 1; j < L.length; j++) { const b = L[j]; if (b.dead) continue; const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy), m = (a.r + b.r) * 0.8; if (d < m && d > 0.01) { const p = (m - d) / 2, wa = a.boss ? 0.1 : 1, wb = b.boss ? 0.1 : 1; a.x -= dx / d * p * wa; a.y -= dy / d * p * wa; b.x += dx / d * p * wb; b.y += dy / d * p * wb; } } }
 }
 function killEnemy(e) {
+  if (e.rival) { e.hp = 0; pvpEnd(true, `${e.nick}의 희수 KO!`); return; }
   e.dead = true; e.deadT = 0.25; e.hp = 0; G.pd.stats.kills++;
   burst(e.x, e.y - e.h / 2, e.col, e.boss ? 40 : 10, e.boss ? 140 : 80); burst(e.x, e.y - e.h / 2, '#ffffff', 4);
   sfx('pop'); gainXp(e.m.xp);
@@ -464,6 +467,7 @@ function goNextZone() {
   fadeTo(() => startZone(G.pd.zone));
 }
 function startZone(i) {
+  G.pvp = null;
   G.zone = i; G.pd.zone = i; G.world = buildWorld(i); const W = G.world;
   G.enemies = []; G.projs = []; G.fx = []; G.drops = []; G.parts = []; G.texts = []; G.bubbles = [];
   G.zoneKills = 0; G.bossSpawned = false; G.bossDefeated = false; G.boss = null; G.exitOpen = false; G.spawnT = 1.5; G.ult = null;
@@ -476,6 +480,7 @@ function startZone(i) {
   if (!G.pd.boriJoined) { if (G.pd.lv >= 3) G.pendingEvent = 'bori'; else setTimeout(() => { if (G.state === 'play' && !G.pd.boriJoined) bubble(G.P, '보리야... 어디 있어ㅠㅠ', 2.6); }, 1800); }
 }
 function playerDie() {
+  if (G.pvp) { burst(G.P.x, G.P.y - 10, '#ffffff', 20); pvpEnd(false, '내 희수가 쓰러졌어요'); return; }
   G.state = 'dead'; G.pd.stats.deaths++; INP.atk = false;
   burst(G.P.x, G.P.y - 10, '#ffffff', 20);
   setTimeout(() => showDeath(), 700);
@@ -550,7 +555,9 @@ function updateCam(dt) {
 function handleActions() {
   for (const a of INP.act) {
     if (a === 's1') trySkill('smash'); else if (a === 's2') trySkill('nag'); else if (a === 's3') trySkill('flash'); else if (a === 'ult') trySkill('menhera');
+    else if ((a === 'hp' || a === 'mp') && G.pvp) toast('PvP에선 음식을 먹을 수 없어요!', 'warn');
     else if (a === 'hp') quickFood('hp'); else if (a === 'mp') quickFood('mp');
+    else if ((a === 'menu' || a === 'esc') && G.pvp) pvpForfeit();
     else if (a === 'menu' || a === 'esc') openMenu();
   }
   INP.act.clear();
@@ -567,14 +574,14 @@ function update(dt) {
   if (!frozen) {
     updateBori(dt);
     for (const e of G.enemies) updateEnemy(e, dt);
-    separateEnemies(); updateProjs(dt); updateSpawner(dt);
+    separateEnemies(); updateProjs(dt); if (!G.pvp) updateSpawner(dt); else pvpUpdate(dt);
   }
   G.enemies = G.enemies.filter(e => !e.gone);
   updateDrops(dt); updateFx(dt);
-  if (G.state === 'play') updateQuest();
+  if (G.state === 'play' && !G.pvp) updateQuest();
   updateCam(dt);
   if (G.shake > 0) G.shake = Math.max(0, G.shake - dt * 14);
   if (G.flash > 0) G.flash -= dt;
   G.saveT += dt; if (G.saveT > 15) { G.saveT = 0; saveGame(); }
-  if (G.pendingEvent && !G.ult && G.state === 'play') { const ev = G.pendingEvent; G.pendingEvent = null; if (ev === 'bori') boriEvent(); }
+  if (G.pendingEvent && !G.ult && G.state === 'play' && !G.pvp) { const ev = G.pendingEvent; G.pendingEvent = null; if (ev === 'bori') boriEvent(); }
 }

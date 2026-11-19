@@ -213,3 +213,16 @@ button{font-family:inherit;color:inherit;border:none;background:none;padding:0;c
 .big .e2box h2{font-size:28px}.big .e2box small{font-size:16px}.big .e2box p{font-size:18px}.big .e2stars{transform:scale(1.25)}
 .big .e2foot .btn{font-size:16px;padding:8px 10px}
 .big .tsub{font-size:16px}
+
+/* PvP */
+.tbtns .btn.pvpbtn{background:#b45cff;color:#fff}
+#pvpList{overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px;touch-action:pan-y;min-height:160px}
+.pvmsg{text-align:center;padding:18px 8px;font-size:14px;line-height:1.6;color:#6a4a5a}.pvmsg.sm{padding:2px 4px 6px;font-size:12px}
+.pvc{display:flex;align-items:center;gap:8px;background:#fff;border:3px solid var(--ink);border-radius:12px;padding:6px 8px;flex:1;min-width:0}.pvc.mine{background:#fff0f7}
+.pvc img{width:42px;height:66px;image-rendering:pixelated;flex:0 0 42px;object-fit:contain}
+.pvc span{flex:1;display:flex;flex-direction:column;min-width:0}.pvc em{font-style:normal;font-weight:bold;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pvc small{font-size:11px;color:#8a6a7a}
+.pvc .btn{flex:0 0 auto}
+.pvr{display:flex;align-items:center;gap:6px}.pvr>b{flex:0 0 28px;text-align:center;font-size:16px;color:#c0306a}
+.pvl{display:flex;align-items:center;gap:8px;background:#fff;border:3px solid var(--ink);border-radius:10px;padding:8px 10px;font-size:13px}.pvl b{color:#fff;border-radius:6px;padding:2px 6px}.pvl.w b{background:#3aa04a}.pvl.l b{background:#c0306a}.pvl span{flex:1}.pvl i{font-style:normal;font-weight:bold}
+#pvpNickIn{width:100%;font:inherit;font-size:18px;padding:10px;border:3px solid var(--ink);border-radius:10px;margin:4px 0 10px;user-select:text;-webkit-user-select:text}
+#pvpResT.w{color:#3aa04a}#pvpResT.l{color:#c0306a}

@@ -182,6 +182,7 @@ const INP = { k: {}, atk: false, act: new Set(), joy: { on: false, id: -1, ox: 0
 const KEYMOVE = { ArrowUp: 'u', KeyW: 'u', ArrowDown: 'd', KeyS: 'd', ArrowLeft: 'l', KeyA: 'l', ArrowRight: 'r', KeyD: 'r' };
 const KEYACT = { ArrowUp: 'kup', ArrowDown: 'kdown', ArrowLeft: 'kleft', ArrowRight: 'kright', KeyK: 's1', Digit1: 's1', KeyL: 's2', Digit2: 's2', Semicolon: 's3', Digit3: 's3', KeyU: 'ult', Digit4: 'ult', KeyR: 'ult', KeyQ: 'hp', KeyE: 'mp', KeyI: 'menu', KeyM: 'menu', Tab: 'menu', Escape: 'esc', Enter: 'ok' };
 window.addEventListener('keydown', e => {
+  if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
   audioInit();
   const k = KEYMOVE[e.code]; if (k) { INP.k[k] = true; e.preventDefault(); }
   if (e.code === 'KeyJ' || e.code === 'Space') { INP.atk = true; e.preventDefault(); if (!e.repeat) INP.act.add('ok'); }

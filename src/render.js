@@ -144,6 +144,7 @@ function drawPlayer() {
   if (G.ult && G.ult.t < 1.2) { for (let i = 0; i < 6; i++) { const a = G.time * 4 + i * 1.05; fr(P.x + Math.cos(a) * 11, P.y - 10 + Math.sin(a) * 6, 2, 2, i % 2 ? '#ff7ab8' : '#b45cff'); } }
 }
 function drawEnemy(e) {
+  if (e.rival) return drawRival(e);
   const s = monSpr(e.m.spr); const hy = Math.round(e.hopY || 0);
   if (!e.fly || true) shadow(e.x, e.y, Math.max(8, e.w * 0.7));
   if (e.spawnT > 0 && !e.boss) { const p = 1 - e.spawnT / 0.45; drawSpr(s, e.x, e.y - hy, { alpha: p, white: true, scale: e.sc }); return; }
@@ -238,6 +239,7 @@ function renderScreen() {
     else if (f.k === 'lvl') { const [x, y] = W2S(f.x, f.y - 36 - p * 10); ctx.globalAlpha = p > 0.7 ? (1 - p) / 0.3 : 1; txt('LEVEL UP!', x, y, U * 7, '#ffd84a', '#2b1b24'); ctx.globalAlpha = 1; }
   }
   // enemy status
+  for (const e of G.enemies) if (e.rival && !e.dead && e.spawnT <= 0) { const [x, y] = W2S(e.x, e.y - 30); txt(e.nick, x, y, U * 3.6, '#ffd1e6', '#2b1b24'); }
   for (const e of G.enemies) { if (e.dead || e.spawnT > 0) continue; const [x, y] = W2S(e.x, e.y - (e.hopY || 0) - e.h - 6); if (e.mental > 0 || e.confuse > 0) txt(Math.floor(G.time * 3) % 2 ? '@_@' : '?!', x, y, U * 4, '#ff7ab8', '#2b1b24'); else if (e.panic > 0) { txt(Math.floor(G.time * 4) % 2 ? '헉!' : '당황', x, y - Math.abs(Math.sin(G.time * 10)) * U * 2, U * 4.2, '#7ec8ff', '#2b1b24'); const [sx, sy] = W2S(e.x + e.w * 0.4, e.y - e.h * 0.8); ctx.fillStyle = '#9fe8ff'; ctx.fillRect(sx, sy + ((G.time * 30) % 6) * U * 0.5, U * 1.4, U * 2); } else if (e.fear > 0) txt('!!', x, y, U * 4.5, '#ffd84a', '#2b1b24'); }
   // speech bubbles
   for (const b of G.bubbles) {
