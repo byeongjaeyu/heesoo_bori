@@ -49,6 +49,7 @@ const ITEMS = {
   crossbag:  { slot: 'bag', name: '미니 크로스백', rar: 1, mp: 30, atk: 2, color: '#d05a6a', icon: 'bag', tier: 2, price: 500 },
   backpack:  { slot: 'bag', name: '귀여운 백팩',   rar: 2, hp: 60, mp: 40, atk: 4, color: '#7ab0e0', icon: 'bag', tier: 3, price: 1100 },
   b_knit:    { slot: 'bcloth', bori: 1, name: '엄마가 짜준 털옷',   rar: 0, bdmg: 0.2,  color: '#e8606e', pat: 'knit', icon: 'bknit', tier: 1, price: 240,  desc: '한 땀 한 땀 정성 가득. 신나서 더 세게 문다' },
+  b_blanket: { slot: 'bcloth', bori: 1, name: '엄마가 대충 덮어준 이불', rar: 1, bdmg: 0.32, color: '#8cc0e8', pat: 'knit', icon: 'bblanket', tier: 2, price: 620, desc: '엄마가 대충 덮어준 이불. 포근해서 힘이 솟는다' },
   b_pad:     { slot: 'bcloth', bori: 1, name: '용인시장 강아지패딩', rar: 2, bdmg: 0.45, color: '#f0b440', pat: 'pad',  icon: 'bpad',  tier: 3, price: 1300, desc: '시장표 빵빵 패딩. 따뜻해서 보리 컨디션 최고' },
   toy_melon: { slot: 'btoy',   bori: 1, name: '수박장난감',         rar: 0, bdmg: 0.15, icon: 'tmelon', tier: 1, price: 180,  desc: '삑삑 소리 나는 수박. 물고 다니면 기분 UP' },
   toy_doll:  { slot: 'btoy',   bori: 1, name: '인형장난감',         rar: 1, bdmg: 0.3,  icon: 'tdoll',  tier: 2, price: 650,  desc: '보리 최애 애착인형' },

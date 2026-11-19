@@ -656,6 +656,13 @@ const ICONS = {
 ".KYUUYDDYK.",
 ".KYYYYDAYK.",
 ".KKKKKKKKK."],
+  bblanket:[
+"KKKKKKKKK..",
+"KYYyYYyYYK.",
+"KYyyyYyyYYK",
+"KYYyYYyYYYK",
+".KYYYyYYyYK",
+"..KKKKKKKKK"],
   bknit:[
 "..KKKKKKK..",
 ".KYyYyYyYK.",
