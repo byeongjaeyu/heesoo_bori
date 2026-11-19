@@ -109,7 +109,7 @@ revoke all on function public.hb_touch() from public, anon, authenticated;
 create table if not exists public.hb_grants (
   id bigserial primary key,
   user_id uuid not null references auth.users(id) on delete cascade,
-  kind text not null default 'auto',   -- 'auto'(초) | 'gold'
+  kind text not null default 'auto',   -- 'auto'(초) | 'gold' | 'stage'(누적 스테이지 번호, 회차당 4)
   amount integer not null check (amount > 0),
   note text,
   created_at timestamptz not null default now(),
@@ -117,14 +117,15 @@ create table if not exists public.hb_grants (
 );
 alter table public.hb_grants enable row level security;
 revoke all on public.hb_grants from anon, authenticated;
-create or replace function public.hb_claim_grants()
+-- p_kinds: 이 클라이언트가 처리할 줄 아는 선물 종류만 수령 (구버전이 모르는 선물을 먹어버리지 않게)
+create or replace function public.hb_claim_grants(p_kinds text[] default array['auto','gold'])
 returns table(kind text, amount bigint, note text)
 language plpgsql security definer set search_path = public as $$
 begin
   if auth.uid() is null then return; end if;
   return query
-  with c as (update public.hb_grants g set claimed_at = now() where g.user_id = auth.uid() and g.claimed_at is null returning g.kind, g.amount, g.note)
-  select c.kind, sum(c.amount)::bigint, string_agg(coalesce(c.note, ''), ' / ') from c group by c.kind;
+  with c as (update public.hb_grants g set claimed_at = now() where g.user_id = auth.uid() and g.claimed_at is null and g.kind = any(p_kinds) returning g.kind, g.amount, g.note)
+  select c.kind, case when c.kind = 'stage' then max(c.amount)::bigint else sum(c.amount)::bigint end, string_agg(coalesce(c.note, ''), ' / ') from c group by c.kind;
 end $$;
-revoke all on function public.hb_claim_grants() from public, anon;
-grant execute on function public.hb_claim_grants() to authenticated;
+revoke all on function public.hb_claim_grants(text[]) from public, anon;
+grant execute on function public.hb_claim_grants(text[]) to authenticated;

@@ -86,7 +86,7 @@ async function entryRegister() {
 // 운영자 선물(hb_grants) 받기: 서버에서 받은 표시를 남기고 세이브에 더함
 async function claimGifts(pd) {
   if (FORCE_EASY || !pd || !SB) return;
-  const { data, error } = await SB.rpc('hb_claim_grants'); if (error || !data || !data.length) return;
+  const { data, error } = await SB.rpc('hb_claim_grants', { p_kinds: ['auto', 'gold', 'stage'] }); if (error || !data || !data.length) return;
   const tgt = G.pd || pd; // 그 사이 게임을 시작했으면 실제 플레이 중인 세이브에 넣음
   for (const g of data) {
     if (g.kind === 'auto') {
@@ -94,10 +94,16 @@ async function claimGifts(pd) {
       tgt.autoBonus = (tgt.autoBonus || 0) + sec;
       const h = sec / 3600, txt = h >= 1 ? `${Math.round(h * 10) / 10}시간` : `${Math.round(sec / 60)}분`;
       toast(`🎁 선물 도착! 자동사냥 ${txt} 충전 (자정에도 안 사라져요)`, 'lvl'); sfx('lvl');
+    } else if (g.kind === 'stage') {
+      // amount = 누적 스테이지 번호 (1회차 STAGE 1 = 1, 회차당 ZONES.length개). 지금보다 앞일 때만 이동
+      const n = Math.max(1, Number(g.amount) || 1) - 1, Z = ZONES.length, cl = Math.floor(n / Z), z = n % Z;
+      const cur = (tgt.cleared || 0) * Z + (tgt.zone || 0);
+      if (n > cur) { tgt.cleared = cl; tgt.zone = z; toast(`🎁 선물 도착! ${cl + 1}회차 ${ZONES[z].sub}(으)로 이동했어요`, 'lvl'); sfx('lvl'); }
     } else if (g.kind === 'gold') {
       const n = Number(g.amount) || 0; if (!n) continue;
       tgt.gold = (tgt.gold || 0) + n; toast(`🎁 선물 도착! ${n.toLocaleString()}G`, 'lvl'); sfx('coin');
     }
   }
   try { localStorage.setItem(SAVEKEY, JSON.stringify(tgt)); } catch (e) { }
+  if (!G.pd && G.state === 'title' && !$('#title').hidden) showTitle(); // 타이틀 버튼 정보 갱신
 }

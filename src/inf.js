@@ -3,11 +3,11 @@
 const INF_WAVE_KILLS = 40;
 function infBasis(pd) {
   const cl = pd.cleared || 0, z = pd.zone || 0;
-  if (z > 0) return { zone: z - 1, loop: Math.min(LOOP_CAP, cl) };
-  if (cl > 0) return { zone: ZONES.length - 1, loop: Math.min(LOOP_CAP, cl - 1) };
+  if (z > 0) return { zone: z - 1, loop: Math.min(LOOP_CAP, cl), real: cl };
+  if (cl > 0) return { zone: ZONES.length - 1, loop: Math.min(LOOP_CAP, cl - 1), real: cl - 1 };
   return { zone: 0, loop: 0, none: true };
 }
-const infBasisLabel = b => `${b.loop + 1}회차 ${ZONES[b.zone].name}${b.none ? ' (아직 깬 곳 없음)' : ''}`;
+const infBasisLabel = b => `${(b.real != null ? b.real : b.loop) + 1}회차 ${ZONES[b.zone].name}${b.none ? ' (아직 깬 곳 없음)' : ''}`;
 const PUMPKIN = [
   "....K1K....",
   "..KKK1KKK..",
