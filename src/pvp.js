@@ -153,7 +153,7 @@ AI.rival = function (e, dt, sp, dP) {
   if (dP > reach - 2) { moveToward(e, P.x, P.y, sp, dt); if (dP < 60) { const s = Math.sin(e.t * 1.7) * sp * 0.4 * dt; e.x += -Math.sin(a) * s; e.y += Math.cos(a) * s; } }
   else if (e.swCd <= 0) {
     const fl = sk2.fist || 0; e.swCd = 1 / Math.min(2, (w.rate || 1.5) * (1 + 0.03 * fl));
-    G.fx.push({ k: 'swing', x: e.x, y: e.y - 8, a, reach: w.reach || 14, arc: (w.arc || 100) * Math.PI / 180, t: 0, dur: 0.18, style: w.style, wpn: w.id, side: (e.side ^= 1) });
+    G.fx.push({ k: 'swing', ent: e, x: e.x, y: e.y - 8, a, reach: w.reach || 14, arc: (w.arc || 100) * Math.PI / 180, t: 0, dur: 0.18, style: w.style, wpn: w.id, side: (e.side ^= 1) });
     hurtPlayer(rivalHit(e, (w.mul || 1) * (1 + 0.1 * fl)), e);
   }
   e.mv = Math.hypot(e.x - e.lx, e.y - e.ly) / Math.max(dt, 1e-3); e.lx = e.x; e.ly = e.y;

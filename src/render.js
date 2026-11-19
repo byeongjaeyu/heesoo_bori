@@ -180,9 +180,10 @@ function drawFx(f) {
   const p = f.t / f.dur, P = G.P;
   switch (f.k) {
     case 'swing': {
+      const O = f.ent || P;
       if (f.style === 'punch') {
         const ext = Math.sin(p * Math.PI), side = f.side ? 3 : -3;
-        const px = P.x + Math.cos(f.a) * (4 + ext * f.reach * 0.8) + Math.cos(f.a + Math.PI / 2) * side, py = P.y - 9 + Math.sin(f.a) * (4 + ext * f.reach * 0.8) + Math.sin(f.a + Math.PI / 2) * side;
+        const px = O.x + Math.cos(f.a) * (4 + ext * f.reach * 0.8) + Math.cos(f.a + Math.PI / 2) * side, py = O.y - 9 + Math.sin(f.a) * (4 + ext * f.reach * 0.8) + Math.sin(f.a + Math.PI / 2) * side;
         drawSpr(ispr('fist'), px, py + 3);
         if (ext > 0.7) { const ix = px + Math.cos(f.a) * 4, iy = py + Math.sin(f.a) * 4; fr(ix - 3, iy, 7, 1, '#ffffff'); fr(ix, iy - 3, 1, 7, '#ffffff'); }
       } else {
@@ -190,8 +191,8 @@ function drawFx(f) {
         let a, r0 = 3;
         if (f.style === 'poke') { a = f.a; r0 = 2 + Math.sin(p * Math.PI) * 12; }
         else { const e = 1 - Math.pow(1 - p, 2); a = f.side ? f.a - f.arc / 2 + f.arc * e : f.a + f.arc / 2 - f.arc * e; }
-        if (f.style !== 'poke') { for (let k = 0; k < 14; k++) { const aa = f.side ? a - k * 0.07 : a + k * 0.07; const al = (1 - k / 14) * (1 - p * 0.5); ctx.fillStyle = `rgba(255,255,255,${al * 0.8})`; ctx.fillRect(Math.round(P.x + Math.cos(aa) * f.reach * 0.85), Math.round(P.y - 9 + Math.sin(aa) * f.reach * 0.85), 1, 1); ctx.fillRect(Math.round(P.x + Math.cos(aa) * f.reach * 0.7), Math.round(P.y - 9 + Math.sin(aa) * f.reach * 0.7), 1, 1); } }
-        ctx.save(); ctx.translate(Math.round(P.x), Math.round(P.y - 9)); ctx.rotate(a); ctx.drawImage(ws.n, Math.round(r0), -Math.floor(ws.H / 2)); ctx.restore();
+        if (f.style !== 'poke') { for (let k = 0; k < 14; k++) { const aa = f.side ? a - k * 0.07 : a + k * 0.07; const al = (1 - k / 14) * (1 - p * 0.5); ctx.fillStyle = `rgba(255,255,255,${al * 0.8})`; ctx.fillRect(Math.round(O.x + Math.cos(aa) * f.reach * 0.85), Math.round(O.y - 9 + Math.sin(aa) * f.reach * 0.85), 1, 1); ctx.fillRect(Math.round(O.x + Math.cos(aa) * f.reach * 0.7), Math.round(O.y - 9 + Math.sin(aa) * f.reach * 0.7), 1, 1); } }
+        ctx.save(); ctx.translate(Math.round(O.x), Math.round(O.y - 9)); ctx.rotate(a); ctx.drawImage(ws.n, Math.round(r0), -Math.floor(ws.H / 2)); ctx.restore();
       }
       break;
     }
