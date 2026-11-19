@@ -19,6 +19,7 @@ const RARITY = ['일반', '희귀', '영웅', '전설', '신화', '초월'];
 const SLOTS = ['weapon', 'hat', 'armor', 'shoes', 'bag'];
 const BSLOTS = ['bcloth', 'btoy'];
 const SLOTNAME = { weapon: '무기', hat: '모자', armor: '옷', shoes: '신발', bag: '가방', bcloth: '보리 옷', btoy: '장난감' };
+/** @type {Record<ItemId, ItemDef>} */
 const ITEMS = {
   fist:       { slot: 'weapon', name: '맨주먹',       rar: 0, atk: 0,  icon: 'fist',       start: 1, w: { reach: 15, arc: 110, mul: 1, rate: 3.0, kb: 40, style: 'punch' }, desc: '작고 소중한 희수의 주먹' },
   churros:    { slot: 'weapon', name: '츄러스',       rar: 0, atk: 5,  icon: 'churros',    tier: 1, price: 160,  w: { reach: 20, arc: 120, mul: 1, rate: 2.7, kb: 50, style: 'swing' }, desc: '설탕 듬뿍 츄러스. 먹으면 안 됨' },

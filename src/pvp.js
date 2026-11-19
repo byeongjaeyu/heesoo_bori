@@ -189,7 +189,7 @@ function pvpResClick(e) {
 function pvpForfeit() { if (!G.pvp || G.pvp.over) return; confirmBox('항복할까요? (패배로 기록돼요)', () => pvpEnd(false, '항복')); }
 
 // ---------- 그리기 ----------
-function heeSetFor(eq) { const keep = G.pd; G.pd = { eq }; try { return heeSet(); } finally { G.pd = keep; } }
+function heeSetFor(eq) { const keep = G.pd; G.pd = /** @type {SaveData} */ (/** @type {unknown} */ ({ eq })); /* 초상화 렌더용 임시 세이브 */ try { return heeSet(); } finally { G.pd = keep; } }
 function pvpFaceURL(eq) {
   try { const set = heeSetFor(eq && ITEMS[eq.hat] && ITEMS[eq.armor] && ITEMS[eq.shoes] && ITEMS[eq.bag] ? eq : newPD().eq); const s = set.down[0]; const o = mkCanvas(s.W * 3, s.H * 3), g = o.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(s.n, 0, 0, s.W * 3, s.H * 3); return o.toDataURL(); } catch (e) { return ''; }
 }

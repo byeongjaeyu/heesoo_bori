@@ -1,6 +1,6 @@
 // ===================== GAME CORE =====================
 const G = {
-  state: 'title', zone: 0, world: null, time: 0, pd: null, st: null, P: null, bori: null,
+  state: 'title', zone: 0, world: null, time: 0, pd: /** @type {SaveData|null} */ (null), st: null, P: null, bori: null,
   enemies: [], projs: [], fx: [], drops: [], parts: [], texts: [], bubbles: [],
   cam: { x: 0, y: 0 }, shake: 0, hitstop: 0, flash: 0,
   zoneKills: 0, bossSpawned: false, bossDefeated: false, boss: null, exitOpen: false, spawnT: 1, eid: 0,
@@ -10,6 +10,7 @@ const monSpr = n => spr('m_' + n, MONSPR[n]);
 
 // ---------- persistent data ----------
 const SAVEKEY = 'heesu_bori_save_v1';
+/** @returns {SaveData} */
 function newPD() {
   return {
     lv: 1, xp: 0, gold: 30, sp: 1, skills: {},
@@ -20,6 +21,7 @@ function newPD() {
   };
 }
 function saveGame() { if (!G.pd) return; try { localStorage.setItem(SAVEKEY, JSON.stringify(G.pd)); } catch (e) { } if (G.state === 'play' && !G.pvp && typeof rankSync === 'function') rankSync(); }
+/** @returns {SaveData|null} */
 function loadGame() {
   try {
     const s = localStorage.getItem(SAVEKEY); if (!s) return null;
