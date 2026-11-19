@@ -2,7 +2,7 @@ import base64, io, re, sys
 from fontTools import subset
 from fontTools.ttLib import TTFont
 SRC='src/'
-order=['sprites','sprites2','engine','data','world','game','render','ui','pvp','inf','auto','story','ep2core','ep2stages','ep2easy','ep2story','main']
+order=['sprites','sprites2','engine','data','world','game','render','ui','pvp','inf','auto','rank','story','ep2core','ep2stages','ep2easy','ep2story','main']
 js='\n'.join(open(SRC+f+'.js',encoding='utf-8').read() for f in order)
 js="'use strict';\n"+js
 css=open(SRC+'style.css',encoding='utf-8').read()

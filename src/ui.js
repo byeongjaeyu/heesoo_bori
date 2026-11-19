@@ -229,6 +229,7 @@ function updateSndBtn() { $('#sndBtn').textContent = SND.on ? '♪' : '×'; }
 
 // ---------- screens ----------
 function showTitle() {
+  if (typeof rankSync === 'function') rankSync();
   G.inf = null; G.auto = false; G.autoMove = null; G.state = 'title'; showHUD(false); if (typeof e2HideAll === 'function') e2HideAll(); $('#title').hidden = false; $('#endScr').hidden = true; $('#death').hidden = true; $('#dlg').hidden = true; $('#skip').hidden = true; $('#mission').hidden = true;
   const saved = hasSave() ? loadGame() : null;
   let e2s = null; try { e2s = JSON.parse(localStorage.getItem(E2KEY) || 'null'); } catch (e) { }
@@ -243,10 +244,11 @@ function showTitle() {
     `<button class="btn e2new" id="tEp2">2탄 · 보리 주세요<small>${e2s ? '보리 단독 외전 · 별 ' + e2n + '/24' : '보리 단독 외전 · 미니게임 · NEW'}</small></button>` +
     (saved ? `<button class="btn infbtn" id="tInf">에버랜드: 할로윈파티<small>무한던전 · ${infBasisLabel(infBasis(saved))} 몬스터 기준${saved.infBest ? ' · 최고 WAVE ' + saved.infBest : ''}</small></button>` : '') +
     (saved ? `<button class="btn pvpbtn" id="tPvp">희수 PvP 아레나<small>내가 키운 희수 vs 친구가 키운 희수</small></button>` : '') +
-    `<div class="tsmall"><button class="btn wh" id="tSnd">소리 ${SND.on ? '켜짐 ♪' : '꺼짐'}</button></div><div class="tsub">♥ 희수 & 보리 ♥</div>`;
+    `<div class="tsmall"><button class="btn wh" id="tRank">랭킹</button><button class="btn wh" id="tSnd">소리 ${SND.on ? '켜짐 ♪' : '꺼짐'}</button></div><div class="tsub">♥ 희수 & 보리 ♥</div>`;
   $('#tEp2').onclick = () => { audioInit(); e2Open(); };
   if (saved) { $('#tPvp').onclick = () => { audioInit(); pvpOpen(); }; $('#tInf').onclick = () => { audioInit(); fadeTo(startInfinite, '에버랜드: 할로윈파티'); }; }
   if (saved) $('#tCont').onclick = () => { audioInit(); G.pd = saved; $('#title').hidden = true; fadeTo(() => startZone(G.pd.zone)); };
+  if ($('#tRank')) $('#tRank').onclick = () => { audioInit(); rankOpen('title'); };
   if ($('#tNew')) $('#tNew').onclick = () => { audioInit(); if (saved) confirmBox('저장된 진행이 사라져요. 처음부터 시작할까요?', newGame); else newGame(); };
   $('#tSnd').onclick = () => { audioInit(); setSound(!SND.on); showTitle(); };
   playBgm('story');
@@ -264,6 +266,7 @@ function showEnd() {
 function startEnding() { showHUD(false); playCut(ENDING, () => { showEnd(); }); }
 
 function setupUI() {
+  $('#rankTabs').addEventListener('click', e => { const b = e.target.closest('[data-rt]'); if (b) { sfx('select'); rankTab(b.dataset.rt); } }); $('#rankClose').onclick = () => { sfx('select'); rankClose(); };
   $('#pvp').addEventListener('click', pvpClick); $('#pvpRes').addEventListener('click', pvpResClick);
   $('#pvpNickOk').onclick = () => pvpNickSave(); $('#pvpNickNo').onclick = () => { $('#pvpNick').hidden = true; if (!PV.me) { $('#pvp').hidden = true; showTitle(); } };
   $('#pvpNickIn').addEventListener('keydown', e => { if (e.key === 'Enter') pvpNickSave(); });
