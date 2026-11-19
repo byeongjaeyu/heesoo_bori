@@ -246,8 +246,20 @@ function updateBori(dt) {
 // ---------- 회차 (NG+) ----------
 const LOOP_CAP = 10;
 function loopLv() { return G.pvp ? 0 : G.inf ? G.inf.loop : Math.min(LOOP_CAP, (G.pd && G.pd.cleared) || 0); }
-function loopMul() { const L = loopLv(); return { L, hp: 1 + 0.6 * L, atk: 1 + 0.35 * L, def: 3 * L, spd: Math.min(1.3, 1 + 0.05 * L), xp: 1 + 0.5 * L, gold: 1 + 0.6 * L, item: Math.min(3.5, 1 + 0.6 * L), cnt: Math.min(2, 1 + 0.25 * L), elite: Math.min(0.25, 0.07 * L), legend: Math.min(0.3, 0.08 * L) }; }
+function loopMul() { const L = loopLv(); return { L, hp: 1 + 0.6 * L, atk: 1 + 0.35 * L, def: 3 * L, spd: Math.min(1.3, 1 + 0.05 * L), xp: 1 + 0.5 * L, gold: 1 + 0.6 * L, item: Math.min(1.6, 1 + 0.2 * L), cnt: Math.min(2, 1 + 0.25 * L), elite: Math.min(0.25, 0.07 * L), legend: Math.min(0.3, 0.08 * L) }; }
 const zoneQuota = Z => Math.round(Z.quota * loopMul().cnt);
+// 처치 1마리당 등급별 드롭 확률 (일반 몬스터 기준). 높은 등급부터 굴려서 하나만 떨어짐
+const DROP_RATE = [1 / 80, 1 / 250, 1 / 800, 1 / 2000, 1 / 5000, 1 / 12000];
+const DROP_MUL = { normal: 1, elite: 5, boss: 25 };
+function rollDrop(mul) {
+  const L = loopLv(), lm = loopMul().item * (mul || 1);
+  for (let r = DROP_RATE.length - 1; r >= 0; r--) {
+    if (Math.random() >= DROP_RATE[r] * lm) continue;
+    const pool = Object.keys(ITEMS).filter(id => { const it = ITEMS[id]; return it.rar === r && it.tier && it.tier <= G.zone + 1 + L && L >= it.rar - 3 && (!it.bori || G.pd.boriJoined); });
+    if (pool.length) return choice(pool);
+  }
+  return null;
+}
 function rollItem(minRar, legendChance) {
   const L = loopLv(); const ok = id => { const it = ITEMS[id]; return it.tier && it.tier <= G.zone + 1 + L && (!it.bori || G.pd.boriJoined) && it.rar >= (minRar || 0); };
   const all = Object.keys(ITEMS).filter(ok); const leg = all.filter(id => ITEMS[id].rar >= 3), rest = all.filter(id => ITEMS[id].rar < 3);
@@ -397,11 +409,11 @@ function killEnemy(e) {
   const gold = Math.round(randi(e.m.gold[0], e.m.gold[1]) * G.st.goldMul * LM.gold * (em ? 4 : 1) * RW);
   if (em) { addText(e.x, e.y - e.h - 8, '정예 처치!', 'crit'); G.shake = 3; }
   if (gold > 0) { const n = Math.min(e.boss ? 12 : 4, Math.max(1, Math.ceil(gold / 6))); let left = gold; for (let i = 0; i < n; i++) { const a = i === n - 1 ? left : Math.floor(gold / n); left -= a; spawnDrop('gold', null, a, e.x, e.y); } }
-  if (e.boss) { spawnDrop('food', 'eel', 1, e.x, e.y); if (G.zone >= 1) spawnDrop('food', G.zone % 2 ? 'banhmi' : 'jjukkumi', 1, e.x, e.y); for (let i = 0; i < 3; i++) spawnDrop('food', rollFood(), 1, e.x, e.y); for (const id of (e.m.drops || [])) spawnDrop('item', id, 1, e.x, e.y); for (let i = 0; i < LM.L && i < 3; i++) { const id = rollItem(1, LM.legend * 1.5); if (id) spawnDrop('item', id, 1, e.x, e.y); } }
+  if (e.boss) { spawnDrop('food', 'eel', 1, e.x, e.y); if (G.zone >= 1) spawnDrop('food', G.zone % 2 ? 'banhmi' : 'jjukkumi', 1, e.x, e.y); for (let i = 0; i < 3; i++) spawnDrop('food', rollFood(), 1, e.x, e.y); if (!G.inf) for (const id of (e.m.drops || [])) spawnDrop('item', id, 1, e.x, e.y); { const id = rollDrop(DROP_MUL.boss); if (id) spawnDrop('item', id, 1, e.x, e.y); } }
   else {
     if (Math.random() < 0.14) spawnDrop('food', rollFood(), 1, e.x, e.y);
-    if (em) { const id = rollItem(1, LM.legend * 2); if (id) spawnDrop('item', id, 1, e.x, e.y); spawnDrop('food', rollFood(), 1, e.x, e.y); }
-    else if (Math.random() < 0.045 * LM.item) { const id = rollItem(0, LM.legend); if (id) spawnDrop('item', id, 1, e.x, e.y); }
+    if (em) spawnDrop('food', rollFood(), 1, e.x, e.y);
+    { const id = rollDrop(em ? DROP_MUL.elite : DROP_MUL.normal); if (id) spawnDrop('item', id, 1, e.x, e.y); }
   }
   if (G.inf) infKill(e); else if (e.boss) onBossDefeated(e); else if (!G.bossSpawned) G.zoneKills++;
 }
