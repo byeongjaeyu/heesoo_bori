@@ -104,3 +104,27 @@ grant execute on function public.hb_report_battle(uuid, boolean) to authenticate
 revoke all on function public.hb_opponents() from public, anon;
 grant execute on function public.hb_opponents() to authenticated;
 revoke all on function public.hb_touch() from public, anon, authenticated;
+
+-- 운영자 선물함 (자동사냥 시간·골드). 클라이언트는 hb_claim_grants()로만 받음
+create table if not exists public.hb_grants (
+  id bigserial primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  kind text not null default 'auto',   -- 'auto'(초) | 'gold'
+  amount integer not null check (amount > 0),
+  note text,
+  created_at timestamptz not null default now(),
+  claimed_at timestamptz
+);
+alter table public.hb_grants enable row level security;
+revoke all on public.hb_grants from anon, authenticated;
+create or replace function public.hb_claim_grants()
+returns table(kind text, amount bigint, note text)
+language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then return; end if;
+  return query
+  with c as (update public.hb_grants g set claimed_at = now() where g.user_id = auth.uid() and g.claimed_at is null returning g.kind, g.amount, g.note)
+  select c.kind, sum(c.amount)::bigint, string_agg(coalesce(c.note, ''), ' / ') from c group by c.kind;
+end $$;
+revoke all on function public.hb_claim_grants() from public, anon;
+grant execute on function public.hb_claim_grants() to authenticated;

@@ -1,16 +1,17 @@
 // ===================== 자동사냥 (하루 30분 쿠폰) =====================
 const AUTO_DAILY = 1800;
 const todayKey = () => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
-const mmss = s => { s = Math.max(0, Math.ceil(s)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
-function autoLeft() { const pd = G.pd; if (!pd) return 0; if (!pd.auto || pd.auto.day !== todayKey()) pd.auto = { day: todayKey(), left: AUTO_DAILY }; return pd.auto.left; }
+const mmss = s => { s = Math.max(0, Math.ceil(s)); const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, ss = String(s % 60).padStart(2, '0'); return h ? `${h}:${String(m).padStart(2, '0')}:${ss}` : `${m}:${ss}`; };
+// 하루 쿠폰(자정 충전) + 선물 받은 보너스 시간(자정에 안 사라짐). 쓸 땐 하루 쿠폰부터
+function autoLeft() { const pd = G.pd; if (!pd) return 0; if (!pd.auto || pd.auto.day !== todayKey()) pd.auto = { day: todayKey(), left: AUTO_DAILY }; return pd.auto.left + (pd.autoBonus || 0); }
 function autoOff(msg) { G.auto = false; G.autoMove = null; G.autoAtk = false; if (msg) toast(msg, 'sub'); saveGame(); }
 function autoToggle() {
   if (!G.P || G.state !== 'play') return;
   if (G.pvp) { toast('PvP에선 자동사냥을 쓸 수 없어요', 'warn'); sfx('warn'); return; }
   if (G.auto) { autoOff('자동사냥 OFF · 남은 시간 ' + mmss(autoLeft())); sfx('select'); return; }
-  if (autoLeft() <= 0) { toast('오늘 자동사냥 쿠폰 30분을 다 썼어요! 자정에 다시 충전돼요', 'warn'); sfx('warn'); return; }
+  if (autoLeft() <= 0) { toast('오늘 자동사냥 쿠폰을 다 썼어요! 자정에 30분 다시 충전돼요', 'warn'); sfx('warn'); return; }
   G.auto = true; G.autoManT = 0; G.autoStuck = 0; sfx('ding');
-  toast(`자동사냥 ON · 오늘 남은 시간 ${mmss(autoLeft())}`, 'lvl'); bubble(G.P, choice(['자동으로 털어볼까?', '알아서 할게~', '오토 모드 가동!']), 1.3);
+  toast(`자동사냥 ON · 남은 시간 ${mmss(autoLeft())}`, 'lvl'); bubble(G.P, choice(['자동으로 털어볼까?', '알아서 할게~', '오토 모드 가동!']), 1.3);
 }
 function autoDanger(P) {
   for (const f of G.fx) {
@@ -31,8 +32,8 @@ function autoSkills(P, tgt, d) {
 function autoTick(dt) {
   if (!G.auto) { G.autoMove = null; G.autoAtk = false; return; }
   if (G.pvp || !G.P) { autoOff(); return; }
-  autoLeft(); G.pd.auto.left -= dt;
-  if (G.pd.auto.left <= 0) { G.pd.auto.left = 0; autoOff(); toast('자동사냥 쿠폰 30분을 다 썼어요! 자정에 다시 충전돼요', 'warn'); sfx('warn'); return; }
+  autoLeft(); if (G.pd.auto.left > 0) G.pd.auto.left = Math.max(0, G.pd.auto.left - dt); else G.pd.autoBonus = Math.max(0, (G.pd.autoBonus || 0) - dt);
+  if (autoLeft() <= 0) { autoOff(); toast('자동사냥 시간을 다 썼어요! 자정에 30분 다시 충전돼요', 'warn'); sfx('warn'); return; }
   const man = INP.joy.on || INP.k.l || INP.k.r || INP.k.u || INP.k.d;
   if (man) G.autoManT = 1.5; G.autoManT -= dt;
   if (G.autoManT > 0) { G.autoMove = null; G.autoAtk = false; return; }

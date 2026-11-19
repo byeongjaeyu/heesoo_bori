@@ -64,6 +64,7 @@ async function rankSyncNow() {
   await sbInit(); const me = PV.me || await pvpLoadMe(); if (!me) { PV.notReg = true; return false; }
   const keep = G.pd; G.pd = pd;
   try { await pvpUpload(); } finally { if (keep !== pd) { G.pd = keep; if (keep) calcStats(); } }
+  await claimGifts(pd).catch(() => { });
   return true;
 }
 function rankSync(force) {
@@ -79,4 +80,23 @@ async function entryRegister() {
     await sbInit(); const me = PV.me || await pvpLoadMe(); if (me) return;
     RK.joining = 'entry'; pvpNickBox(true); $('#pvpNickMsg').textContent = '어서 오세요! 랭킹에 쓸 닉네임을 정해주세요 (2~10자)';
   } catch (e) { }
+}
+
+// 운영자 선물(hb_grants) 받기: 서버에서 받은 표시를 남기고 세이브에 더함
+async function claimGifts(pd) {
+  if (FORCE_EASY || !pd || !SB) return;
+  const { data, error } = await SB.rpc('hb_claim_grants'); if (error || !data || !data.length) return;
+  const tgt = G.pd || pd; // 그 사이 게임을 시작했으면 실제 플레이 중인 세이브에 넣음
+  for (const g of data) {
+    if (g.kind === 'auto') {
+      const sec = Number(g.amount) || 0; if (!sec) continue;
+      tgt.autoBonus = (tgt.autoBonus || 0) + sec;
+      const h = sec / 3600, txt = h >= 1 ? `${Math.round(h * 10) / 10}시간` : `${Math.round(sec / 60)}분`;
+      toast(`🎁 선물 도착! 자동사냥 ${txt} 충전 (자정에도 안 사라져요)`, 'lvl'); sfx('lvl');
+    } else if (g.kind === 'gold') {
+      const n = Number(g.amount) || 0; if (!n) continue;
+      tgt.gold = (tgt.gold || 0) + n; toast(`🎁 선물 도착! ${n.toLocaleString()}G`, 'lvl'); sfx('coin');
+    }
+  }
+  try { localStorage.setItem(SAVEKEY, JSON.stringify(tgt)); } catch (e) { }
 }
