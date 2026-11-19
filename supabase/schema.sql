@@ -109,7 +109,7 @@ revoke all on function public.hb_touch() from public, anon, authenticated;
 create table if not exists public.hb_grants (
   id bigserial primary key,
   user_id uuid not null references auth.users(id) on delete cascade,
-  kind text not null default 'auto',   -- 'auto'(초) | 'gold' | 'stage'(누적 스테이지 번호, 회차당 4)
+  kind text not null default 'auto',   -- 'auto'(초) | 'gold' | 'stage'(누적 스테이지 번호, 회차당 4) | 'awaken'(목표 각성 단계)
   amount integer not null check (amount > 0),
   note text,
   created_at timestamptz not null default now(),

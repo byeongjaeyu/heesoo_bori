@@ -86,7 +86,7 @@ async function entryRegister() {
 // 운영자 선물(hb_grants) 받기: 서버에서 받은 표시를 남기고 세이브에 더함
 async function claimGifts(pd) {
   if (FORCE_EASY || !pd || !SB) return;
-  const { data, error } = await SB.rpc('hb_claim_grants', { p_kinds: ['auto', 'gold', 'stage'] }); if (error || !data || !data.length) return;
+  const { data, error } = await SB.rpc('hb_claim_grants', { p_kinds: ['auto', 'gold', 'stage', 'awaken'] }); if (error || !data || !data.length) return;
   const tgt = G.pd || pd; // 그 사이 게임을 시작했으면 실제 플레이 중인 세이브에 넣음
   for (const g of data) {
     if (g.kind === 'auto') {
@@ -99,11 +99,16 @@ async function claimGifts(pd) {
       const n = Math.max(1, Number(g.amount) || 1) - 1, Z = ZONES.length, cl = Math.floor(n / Z), z = n % Z;
       const cur = (tgt.cleared || 0) * Z + (tgt.zone || 0);
       if (n > cur) { tgt.cleared = cl; tgt.zone = z; toast(`🎁 선물 도착! ${cl + 1}회차 ${ZONES[z].sub}(으)로 이동했어요`, 'lvl'); sfx('lvl'); }
+    } else if (g.kind === 'awaken') {
+      // amount = 목표 각성 단계. 올라간 만큼 각성 포인트도 지급
+      const to = Number(g.amount) || 0, from = tgt.aw || 0;
+      if (to > from) { tgt.aw = to; tgt.ap = (tgt.ap || 0) + (to - from); if ((tgt.lv || 1) < MAX_LV) { tgt.sp = (tgt.sp || 0) + (MAX_LV - tgt.lv); tgt.lv = MAX_LV; tgt.xp = 0; } toast(`🎁 선물 도착! 각성 ★${to} · 각성 포인트 +${to - from}`, 'lvl'); sfx('lvl'); }
     } else if (g.kind === 'gold') {
       const n = Number(g.amount) || 0; if (!n) continue;
       tgt.gold = (tgt.gold || 0) + n; toast(`🎁 선물 도착! ${n.toLocaleString()}G`, 'lvl'); sfx('coin');
     }
   }
   try { localStorage.setItem(SAVEKEY, JSON.stringify(tgt)); } catch (e) { }
+  if (G.pd === tgt) calcStats();
   if (!G.pd && G.state === 'title' && !$('#title').hidden) showTitle(); // 타이틀 버튼 정보 갱신
 }
