@@ -270,6 +270,18 @@ function loopIntro(L) {
   dialog(lines);
 }
 
+// 희수 스킬 「오빠 살려줘!」: 쓰러지면 오빠가 달려와 부활 (스테이지당 1번, 할로윈파티는 보스 웨이브마다 충전)
+function husbandSave() {
+  const lv = sk('husband'), P = G.P; if (!lv || G.husUsed || !P) return false;
+  G.husUsed = true; P.hp = Math.round(G.st.hp * (lv >= 2 ? 0.6 : 0.3)); P.inv = lv >= 2 ? 3 : 1.5; P.kbx = P.kby = 0;
+  for (const e of G.enemies) if (!e.dead && !e.boss && Math.hypot(e.x - P.x, e.y - P.y) < 50) { const a = Math.atan2(e.y - P.y, e.x - P.x); e.kbx = Math.cos(a) * 160; e.kby = Math.sin(a) * 160; e.stun = Math.max(e.stun, 0.8); }
+  G.fx.push({ k: 'hus', x: P.x - 16, y: P.y, t: 0, dur: 1.6 }); G.fx.push({ k: 'ring', x: P.x, y: P.y - 8, r: 50, col: '#7ec8ff', t: 0, dur: 0.6 });
+  G.shake = 5; sfx('lvl'); word(P.x, P.y - 34, '오빠 살려줘!!', '#7ec8ff', 1.6);
+  bubble(P, choice(['오빠아아!!', '살았다...', '역시 우리 오빠']), 1.8);
+  toast(`오빠가 달려와서 희수를 일으켜줬어요! (HP ${lv >= 2 ? 60 : 30}%${lv >= 2 ? ' · 3초 무적' : ''})`, 'lvl');
+  return true;
+}
+
 // ---------- enemies ----------
 function spawnEnemy(type, x, y) {
   const m = MONS[type], s = monSpr(m.spr), sc = m.scale || 1;
@@ -471,10 +483,11 @@ function pickQuickFood(kind, missing) {
 }
 
 // ---------- progression ----------
+const MAX_LV = 50;
 function gainXp(x) {
-  const pd = G.pd; if (pd.lv >= 30) return; pd.xp += x;
+  const pd = G.pd; if (pd.lv >= MAX_LV) return; pd.xp += x;
   let up = false;
-  while (pd.lv < 30 && pd.xp >= xpNeed(pd.lv)) { pd.xp -= xpNeed(pd.lv); pd.lv++; pd.sp++; up = true; }
+  while (pd.lv < MAX_LV && pd.xp >= xpNeed(pd.lv)) { pd.xp -= xpNeed(pd.lv); pd.lv++; pd.sp++; up = true; }
   if (up) levelUp();
 }
 function levelUp() {
@@ -535,7 +548,7 @@ function goNextZone() {
   fadeTo(() => { startZone(G.pd.zone); setTimeout(() => { if (G.state === 'play' || G.state === 'dialog') { toast(`스마트 푸드 센터 재고떨이! 유통기한 임박 김밥 ×${n} · 음료수 ×${n}`, 'item r2'); sfx('coin'); if (G.P) bubble(G.P, '공짜는 못 참지!', 1.4); } }, 2900); });
 }
 function startZone(i) {
-  G.pvp = null; G.inf = null;
+  G.pvp = null; G.inf = null; G.husUsed = false;
   G.zone = i; G.pd.zone = i; G.world = buildWorld(i); const W = G.world;
   G.enemies = []; G.projs = []; G.fx = []; G.drops = []; G.parts = []; G.texts = []; G.bubbles = [];
   G.zoneKills = 0; G.bossSpawned = false; G.bossDefeated = false; G.boss = null; G.exitOpen = false; G.spawnT = 1.5; G.ult = null;
@@ -548,6 +561,7 @@ function startZone(i) {
   if (!G.pd.boriJoined) { if (G.pd.lv >= 3) G.pendingEvent = 'bori'; else setTimeout(() => { if (G.state === 'play' && !G.pd.boriJoined) bubble(G.P, '보리야... 어디 있어ㅠㅠ', 2.6); }, 1800); }
 }
 function playerDie() {
+  if (!G.pvp && husbandSave()) return;
   if (G.pvp) { burst(G.P.x, G.P.y - 10, '#ffffff', 20); pvpEnd(false, '내 희수가 쓰러졌어요'); return; }
   G.state = 'dead'; G.pd.stats.deaths++; INP.atk = false;
   burst(G.P.x, G.P.y - 10, '#ffffff', 20);

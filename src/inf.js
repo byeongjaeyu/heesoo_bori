@@ -30,7 +30,7 @@ function halloweenize(W) {
 function startInfinite() {
   const saved = loadGame(); if (!saved) { toast('1탄을 먼저 시작해야 들어갈 수 있어요', 'warn'); return; }
   G.pd = saved; const b = infBasis(G.pd), pd = G.pd;
-  G.pvp = null; G.inf = { zone: b.zone, loop: b.loop, wave: 1, kills: 0, waveKills: 0 };
+  G.pvp = null; G.husUsed = false; G.inf = { zone: b.zone, loop: b.loop, wave: 1, kills: 0, waveKills: 0 };
   G.zone = b.zone; G.world = buildWorld(b.zone); const W = G.world; halloweenize(W);
   G.enemies = []; G.projs = []; G.fx = []; G.drops = []; G.parts = []; G.texts = []; G.bubbles = [];
   G.zoneKills = 0; G.bossSpawned = true; G.bossDefeated = false; G.boss = null; G.exitOpen = false; G.spawnT = 0.8; G.ult = null; G.pendingEvent = null;
@@ -56,7 +56,7 @@ function infKill(e) {
     V.waveKills = 0; V.wave++; pd.infBest = Math.max(pd.infBest || 0, V.wave); sfx('ding');
     if (V.wave % 5 === 0) {
       const W = G.world, P = G.P, a = rand(0, 6.28); const b = spawnEnemy(ZONES[G.zone].boss, clamp(P.x + Math.cos(a) * 120, 60, W.W - 60), clamp(P.y + Math.sin(a) * 120, 120, W.H - 80));
-      b.spawnT = 1.3; G.boss = b; banner(`WAVE ${V.wave}`, '할로윈 보스 출현!', 'boss'); sfx('boss'); G.shake = 6;
+      b.spawnT = 1.3; G.boss = b; G.husUsed = false; banner(`WAVE ${V.wave}`, '할로윈 보스 출현!', 'boss'); sfx('boss'); G.shake = 6;
     } else banner('할로윈파티', `WAVE ${V.wave}`, 'stage');
     saveGame();
   }

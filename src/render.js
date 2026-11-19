@@ -200,6 +200,7 @@ function drawFx(f) {
     case 'ring': { const r = f.r * (0.3 + 0.7 * Math.sqrt(p)); ctx.globalAlpha = 1 - p; pRingE(f.x, f.y, r, r * 0.65, f.col); pRingE(f.x, f.y, r - 2, (r - 2) * 0.65, f.col); ctx.globalAlpha = 1; break; }
     case 'bite': { ctx.globalAlpha = 1 - p; for (const ox of [-3, 1]) { fr(f.x + ox, f.y - 2, 3, 1, '#ffffff'); fr(f.x + ox + 1, f.y - 1, 1, 1, '#ffffff'); fr(f.x + ox, f.y + 2, 3, 1, '#ffffff'); fr(f.x + ox + 1, f.y + 1, 1, 1, '#ffffff'); } ctx.globalAlpha = 1; break; }
     case 'lvl': { const a = 1 - p; ctx.fillStyle = `rgba(255,240,150,${a * 0.5})`; const w = Math.round(16 * (1 - p * 0.6)); ctx.fillRect(Math.round(f.x - w / 2), Math.round(f.y - 70), w, 70); for (let i = 0; i < 10; i++) fr(f.x + Math.sin(i * 7.3) * 10, f.y - ((f.t * 60 + i * 9) % 60), 1, 2, '#fff6b0'); break; }
+    case 'hus': { const a = p < 0.15 ? p / 0.15 : p > 0.8 ? (1 - p) / 0.2 : 1; drawSpr(husSpr(), f.x - (1 - Math.min(1, p * 4)) * 30, f.y, { alpha: a }); break; }
     case 'eat': drawSpr(ispr(f.icon), f.x, f.y - p * 10, { alpha: 1 - p * 0.6 }); break;
     case 'icon': drawSpr(pspr('phone'), f.x, f.y - p * 4, { alpha: 1 - p }); break;
     case 'camera': drawSpr(ispr('camera'), f.x, f.y, { alpha: 1 - p }); break;
