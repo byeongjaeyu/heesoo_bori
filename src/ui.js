@@ -242,7 +242,7 @@ function showTitle() {
     `<button class="btn e2new" id="tEp2">2탄 · 보리 주세요<small>${e2s ? '보리 단독 외전 · 별 ' + e2n + '/24' : '보리 단독 외전 · 미니게임 · NEW'}</small></button>` +
     (saved ? `<button class="btn infbtn" id="tInf">에버랜드: 할로윈파티<small>무한던전 · ${infBasisLabel(infBasis(saved))} 몬스터 기준${saved.infBest ? ' · 최고 WAVE ' + saved.infBest : ''}</small></button>` : '') +
     (saved ? `<button class="btn pvpbtn" id="tPvp">희수 PvP 아레나<small>내가 키운 희수 vs 친구가 키운 희수</small></button>` : '') +
-    `<div class="tsmall">${saved ? '<button class="btn wh" id="tNew">1탄 처음부터</button>' : ''}<button class="btn wh" id="tSnd">소리 ${SND.on ? '켜짐 ♪' : '꺼짐'}</button></div><div class="tsub">♥ 희수 & 보리 ♥</div>`;
+    `<div class="tsmall"><button class="btn wh" id="tSnd">소리 ${SND.on ? '켜짐 ♪' : '꺼짐'}</button></div><div class="tsub">♥ 희수 & 보리 ♥</div>`;
   $('#tEp2').onclick = () => { audioInit(); e2Open(); };
   if (saved) { $('#tPvp').onclick = () => { audioInit(); pvpOpen(); }; $('#tInf').onclick = () => { audioInit(); fadeTo(startInfinite, '에버랜드: 할로윈파티'); }; }
   if (saved) $('#tCont').onclick = () => { audioInit(); G.pd = saved; $('#title').hidden = true; fadeTo(() => startZone(G.pd.zone)); };
