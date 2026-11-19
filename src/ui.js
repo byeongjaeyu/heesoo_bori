@@ -60,9 +60,9 @@ function updateHUD() {
   hset('mpT', v => HE.mpT.textContent = v, Math.floor(P.mp) + '/' + st.mp);
   hset('xpF', v => HE.xpF.style.width = v + '%', Math.round(pd.xp / xpNeed(pd.lv) * 1000) / 10);
   hset('gold', v => HE.gold.textContent = v, pd.gold.toLocaleString());
-  hset('zone', v => HE.zone.textContent = v, G.pvp ? 'PvP 아레나' : ZONES[G.zone].name);
+  hset('zone', v => HE.zone.textContent = v, G.pvp ? 'PvP 아레나' : ZONES[G.zone].name + (loopLv() ? ` · ${loopLv() + 1}회차` : ''));
   const Z = ZONES[G.zone];
-  const q = !G.bossSpawned ? `몬스터 처치 ${Math.min(G.zoneKills, Z.quota)}/${Z.quota}` : (G.boss ? '보스를 쓰러뜨려라!' : (G.zone < 3 ? '↑ 출구로 이동!' : '↑ 탈출구로 탈출!'));
+  const zq = zoneQuota(Z); const q = !G.bossSpawned ? `몬스터 처치 ${Math.min(G.zoneKills, zq)}/${zq}` : (G.boss ? '보스를 쓰러뜨려라!' : (G.zone < 3 ? '↑ 출구로 이동!' : '↑ 탈출구로 탈출!'));
   hset('quest', v => HE.quest.textContent = v, G.pvp ? `VS ${G.pvp.opp.nickname} · 남은 시간 ${Math.ceil(G.pvp.t)}초` : q);
   const b = G.boss && !G.boss.dead ? G.boss : null;
   hset('bossOn', v => HE.bossBar.hidden = !v, !!b);
@@ -223,7 +223,7 @@ function showTitle() {
     $('#tSnd').onclick = () => { audioInit(); setSound(!SND.on); showTitle(); };
     playBgm('story'); return;
   }
-  $('#tbtns').innerHTML = (saved ? `<button class="btn pk" id="tCont">1탄 · 에버랜드 대탈출<small>이어하기 · Lv.${saved.lv} ${ZONES[saved.zone] ? ZONES[saved.zone].name : ''}</small></button>` : `<button class="btn pk" id="tNew">1탄 · 에버랜드 대탈출<small>희수의 도트 액션 RPG</small></button>`) +
+  $('#tbtns').innerHTML = (saved ? `<button class="btn pk" id="tCont">1탄 · 에버랜드 대탈출<small>이어하기 · ${saved.cleared ? (saved.cleared + 1) + '회차 · ' : ''}Lv.${saved.lv} ${ZONES[saved.zone] ? ZONES[saved.zone].name : ''}</small></button>` : `<button class="btn pk" id="tNew">1탄 · 에버랜드 대탈출<small>희수의 도트 액션 RPG</small></button>`) +
     `<button class="btn e2new" id="tEp2">2탄 · 보리 주세요<small>${e2s ? '보리 단독 외전 · 별 ' + e2n + '/24' : '보리 단독 외전 · 미니게임 · NEW'}</small></button>` +
     (saved ? `<button class="btn pvpbtn" id="tPvp">희수 PvP 아레나<small>내가 키운 희수 vs 친구가 키운 희수</small></button>` : '') +
     `<div class="tsmall">${saved ? '<button class="btn wh" id="tNew">1탄 처음부터</button>' : ''}<button class="btn wh" id="tSnd">소리 ${SND.on ? '켜짐 ♪' : '꺼짐'}</button></div><div class="tsub">♥ 희수 & 보리 ♥</div>`;
@@ -239,7 +239,7 @@ function showDeath() { $('#death').hidden = false; }
 function showEnd() {
   G.state = 'end'; $('#endScr h2').textContent = '희수와 보리의 에버랜드 대탈출'; const s = G.pd.stats; showHUD(false);
   $('#endStats').innerHTML = `최종 레벨 <b>Lv.${G.pd.lv}</b><br>처치한 몬스터 <b>${s.kills}</b>마리<br>멘헤라 공격 <b>${s.ults}</b>회<br>먹은 음식 <b>${s.eaten}</b>개 · 기절 <b>${s.deaths}</b>회<br>플레이 시간 <b>${fmtTime(s.time)}</b>`;
-  $('#endBtns').innerHTML = `<button class="btn pk" id="eAgain">2회차 시작 (레벨·장비 유지)</button><button class="btn wh" id="eTitle">타이틀로</button><div class="tsub">다음 이야기: 낚시터 대모험...?</div>`;
+  $('#endBtns').innerHTML = `<button class="btn pk" id="eAgain">${Math.min(LOOP_CAP, G.pd.cleared) + 1}회차 시작<small>레벨·장비 유지 · 몬스터 더 많고 강하게 · 보상 UP</small></button><button class="btn wh" id="eTitle">타이틀로</button><div class="tsub">다음 이야기: 낚시터 대모험...?</div>`;
   $('#endScr').hidden = false;
   $('#eAgain').onclick = () => { $('#endScr').hidden = true; G.pd.zone = 0; saveGame(); fadeTo(() => startZone(0)); };
   $('#eTitle').onclick = () => { $('#endScr').hidden = true; G.pd.zone = 0; saveGame(); showTitle(); };

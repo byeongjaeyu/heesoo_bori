@@ -147,6 +147,7 @@ function drawEnemy(e) {
   if (e.rival) return drawRival(e);
   const s = monSpr(e.m.spr); const hy = Math.round(e.hopY || 0);
   if (!e.fly || true) shadow(e.x, e.y, Math.max(8, e.w * 0.7));
+  if (e.elite && !e.dead) { ctx.globalAlpha = 0.45 + 0.25 * Math.sin(G.time * 6); pEll(ctx, Math.round(e.x), Math.round(e.y), Math.round(e.w * 0.5), 3, '#ffd84a'); ctx.globalAlpha = 1; }
   if (e.spawnT > 0 && !e.boss) { const p = 1 - e.spawnT / 0.45; drawSpr(s, e.x, e.y - hy, { alpha: p, white: true, scale: e.sc }); return; }
   if (e.spawnT > 0 && e.boss) { const p = 1 - e.spawnT / 1.3; drawSpr(s, e.x, e.y - hy - (1 - p) * 40, { alpha: p, scale: e.sc, white: Math.floor(G.time * 12) % 2 === 0 }); return; }
   const dy = e.dead ? (1 - e.deadT / 0.25) * 4 : 0;
@@ -155,7 +156,7 @@ function drawEnemy(e) {
   const flip = e.m.ai === 'boss2' ? e.face < 0 : e.face < 0;
   drawSpr(s, e.x, e.y - hy + dy + (sq ? 1 : 0), { flip, white: e.flash > 0 || e.dead, alpha: e.dead ? e.deadT / 0.25 : 1, scale: e.sc });
   if (e.type === 'soldier') { const hx = e.x + (e.face > 0 ? 5 : -6); fr(hx, e.y - hy - 13, 2, 9, '#2b1b24'); fr(hx, e.y - hy - 12, 1, 7, '#c98a3a'); }
-  if (e.m.crown) { const cs = Math.max(1, e.sc - 1); drawSpr(spr('m_crown', MONSPR.crown), e.x, e.y - hy - e.h + 3 * cs, { scale: cs }); }
+  if (e.m.crown || e.elite) { const cs = Math.max(1, e.sc - 1); drawSpr(spr('m_crown', MONSPR.crown), e.x, e.y - hy - e.h + 3 * cs, { scale: cs }); }
   if (!e.boss && !e.dead && e.hp < e.maxHp) { const w = 12, x = Math.round(e.x - w / 2), y = Math.round(e.y - hy - e.h - 4); fr(x - 1, y - 1, w + 2, 4, '#2b1b24'); fr(x, y, w, 2, '#5a2030'); fr(x, y, Math.max(1, Math.round(w * e.hp / e.maxHp)), 2, '#ff5a6e'); }
   if (e.stun > 0 && !e.dead) { for (let i = 0; i < 3; i++) { const a = G.time * 6 + i * 2.1; fr(e.x + Math.cos(a) * 6, e.y - hy - e.h - 2 + Math.sin(a) * 2, 1, 1, '#ffd84a'); } }
 }

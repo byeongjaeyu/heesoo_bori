@@ -228,10 +228,23 @@ function updateBori(dt) {
   B.x = clamp(B.x, 20, G.world.W - 20); B.y = clamp(B.y, 34, G.world.H - 14);
 }
 
+// ---------- 회차 (NG+) ----------
+const LOOP_CAP = 10;
+function loopLv() { return G.pvp ? 0 : Math.min(LOOP_CAP, (G.pd && G.pd.cleared) || 0); }
+function loopMul() { const L = loopLv(); return { L, hp: 1 + 0.6 * L, atk: 1 + 0.35 * L, def: 3 * L, spd: Math.min(1.3, 1 + 0.05 * L), xp: 1 + 0.5 * L, gold: 1 + 0.6 * L, item: Math.min(3.5, 1 + 0.6 * L), cnt: Math.min(2, 1 + 0.25 * L), elite: Math.min(0.25, 0.07 * L), legend: Math.min(0.3, 0.08 * L) }; }
+const zoneQuota = Z => Math.round(Z.quota * loopMul().cnt);
+function rollItem(minRar, legendChance) {
+  const L = loopLv(); const ok = id => { const it = ITEMS[id]; return it.tier && it.tier <= G.zone + 1 + L && (!it.bori || G.pd.boriJoined) && it.rar >= (minRar || 0); };
+  const all = Object.keys(ITEMS).filter(ok); const leg = all.filter(id => ITEMS[id].rar >= 3), rest = all.filter(id => ITEMS[id].rar < 3);
+  if (leg.length && Math.random() < (legendChance || 0)) return choice(leg); return rest.length ? choice(rest) : (leg.length ? choice(leg) : null);
+}
+
 // ---------- enemies ----------
 function spawnEnemy(type, x, y) {
   const m = MONS[type], s = monSpr(m.spr), sc = m.scale || 1;
-  const e = { type, m, x, y, hp: m.hp, maxHp: m.hp, atk: m.atk, def: m.def, spd: m.spd, r: m.r, h: s.H * sc, w: s.W * sc, sc, boss: !!m.boss, col: m.col, t: rand(0, 10), atkCd: rand(0.5, 1.2), kbx: 0, kby: 0, stun: 0, slow: 0, fear: 0, confuse: 0, mental: 0, flash: 0, wx: 0, wy: 0, wT: 0, st: 'idle', stT: 0, spawnT: 0.45, id: ++G.eid, fly: !!m.fly, face: 1, hopY: 0 };
+  const LM = loopMul(); let sc2 = sc, hpM = LM.hp, atkM = LM.atk; const elite = LM.L > 0 && !m.boss && !G.pvp && Math.random() < LM.elite; if (elite) { hpM *= 2.5; atkM *= 1.3; sc2 = sc * 1.25; }
+  const hp0 = Math.round(m.hp * hpM);
+  const e = { type, m, x, y, hp: hp0, maxHp: hp0, atk: m.atk * atkM, def: m.def + LM.def, spd: m.spd * LM.spd, elite, r: m.r, h: s.H * sc2, w: s.W * sc2, sc: sc2, boss: !!m.boss, col: m.col, t: rand(0, 10), atkCd: rand(0.5, 1.2), kbx: 0, kby: 0, stun: 0, slow: 0, fear: 0, confuse: 0, mental: 0, flash: 0, wx: 0, wy: 0, wT: 0, st: 'idle', stT: 0, spawnT: 0.45, id: ++G.eid, fly: !!m.fly, face: 1, hopY: 0 };
   G.enemies.push(e); return e;
 }
 const AI = {
@@ -335,13 +348,16 @@ function killEnemy(e) {
   if (e.rival) { e.hp = 0; pvpEnd(true, `${e.nick}의 희수 KO!`); return; }
   e.dead = true; e.deadT = 0.25; e.hp = 0; G.pd.stats.kills++;
   burst(e.x, e.y - e.h / 2, e.col, e.boss ? 40 : 10, e.boss ? 140 : 80); burst(e.x, e.y - e.h / 2, '#ffffff', 4);
-  sfx('pop'); gainXp(e.m.xp);
-  const gold = Math.round(randi(e.m.gold[0], e.m.gold[1]) * G.st.goldMul);
+  const LM = loopMul(), em = e.elite ? 1 : 0;
+  sfx('pop'); gainXp(Math.round(e.m.xp * LM.xp * (em ? 3 : 1)));
+  const gold = Math.round(randi(e.m.gold[0], e.m.gold[1]) * G.st.goldMul * LM.gold * (em ? 4 : 1));
+  if (em) { addText(e.x, e.y - e.h - 8, '정예 처치!', 'crit'); G.shake = 3; }
   if (gold > 0) { const n = Math.min(e.boss ? 12 : 4, Math.max(1, Math.ceil(gold / 6))); let left = gold; for (let i = 0; i < n; i++) { const a = i === n - 1 ? left : Math.floor(gold / n); left -= a; spawnDrop('gold', null, a, e.x, e.y); } }
-  if (e.boss) { spawnDrop('food', 'eel', 1, e.x, e.y); if (G.zone >= 1) spawnDrop('food', G.zone % 2 ? 'banhmi' : 'jjukkumi', 1, e.x, e.y); for (let i = 0; i < 3; i++) spawnDrop('food', rollFood(), 1, e.x, e.y); for (const id of (e.m.drops || [])) spawnDrop('item', id, 1, e.x, e.y); }
+  if (e.boss) { spawnDrop('food', 'eel', 1, e.x, e.y); if (G.zone >= 1) spawnDrop('food', G.zone % 2 ? 'banhmi' : 'jjukkumi', 1, e.x, e.y); for (let i = 0; i < 3; i++) spawnDrop('food', rollFood(), 1, e.x, e.y); for (const id of (e.m.drops || [])) spawnDrop('item', id, 1, e.x, e.y); for (let i = 0; i < LM.L && i < 3; i++) { const id = rollItem(1, LM.legend * 1.5); if (id) spawnDrop('item', id, 1, e.x, e.y); } }
   else {
     if (Math.random() < 0.14) spawnDrop('food', rollFood(), 1, e.x, e.y);
-    if (Math.random() < 0.045) { const pool = Object.keys(ITEMS).filter(id => ITEMS[id].tier && ITEMS[id].tier <= G.zone + 1 && ITEMS[id].rar < 3 && (!ITEMS[id].bori || G.pd.boriJoined)); if (pool.length) spawnDrop('item', choice(pool), 1, e.x, e.y); }
+    if (em) { const id = rollItem(1, LM.legend * 2); if (id) spawnDrop('item', id, 1, e.x, e.y); spawnDrop('food', rollFood(), 1, e.x, e.y); }
+    else if (Math.random() < 0.045 * LM.item) { const id = rollItem(0, LM.legend); if (id) spawnDrop('item', id, 1, e.x, e.y); }
   }
   if (e.boss) onBossDefeated(e); else if (!G.bossSpawned) G.zoneKills++;
 }
@@ -423,9 +439,9 @@ function levelUp() {
 function updateSpawner(dt) {
   const Z = ZONES[G.zone]; if (G.bossDefeated) return;
   const alive = G.enemies.filter(e => !e.dead && !e.boss).length;
-  const max = G.bossSpawned ? 3 + G.zone : Z.max;
+  const L = loopLv(); const max = (G.bossSpawned ? 3 + G.zone : Z.max) + Math.min(6, 2 * L);
   G.spawnT -= dt;
-  if (G.spawnT <= 0 && alive < max) { G.spawnT = Z.spawnInt * (G.bossSpawned ? 2.2 : 1); spawnAround(wpick(Z.mons)); }
+  if (G.spawnT <= 0 && alive < max) { G.spawnT = Z.spawnInt * (G.bossSpawned ? 2.2 : 1) / (1 + 0.15 * L); spawnAround(wpick(Z.mons)); }
 }
 function spawnAround(type, minD, maxD) {
   const W = G.world, P = G.P;
@@ -439,7 +455,7 @@ function spawnAround(type, minD, maxD) {
 }
 function updateQuest() {
   const Z = ZONES[G.zone], W = G.world;
-  if (!G.bossSpawned && G.zoneKills >= Z.quota) spawnBoss();
+  if (!G.bossSpawned && G.zoneKills >= zoneQuota(Z)) spawnBoss();
   if (G.exitOpen && Math.hypot(G.P.x - W.gate.x, G.P.y - (W.gate.y + 4)) < 16) goNextZone();
 }
 function spawnBoss() {
@@ -476,7 +492,7 @@ function startZone(i) {
   for (let k = 0; k < 5; k++) { const e = spawnAround(wpick(ZONES[i].mons), 140, 260); if (e) e.spawnT = 0; }
   G.cam.x = clamp(G.P.x - VW / 2, 0, Math.max(0, W.W - VW)); G.cam.y = clamp(G.P.y - 12 - VH / 2, 0, Math.max(0, W.H - VH));
   G.state = 'play'; playBgm('field'); showHUD(true); saveGame();
-  banner(ZONES[i].sub, ZONES[i].name, 'stage');
+  { const L = loopLv(); banner(L ? `${L + 1}회차 · ${ZONES[i].sub}` : ZONES[i].sub, ZONES[i].name, 'stage'); if (L && i === 0) setTimeout(() => toast(`${L + 1}회차! 몬스터 HP ×${loopMul().hp.toFixed(1)} · 보상 ×${loopMul().gold.toFixed(1)} · 왕관 정예 출현`, 'lvl'), 1600); }
   if (!G.pd.boriJoined) { if (G.pd.lv >= 3) G.pendingEvent = 'bori'; else setTimeout(() => { if (G.state === 'play' && !G.pd.boriJoined) bubble(G.P, '보리야... 어디 있어ㅠㅠ', 2.6); }, 1800); }
 }
 function playerDie() {
