@@ -31,7 +31,7 @@ const PSPR = {
 };
 const pspr = k => spr('p_' + k, PSPR[k]);
 const ispr = k => spr('i_' + k, ICONS[k]);
-function itemPal(it) { const c = it.color; if (!c) return null; if (it.icon === 'hat') return { C: c, c: shadeHex(c, -0.22) }; if (it.icon === 'jacket') return { W: c, w: shadeHex(c, -0.15) }; if (it.icon === 'shoes') return { O: c, o: shadeHex(c, -0.18) }; if (it.icon === 'bag') return { G: c, g: shadeHex(c, -0.25) }; if (it.slot === 'bcloth') return { Y: c, y: shadeHex(c, -0.2) }; return null; }
+function itemPal(it) { const c = it.color; if (!c) return null; if (it.icon === 'hat') return { C: c, c: shadeHex(c, -0.22) }; if (it.icon === 'jacket') return { W: c, w: shadeHex(c, -0.15) }; if (['shoes', 'sandal', 'boots', 'fishshoe'].includes(it.icon)) return { O: c, o: shadeHex(c, -0.18) }; if (it.icon === 'handbag') return { Q: c, q: shadeHex(c, -0.2) }; if (it.icon === 'bag') return { G: c, g: shadeHex(c, -0.25) }; if (it.slot === 'bcloth') return { Y: c, y: shadeHex(c, -0.2) }; return null; }
 const itemSpr = id => { const it = ITEMS[id]; return spr('it_' + id, ICONS[it.icon], itemPal(it)); };
 const itemURL = id => { const it = ITEMS[id]; return iconURL('it_' + id, ICONS[it.icon], itemPal(it)); };
 
@@ -172,6 +172,7 @@ function drawProj(p) {
   if (p.k === 'balloon') drawSpr(pspr('balloon'), p.x, p.y + 3);
   else if (p.k === 'note') drawSpr(pspr('note'), p.x, p.y + 3);
   else if (p.k === 'tea') drawSpr(pspr('tea'), p.x, p.y + 2);
+  else if (p.k === 'card') { ctx.save(); ctx.translate(Math.round(p.x), Math.round(p.y)); ctx.rotate(p.rot); ctx.fillStyle = '#2b1b24'; ctx.fillRect(-4, -3, 8, 6); ctx.fillStyle = '#ffffff'; ctx.fillRect(-3, -2, 6, 4); ctx.fillStyle = '#6fb8ff'; ctx.fillRect(-3, 1, 6, 1); ctx.fillStyle = '#ffdcc2'; ctx.fillRect(-2, -1, 2, 2); ctx.restore(); }
   else if (p.k === 'churro') { ctx.save(); ctx.translate(Math.round(p.x), Math.round(p.y)); ctx.rotate(p.rot); ctx.fillStyle = '#2b1b24'; ctx.fillRect(-4, -2, 8, 4); ctx.fillStyle = '#c98a3a'; ctx.fillRect(-3, -1, 6, 2); ctx.restore(); }
   else if (p.k === 'confetti') { ctx.save(); ctx.translate(Math.round(p.x), Math.round(p.y)); ctx.rotate(p.rot); ctx.fillStyle = '#2b1b24'; ctx.fillRect(-2, -2, 4, 4); ctx.fillStyle = p.col; ctx.fillRect(-1, -1, 2, 2); ctx.restore(); }
 }

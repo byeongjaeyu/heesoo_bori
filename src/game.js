@@ -104,6 +104,7 @@ function doAttack() {
   if (t) { const a = Math.atan2((t.y - t.h * 0.35) - (P.y - 8), t.x - P.x); P.fx = Math.cos(a); P.fy = Math.sin(a); P.dir = dirOf(P.fx, P.fy); }
   P.atkCd = 1 / (w.rate * (1 + 0.03 * fl)); P.atkAnim = 0.2; P.punch ^= 1; P.idleT = 0;
   const ang = Math.atan2(P.fy, P.fx);
+  if (w.style === 'throw') { const sp = 230; G.projs.push({ k: 'card', x: P.x, y: P.y - 10, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, r: 5, dmg: G.st.atk * w.mul * (1 + 0.1 * fl), life: w.reach / sp + 0.08, pierce: 1, hit: new Set(), mine: true, rot: 0, slow: 0.01 }); sfx('swing'); return; }
   G.fx.push({ k: 'swing', x: P.x, y: P.y - 8, a: ang, reach: w.reach, arc: w.arc * Math.PI / 180, t: 0, dur: 0.18, style: w.style, wpn: G.pd.eq.weapon, side: P.punch });
   let hit = false;
   for (const e of G.enemies) {

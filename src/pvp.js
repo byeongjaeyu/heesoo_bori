@@ -145,6 +145,11 @@ AI.rival = function (e, dt, sp, dP) {
     e.cast = { t: 0.45, go: () => { sfx('punch'); G.shake = 3; if (Math.hypot(P.x - fx, P.y - fy) < 20) hurtPlayer(rivalHit(e, 2.2 + 0.4 * (sk2.smash - 1)), e); } };
     return;
   }
+  if (w.style === 'throw') {
+    if (dP > (w.reach || 120) * 0.8) moveToward(e, P.x, P.y, sp, dt); else if (dP < 50) { e.x -= Math.cos(a) * sp * 0.6 * dt; e.y -= Math.sin(a) * sp * 0.6 * dt; }
+    if (dP < (w.reach || 120) + 10 && e.swCd <= 0) { e.swCd = 1 / Math.min(2, (w.rate || 2) * (1 + 0.03 * (sk2.fist || 0))); shootAt(e, 'card', a, 210); const pj = G.projs[G.projs.length - 1]; pj.dmg = rivalHit(e, (w.mul || 1) * (1 + 0.1 * (sk2.fist || 0))) / PVP_MUL * PVP_MUL; pj.life = (w.reach || 120) / 210 + 0.1; pj.r = 4; }
+    e.mv = Math.hypot(e.x - e.lx, e.y - e.ly) / Math.max(dt, 1e-3); e.lx = e.x; e.ly = e.y; return;
+  }
   if (dP > reach - 2) { moveToward(e, P.x, P.y, sp, dt); if (dP < 60) { const s = Math.sin(e.t * 1.7) * sp * 0.4 * dt; e.x += -Math.sin(a) * s; e.y += Math.cos(a) * s; } }
   else if (e.swCd <= 0) {
     const fl = sk2.fist || 0; e.swCd = 1 / Math.min(2, (w.rate || 1.5) * (1 + 0.03 * fl));

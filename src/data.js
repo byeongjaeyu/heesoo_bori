@@ -22,9 +22,9 @@ const ITEMS = {
   churros:    { slot: 'weapon', name: '츄러스',       rar: 0, atk: 5,  icon: 'churros',    tier: 1, price: 160,  w: { reach: 20, arc: 120, mul: 1, rate: 2.7, kb: 50, style: 'swing' }, desc: '설탕 듬뿍 츄러스. 먹으면 안 됨' },
   selfie:     { slot: 'weapon', name: '셀카봉',       rar: 1, atk: 10, icon: 'selfie',     tier: 2, price: 520,  w: { reach: 28, arc: 60,  mul: 1, rate: 2.5, kb: 50, style: 'poke' }, desc: '길어서 멀리 찌른다' },
   umbrella:   { slot: 'weapon', name: '장우산',       rar: 1, atk: 16, icon: 'umbrella',   tier: 3, price: 950,  w: { reach: 25, arc: 150, mul: 1, rate: 2.1, kb: 90, style: 'swing' }, desc: '넓게 휘두르는 튼튼한 우산' },
-  handbag:    { slot: 'weapon', name: '명품 핸드백',  rar: 3, atk: 24, crit: 0.06, icon: 'handbag', tier: 3, w: { reach: 22, arc: 150, mul: 1, rate: 2.1, kb: 130, style: 'swing' }, desc: '맞으면 정신이 번쩍. 곰인형의 보물' },
+  handbag:    { slot: 'weapon', name: '버려진 나무자재', rar: 3, atk: 24, crit: 0.06, icon: 'plank', tier: 3, w: { reach: 22, arc: 150, mul: 1, rate: 2.1, kb: 130, style: 'swing' }, desc: '공사장 옆에서 주운 튼튼한 각목. 곰인형이 숨겨둔 보물' },
   pan:        { slot: 'weapon', name: '프라이팬',     rar: 3, atk: 28, icon: 'pan',        tier: 4, price: 2100, w: { reach: 22, arc: 140, mul: 1, rate: 2.1, kb: 110, style: 'swing' }, desc: '땡! 소리가 경쾌하다' },
-  lightstick: { slot: 'weapon', name: '반짝 응원봉',  rar: 3, atk: 36, crit: 0.05, icon: 'lightstick', tier: 4, price: 4200, w: { reach: 26, arc: 130, mul: 1, rate: 2.8, kb: 70, style: 'swing' }, desc: '빠르고 반짝이는 최강 무기' },
+  lightstick: { slot: 'weapon', name: '롯데 자이언츠 응원봉', rar: 3, atk: 36, crit: 0.05, icon: 'cheerstick', tier: 4, price: 4200, w: { reach: 26, arc: 130, mul: 1, rate: 2.8, kb: 70, style: 'swing' }, desc: '9회말까지 쉬지 않고 흔든다. 빠르고 강하다' },
 
   cap_grey:  { slot: 'hat', name: '회색 볼캡', rar: 0, def: 1, color: '#8d939e', icon: 'hat', start: 1, desc: '희수의 최애 모자' },
   cap_pink:  { slot: 'hat', name: '핑크 볼캡', rar: 0, def: 2, mp: 15, color: '#f4a3c4', icon: 'hat', tier: 1, price: 130 },
@@ -41,8 +41,8 @@ const ITEMS = {
   sneakers: { slot: 'shoes', name: '흰 운동화',    rar: 0, spd: 0, color: '#ffffff', icon: 'shoes', start: 1 },
   slipon:   { slot: 'shoes', name: '슬립온',       rar: 0, spd: 0.05, def: 1, color: '#f0d080', icon: 'shoes', tier: 1, price: 140 },
   ugly:     { slot: 'shoes', name: '어글리 슈즈',  rar: 1, spd: 0.08, def: 3, color: '#c0c8d8', icon: 'shoes', tier: 2, price: 500 },
-  running:  { slot: 'shoes', name: '러닝화',       rar: 2, spd: 0.14, def: 4, color: '#ff7a5a', icon: 'shoes', tier: 3, price: 1150 },
-  skates:   { slot: 'shoes', name: '롤러스케이트', rar: 3, spd: 0.22, def: 5, color: '#ff8fd0', icon: 'shoes', tier: 4, price: 3000 },
+  running:  { slot: 'shoes', name: '명품 샌들',    rar: 2, spd: 0.14, def: 4, color: '#d8b070', icon: 'sandal', tier: 3, price: 1150 },
+  skates:   { slot: 'shoes', name: '레인부츠',     rar: 3, spd: 0.22, def: 5, color: '#f0c020', icon: 'boots', tier: 4, price: 3000 },
 
   silverbag: { slot: 'bag', name: '실버 숄더백',   rar: 0, mp: 10, color: '#b9c0cc', icon: 'bag', start: 1, desc: '안에는 폰밖에 없다' },
   ecobag:    { slot: 'bag', name: '에코백',        rar: 0, hp: 20, mp: 15, color: '#e8dcc0', icon: 'bag', tier: 1, price: 130 },
@@ -53,26 +53,26 @@ const ITEMS = {
   toy_melon: { slot: 'btoy',   bori: 1, name: '수박장난감',         rar: 0, bdmg: 0.15, icon: 'tmelon', tier: 1, price: 180,  desc: '삑삑 소리 나는 수박. 물고 다니면 기분 UP' },
   toy_doll:  { slot: 'btoy',   bori: 1, name: '인형장난감',         rar: 1, bdmg: 0.3,  icon: 'tdoll',  tier: 2, price: 650,  desc: '보리 최애 애착인형' },
   toy_bone:  { slot: 'btoy',   bori: 1, name: '뼈다구장난감',       rar: 3, bdmg: 0.55, icon: 'tbone',  tier: 3, price: 1900, desc: '세상에서 제일 소중한 뼈다구' },
-  clutch:    { slot: 'bag', name: '명품 클러치',   rar: 3, atk: 8, mp: 60, crit: 0.04, color: '#e0c060', icon: 'bag', tier: 4, price: 3100 },
+  clutch:    { slot: 'bag', name: '명품 핸드백',   rar: 3, atk: 8, mp: 60, crit: 0.04, color: '#e0c060', icon: 'handbag', tier: 4, price: 3100 },
 
   // ---- 4단계 보리 (상점) ----
   b_jump:    { slot: 'bcloth', bori: 1, name: '방한 점프슈트',      rar: 3, bdmg: 0.55, color: '#4a7ad0', pat: 'pad',  icon: 'bpad',  tier: 4, price: 3300, desc: '눈밭도 끄떡없는 전신 점프슈트' },
   toy_duck:  { slot: 'btoy',   bori: 1, name: '삑삑이 오리',         rar: 3, bdmg: 0.65, icon: 'tdoll',  tier: 4, price: 3600, desc: '물 때마다 삑! 적들이 깜짝 놀란다' },
 
   // ---- 5단계 · 신화 (2회차부터 드롭 전용) ----
-  goldpan:    { slot: 'weapon', name: '황금 프라이팬', rar: 4, atk: 48, crit: 0.06, icon: 'pan', tier: 5, w: { reach: 24, arc: 145, mul: 1, rate: 2.3, kb: 120, style: 'swing' }, desc: '회차 전용. 땡~ 소리마저 황금빛' },
+  goldpan:    { slot: 'weapon', name: '그리팅 사원증', rar: 4, atk: 44, crit: 0.06, icon: 'idcard', tier: 5, w: { reach: 120, arc: 0, mul: 1, rate: 2.4, kb: 40, style: 'throw' }, desc: '회차 전용. 사원증 카드를 휙휙 날리는 장거리 무기' },
   cap_rainbow:{ slot: 'hat', name: '무지개 볼캡', rar: 4, def: 14, mp: 95, crit: 0.06, color: '#b45cff', icon: 'hat', tier: 5, desc: '회차 전용' },
   goosepad:   { slot: 'armor', name: '구스 롱패딩', rar: 4, def: 25, hp: 230, crit: 0.02, color: '#f0f0f6', icon: 'jacket', tier: 5, desc: '회차 전용' },
-  airshoes:   { slot: 'shoes', name: '에어 운동화', rar: 4, def: 7, spd: 0.26, color: '#7ec8ff', icon: 'shoes', tier: 5, desc: '회차 전용' },
-  limitbag:   { slot: 'bag', name: '리미티드 클러치', rar: 4, atk: 12, mp: 85, crit: 0.05, color: '#c0306a', icon: 'bag', tier: 5, desc: '회차 전용' },
+  airshoes:   { slot: 'shoes', name: '명품 운동화', rar: 4, def: 7, spd: 0.26, color: '#f4f4f8', icon: 'shoes', tier: 5, desc: '회차 전용' },
+  limitbag:   { slot: 'bag', name: '리미티드 핸드백', rar: 4, atk: 12, mp: 85, crit: 0.05, color: '#c0306a', icon: 'handbag', tier: 5, desc: '회차 전용' },
   b_xmas:     { slot: 'bcloth', bori: 1, name: '크리스마스 니트', rar: 4, bdmg: 0.68, color: '#3aa04a', pat: 'knit', icon: 'bknit', tier: 5, desc: '회차 전용' },
   toy_goldbone:{ slot: 'btoy', bori: 1, name: '황금 뼈다구', rar: 4, bdmg: 0.75, icon: 'tbone', tier: 5, desc: '회차 전용' },
 
   // ---- 6단계 · 초월 (3회차부터 드롭 전용) ----
-  starstick:  { slot: 'weapon', name: '별빛 응원봉', rar: 5, atk: 64, crit: 0.08, icon: 'lightstick', tier: 6, w: { reach: 28, arc: 140, mul: 1, rate: 3.0, kb: 80, style: 'swing' }, desc: '회차 전용. 휘두르면 별이 쏟아진다' },
+  starstick:  { slot: 'weapon', name: '단단한 맥북프로', rar: 5, atk: 86, crit: 0.08, icon: 'laptop', tier: 6, w: { reach: 26, arc: 160, mul: 1, rate: 2.2, kb: 170, style: 'swing' }, desc: '회차 전용. 묵직한 알루미늄 한 방' },
   cap_tiara:  { slot: 'hat', name: '티아라 볼캡', rar: 5, def: 19, mp: 130, crit: 0.08, color: '#ffd1e6', icon: 'hat', tier: 6, desc: '회차 전용' },
   aurorapad:  { slot: 'armor', name: '오로라 패딩', rar: 5, def: 33, hp: 320, crit: 0.03, color: '#9fe8ff', icon: 'jacket', tier: 6, desc: '회차 전용' },
-  wingshoes:  { slot: 'shoes', name: '날개 스니커즈', rar: 5, def: 9, spd: 0.3, color: '#ffe68a', icon: 'shoes', tier: 6, desc: '회차 전용' },
+  wingshoes:  { slot: 'shoes', name: '남편의 갯바위 낚시신발', rar: 5, def: 9, spd: 0.3, color: '#5a6a4a', icon: 'fishshoe', tier: 6, desc: '회차 전용. 미끄러운 갯바위도 성큼성큼' },
   aurorabag:  { slot: 'bag', name: '오로라 미니백', rar: 5, atk: 17, mp: 115, crit: 0.07, color: '#7ef08a', icon: 'bag', tier: 6, desc: '회차 전용' },
   b_royal:    { slot: 'bcloth', bori: 1, name: '왕자님 망토', rar: 5, bdmg: 0.85, color: '#7a3ac0', pat: 'pad', icon: 'bpad', tier: 6, desc: '회차 전용' },
   toy_carp:   { slot: 'btoy', bori: 1, name: '전설의 월척 인형', rar: 5, bdmg: 0.95, icon: 'tdoll', tier: 6, desc: '회차 전용' }
