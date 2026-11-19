@@ -118,7 +118,7 @@ create table if not exists public.hb_grants (
 alter table public.hb_grants enable row level security;
 revoke all on public.hb_grants from anon, authenticated;
 -- p_kinds: 이 클라이언트가 처리할 줄 아는 선물 종류만 수령 (구버전이 모르는 선물을 먹어버리지 않게)
-create or replace function public.hb_claim_grants(p_kinds text[] default array['auto','gold'])
+create or replace function public.hb_claim_grants(p_kinds text[])
 returns table(kind text, amount bigint, note text)
 language plpgsql security definer set search_path = public as $$
 begin
@@ -129,3 +129,7 @@ begin
 end $$;
 revoke all on function public.hb_claim_grants(text[]) from public, anon;
 grant execute on function public.hb_claim_grants(text[]) to authenticated;
+-- 구버전 클라이언트(인자 없음)는 자동사냥·골드만 수령
+create or replace function public.hb_claim_grants()
+returns table(kind text, amount bigint, note text)
+language sql security definer set search_path = public as $$ select * from public.hb_claim_grants(array['auto','gold']); $$;
