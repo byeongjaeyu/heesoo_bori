@@ -40,7 +40,7 @@ function calcStats() {
   for (const slot of SLOTS) { const it = ITEMS[pd.eq[slot]]; if (!it) continue; st.hp += it.hp || 0; st.mp += it.mp || 0; st.atk += it.atk || 0; st.def += it.def || 0; st.spd += it.spd || 0; st.crit += it.crit || 0; }
   st.spd += 0.05 * sk('shop'); st.goldMul = 1 + 0.15 * sk('shop');
   st.hp = Math.round(st.hp * (1 + 0.05 * sk('mukbang'))); st.foodMul = 1 + 0.2 * sk('mukbang');
-  const en = (pd.enh || {})[pd.eq.weapon] || 0; st.atk += 2.5 * en; st.crit += 0.015 * en; st.enh = en;
+  const en = (pd.enh || {})[pd.eq.weapon] || 0; st.atk += 2.5 * en; st.crit += 0.01 * en; st.enh = en;
   if (G.P && G.P.buffs) { let ba = 0, bc = 0; for (const k in G.P.buffs) { ba += G.P.buffs[k].atk || 0; bc += G.P.buffs[k].crit || 0; } st.atk *= 1 + ba; st.crit += bc; }
   st.atk = Math.round(st.atk); st.def = Math.round(st.def); st.mp = Math.round(st.mp);
   st.weapon = ITEMS[pd.eq.weapon].w; st.moveSpd = 66 * st.spd;
@@ -198,6 +198,19 @@ function updateUlt(dt) {
 }
 
 // ---------- bori ----------
+// 보리 스킬 「언니줘!」: HP·MP가 기준 아래로 떨어지면 보리가 음식을 물어다 먹여줌 (최고급 음식 제외)
+const FEED_TH = [[0, 0], [0.4, 0.3], [0.5, 0.4], [0.6, 0.5]];
+function autoFeed(dt) {
+  const lv = sk('feed'), P = G.P, B = G.bori, st = G.st; if (!lv || !B || !G.pd.boriJoined || !P || G.ult) return;
+  G.feedCd = (G.feedCd || 0) - dt; if (G.feedCd > 0 || P.eatCd > 0) return;
+  const [th, tm] = FEED_TH[lv];
+  for (const k of ['hp', 'mp']) {
+    const cur = k === 'hp' ? P.hp / st.hp : P.mp / st.mp; if (cur >= (k === 'hp' ? th : tm)) continue;
+    const id = pickQuickFood(k, k === 'hp' ? st.hp - P.hp : st.mp - P.mp); if (!id || PREMIUM.includes(id)) continue;
+    G.fx.push({ k: 'eat', icon: FOODS[id].icon, x: (B.x + P.x) / 2, y: (B.y + P.y) / 2 - 10, t: 0, dur: 0.5 });
+    eatFood(id); G.feedCd = 1.2; bubble(B, choice(['멍! (언니 이거 먹어!)', '언니 줘!', '앙! (배달 왔어요)']), 1.2); return;
+  }
+}
 function updateBori(dt) {
   const B = G.bori; if (!B || B.hidden) return; const P = G.P;
   B.t += dt; B.biteCd -= dt; B.barkCd -= dt; B.zoomCd -= dt; if (B.jump > 0) B.jump -= dt;
@@ -638,5 +651,6 @@ function update(dt) {
   if (G.shake > 0) G.shake = Math.max(0, G.shake - dt * 14);
   if (G.flash > 0) G.flash -= dt;
   G.saveT += dt; if (G.saveT > 15) { G.saveT = 0; saveGame(); }
+  if (G.state === 'play' && !G.pvp) autoFeed(dt);
   if (G.pendingEvent && !G.ult && G.state === 'play' && !G.pvp) { const ev = G.pendingEvent; G.pendingEvent = null; if (ev === 'bori') boriEvent(); }
 }

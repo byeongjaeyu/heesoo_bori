@@ -91,6 +91,7 @@ const SKILLS = {
   menhera: { who: 'h', name: '멘헤라 공격', icon: 'bheart',    type: 'ult', btn: 'ult', max: 3, req: 8, mp: 50, cd: l => [40, 35, 30][Math.max(0, l - 1)], desc: l => `궁극기! 맵 전체 정신 공격. 공격력 ${(10 + 5 * l) * 100}% 방어 무시 피해 + 4초 멘붕 (쿨 ${[40, 35, 30][Math.max(0, l - 1)]}초)` },
   bite:    { who: 'b', name: '보리의 입질',    icon: 'paw',       type: 'passive', max: 5, req: 3, desc: l => `보리 물기 피해: 공격력의 ${40 + 15 * l}%` },
   bark:    { who: 'b', name: '멍멍!',       icon: 'sound',     type: 'auto', max: 5, req: 4, desc: l => `${(9 - 0.6 * (l - 1)).toFixed(1)}초마다 짖어서 주변 적 ${60 + 20 * l}% 피해 + 공포` },
+  feed:    { who: 'b', name: '언니줘!',     icon: 'gangjeong', type: 'auto', max: 3, req: 4, desc: l => `보리가 음식을 물어다 언니를 먹여줘요! HP ${[40, 50, 60][l - 1]}% · MP ${[30, 40, 50][l - 1]}% 아래로 떨어지면 자동으로 냠 (최고급 음식은 아껴둬요). 배우면 음식 버튼이 사라져요` },
   wag:     { who: 'b', name: '보리 테라피',   icon: 'heart',     type: 'passive', max: 3, req: 6, desc: l => `보리 곁에 있으면 초당 HP·MP ${(0.6 * l).toFixed(1)}% 추가 회복` },
   zoomies: { who: 'b', name: '보리 주세요', icon: 'bolt',      type: 'auto', max: 3, req: 9, desc: l => `12초마다 적들 사이를 우다다! 각 ${120 + 40 * l}% 피해` }
 };
