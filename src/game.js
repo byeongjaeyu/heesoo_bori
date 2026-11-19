@@ -45,6 +45,7 @@ function calcStats() {
   st.atk = Math.round(st.atk); st.def = Math.round(st.def); st.mp = Math.round(st.mp);
   st.weapon = ITEMS[pd.eq.weapon].w; st.moveSpd = 66 * st.spd;
   st.boriMul = 1; for (const sl of BSLOTS) { const it = ITEMS[(pd.beq || {})[sl]]; if (it) st.boriMul += it.bdmg || 0; }
+  st.toyEnh = (pd.enh || {})[(pd.beq || {}).btoy] || 0; st.boriMul += TOY_ENH * st.toyEnh;
   G.st = st;
   if (G.P) { G.P.hp = Math.min(G.P.hp, st.hp); G.P.mp = Math.min(G.P.mp, st.mp); }
   return st;
@@ -443,8 +444,10 @@ const stoneYield = id => STONE_YIELD[ITEMS[id].rar] || 1;
 function canDismantle(id) { const it = ITEMS[id], pd = G.pd; return !!(it && !it.start && pd.inv[id] && pd.eq[it.slot] !== id && (pd.beq || {})[it.slot] !== id && !((pd.enh || {})[id] > 0)); }
 function dismantle(ids) { let s = 0, n = 0; for (const id of ids) { if (!canDismantle(id)) continue; s += stoneYield(id); n++; delete G.pd.inv[id]; } G.pd.stones = (G.pd.stones || 0) + s; return { n, s }; }
 function enhOdds(lv, useStone) { let p = ENH_P[lv], dn = ENH_DOWN[lv], ds = ENH_DEST[lv]; if (useStone) { const add = Math.min(0.1, 1 - p); p += add; const take = Math.min(add, dn); dn -= take; } return { p, dn, ds, protect: !!useStone }; }
-function tryEnhance(useStone) {
-  const pd = G.pd, wid = pd.eq.weapon; pd.enh = pd.enh || {}; const en = pd.enh[wid] || 0; if (en >= ENH_MAX) return null;
+const TOY_ENH = 0.03; // 보리 장난감 강화 1단계당 보리 공격 +3%
+const enhTarget = slot => slot === 'btoy' ? (G.pd.beq || {}).btoy : G.pd.eq.weapon;
+function tryEnhance(useStone, slot) {
+  const pd = G.pd, wid = enhTarget(slot); if (!wid) return null; pd.enh = pd.enh || {}; const en = pd.enh[wid] || 0; if (en >= ENH_MAX) return null;
   const cost = enhCost(en), sc = enhStoneCost(en); if (pd.gold < cost || (useStone && (pd.stones || 0) < sc)) return null;
   pd.gold -= cost; if (useStone) pd.stones -= sc;
   const o = enhOdds(en, useStone), r = Math.random(); let res;
@@ -452,7 +455,7 @@ function tryEnhance(useStone) {
   else if (r < o.p + o.dn) { pd.enh[wid] = Math.max(0, en - 1); res = 'down'; }
   else if (r < o.p + o.dn + o.ds) { if (o.protect) { pd.enh[wid] = Math.max(0, en - 1); res = 'saved'; } else { pd.enh[wid] = Math.min(en, ENH_RESET); res = 'boom'; } }
   else res = 'keep';
-  calcStats(); saveGame(); return { res, from: en, to: pd.enh[wid] };
+  calcStats(); saveGame(); return { res, from: en, to: pd.enh[wid], id: wid };
 }
 const sellPrice = id => { const it = ITEMS[id]; return it.price ? Math.floor(it.price * 0.3) : [40, 150, 400, 800, 1600, 3200][it.rar]; };
 
