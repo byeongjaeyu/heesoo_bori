@@ -19,7 +19,7 @@ function newPD() {
     stats: { kills: 0, ults: 0, deaths: 0, time: 0, eaten: 0 }
   };
 }
-function saveGame() { if (!G.pd) return; try { localStorage.setItem(SAVEKEY, JSON.stringify(G.pd)); } catch (e) { } }
+function saveGame() { if (!G.pd) return; try { localStorage.setItem(SAVEKEY, JSON.stringify(G.pd)); } catch (e) { } if (G.state === 'play' && !G.pvp && typeof rankSync === 'function') rankSync(); }
 function loadGame() {
   try {
     const s = localStorage.getItem(SAVEKEY); if (!s) return null;

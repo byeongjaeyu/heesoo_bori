@@ -16,14 +16,14 @@ function fighterURL(snap, scale) {
   } catch (e) { return ''; } finally { G.pd = keep; }
 }
 function rankOpen(from) {
-  RK.from = from || 'title'; $('#title').hidden = true; showHUD(false); G.state = 'rank'; $('#rank').hidden = false; rankTab(RK.tab);
+  RK.from = from || 'title'; RK.synced = false; $('#title').hidden = true; showHUD(false); G.state = 'rank'; $('#rank').hidden = false; rankTab(RK.tab);
 }
 function rankClose() { $('#rank').hidden = true; if (location.hash === '#ranking') history.replaceState(null, '', location.pathname); showTitle(); }
 async function rankTab(t) {
   RK.tab = t; for (const b of document.querySelectorAll('#rankTabs button')) b.classList.toggle('on', b.dataset.rt === t);
   $('#rankSum').innerHTML = ''; $('#rankList').innerHTML = '<div class="pvmsg">랭킹을 불러오는 중...</div>';
   try {
-    await sbInit();
+    await sbInit(); if (!RK.synced) { RK.synced = true; await Promise.race([rankSync(true), new Promise(r => setTimeout(r, 4000))]); }
     const col = 'user_id,nickname,snap,power,rating,wins,losses';
     const q = SB.from('hb_fighters').select(col).limit(50);
     const { data, error } = t === 'power' ? await q.order('power', { ascending: false }) : await q.order('rating', { ascending: false }).order('wins', { ascending: false });
@@ -49,11 +49,17 @@ function rankRender(rows, total) {
   const list = rows.slice(3).map((f, i) => { const s = f.snap || {}; return `<div class="rrow${f.user_id === me ? ' mine' : ''}"><i>${i + 4}</i><img src="${fighterURL(s, 3)}"><span><em>${esc(f.nickname)}</em><small>Lv.${s.lv || '?'}${s.enh ? ' · 무기 +' + s.enh : ''}${t === 'pvp' ? ` · ${f.wins}승 ${f.losses}패` : ` · PvP ${f.rating}`}</small></span><b>${val(f)}</b></div>`; }).join('');
   $('#rankList').innerHTML = `<div class="rpodium">${order.join('')}</div>${list}`;
 }
-// 아레나에 등록한 사람은 타이틀로 돌아올 때 최신 스펙을 조용히 올림 (1분에 한 번)
-let rankSyncT = 0;
-function rankSync() {
-  if (!G.pd || FORCE_EASY || Date.now() - rankSyncT < 60000) return;
-  let reg = null; try { reg = localStorage.getItem('heesu_bori_pvp_reg'); } catch (e) { }
-  if (!reg) return; rankSyncT = Date.now();
-  sbInit().then(() => PV.me || pvpLoadMe()).then(me => { if (me) return pvpUpload(); }).catch(() => { });
+// 서버에 내 희수가 등록돼 있으면 최신 스펙을 올림 (게임 중 자동 저장 때 1분에 한 번, 타이틀·랭킹 열 때)
+let rankSyncT = 0, rankSyncP = null;
+async function rankSyncNow() {
+  if (FORCE_EASY) return false; const pd = G.pd || loadGame(); if (!pd) return false;
+  if (PV.notReg) return false;
+  await sbInit(); const me = PV.me || await pvpLoadMe(); if (!me) { PV.notReg = true; return false; }
+  const keep = G.pd; G.pd = pd;
+  try { await pvpUpload(); } finally { if (keep !== pd) { G.pd = keep; if (keep) calcStats(); } }
+  return true;
+}
+function rankSync(force) {
+  if (FORCE_EASY || (!force && Date.now() - rankSyncT < 60000)) return rankSyncP || Promise.resolve(false);
+  rankSyncT = Date.now(); rankSyncP = rankSyncNow().catch(() => false).finally(() => { rankSyncP = null; }); return rankSyncP;
 }

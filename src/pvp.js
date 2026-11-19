@@ -36,7 +36,7 @@ async function pvpUpload(nick) {
   else r = await SB.from('hb_fighters').update(nick ? { nickname: nick, snap, power } : { snap, power }).eq('user_id', PV.uid);
   if (r.error) throw r.error; await pvpLoadMe();
 }
-async function pvpLoadMe() { await sbInit(); const { data, error } = await SB.from('hb_fighters').select('*').eq('user_id', PV.uid).maybeSingle(); if (error) throw error; PV.me = data; if (data) try { localStorage.setItem('heesu_bori_pvp_reg', '1'); } catch (e) { } return data; }
+async function pvpLoadMe() { await sbInit(); const { data, error } = await SB.from('hb_fighters').select('*').eq('user_id', PV.uid).maybeSingle(); if (error) throw error; PV.me = data; PV.notReg = !data; if (data) try { localStorage.setItem('heesu_bori_pvp_reg', '1'); } catch (e) { } return data; }
 
 // ---------- 로비 UI ----------
 function pvpOpen() {
