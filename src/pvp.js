@@ -74,18 +74,17 @@ async function pvpTab(t) {
   } catch (e) { pvpRender(`<div class="pvmsg">불러오기 실패: ${esc(pvErr(e))}</div>`); }
 }
 function pvpNickBox(first) {
-  $('#pvpNick').hidden = false; const inp = $('#pvpNickIn'); inp.value = PV.me ? PV.me.nickname : ''; $('#pvpNickMsg').textContent = first ? 'PvP에서 쓸 닉네임을 정해주세요 (2~10자)' : '새 닉네임 (2~10자)';
+  $('#pvpNick').hidden = false; $('#pvpNickNo').hidden = RK.joining === 'entry'; const inp = $('#pvpNickIn'); inp.value = PV.me ? PV.me.nickname : ''; $('#pvpNickMsg').textContent = first ? 'PvP에서 쓸 닉네임을 정해주세요 (2~10자)' : '새 닉네임 (2~10자)';
   setTimeout(() => inp.focus(), 50);
 }
 async function pvpNickSave() {
   const v = $('#pvpNickIn').value.trim(); if (v.length < 2 || v.length > 10) { $('#pvpNickMsg').textContent = '2~10자로 정해주세요'; return; }
   $('#pvpNickMsg').textContent = '저장 중...';
-  const joining = RK.joining, keep = G.pd, pd = keep || loadGame();
-  if (!pd) { $('#pvpNickMsg').textContent = '먼저 1탄을 시작해야 등록할 수 있어요'; return; }
+  const joining = RK.joining, keep = G.pd, pd = keep || loadGame() || newPD();
   try {
     G.pd = pd; try { await pvpUpload(v); } finally { if (keep !== pd) { G.pd = keep; if (keep) calcStats(); } }
-    PV.notReg = false; $('#pvpNick').hidden = true; toast(joining ? '내 희수가 랭킹에 올라갔어요!' : '내 희수를 아레나에 등록했어요!', 'item r2');
-    if (joining) { RK.joining = false; rankTab(RK.tab); } else pvpTab(PV.tab);
+    PV.notReg = false; $('#pvpNick').hidden = true; $('#pvpNickNo').hidden = false; toast(joining === 'entry' ? `반가워요 ${v}님! 내 희수가 랭킹에 등록됐어요` : joining ? '내 희수가 랭킹에 올라갔어요!' : '내 희수를 아레나에 등록했어요!', 'item r2');
+    if (joining) { RK.joining = false; if (!$('#rank').hidden) rankTab(RK.tab); } else pvpTab(PV.tab);
   }
   catch (e) { $('#pvpNickMsg').textContent = pvErr(e); }
 }

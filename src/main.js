@@ -28,7 +28,7 @@ function init() {
   setupTouch(); setupUI();
   document.addEventListener('visibilitychange', () => { if (document.hidden) { saveGame(); if (G.state === 'play') openMenu(); if (SND.ac) SND.ac.suspend().catch(() => { }); } else if (SND.ac) SND.ac.resume().catch(() => { }); });
   if (document.fonts && document.fonts.load) { document.fonts.load('bold 16px HB').catch(() => { }); document.fonts.load('16px HB').catch(() => { }); }
-  showTitle();
+  showTitle(); entryRegister();
   requestAnimationFrame(frame);
 }
 init();

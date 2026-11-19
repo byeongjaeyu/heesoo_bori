@@ -70,3 +70,13 @@ function rankSync(force) {
   if (FORCE_EASY || (!force && Date.now() - rankSyncT < 60000)) return rankSyncP || Promise.resolve(false);
   rankSyncT = Date.now(); rankSyncP = rankSyncNow().catch(() => false).finally(() => { rankSyncP = null; }); return rankSyncP;
 }
+
+// 처음 들어오면 바로 닉네임 등록 (원터치 에디션 제외, 서버 연결 실패 시엔 그냥 넘어감)
+let entryRegDone = false;
+async function entryRegister() {
+  if (FORCE_EASY || entryRegDone) return; entryRegDone = true;
+  try {
+    await sbInit(); const me = PV.me || await pvpLoadMe(); if (me) return;
+    RK.joining = 'entry'; pvpNickBox(true); $('#pvpNickMsg').textContent = '어서 오세요! 랭킹에 쓸 닉네임을 정해주세요 (2~10자)';
+  } catch (e) { }
+}

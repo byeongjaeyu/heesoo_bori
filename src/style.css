@@ -268,3 +268,4 @@ button{font-family:inherit;color:inherit;border:none;background:none;padding:0;c
 
 .ilv{color:#3a8a3a}
 .rjoin{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 10px;padding:10px 12px;background:#fff4c8;border:3px solid #2a1d2e;border-radius:10px;font-size:13px}.rjoin .btn{white-space:nowrap}
+#pvpNick{z-index:80}
