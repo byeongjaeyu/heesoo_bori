@@ -246,7 +246,7 @@ function showTitle() {
   $('#tEp2').onclick = () => { audioInit(); e2Open(); };
   if (saved) { $('#tPvp').onclick = () => { audioInit(); pvpOpen(); }; $('#tInf').onclick = () => { audioInit(); fadeTo(startInfinite, '에버랜드: 할로윈파티'); }; }
   if (saved) $('#tCont').onclick = () => { audioInit(); G.pd = saved; $('#title').hidden = true; fadeTo(() => startZone(G.pd.zone)); };
-  $('#tNew').onclick = () => { audioInit(); if (saved) confirmBox('저장된 진행이 사라져요. 처음부터 시작할까요?', newGame); else newGame(); };
+  if ($('#tNew')) $('#tNew').onclick = () => { audioInit(); if (saved) confirmBox('저장된 진행이 사라져요. 처음부터 시작할까요?', newGame); else newGame(); };
   $('#tSnd').onclick = () => { audioInit(); setSound(!SND.on); showTitle(); };
   playBgm('story');
 }
