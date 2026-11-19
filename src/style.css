@@ -276,3 +276,6 @@ button{font-family:inherit;color:inherit;border:none;background:none;padding:0;c
 .awkr{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px dashed #ddd}.awkr img{width:28px;height:28px;image-rendering:pixelated}.awkr span{flex:1;display:flex;flex-direction:column}.awkr em{font-style:normal}.awkr small{color:#777;font-size:11px}.awkr.dim{opacity:.45}
 .pf span.aw{font-size:8px;letter-spacing:-.5px}
 .awkr .btn:disabled{background:#ddd;color:#999}
+.card.enh.col{flex-direction:column;align-items:stretch;gap:6px}
+.enhrow{display:flex;align-items:center;gap:8px}
+.enhsel{display:flex;gap:4px;flex-wrap:wrap}.enhsel button{flex:1;min-width:52px;font:inherit;font-size:12px;padding:4px 2px;border:2px solid var(--ink);border-radius:8px;background:#fff;color:var(--ink)}.enhsel button.on{background:var(--pink);color:#fff}.enhsel b{color:#c0306a}.enhsel button.on b{color:#ffe36a}

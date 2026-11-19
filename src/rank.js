@@ -78,6 +78,7 @@ async function entryRegister() {
   if (FORCE_EASY || entryRegDone) return; entryRegDone = true;
   try {
     await sbInit(); const me = PV.me || await pvpLoadMe(); if (me) return;
+    if (G.state === 'play' || G.state === 'menu' || G.state === 'dlg') { entryRegDone = false; return; } // 게임 중이면 다음 타이틀에서
     RK.joining = 'entry'; pvpNickBox(true); $('#pvpNickMsg').textContent = '어서 오세요! 랭킹에 쓸 닉네임을 정해주세요 (2~10자)';
   } catch (e) { }
 }

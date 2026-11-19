@@ -55,14 +55,14 @@ function calcStats() {
   for (const slot of SLOTS) { const it = ITEMS[pd.eq[slot]]; if (!it) continue; const m = ilvMul(pd.eq[slot]); st.hp += (it.hp || 0) * m; st.mp += (it.mp || 0) * m; st.atk += (it.atk || 0) * m; st.def += (it.def || 0) * m; st.spd += (it.spd || 0) * m; st.crit += (it.crit || 0) * m; }
   st.spd += 0.05 * sk('shop'); st.goldMul = 1 + 0.15 * sk('shop');
   st.hp = Math.round(st.hp * (1 + 0.05 * sk('mukbang'))); st.foodMul = 1 + 0.2 * sk('mukbang');
-  const en = (pd.enh || {})[pd.eq.weapon] || 0; st.atk += 2.5 * en; st.crit += 0.01 * en; st.enh = en;
+  st.enhs = {}; for (const sl of SLOTS) { const en = (pd.enh || {})[pd.eq[sl]] || 0; st.enhs[sl] = en; const f = ENH_FX[sl]; for (const k in f) if (k !== 'txt') st[k] += f[k] * en; } st.enh = st.enhs.weapon;
   st.atk += AWK.atk.per * awkLv('atk'); st.def += AWK.def.per * awkLv('def'); st.hp += AWK.hp.per * awkLv('hp'); st.mp += AWK.mp.per * awkLv('mp'); st.crit += AWK.crit.per * awkLv('crit');
   st.skillMul = 1 + AWK.skill.per * awkLv('skill');
   if (G.P && G.P.buffs) { let ba = 0, bc = 0; for (const k in G.P.buffs) { ba += G.P.buffs[k].atk || 0; bc += G.P.buffs[k].crit || 0; } st.atk *= 1 + ba; st.crit += bc; }
   st.atk = Math.round(st.atk); st.def = Math.round(st.def); st.mp = Math.round(st.mp);
   st.weapon = ITEMS[pd.eq.weapon].w; st.moveSpd = 66 * st.spd;
   st.boriMul = 1 + AWK.bori.per * awkLv('bori'); for (const sl of BSLOTS) { const it = ITEMS[(pd.beq || {})[sl]]; if (it) st.boriMul += (it.bdmg || 0) * ilvMul(pd.beq[sl]); }
-  st.toyEnh = (pd.enh || {})[(pd.beq || {}).btoy] || 0; st.boriMul += TOY_ENH * st.toyEnh;
+  for (const sl of BSLOTS) { const en = (pd.enh || {})[(pd.beq || {})[sl]] || 0; st.enhs[sl] = en; st.boriMul += ENH_FX[sl].boriMul * en; } st.toyEnh = st.enhs.btoy; st.clothEnh = st.enhs.bcloth;
   G.st = st;
   if (G.P) { G.P.hp = Math.min(G.P.hp, st.hp); G.P.mp = Math.min(G.P.mp, st.mp); }
   return st;
@@ -463,19 +463,30 @@ function pickup(d) {
   }
 }
 // ---------- 강화 (+20, 확률) · 강화석 ----------
-const ENH_MAX = 20, ENH_RESET = 12;
-const ENH_P    = [1, .95, .9, .85, .8, .75, .7, .65, .6, .55, .5, .45, .4, .35, .3, .3, .25, .2, .15, .1];
-const ENH_DOWN = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .1, .15, .2, .25, .3, .35, .4, .45, .5];
-const ENH_DEST = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .01, .02, .03, .04, .05, .06, .08, .1];
-const enhCost = lv => Math.round(50 * Math.pow(1.3, lv));
-const enhStoneCost = lv => lv < 10 ? 1 : lv < 15 ? 3 : lv < 18 ? 6 : 10;
+// 강화: 모든 장비(보리 포함) +25까지. 0→+25 기댓값 약 500만G (+17 약 15만, +20 약 52만)
+const ENH_MAX = 25;
+const ENH_P    = [1, .95, .9, .85, .8, .75, .7, .65, .6, .55, .5, .45, .4, .38, .35, .33, .31, .3, .29, .28, .27, .26, .25, .24, .22];
+const ENH_DOWN = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .1, .1, .12, .14, .15, .15, .16, .17, .18, .2, .2, .2, .22, .24];
+const ENH_DEST = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .01, .01, .015, .02, .02, .02, .025, .025, .03, .03, .035, .035, .04];
+const enhReset = lv => lv >= 20 ? 17 : 12; // 파괴 시 떨어지는 단계
+const enhCost = lv => Math.round(140 * Math.pow(1.3, lv));
+const enhStoneCost = lv => lv < 10 ? 1 : lv < 15 ? 3 : lv < 18 ? 6 : lv < 20 ? 10 : lv < 23 ? 15 : 20;
+// 부위별 강화 1단계 효과
+const ENH_FX = {
+  weapon: { atk: 2.5, crit: 0.01, txt: en => `공격 +${+(2.5 * en).toFixed(1)} · 치명 +${en}%` },
+  hat:    { def: 1, hp: 12, txt: en => `방어 +${en} · HP +${12 * en}` },
+  armor:  { def: 1.5, hp: 20, txt: en => `방어 +${+(1.5 * en).toFixed(1)} · HP +${20 * en}` },
+  shoes:  { spd: 0.008, def: 0.5, txt: en => `이속 +${+(0.8 * en).toFixed(1)}% · 방어 +${+(0.5 * en).toFixed(1)}` },
+  bag:    { mp: 6, crit: 0.003, txt: en => `MP +${6 * en} · 치명 +${+(0.3 * en).toFixed(1)}%` },
+  bcloth: { boriMul: 0.03, txt: en => `보리 공격 +${3 * en}%` },
+  btoy:   { boriMul: 0.03, txt: en => `보리 공격 +${3 * en}%` }
+};
 const STONE_YIELD = [1, 3, 8, 20, 50, 120];
 const stoneYield = id => STONE_YIELD[ITEMS[id].rar] || 1;
 function canDismantle(id) { const it = ITEMS[id], pd = G.pd; return !!(it && !it.start && pd.inv[id] && pd.eq[it.slot] !== id && (pd.beq || {})[it.slot] !== id && !((pd.enh || {})[id] > 0) && !ilvOf(id) && !((pd.iexp || {})[id] > 0)); }
 function dismantle(ids) { let s = 0, n = 0; for (const id of ids) { if (!canDismantle(id)) continue; s += stoneYield(id); n++; delete G.pd.inv[id]; } G.pd.stones = (G.pd.stones || 0) + s; return { n, s }; }
 function enhOdds(lv, useStone) { let p = ENH_P[lv], dn = ENH_DOWN[lv], ds = ENH_DEST[lv]; if (useStone) { const add = Math.min(0.1, 1 - p); p += add; const take = Math.min(add, dn); dn -= take; } return { p, dn, ds, protect: !!useStone }; }
-const TOY_ENH = 0.03; // 보리 장난감 강화 1단계당 보리 공격 +3%
-const enhTarget = slot => slot === 'btoy' ? (G.pd.beq || {}).btoy : G.pd.eq.weapon;
+const enhTarget = slot => BSLOTS.includes(slot) ? (G.pd.beq || {})[slot] : G.pd.eq[slot || 'weapon'];
 function tryEnhance(useStone, slot) {
   const pd = G.pd, wid = enhTarget(slot); if (!wid) return null; pd.enh = pd.enh || {}; const en = pd.enh[wid] || 0; if (en >= ENH_MAX) return null;
   const cost = enhCost(en), sc = enhStoneCost(en); if (pd.gold < cost || (useStone && (pd.stones || 0) < sc)) return null;
@@ -483,7 +494,7 @@ function tryEnhance(useStone, slot) {
   const o = enhOdds(en, useStone), r = Math.random(); let res;
   if (r < o.p) { pd.enh[wid] = en + 1; res = 'up'; }
   else if (r < o.p + o.dn) { pd.enh[wid] = Math.max(0, en - 1); res = 'down'; }
-  else if (r < o.p + o.dn + o.ds) { if (o.protect) { pd.enh[wid] = Math.max(0, en - 1); res = 'saved'; } else { pd.enh[wid] = Math.min(en, ENH_RESET); res = 'boom'; } }
+  else if (r < o.p + o.dn + o.ds) { if (o.protect) { pd.enh[wid] = Math.max(0, en - 1); res = 'saved'; } else { pd.enh[wid] = Math.min(en, enhReset(en)); res = 'boom'; } }
   else res = 'keep';
   calcStats(); saveGame(); return { res, from: en, to: pd.enh[wid], id: wid };
 }

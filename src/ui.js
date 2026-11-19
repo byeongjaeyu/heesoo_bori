@@ -118,6 +118,18 @@ function awkPanel() {
     return `<div class="awkr${lock ? ' dim' : ''}"><img src="${iconURL('sk_' + A.icon, ICONS[A.icon])}"><span><em>${A.name} <b>${A.fmt(A.per * lv)}</b></em><small>${lv}pt · 1pt당 ${A.fmt(A.per)}${A.max ? ` · 최대 ${A.max}pt` : ''}${A.desc ? '<br>' + A.desc : ''}</small></span><button class="btn pk sm" data-m="awk" data-v="${k}" ${ap > 0 && !full && !lock ? '' : 'disabled'}>${full ? 'MAX' : '+1'}</button></div>`; }).join('');
   return `<div class="awk"><div class="awkh"><span><b>각성 ★${aw}</b> <small>다음 각성까지 ${pct}%</small></span><span>각성 포인트 <b class="ok">${ap}</b> <button class="btn wh sm" data-m="awkReset" ${spent ? '' : 'disabled'}>초기화</button></span></div><div class="awkbar"><i style="width:${pct}%"></i></div>${rows}</div>`;
 }
+let ENH_SEL = { h: 'weapon', b: 'btoy' };
+function enhCard(slots) {
+  const pd = G.pd, grp = slots === BSLOTS ? 'b' : 'h', bori = grp === 'b';
+  let sl = ENH_SEL[grp]; if (!slots.includes(sl)) sl = slots[0];
+  const eqOf = s => bori ? pd.beq[s] : pd.eq[s];
+  const chips = `<div class="enhsel">${slots.map(s => { const id = eqOf(s), en = id ? (pd.enh || {})[id] || 0 : 0; return `<button class="${s === sl ? 'on' : ''}" data-m="enhSel" data-v="${grp}:${s}">${SLOTNAME[s]}${en ? ` <b>+${en}</b>` : ''}</button>`; }).join('')}</div>`;
+  const id = eqOf(sl), it = ITEMS[id];
+  if (!it) return `<div class="card enh col">${chips}<div class="ds">${SLOTNAME[sl]}을(를) ${bori ? '보리에게 ' : ''}착용하면 강화할 수 있어요.</div></div>`;
+  const en = (pd.enh || {})[id] || 0, cost = enhCost(en), max = en >= ENH_MAX, sc = enhStoneCost(en), stn = pd.stones || 0, o = max ? null : enhOdds(en, false), pct = x => Math.round(x * 100) + '%';
+  const img = id === 'fist' ? iconURL('sk_fist', ICONS.fist) : itemURL(id);
+  return `<div class="card enh col">${chips}<div class="enhrow"><div class="ic"><img src="${img}"></div><div class="mid"><div class="nm">${SLOTNAME[sl]} 강화 <span class="r${it.rar}">${it.name}${en ? ' +' + en : ''}</span></div><div class="ds">현재 ${ENH_FX[sl].txt(en)}${max ? '' : `<br><b>+${en} → +${en + 1}</b> 성공 <b class="ok">${pct(o.p)}</b>${o.dn ? ` · 하락 ${pct(o.dn)}` : ''}${o.ds ? ` · <b class="bad">파괴 ${pct(o.ds)}</b> (→+${enhReset(en)})` : ''}`}</div><div class="nx">${max ? `MAX +${ENH_MAX} 강화 완료!` : `비용 ${cost.toLocaleString()}G · 보유 ${pd.gold.toLocaleString()}G · 강화석 ${stn}개`}</div></div>${max ? '<button class="btn pk" disabled>MAX</button>' : `<div class="enhbtns"><button class="btn pk" data-m="enhance" data-v="${sl}" ${pd.gold >= cost ? '' : 'disabled'}>강화</button><button class="btn stone" data-m="enhanceS" data-v="${sl}" ${pd.gold >= cost && stn >= sc ? '' : 'disabled'}>강화석 ${sc}개<small>+10%·파괴방지</small></button></div>`}</div></div>`;
+}
 function skillCard(id) {
   const s = SKILLS[id], lv = sk(id), pd = G.pd; const locked = s.who === 'b' && !pd.boriJoined; const reqOk = pd.lv >= s.req;
   const can = pd.sp > 0 && lv < s.max && reqOk && !locked;
@@ -137,9 +149,8 @@ const MREN = {
   equip() {
     const pd = G.pd, st = G.st;
     let h = `<div class="stats"><div>공격력<b>${st.atk}</b></div><div>방어력<b>${st.def}</b></div><div>치명타<b>${Math.round(st.crit * 100)}%</b></div><div>최대 HP<b>${st.hp}</b></div><div>최대 MP<b>${st.mp}</b></div><div>이동속도<b>${Math.round(st.spd * 100)}%</b></div></div>`;
-    { const wid = pd.eq.weapon, w = ITEMS[wid], en = (pd.enh || {})[wid] || 0, cost = enhCost(en), max = en >= ENH_MAX, sc = enhStoneCost(en), stn = pd.stones || 0, o = max ? null : enhOdds(en, false), pct = x => Math.round(x * 100) + '%';
-      h += `<div class="card enh"><div class="ic"><img src="${wid === 'fist' ? iconURL('sk_fist', ICONS.fist) : itemURL(wid)}"></div><div class="mid"><div class="nm">무기 강화 <span class="r${w.rar}">${w.name}${en ? ' +' + en : ''}</span></div><div class="ds">현재 공격 +${(2.5 * en).toFixed(1).replace('.0', '')} · 치명 +${en}%${max ? '' : `<br><b>+${en} → +${en + 1}</b> 성공 <b class="ok">${pct(o.p)}</b>${o.dn ? ` · 하락 ${pct(o.dn)}` : ''}${o.ds ? ` · <b class="bad">파괴 ${pct(o.ds)}</b>` : ''}`}</div><div class="nx">${max ? 'MAX +20 강화 완료!' : `비용 ${cost.toLocaleString()}G · 보유 ${pd.gold.toLocaleString()}G · 강화석 ${stn}개`}</div></div>${max ? '<button class="btn pk" disabled>MAX</button>' : `<div class="enhbtns"><button class="btn pk" data-m="enhance" ${pd.gold >= cost ? '' : 'disabled'}>강화</button><button class="btn stone" data-m="enhanceS" ${pd.gold >= cost && stn >= sc ? '' : 'disabled'}>강화석 ${sc}개<small>+10%·파괴방지</small></button></div>`}</div>`; }
-    h += `<div class="slots">${SLOTS.map(sl => { const it = ITEMS[pd.eq[sl]]; return `<div class="slot"><img src="${itemURL(pd.eq[sl])}">${SLOTNAME[sl]}<br><b class="r${it.rar}">${it.name}${ilvTag(pd.eq[sl])}${sl === 'weapon' && (pd.enh || {})[pd.eq[sl]] ? ' +' + pd.enh[pd.eq[sl]] : ''}</b></div>`; }).join('')}</div>`;
+    h += enhCard(SLOTS);
+    h += `<div class="slots">${SLOTS.map(sl => { const it = ITEMS[pd.eq[sl]]; return `<div class="slot"><img src="${itemURL(pd.eq[sl])}">${SLOTNAME[sl]}<br><b class="r${it.rar}">${it.name}${ilvTag(pd.eq[sl])}${(pd.enh || {})[pd.eq[sl]] ? ' +' + pd.enh[pd.eq[sl]] : ''}</b></div>`; }).join('')}</div>`;
     h += `<div class="gbar" style="margin-top:8px"><span>보리 옷·장난감은 '보리' 탭에 있어요</span><button class="btn" data-m="tab" data-v="bori" style="padding:3px 9px;font-size:12px">보리 탭</button></div>`;
     h += `<h3 style="margin-top:16px">희수 장비 목록</h3>` + `<div class="gbar dis"><span>강화석 <b>${pd.stones || 0}</b>개</span><span class="disb">일괄 분해 <button class="btn sm" data-m="bulk" data-v="0">일반</button><button class="btn sm" data-m="bulk" data-v="1">희귀↓</button><button class="btn sm" data-m="bulk" data-v="2">영웅↓</button></span></div>`;
     for (const sl of SLOTS) {
@@ -147,7 +158,7 @@ const MREN = {
       h += `<h3>${SLOTNAME[sl]} <small>${ids.length}개 보유</small></h3>`;
       for (const id of ids) {
         const it = ITEMS[id], eq = pd.eq[sl] === id;
-        h += `<div class="card"><div class="ic"><img src="${itemURL(id)}"></div><div class="mid"><div class="nm"><span class="r${it.rar}">${it.name}${ilvTag(id)}</span><span class="tag">${RARITY[it.rar]}</span></div><div class="ds">${statStr(it)}${ilvLine(id, eq)}${it.desc ? `<br><small>${it.desc}</small>` : ''}</div></div>${eq ? '<span class="badge-eq">장착중</span>' : `<div style="display:flex;flex-direction:column;gap:4px"><button class="btn gr" data-m="equip" data-v="${id}">장착</button>${it.start ? '' : `<button class="btn wh" data-m="sell" data-v="${id}">판매 ${sellPrice(id)}G</button>`}${canDismantle(id) ? `<button class="btn sm stone" data-m="dis" data-v="${id}">분해 +${stoneYield(id)}</button>` : ''}</div>`}</div>`;
+        h += `<div class="card"><div class="ic"><img src="${itemURL(id)}"></div><div class="mid"><div class="nm"><span class="r${it.rar}">${it.name}${ilvTag(id)}${(pd.enh || {})[id] ? ' +' + pd.enh[id] : ''}</span><span class="tag">${RARITY[it.rar]}</span></div><div class="ds">${statStr(it)}${ilvLine(id, eq)}${it.desc ? `<br><small>${it.desc}</small>` : ''}</div></div>${eq ? '<span class="badge-eq">장착중</span>' : `<div style="display:flex;flex-direction:column;gap:4px"><button class="btn gr" data-m="equip" data-v="${id}">장착</button>${it.start ? '' : `<button class="btn wh" data-m="sell" data-v="${id}">판매 ${sellPrice(id)}G</button>`}${canDismantle(id) ? `<button class="btn sm stone" data-m="dis" data-v="${id}">분해 +${stoneYield(id)}</button>` : ''}</div>`}</div>`;
       }
     }
     return h;
@@ -157,16 +168,13 @@ const MREN = {
     if (!pd.boriJoined) h += `<p class="ds" style="margin:4px">Lv3에 보리를 찾으면 입히고 물려줄 수 있어요.</p>`;
     else {
       h += `<div class="bprev"><img src="${boriPreviewURL()}"><div><b>보리</b><br>귀여워서 무적이라<br>장비는 전부 공격 보너스!</div></div><div class="gbar"><span>보리 공격 보너스</span><span>+${Math.round((st.boriMul - 1) * 100)}%</span></div><div class="slots" style="grid-template-columns:repeat(2,1fr)">${BSLOTS.map(sl => { const id = pd.beq[sl], it = ITEMS[id]; return `<div class="slot">${it ? `<img src="${itemURL(id)}">` : '<div style="height:34px;line-height:34px;color:#aaa">없음</div>'}${SLOTNAME[sl]}<br><b class="r${it ? it.rar : 0}">${it ? it.name + ilvTag(id) : '-'}${it && (pd.enh || {})[id] ? ' +' + pd.enh[id] : ''}</b></div>`; }).join('')}</div>`;
-      { const tid = pd.beq.btoy, t = ITEMS[tid];
-        if (!t) h += `<div class="card enh"><div class="mid"><div class="nm">장난감 강화</div><div class="ds">보리에게 장난감을 물려주면 강화할 수 있어요.</div></div></div>`;
-        else { const en = (pd.enh || {})[tid] || 0, cost = enhCost(en), max = en >= ENH_MAX, sc = enhStoneCost(en), stn = pd.stones || 0, o = max ? null : enhOdds(en, false), pct = x => Math.round(x * 100) + '%';
-          h += `<div class="card enh"><div class="ic"><img src="${itemURL(tid)}"></div><div class="mid"><div class="nm">장난감 강화 <span class="r${t.rar}">${t.name}${en ? ' +' + en : ''}</span></div><div class="ds">현재 보리 공격 +${Math.round(TOY_ENH * 100 * en)}%${max ? '' : `<br><b>+${en} → +${en + 1}</b> 성공 <b class="ok">${pct(o.p)}</b>${o.dn ? ` · 하락 ${pct(o.dn)}` : ''}${o.ds ? ` · <b class="bad">파괴 ${pct(o.ds)}</b>` : ''}`}</div><div class="nx">${max ? 'MAX +20 강화 완료!' : `비용 ${cost.toLocaleString()}G · 보유 ${pd.gold.toLocaleString()}G · 강화석 ${stn}개`}</div></div>${max ? '<button class="btn pk" disabled>MAX</button>' : `<div class="enhbtns"><button class="btn pk" data-m="enhance" data-v="btoy" ${pd.gold >= cost ? '' : 'disabled'}>강화</button><button class="btn stone" data-m="enhanceS" data-v="btoy" ${pd.gold >= cost && stn >= sc ? '' : 'disabled'}>강화석 ${sc}개<small>+10%·파괴방지</small></button></div>`}</div>`; } }
+      h += enhCard(BSLOTS);
       h += `<div class="gbar dis"><span>강화석 <b>${pd.stones || 0}</b>개</span><span class="disb">일괄 분해 <button class="btn sm" data-m="bulk" data-v="0">일반</button><button class="btn sm" data-m="bulk" data-v="1">희귀↓</button><button class="btn sm" data-m="bulk" data-v="2">영웅↓</button></span></div>`;
       for (const sl of BSLOTS) {
         const ids = Object.keys(pd.inv).filter(id => ITEMS[id] && ITEMS[id].slot === sl).sort((a, b) => ITEMS[a].rar - ITEMS[b].rar);
         h += `<h3>${SLOTNAME[sl]} <small>${ids.length}개 보유${sl === 'btoy' ? ' · 항상 입에 물고 다녀요' : ''}</small></h3>`;
         if (!ids.length) h += `<p class="ds" style="margin:4px;font-size:11px;color:#8a6a7a">보스를 잡거나 배달앱에서 구할 수 있어요.</p>`;
-        for (const id of ids) { const it = ITEMS[id], eq = pd.beq[sl] === id, ten = (pd.enh || {})[id] || 0; h += `<div class="card"><div class="ic"><img src="${itemURL(id)}"></div><div class="mid"><div class="nm"><span class="r${it.rar}">${it.name}${ilvTag(id)}${ten ? ' +' + ten : ''}</span><span class="tag">${RARITY[it.rar]}</span></div><div class="ds">보리 공격 +${Math.round(it.bdmg * 100)}%${ten ? ` (강화 +${Math.round(TOY_ENH * 100 * ten)}%)` : ''}${ilvLine(id, eq)}<br><small>${it.desc}</small></div></div>${eq ? '<span class="badge-eq">장착중</span>' : `<div style="display:flex;flex-direction:column;gap:4px"><button class="btn gr" data-m="equip" data-v="${id}">장착</button><button class="btn wh" data-m="sell" data-v="${id}">판매 ${sellPrice(id)}G</button>${canDismantle(id) ? `<button class="btn sm stone" data-m="dis" data-v="${id}">분해 +${stoneYield(id)}</button>` : ''}</div>`}</div>`; }
+        for (const id of ids) { const it = ITEMS[id], eq = pd.beq[sl] === id, ten = (pd.enh || {})[id] || 0; h += `<div class="card"><div class="ic"><img src="${itemURL(id)}"></div><div class="mid"><div class="nm"><span class="r${it.rar}">${it.name}${ilvTag(id)}${ten ? ' +' + ten : ''}</span><span class="tag">${RARITY[it.rar]}</span></div><div class="ds">보리 공격 +${Math.round(it.bdmg * 100)}%${ten ? ` (강화 +${3 * ten}%)` : ''}${ilvLine(id, eq)}<br><small>${it.desc}</small></div></div>${eq ? '<span class="badge-eq">장착중</span>' : `<div style="display:flex;flex-direction:column;gap:4px"><button class="btn gr" data-m="equip" data-v="${id}">장착</button><button class="btn wh" data-m="sell" data-v="${id}">판매 ${sellPrice(id)}G</button>${canDismantle(id) ? `<button class="btn sm stone" data-m="dis" data-v="${id}">분해 +${stoneYield(id)}</button>` : ''}</div>`}</div>`; }
       }
     }
     return h;
@@ -223,8 +231,9 @@ function menuClick(e) {
   if (m === 'eat') { G.P.eatCd = 0; eatFood(v); G.P.eatCd = 0; renderMenu(); return; }
   if (m === 'buy') { const f = FOODS[v]; if (pd.gold < f.price) return; pd.gold -= f.price; pd.foods[v] = (pd.foods[v] || 0) + 1; sfx('coin'); renderMenu(); return; }
   if (m === 'buyItem') { const it = ITEMS[v]; if (pd.gold < it.price || pd.inv[v]) return; pd.gold -= it.price; pd.inv[v] = 1; sfx('ding'); if (it.bori) { pd.beq[it.slot] = v; calcStats(); toast(`${it.name} 구매! 보리가 바로 ${it.slot === 'btoy' ? '물었어요' : '입었어요'} (보리 탭)`, 'item r' + it.rar); if (G.bori) bubble(G.bori, '멍멍! (신남)', 1.4); } else toast(`${it.name} 구매! 장비 탭에서 장착하세요`, 'item r' + it.rar); renderMenu(); saveGame(); return; }
+  if (m === 'enhSel') { const [g, s2] = v.split(':'); ENH_SEL[g] = s2; renderMenu(); return; }
   if (m === 'enhance' || m === 'enhanceS') {
-    const toy = v === 'btoy', r = tryEnhance(m === 'enhanceS', toy ? 'btoy' : 'weapon'); if (!r) return; const nm = ITEMS[r.id].name, P = toy && G.bori ? G.bori : G.P;
+    const toy = BSLOTS.includes(v), r = tryEnhance(m === 'enhanceS', v || 'weapon'); if (!r) return; const nm = ITEMS[r.id].name, P = toy && G.bori ? G.bori : G.P;
     if (r.res === 'up') { sfx('lvl'); toast(`강화 성공! ${nm} +${r.to}`, 'lvl'); if (P) { G.fx.push({ k: 'lvl', x: P.x, y: P.y, t: 0, dur: 1.0 }); bubble(P, toy ? choice(['멍멍! (신남)', '앙! (꼬옥)', '왈왈!!']) : choice(['더 세졌다!', '반짝반짝~', '이걸로 등짝을...']), 1.3); } }
     else if (r.res === 'keep') { sfx('warn'); toast(`강화 실패... +${r.to} 유지`, 'sub'); if (P) bubble(P, toy ? '끼잉...' : choice(['아깝다...', '한 번만 더!']), 1.2); }
     else if (r.res === 'down') { sfx('hurt'); toast(`강화 실패! +${r.from} → +${r.to} 하락`, 'warn'); if (P) bubble(P, toy ? '끼잉... (시무룩)' : '흐엉...', 1.2); }
@@ -245,7 +254,7 @@ function updateSndBtn() { $('#sndBtn').textContent = SND.on ? '♪' : '×'; }
 
 // ---------- screens ----------
 function showTitle() {
-  if (typeof rankSync === 'function') rankSync();
+  if (typeof rankSync === 'function') { rankSync(); entryRegister(); }
   G.inf = null; G.auto = false; G.autoMove = null; G.state = 'title'; showHUD(false); if (typeof e2HideAll === 'function') e2HideAll(); $('#title').hidden = false; $('#endScr').hidden = true; $('#death').hidden = true; $('#dlg').hidden = true; $('#skip').hidden = true; $('#mission').hidden = true;
   const saved = hasSave() ? loadGame() : null;
   let e2s = null; try { e2s = JSON.parse(localStorage.getItem(E2KEY) || 'null'); } catch (e) { }
