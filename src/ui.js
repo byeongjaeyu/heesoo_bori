@@ -274,7 +274,7 @@ function startEnding() { showHUD(false); playCut(ENDING, () => { showEnd(); }); 
 function setupUI() {
   $('#rankTabs').addEventListener('click', e => { const b = e.target.closest('[data-rt]'); if (b) { sfx('select'); rankTab(b.dataset.rt); } }); $('#rankClose').onclick = () => { sfx('select'); rankClose(); };
   $('#pvp').addEventListener('click', pvpClick); $('#pvpRes').addEventListener('click', pvpResClick);
-  $('#pvpNickOk').onclick = () => pvpNickSave(); $('#pvpNickNo').onclick = () => { $('#pvpNick').hidden = true; if (!PV.me) { $('#pvp').hidden = true; showTitle(); } };
+  $('#pvpNickOk').onclick = () => pvpNickSave(); $('#pvpNickNo').onclick = () => { $('#pvpNick').hidden = true; if (RK.joining) { RK.joining = false; return; } if (!PV.me) { $('#pvp').hidden = true; showTitle(); } };
   $('#pvpNickIn').addEventListener('keydown', e => { if (e.key === 'Enter') pvpNickSave(); });
   $('#menu').addEventListener('click', menuClick);
   $('#menuBtn').addEventListener('click', () => { audioInit(); openMenu(); });

@@ -80,7 +80,13 @@ function pvpNickBox(first) {
 async function pvpNickSave() {
   const v = $('#pvpNickIn').value.trim(); if (v.length < 2 || v.length > 10) { $('#pvpNickMsg').textContent = '2~10자로 정해주세요'; return; }
   $('#pvpNickMsg').textContent = '저장 중...';
-  try { await pvpUpload(v); $('#pvpNick').hidden = true; toast('내 희수를 아레나에 등록했어요!', 'item r2'); pvpTab(PV.tab); }
+  const joining = RK.joining, keep = G.pd, pd = keep || loadGame();
+  if (!pd) { $('#pvpNickMsg').textContent = '먼저 1탄을 시작해야 등록할 수 있어요'; return; }
+  try {
+    G.pd = pd; try { await pvpUpload(v); } finally { if (keep !== pd) { G.pd = keep; if (keep) calcStats(); } }
+    PV.notReg = false; $('#pvpNick').hidden = true; toast(joining ? '내 희수가 랭킹에 올라갔어요!' : '내 희수를 아레나에 등록했어요!', 'item r2');
+    if (joining) { RK.joining = false; rankTab(RK.tab); } else pvpTab(PV.tab);
+  }
   catch (e) { $('#pvpNickMsg').textContent = pvErr(e); }
 }
 function pvpClick(e) {

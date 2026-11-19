@@ -24,6 +24,7 @@ async function rankTab(t) {
   $('#rankSum').innerHTML = ''; $('#rankList').innerHTML = '<div class="pvmsg">랭킹을 불러오는 중...</div>';
   try {
     await sbInit(); if (!RK.synced) { RK.synced = true; await Promise.race([rankSync(true), new Promise(r => setTimeout(r, 4000))]); }
+    if (!FORCE_EASY && !PV.me && !PV.notReg) await pvpLoadMe().catch(() => { });
     const col = 'user_id,nickname,snap,power,rating,wins,losses';
     const q = SB.from('hb_fighters').select(col).limit(50);
     const { data, error } = t === 'power' ? await q.order('power', { ascending: false }) : await q.order('rating', { ascending: false }).order('wins', { ascending: false });
@@ -31,6 +32,12 @@ async function rankTab(t) {
     const { count } = await SB.from('hb_fighters').select('user_id', { count: 'exact', head: true });
     rankRender(data || [], count || (data || []).length);
   } catch (e) { $('#rankList').innerHTML = `<div class="pvmsg">랭킹을 불러오지 못했어요: ${esc(pvErr(e))}</div>`; }
+}
+function rankJoin() { RK.joining = true; pvpNickBox(true); $('#pvpNickMsg').textContent = '랭킹·PvP에서 쓸 닉네임을 정해주세요 (2~10자)'; }
+function rankJoinBar() {
+  if (FORCE_EASY || PV.me || !PV.notReg) return '';
+  const has = !!(G.pd || loadGame());
+  return `<div class="rjoin">${has ? `<span>내 희수는 아직 랭킹에 없어요</span><button class="btn pk" onclick="rankJoin()">내 희수도 올리기</button>` : '<span>1탄을 시작하면 내 희수도 랭킹에 올릴 수 있어요</span>'}</div>`;
 }
 function rankRender(rows, total) {
   const t = RK.tab, val = f => t === 'power' ? f.power.toLocaleString() : f.rating.toLocaleString(), unit = t === 'power' ? '전투력' : 'PvP 점수';
@@ -42,12 +49,12 @@ function rankRender(rows, total) {
     t === 'power' ? ['평균 전투력', avg.toLocaleString()] : ['총 대결 수', Math.round(games / 2).toLocaleString() + '판+'],
     ['최고 무기 강화', maxEnh ? '+' + maxEnh : '-']
   ].map(([k, v]) => `<div><small>${k}</small><b>${v}</b></div>`).join('');
-  if (!rows.length) { $('#rankList').innerHTML = '<div class="pvmsg">아직 등록된 희수가 없어요.<br>PvP 아레나에서 닉네임을 등록하면 랭킹에 올라가요!</div>'; return; }
+  if (!rows.length) { $('#rankList').innerHTML = rankJoinBar() + '<div class="pvmsg">아직 등록된 희수가 없어요.<br>닉네임을 등록하면 랭킹에 올라가요!</div>'; return; }
   const me = PV.uid;
   const pod = rows.slice(0, 3).map((f, i) => `<div class="rpod p${i + 1}${f.user_id === me ? ' mine' : ''}"><i>${i + 1}</i><img src="${fighterURL(f.snap || {}, 5)}"><em>${esc(f.nickname)}</em><b>${val(f)}</b><small>${unit} · Lv.${(f.snap && f.snap.lv) || '?'}${t === 'pvp' ? ` · ${f.wins}승 ${f.losses}패` : ''}</small></div>`);
   const order = pod.length === 3 ? [pod[1], pod[0], pod[2]] : pod;
   const list = rows.slice(3).map((f, i) => { const s = f.snap || {}; return `<div class="rrow${f.user_id === me ? ' mine' : ''}"><i>${i + 4}</i><img src="${fighterURL(s, 3)}"><span><em>${esc(f.nickname)}</em><small>Lv.${s.lv || '?'}${s.enh ? ' · 무기 +' + s.enh : ''}${s.tenh ? ' · 장난감 +' + s.tenh : ''}${t === 'pvp' ? ` · ${f.wins}승 ${f.losses}패` : ` · PvP ${f.rating}`}</small></span><b>${val(f)}</b></div>`; }).join('');
-  $('#rankList').innerHTML = `<div class="rpodium">${order.join('')}</div>${list}`;
+  $('#rankList').innerHTML = rankJoinBar() + `<div class="rpodium">${order.join('')}</div>${list}`;
 }
 // 서버에 내 희수가 등록돼 있으면 최신 스펙을 올림 (게임 중 자동 저장 때 1분에 한 번, 타이틀·랭킹 열 때)
 let rankSyncT = 0, rankSyncP = null;
