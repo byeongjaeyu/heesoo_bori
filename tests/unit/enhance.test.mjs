@@ -12,6 +12,12 @@ describe('강화 확률표', () => {
     expect(expectedEnhCost(20)).toBeGreaterThan(4.5e5); expect(expectedEnhCost(20)).toBeLessThan(6e5);
     expect(expectedEnhCost(17)).toBeGreaterThan(1.2e5); expect(expectedEnhCost(17)).toBeLessThan(1.8e5);
   });
+  test('강화석을 매번 써도: 골드 약 128만G + 강화석 약 2,700개 (+20 이상 강화석 50~200개)', () => {
+    expect([20, 21, 22, 23, 24].map(g.enhStoneCost)).toEqual([50, 80, 120, 160, 200]);
+    const gold = expectedEnhCost(25, { stone: true }), stones = expectedEnhCost(25, { stone: true, cost: g.enhStoneCost });
+    expect(gold).toBeGreaterThan(1.1e6); expect(gold).toBeLessThan(1.5e6);
+    expect(stones).toBeGreaterThan(2400); expect(stones).toBeLessThan(3000);
+  });
   test('파괴 시 +20 미만은 +12, +20 이상은 +17로', () => {
     expect(g.enhReset(15)).toBe(12); expect(g.enhReset(22)).toBe(17);
   });
@@ -47,9 +53,14 @@ describe('tryEnhance', () => {
     expect(g.G.st.atk - a0).toBe(25); expect(g.G.st.crit - c0).toBeCloseTo(0.1);
   });
   test('강화석 사용 시 파괴 대신 하락(saved)', () => {
-    const pd = fresh({ gold: 1e9, stones: 100 }); const id = pd.eq.armor; pd.enh[id] = 22;
+    const pd = fresh({ gold: 1e9, stones: 500 }); const id = pd.eq.armor; pd.enh[id] = 22;
     const o = g.enhOdds(22, true); const r = withRandom(o.p + o.dn + o.ds / 2, () => g.tryEnhance(true, 'armor'));
     if (o.ds) { expect(r.res).toBe('saved'); expect(pd.enh[id]).toBe(21); }
+  });
+  test('+22에서 강화석이 120개 미만이면 강화석 강화 불가, 쓰면 120개 차감', () => {
+    const pd = fresh({ gold: 1e9, stones: 119 }); pd.enh[pd.eq.hat] = 22;
+    expect(g.tryEnhance(true, 'hat')).toBeNull();
+    pd.stones = 120; expect(g.tryEnhance(true, 'hat')).toBeTruthy(); expect(pd.stones).toBe(0);
   });
   test('강화한 장비는 분해 불가', () => {
     const pd = fresh(); pd.inv.sneakers2 = 1; const id = Object.keys(g.ITEMS).find(k => g.ITEMS[k].slot === 'shoes' && !pd.inv[k]);

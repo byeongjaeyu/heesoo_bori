@@ -13,11 +13,12 @@ export function withRandom(seq, fn) {
   try { return fn(); } finally { Math.random = orig; }
 }
 /** 강화 0→목표 기대 비용(정확한 마르코프 체인 계산, 강화석 미사용) */
-export function expectedEnhCost(target) {
+export function expectedEnhCost(target, { stone = false, cost = g.enhCost } = {}) {
   const n = target, A = Array.from({ length: n }, () => new Array(n).fill(0)), b = new Array(n).fill(0);
   for (let l = 0; l < n; l++) {
-    const p = g.ENH_P[l], dn = g.ENH_DOWN[l], ds = g.ENH_DEST[l];
-    A[l][l] += p + dn + ds; b[l] = g.enhCost(l);
+    // 강화석 사용 시: 성공 +10%(하락에서 차감), 파괴 → 하락으로 보호
+    const o = g.enhOdds(l, stone), p = o.p, dn = o.dn + (o.protect ? o.ds : 0), ds = o.protect ? 0 : o.ds;
+    A[l][l] += p + dn + ds; b[l] = cost(l);
     if (l + 1 < n) A[l][l + 1] -= p;
     if (dn) A[l][l - 1] -= dn;
     if (ds) A[l][Math.min(l, g.enhReset(l))] -= ds;

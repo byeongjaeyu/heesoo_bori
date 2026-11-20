@@ -472,7 +472,9 @@ const ENH_DOWN = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .1, .1, .12, .14, .15, .15, .
 const ENH_DEST = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .01, .01, .015, .02, .02, .02, .025, .025, .03, .03, .035, .035, .04];
 const enhReset = lv => lv >= 20 ? 17 : 12; // 파괴 시 떨어지는 단계
 const enhCost = lv => Math.round(140 * Math.pow(1.3, lv));
-const enhStoneCost = lv => lv < 10 ? 1 : lv < 15 ? 3 : lv < 18 ? 6 : lv < 20 ? 10 : lv < 23 ? 15 : 20;
+// 강화석: +20 이상은 개수를 크게 올려 강화석이 병목이 되게 (강화석으로 +25 = 장비당 약 128만G + 약 2,700개)
+const ENH_STONE_HIGH = [50, 80, 120, 160, 200];
+const enhStoneCost = lv => lv < 10 ? 1 : lv < 15 ? 3 : lv < 18 ? 6 : lv < 20 ? 10 : ENH_STONE_HIGH[lv - 20] || 200;
 // 부위별 강화 1단계 효과
 const ENH_FX = {
   weapon: { atk: 2.5, crit: 0.01, txt: en => `공격 +${+(2.5 * en).toFixed(1)} · 치명 +${en}%` },
