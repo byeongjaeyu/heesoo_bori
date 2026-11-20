@@ -90,7 +90,7 @@ const SKILLS = {
   flash:   { who: 'h', name: '나 집에 갈래', icon: 'house',    type: 'active', btn: 's3', max: 5, req: 5, mp: 22, cd: () => 10, desc: l => `"나 집에 갈래!!" 주변 몬스터들이 전부 당황해서 ${150 + 30 * (l - 1)}% 피해 + ${(1.2 + 0.2 * l).toFixed(1)}초 기절` },
   mukbang: { who: 'h', name: '먹방 체질',   icon: 'gangjeong', type: 'passive', max: 3, req: 5, desc: l => `음식 회복량 +${20 * l}%, 최대 HP +${5 * l}%` },
   husband: { who: 'h', name: '오빠 살려줘!', icon: 'heart',   type: 'passive', max: 2, req: 40, desc: l => `쓰러지는 순간 오빠가 달려와 HP ${[30, 60][l - 1]}%로 다시 일으켜줘요${l >= 2 ? ' + 3초 무적' : ''}. 주변 몬스터는 깜짝 놀라 밀려나요 (스테이지당 1번 · 할로윈파티는 보스 웨이브마다 충전 · PvP 제외)` },
-  menhera: { who: 'h', name: '멘헤라 공격', icon: 'bheart',    type: 'ult', btn: 'ult', max: 3, req: 8, mp: 50, cd: l => [40, 35, 30][Math.max(0, l - 1)], desc: l => `궁극기! 맵 전체 정신 공격. 공격력 ${(10 + 5 * l) * 100}% 방어 무시 피해 + 4초 멘붕 (쿨 ${[40, 35, 30][Math.max(0, l - 1)]}초)` },
+  menhera: { who: 'h', name: '멘헤라 공격', icon: 'bheart',    type: 'ult', btn: 'ult', max: 4, req: 8, mp: 50, cd: l => [40, 35, 30, 25][Math.max(0, l - 1)], desc: l => `궁극기! 맵 전체 정신 공격. 공격력 ${(10 + 5 * l) * 100}% 방어 무시 피해 + 4초 멘붕 (쿨 ${[40, 35, 30, 25][Math.max(0, l - 1)]}초)` },
   bite:    { who: 'b', name: '보리의 입질',    icon: 'paw',       type: 'passive', max: 5, req: 3, desc: l => `보리 물기 피해: 공격력의 ${40 + 15 * l}%` },
   bark:    { who: 'b', name: '멍멍!',       icon: 'sound',     type: 'auto', max: 5, req: 4, desc: l => `${(9 - 0.6 * (l - 1)).toFixed(1)}초마다 짖어서 주변 적 ${60 + 20 * l}% 피해 + 공포` },
   feed:    { who: 'b', name: '언니줘!',     icon: 'gangjeong', type: 'auto', max: 3, req: 4, desc: l => `보리가 음식을 물어다 언니를 먹여줘요! HP ${[40, 50, 60][l - 1]}% · MP ${[30, 40, 50][l - 1]}% 아래로 떨어지면 자동으로 냠 (최고급 음식은 아껴둬요). 배우면 음식 버튼이 사라져요` },

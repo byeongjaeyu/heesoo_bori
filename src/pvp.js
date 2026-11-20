@@ -134,7 +134,7 @@ AI.rival = function (e, dt, sp, dP) {
   const a = Math.atan2(P.y - e.y, P.x - e.x); e.ang = a; e.face = Math.cos(a) > 0 ? 1 : -1;
   const reach = (w.reach || 14) + 6;
   if (sk2.menhera && e.cdU <= 0 && (e.hp < e.maxHp * 0.55 || e.t > 30)) {
-    e.cdU = [40, 35, 30][sk2.menhera - 1] || 40; bubble(e, '...나 지금 화났어.', 1.4); G.fx.push({ k: 'ring', x: e.x, y: e.y - 10, r: 60, col: '#b45cff', t: 0, dur: 1.3 });
+    e.cdU = [40, 35, 30, 25][sk2.menhera - 1] || 40; bubble(e, '...나 지금 화났어.', 1.4); G.fx.push({ k: 'ring', x: e.x, y: e.y - 10, r: 60, col: '#b45cff', t: 0, dur: 1.3 });
     e.cast = { t: 1.4, go: () => { G.flash = 0.25; G.shake = 8; word(e.x, e.y - 30, '멘헤라 공격!!', '#b45cff', 2); const dmg = Math.round(G.st.hp * (0.12 + 0.05 * sk2.menhera)); pvpTrueHurt(dmg); for (let i = 0; i < 20; i++) G.parts.push({ x: G.cam.x + rand(0, VW), y: G.cam.y + rand(-20, VH * 0.6), vx: rand(-10, 10), vy: rand(30, 70), life: rand(1, 1.6), max: 1.6, col: choice(['#b45cff', '#ff7ab8']), sz: 3, grav: 20, heart: true }); } };
     return;
   }

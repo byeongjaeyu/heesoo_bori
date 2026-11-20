@@ -65,3 +65,11 @@ describe('세이브 고유 번호(sid)', () => {
     expect(snap.sid).toBe(pd.sid); expect(snap.skm).toBeCloseTo(1 + 10 * g.AWK.skill.per);
   });
 });
+
+describe('스킬 포인트', () => {
+  test('Lv50 + 보리 합류 때 받는 포인트 = 모든 스킬 최대 레벨 합 (남거나 모자라지 않음)', () => {
+    const total = 1 + (g.MAX_LV - 1) + 1; // 시작 1 + 레벨업 49 + 보리 합류 1
+    const need = Object.values(g.SKILLS).reduce((a, s) => a + s.max, 0);
+    expect(need).toBe(total);
+  });
+});
