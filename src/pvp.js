@@ -111,7 +111,7 @@ function startPvpArena(opp) {
   G.zone = 0; G.world = buildWorld(0); const W = G.world;
   G.enemies = []; G.projs = []; G.fx = []; G.drops = []; G.parts = []; G.texts = []; G.bubbles = [];
   G.zoneKills = 0; G.bossSpawned = true; G.bossDefeated = false; G.exitOpen = false; G.spawnT = 99; G.ult = null; G.pendingEvent = null;
-  G.P = null; calcStats(); G.P = newPlayer(W.start.x, W.start.y); G.P.fy = -1; G.P.dir = 'up'; G.bori = null;
+  G.P = null; calcStats(); G.P = newPlayer(W.start.x, W.start.y); G.P.fy = -1; G.P.dir = 'up'; G.bori = null; G.buddy = null;
   let rx = W.start.x, ry = W.start.y - 110;
   for (let k = 0; k < 20 && W.solids.some(s => Math.hypot(rx - s.x, ry - s.y) < s.r + 10); k++) { rx = W.start.x + rand(-60, 60); ry = W.start.y - rand(90, 140); }
   G.boss = spawnRival(opp, rx, ry);

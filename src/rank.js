@@ -102,7 +102,7 @@ async function claimGifts(pd) {
       if (g.kind === 'stones') tgt.stones = (tgt.stones || 0) + n; else if (g.kind === 'gold') tgt.gold = (tgt.gold || 0) + n; else tgt.autoBonus = (tgt.autoBonus || 0) + n;
       continue;
     }
-    const lead = '🎁 선물 도착!';
+    const lead = /데려갔어요/.test(note) ? `🤝 ${note}!` : '🎁 선물 도착!';
     if (g.kind === 'auto') {
       const sec = Number(g.amount) || 0; if (!sec) continue;
       tgt.autoBonus = (tgt.autoBonus || 0) + sec;

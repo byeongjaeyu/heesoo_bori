@@ -1,6 +1,6 @@
 // ===================== GAME CORE =====================
 const G = {
-  state: 'title', zone: 0, world: null, time: 0, pd: /** @type {SaveData|null} */ (null), raid: /** @type {any} */ (null), st: null, P: null, bori: null,
+  state: 'title', zone: 0, world: null, time: 0, pd: /** @type {SaveData|null} */ (null), raid: /** @type {any} */ (null), buddy: /** @type {any} */ (null), st: null, P: null, bori: null,
   enemies: [], projs: [], fx: [], drops: [], parts: [], texts: [], bubbles: [],
   cam: { x: 0, y: 0 }, shake: 0, hitstop: 0, flash: 0,
   zoneKills: 0, bossSpawned: false, bossDefeated: false, boss: null, exitOpen: false, spawnT: 1, eid: 0,
@@ -658,7 +658,7 @@ function startZone(i) {
   G.enemies = []; G.projs = []; G.fx = []; G.drops = []; G.parts = []; G.texts = []; G.bubbles = [];
   G.zoneKills = 0; G.bossSpawned = false; G.bossDefeated = false; G.boss = null; G.exitOpen = false; G.spawnT = 1.5; G.ult = null;
   G.P = null; calcStats(); G.P = newPlayer(W.start.x, W.start.y); G.P.fy = -1; G.P.dir = 'up';
-  G.bori = G.pd.boriJoined ? newBori(W.start.x + 14, W.start.y + 3) : null;
+  G.bori = G.pd.boriJoined ? newBori(W.start.x + 14, W.start.y + 3) : null; buddySpawn();
   for (let k = 0; k < 5; k++) { const e = spawnAround(wpick(ZONES[i].mons), 140, 260); if (e) e.spawnT = 0; }
   G.cam.x = clamp(G.P.x - VW / 2, 0, Math.max(0, W.W - VW)); G.cam.y = clamp(G.P.y - 12 - VH / 2, 0, Math.max(0, W.H - VH));
   G.state = 'play'; playBgm('field'); showHUD(true); saveGame();
@@ -744,6 +744,7 @@ function handleActions() {
   for (const a of INP.act) {
     if (a === 's1') trySkill('smash'); else if (a === 's2') trySkill('nag'); else if (a === 's3') trySkill('flash'); else if (a === 'ult') trySkill('menhera');
     else if (a === 'auto') autoToggle();
+    else if (a === 'buddy') buddyOpen();
     else if ((a === 'hp' || a === 'mp') && G.pvp) toast('PvP에선 음식을 먹을 수 없어요!', 'warn');
     else if (a === 'hp') quickFood('hp'); else if (a === 'mp') quickFood('mp');
     else if ((a === 'menu' || a === 'esc') && G.pvp) pvpForfeit();
@@ -759,7 +760,7 @@ function update(dt) {
   if (G.state !== 'play') return;
   if (G.ult) updateUlt(dt);
   const frozen = G.ult && G.ult.t < 0.95;
-  if (G.state === 'play') autoTick(dt); else { G.autoMove = null; G.autoAtk = false; }
+  if (G.state === 'play') { autoTick(dt); if (G.buddy) buddyUpdate(dt); } else { G.autoMove = null; G.autoAtk = false; }
   updatePlayer(dt);
   if (!frozen) {
     updateBori(dt);

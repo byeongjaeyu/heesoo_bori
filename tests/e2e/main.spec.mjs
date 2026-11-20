@@ -241,3 +241,34 @@ test('월드 보스 보상 선물: 모달로 표시', async ({ page }) => {
   await expect(page.locator('#seasonModal h2')).toContainText('1위');
   expect(await page.evaluate(() => [loadGame().stones, loadGame().gold])).toEqual([140, 2000000]);
 });
+
+test('친구 희수 데려가기: 고르면 동료가 생기고 하루 한 번만', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 20 });
+  await page.evaluate(MOCK_SB);
+  await page.evaluate(() => {
+    __rows.push({ user_id: 'u-me', nickname: '나', snap: { lv: 20 }, power: 900, rating: 1000, wins: 0, losses: 0 },
+      { user_id: 'f1', nickname: '원조희수', snap: { lv: 50, atk: 300, hp: 900, def: 30, eq: newPD().eq, w: { mul: 1, rate: 2, reach: 25, arc: 150 } }, power: 7000, rating: 1000, wins: 1, losses: 0 });
+    __rpc.hb_borrow_friend = ({ p_friend }) => { const f = __rows.find(r => r.user_id === p_friend); return { ok: true, nickname: f.nickname, snap: f.snap, power: f.power }; };
+  });
+  await enterZone(page, 1);
+  await page.click('#bBuddy');
+  await expect(page.locator('.bdrow')).toHaveCount(1); // 나는 목록에서 빠짐
+  await page.click('[data-bd="0"]');
+  await expect(page.locator('#buddy')).toBeHidden();
+  expect(await page.evaluate(() => [!!G.buddy, G.state, loadGame().buddy.nick, loadGame().buddy.day === todayKey()])).toEqual([true, 'play', '원조희수', true]);
+  // 동료 공격이 실제로 들어감
+  await page.evaluate(() => { const e = spawnEnemy('horse', G.buddy.x + 10, G.buddy.y); e.spawnT = 0; e.hp = e.maxHp = 1e6; window.__e = e; G.buddy.spawnT = 0; G.buddy.atkCd = 0; });
+  await page.waitForFunction(() => __e.hp < 1e6, null, { timeout: 5000 });
+  await page.click('#bBuddy');
+  await expect(page.locator('.bdnow')).toContainText('함께하는 중');
+});
+
+test('내 희수를 친구가 데려가면 강화석 알림', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 30, stones: 0 });
+  await page.evaluate(MOCK_SB);
+  await page.evaluate(() => { __rows.push({ user_id: 'u-me', nickname: '나', snap: {}, power: 1 }); PV.notReg = false; PV.me = null;
+    __grants = [{ kind: 'stones', amount: 3, note: '보리언니님이 내 희수를 데려갔어요' }]; });
+  await page.evaluate(() => rankSync(true));
+  await expect(page.locator('#toasts')).toContainText('🤝 보리언니님이 내 희수를 데려갔어요! 강화석 3개');
+  expect(await page.evaluate(() => loadGame().stones)).toBe(3);
+});

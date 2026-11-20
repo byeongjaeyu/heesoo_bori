@@ -55,7 +55,7 @@ function startRaidArena(I) {
   G.enemies = []; G.projs = []; G.fx = []; G.drops = []; G.parts = []; G.texts = []; G.bubbles = [];
   G.zoneKills = 0; G.bossSpawned = true; G.bossDefeated = false; G.exitOpen = false; G.spawnT = 99; G.ult = null; G.pendingEvent = null;
   G.P = null; calcStats(); G.P = newPlayer(W.start.x, W.start.y); G.P.fy = -1; G.P.dir = 'up';
-  G.bori = G.pd.boriJoined ? newBori(W.start.x + 14, W.start.y + 3) : null;
+  G.bori = G.pd.boriJoined ? newBori(W.start.x + 14, W.start.y + 3) : null; buddySpawn();
   const e = spawnEnemy(I.boss, W.start.x, W.start.y - 120);
   // 거대화 + 내 능력치 기준 위협(한 대에 최대 HP 약 3.5%) + 방어 0(피해는 내 능력치로만), 체력바 = 모두의 남은 HP
   e.raid = true; e.sc *= 1.6; e.w *= 1.6; e.h *= 1.6; e.r = Math.round(e.r * 1.4); e.def = 0; e.elite = false;

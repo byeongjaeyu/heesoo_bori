@@ -111,6 +111,7 @@ function renderGame() {
   for (const e of G.enemies) L.push({ y: e.y, f: () => drawEnemy(e) });
   if (G.bori && !G.bori.hidden) L.push({ y: G.bori.y, f: () => { shadow(G.bori.x, G.bori.y, 10); drawBoriAt(G.bori.x, G.bori.y, G.bori.run ? 'run' : 'sit', G.bori.face, G.bori.t + G.time, { pant: isOnPhone() || G.state === 'menu', jump: G.bori.jump > 0 ? Math.round(Math.sin(G.bori.jump * 12) * 3 + 3) : 0 }); } });
   if (G.evt && !G.evt.popped) L.push({ y: G.evt.sy, f: () => { const s = pspr('bush'); drawSpr(s, G.evt.sx + Math.round(Math.sin(G.time * 40) * (G.evt.t > 0.4 ? 1 : 0)), G.evt.sy, { scale: 1 }); } });
+  if (G.buddy) L.push({ y: G.buddy.y, f: () => drawRival(G.buddy) });
   L.push({ y: G.P.y, f: drawPlayer });
   L.sort((a, b) => a.y - b.y); for (const o of L) o.f();
   // projectiles
@@ -245,6 +246,7 @@ function renderScreen() {
   }
   // enemy status
   for (const e of G.enemies) if (e.rival && !e.dead && e.spawnT <= 0) { const [x, y] = W2S(e.x, e.y - 30); txt(e.nick, x, y, U * 3.6, '#ffd1e6', '#2b1b24'); }
+  if (G.buddy && G.buddy.spawnT <= 0) { const [x, y] = W2S(G.buddy.x, G.buddy.y - 30); txt('🤝' + G.buddy.nick, x, y, U * 3.4, '#d6f5ff', '#2b1b24'); }
   for (const e of G.enemies) { if (e.dead || e.spawnT > 0) continue; const [x, y] = W2S(e.x, e.y - (e.hopY || 0) - e.h - 6); if (e.mental > 0 || e.confuse > 0) txt(Math.floor(G.time * 3) % 2 ? '@_@' : '?!', x, y, U * 4, '#ff7ab8', '#2b1b24'); else if (e.panic > 0) { txt(Math.floor(G.time * 4) % 2 ? '헉!' : '당황', x, y - Math.abs(Math.sin(G.time * 10)) * U * 2, U * 4.2, '#7ec8ff', '#2b1b24'); const [sx, sy] = W2S(e.x + e.w * 0.4, e.y - e.h * 0.8); ctx.fillStyle = '#9fe8ff'; ctx.fillRect(sx, sy + ((G.time * 30) % 6) * U * 0.5, U * 1.4, U * 2); } else if (e.fear > 0) txt('!!', x, y, U * 4.5, '#ffd84a', '#2b1b24'); }
   // speech bubbles
   for (const b of G.bubbles) {

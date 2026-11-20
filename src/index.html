@@ -44,6 +44,7 @@
   <button class="sk" id="bULT" data-act="ult"><img alt=""><i class="cd"></i><span class="cdT"></span><b class="lock"></b><small>멘헤라</small></button>
   <button class="atk" data-act="atk"><img id="atkImg" alt=""></button>
   <button class="food auto" id="bAuto" data-act="auto"><b>AUTO</b><span>30:00</span></button>
+  <button class="food buddyb" id="bBuddy" data-act="buddy"><b>동료</b><span>친구</span></button>
   <button class="food" id="bHP" data-act="hp"><img alt=""><small>HP</small><span>0</span></button>
   <button class="food" id="bMP" data-act="mp"><img alt=""><small>MP</small><span>0</span></button>
 </div>
@@ -84,6 +85,7 @@
 <div id="rank" class="ovl" hidden><div class="panel rankpanel"><div class="mhead rkhead"><b>희수 랭킹</b><button class="btn pk sm" id="rankShare" onclick="shareOpen()">내 카드 공유</button><button class="btn wh" id="rankClose">닫기</button></div><div class="e2mode" id="rankTabs" style="padding:8px 10px 0"><button data-rt="power">총 전투력</button><button data-rt="pvp">PvP</button></div><div id="rankSum"></div><div id="rankList"></div></div></div>
 <div id="pvp" class="ovl" hidden><div class="panel e2panel pvpanel"><div class="mhead e2head"><b>희수 PvP 아레나</b><span id="pvpInfo"></span></div><div class="e2mode" id="pvpTabs" style="padding:8px 10px 0"><button data-t="find">상대 찾기</button><button data-t="rank">랭킹</button><button data-t="log">대결 기록</button></div><div id="pvpSeason"></div><div id="pvpList"></div><div class="row e2foot"><button class="btn" data-pv="sync">내 희수 갱신</button><button class="btn wh" data-pv="nick">닉네임</button><button class="btn wh" data-pv="adv">모험으로</button><button class="btn wh" data-pv="title">타이틀</button></div></div></div>
 <div id="pvpNick" class="ovl" hidden><div class="dbox e2box"><h2>닉네임</h2><p id="pvpNickMsg"></p><input id="pvpNickIn" maxlength="10" autocomplete="off" placeholder="예: 원조희수"><div class="tbtns" style="width:100%"><button class="btn pk" id="pvpNickOk">확인</button><button class="btn wh" id="pvpNickNo">취소</button></div><button class="linkbtn" id="pvpNickCloud" hidden>다른 기기에서 하던 희수 불러오기 →</button></div></div>
+<div id="buddy" class="ovl" hidden><div class="dbox e2box bdbox"><h2>친구 희수 데려가기</h2><div id="buddyBody"></div><button class="btn wh" id="buddyX">닫기</button></div></div>
 <div id="raid" class="ovl" hidden><div class="panel rdpanel"><div class="mhead rkhead"><b>월드 보스 레이드</b><button class="btn wh" data-rd="close">닫기</button></div><div id="raidBody"></div></div></div>
 <div id="raidRes" class="ovl" hidden><div class="dbox e2box"><h2 id="raidResT"></h2><p id="raidResS" style="text-align:center"></p><div class="tbtns" style="width:100%"><button class="btn pk" data-rr="lobby">레이드 로비로</button><button class="btn wh" data-rr="title">타이틀로</button></div></div></div>
 <div id="share" class="ovl" hidden><div class="dbox e2box sharebox"><h2>내 희수 카드</h2><img id="shareImg" alt="내 희수 카드"><p id="shareMsg"></p><div class="tbtns" style="width:100%"><button class="btn pk" id="shareGo">공유하기</button><button class="btn wh" id="shareSave">이미지 저장</button><button class="btn wh" id="shareCopy">링크 복사</button></div><button class="btn wh" id="shareX">닫기</button></div></div>

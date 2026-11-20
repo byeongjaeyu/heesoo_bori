@@ -183,3 +183,8 @@ revoke all on public.hb_transfer_codes, public.hb_transfer_tries from anon, auth
 -- hb_raid_ensure(): 주간 보스 생성. HP = 최근 14일 활동 희수 Σ 0.376 × 전투력^1.905 (최소 100만) — 실측 1회 피해 ≈ 0.0358 × 전투력^1.905
 -- hb_raid_start(): 하루 3회(입장 시 차감, 랭킹 등록 필요) / hb_raid_report(dmg): 3분 내 1회, 상한 전투력×250+5만(넘으면 hb_flags 'raid_cap')
 -- hb_raid_settle(): 월요일 0시(cron 1 15 * * 0 UTC) + hb_raid_info 호출 시. 처치: 참가자 강화석 40·50만G, 1위 +100·150만, 2~3위 +60·80만 / 실패: 참가 15석
+
+-- 친구 희수 데려가기 (migration hb_buddy_borrow)
+-- hb_borrows(day text KST, user_id, friend_id, at) pk(day,user_id), RLS on, 직접 접근 없음
+-- hb_borrow_friend(p_friend uuid) security definer: 등록자만, 자기/숨김/미플레이 불가, 하루 1번,
+--   빌려준 사람에게 hb_grants stones 3 '○○님이 내 희수를 데려갔어요' (하루 10번까지). 반환 {ok, nickname, snap, power}

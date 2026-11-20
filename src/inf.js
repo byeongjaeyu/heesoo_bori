@@ -35,7 +35,7 @@ function startInfinite() {
   G.enemies = []; G.projs = []; G.fx = []; G.drops = []; G.parts = []; G.texts = []; G.bubbles = [];
   G.zoneKills = 0; G.bossSpawned = true; G.bossDefeated = false; G.boss = null; G.exitOpen = false; G.spawnT = 0.8; G.ult = null; G.pendingEvent = null;
   G.P = null; calcStats(); G.P = newPlayer(W.start.x, W.start.y); G.P.fy = -1; G.P.dir = 'up';
-  G.bori = pd.boriJoined ? newBori(W.start.x + 14, W.start.y + 3) : null;
+  G.bori = pd.boriJoined ? newBori(W.start.x + 14, W.start.y + 3) : null; buddySpawn();
   for (let k = 0; k < 8; k++) { const e = spawnAround(wpick(ZONES[b.zone].mons), 120, 240); if (e) e.spawnT = 0; }
   G.cam.x = clamp(G.P.x - VW / 2, 0, Math.max(0, W.W - VW)); G.cam.y = clamp(G.P.y - 12 - VH / 2, 0, Math.max(0, W.H - VH));
   $('#title').hidden = true; G.state = 'play'; playBgm('boss'); showHUD(true);
