@@ -168,3 +168,9 @@ revoke all on public.hb_transfer_codes, public.hb_transfer_tries from anon, auth
 -- hb_power(snap): 전투력 공식. **src/pvp.js pvpSnap 의 power 공식과 반드시 같아야 함**
 -- hb_submit_fighter(p_snap, p_nick): 클라이언트의 유일한 등록/갱신 경로. 반환 {ok, power} | {ok:false, reason: invalid|moved|nickname, field}
 -- 클라이언트의 hb_fighters 직접 insert/update 권한은 회수 (revoke insert, update on hb_fighters from authenticated)
+
+-- ===== 주간 PvP 시즌 (마이그레이션 hb_pvp_season) =====
+-- hb_meta('season') = 현재 시즌 시작 월요일(KST). hb_season_results = 지난 시즌 순위 기록(공개 읽기)
+-- hb_season_rollover(): 주가 바뀌었으면 1번만 정산 → 순위 기록, 보상 hb_grants(stones/gold/auto, note '지난 주 PvP 시즌 N위 보상'), 점수 1000·전적 0 리셋
+--   대상: 그 주에 1판 이상(wins+losses>0) & hidden 아님. 1위 150석·300만G·3h / 2위 100·200만·2h / 3위 70·100만·1h / 4~10위 30·30만 / 그 외 10석
+-- hb_season_info(): 화면용 (부를 때 필요하면 정산). pg_cron 이 매주 일 15:00 UTC(=월 0시 KST)에도 정산

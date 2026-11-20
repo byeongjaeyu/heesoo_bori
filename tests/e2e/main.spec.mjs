@@ -93,3 +93,26 @@ test('미션: 게임 중 진행 → 메뉴 미션 탭에서 받기', async ({ pa
   expect(await page.evaluate(() => G.pd.stones)).toBe(5);
   await expect(page.locator('[data-d=claim][data-v=kill]')).toHaveText('받음');
 });
+
+test('PvP 시즌: 랭킹 PvP 탭에 남은 시간·지난 시즌 TOP·내 기록', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 30 });
+  await page.evaluate(MOCK_SB);
+  await page.evaluate(() => { __rows.push({ user_id: 'u-me', nickname: '나', snap: { lv: 30, eq: newPD().eq }, power: 900, rating: 1010, wins: 1, losses: 0 }); });
+  await page.click('#tRank');
+  await page.click('#rankTabs [data-rt=pvp]');
+  const bar = page.locator('#rankList .season');
+  await expect(bar).toContainText('월요일 0시까지 2일 5시간');
+  await expect(bar).toContainText('🥇 원조희수');
+  await expect(bar).toContainText('내 지난 시즌: 2위');
+});
+
+test('시즌 보상 선물: 강화석·골드에 시즌 문구', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 30, stones: 0, gold: 0 });
+  await page.evaluate(MOCK_SB);
+  await page.evaluate(() => { __rows.push({ user_id: 'u-me', nickname: '나', snap: {}, power: 1 }); PV.notReg = false; PV.me = null;
+    __grants = [{ kind: 'stones', amount: 150, note: '지난 주 PvP 시즌 1위 보상' }, { kind: 'gold', amount: 3000000, note: '지난 주 PvP 시즌 1위 보상' }]; });
+  await page.evaluate(() => rankSync(true));
+  const d = await page.evaluate(() => JSON.parse(localStorage.getItem(SAVEKEY)));
+  expect([d.stones, d.gold]).toEqual([150, 3000000]);
+  await expect(page.locator('#toasts')).toContainText('🏆 지난 주 PvP 시즌 1위 보상! 강화석 150개');
+});

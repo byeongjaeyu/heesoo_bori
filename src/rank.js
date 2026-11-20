@@ -25,6 +25,7 @@ async function rankTab(t) {
   try {
     await sbInit(); if (!RK.synced) { RK.synced = true; await Promise.race([rankSync(true), new Promise(r => setTimeout(r, 4000))]); }
     if (!FORCE_EASY && !PV.me && !PV.notReg) await pvpLoadMe().catch(() => { });
+    if (t === 'pvp') await seasonLoad(); // 정산이 먼저 돌아야 점수가 맞음
     const col = 'user_id,nickname,snap,power,rating,wins,losses';
     const q = SB.from('hb_fighters').select(col).limit(50);
     const { data, error } = t === 'power' ? await q.order('power', { ascending: false }) : await q.order('rating', { ascending: false }).order('wins', { ascending: false });
@@ -40,7 +41,7 @@ function rankJoinBar() {
   return `<div class="rjoin">${has ? `<span>내 희수는 아직 랭킹에 없어요</span><button class="btn pk" onclick="rankJoin()">내 희수도 올리기</button>` : '<span>1탄을 시작하면 내 희수도 랭킹에 올릴 수 있어요</span>'}</div>`;
 }
 function rankRender(rows, total) {
-  const t = RK.tab, val = f => t === 'power' ? f.power.toLocaleString() : f.rating.toLocaleString(), unit = t === 'power' ? '전투력' : 'PvP 점수';
+  const t = RK.tab, val = f => t === 'power' ? f.power.toLocaleString() : f.rating.toLocaleString(), unit = t === 'power' ? '전투력' : '이번 주 점수';
   const top = rows[0], avg = rows.length ? Math.round(rows.reduce((a, f) => a + f.power, 0) / rows.length) : 0;
   const maxEnh = rows.reduce((a, f) => Math.max(a, (f.snap && f.snap.enh) || 0), 0), games = rows.reduce((a, f) => a + f.wins + f.losses, 0);
   $('#rankSum').innerHTML = [
@@ -54,7 +55,7 @@ function rankRender(rows, total) {
   const pod = rows.slice(0, 3).map((f, i) => `<div class="rpod p${i + 1}${f.user_id === me ? ' mine' : ''}"><i>${i + 1}</i><img src="${fighterURL(f.snap || {}, 5)}"><em>${esc(f.nickname)}</em><b>${val(f)}</b><small>${unit} · Lv.${(f.snap && f.snap.lv) || '?'}${f.snap && f.snap.aw ? '★' + f.snap.aw : ''}${t === 'pvp' ? ` · ${f.wins}승 ${f.losses}패` : ''}</small></div>`);
   const order = pod.length === 3 ? [pod[1], pod[0], pod[2]] : pod;
   const list = rows.slice(3).map((f, i) => { const s = f.snap || {}; return `<div class="rrow${f.user_id === me ? ' mine' : ''}"><i>${i + 4}</i><img src="${fighterURL(s, 3)}"><span><em>${esc(f.nickname)}</em><small>Lv.${s.lv || '?'}${s.aw ? '★' + s.aw : ''}${s.enh ? ' · 무기 +' + s.enh : ''}${s.tenh ? ' · 장난감 +' + s.tenh : ''}${t === 'pvp' ? ` · ${f.wins}승 ${f.losses}패` : ` · PvP ${f.rating}`}</small></span><b>${val(f)}</b></div>`; }).join('');
-  $('#rankList').innerHTML = rankJoinBar() + `<div class="rpodium">${order.join('')}</div>${list}`;
+  $('#rankList').innerHTML = rankJoinBar() + (t === 'pvp' ? seasonBar() : '') + `<div class="rpodium">${order.join('')}</div>${list}`;
 }
 // 서버에 내 희수가 등록돼 있으면 최신 스펙을 올림 (게임 중 자동 저장 때 1분에 한 번, 타이틀·랭킹 열 때)
 let rankSyncT = 0, rankSyncP = null;
@@ -86,29 +87,54 @@ async function entryRegister() {
 // 운영자 선물(hb_grants) 받기: 서버에서 받은 표시를 남기고 세이브에 더함
 async function claimGifts(pd) {
   if (FORCE_EASY || !pd || !SB) return;
-  const { data, error } = await SB.rpc('hb_claim_grants', { p_kinds: ['auto', 'gold', 'stage', 'awaken'] }); if (error || !data || !data.length) return;
+  const { data, error } = await SB.rpc('hb_claim_grants', { p_kinds: ['auto', 'gold', 'stage', 'awaken', 'stones'] }); if (error || !data || !data.length) return;
   const tgt = G.pd || pd; // 그 사이 게임을 시작했으면 실제 플레이 중인 세이브에 넣음
   for (const g of data) {
+    const lead = g.note && /시즌/.test(g.note) ? `🏆 ${String(g.note).split(' / ')[0]}!` : '🎁 선물 도착!';
     if (g.kind === 'auto') {
       const sec = Number(g.amount) || 0; if (!sec) continue;
       tgt.autoBonus = (tgt.autoBonus || 0) + sec;
       const h = sec / 3600, txt = h >= 1 ? `${Math.round(h * 10) / 10}시간` : `${Math.round(sec / 60)}분`;
-      toast(`🎁 선물 도착! 자동사냥 ${txt} 충전 (자정에도 안 사라져요)`, 'lvl'); sfx('lvl');
+      toast(`${lead} 자동사냥 ${txt} 충전 (자정에도 안 사라져요)`, 'lvl'); sfx('lvl');
     } else if (g.kind === 'stage') {
       // amount = 누적 스테이지 번호 (1회차 STAGE 1 = 1, 회차당 ZONES.length개). 지금보다 앞일 때만 이동
       const n = Math.max(1, Number(g.amount) || 1) - 1, Z = ZONES.length, cl = Math.floor(n / Z), z = n % Z;
       const cur = (tgt.cleared || 0) * Z + (tgt.zone || 0);
-      if (n > cur) { tgt.cleared = cl; tgt.zone = z; toast(`🎁 선물 도착! ${cl + 1}회차 ${ZONES[z].sub}(으)로 이동했어요`, 'lvl'); sfx('lvl'); }
+      if (n > cur) { tgt.cleared = cl; tgt.zone = z; toast(`${lead} ${cl + 1}회차 ${ZONES[z].sub}(으)로 이동했어요`, 'lvl'); sfx('lvl'); }
     } else if (g.kind === 'awaken') {
       // amount = 목표 각성 단계. 올라간 만큼 각성 포인트도 지급
       const to = Number(g.amount) || 0, from = tgt.aw || 0;
-      if (to > from) { tgt.aw = to; tgt.ap = (tgt.ap || 0) + (to - from); if ((tgt.lv || 1) < MAX_LV) { tgt.sp = (tgt.sp || 0) + (MAX_LV - tgt.lv); tgt.lv = MAX_LV; tgt.xp = 0; } toast(`🎁 선물 도착! 각성 ★${to} · 각성 포인트 +${to - from}`, 'lvl'); sfx('lvl'); }
+      if (to > from) { tgt.aw = to; tgt.ap = (tgt.ap || 0) + (to - from); if ((tgt.lv || 1) < MAX_LV) { tgt.sp = (tgt.sp || 0) + (MAX_LV - tgt.lv); tgt.lv = MAX_LV; tgt.xp = 0; } toast(`${lead} 각성 ★${to} · 각성 포인트 +${to - from}`, 'lvl'); sfx('lvl'); }
+    } else if (g.kind === 'stones') {
+      const n = Number(g.amount) || 0; if (!n) continue;
+      tgt.stones = (tgt.stones || 0) + n; toast(`${lead} 강화석 ${n}개`, 'lvl'); sfx('ding');
     } else if (g.kind === 'gold') {
       const n = Number(g.amount) || 0; if (!n) continue;
-      tgt.gold = (tgt.gold || 0) + n; toast(`🎁 선물 도착! ${n.toLocaleString()}G`, 'lvl'); sfx('coin');
+      tgt.gold = (tgt.gold || 0) + n; toast(`${lead} ${n.toLocaleString()}G`, 'lvl'); sfx('coin');
     }
   }
   try { localStorage.setItem(SAVEKEY, JSON.stringify(tgt)); } catch (e) { }
   if (G.pd === tgt) calcStats();
   if (!G.pd && G.state === 'title' && !$('#title').hidden) showTitle(); // 타이틀 버튼 정보 갱신
+}
+
+// ---------- 주간 PvP 시즌 (서버 hb_season_info: 부르면 필요 시 정산까지) ----------
+let SEASON = /** @type {any} */ (null);
+async function seasonLoad() {
+  if (FORCE_EASY) return null;
+  try { await sbInit(); const { data, error } = await SB.rpc('hb_season_info'); if (!error && data) SEASON = data; } catch (e) { }
+  return SEASON;
+}
+function seasonLeft() {
+  if (!SEASON || !SEASON.ends_at) return ''; const s = Math.max(0, (new Date(SEASON.ends_at).getTime() - Date.now()) / 1000);
+  const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
+  return d ? `${d}일 ${h}시간` : h ? `${h}시간 ${m}분` : `${m}분`;
+}
+function seasonBar() {
+  if (!SEASON) return '';
+  const medal = ['🥇', '🥈', '🥉'], top = (SEASON.top || []).map(t => `${medal[t.rank - 1] || t.rank + '위'} ${esc(t.nickname)}`).join(' · ');
+  const mine = SEASON.mine ? `<small class="smine">내 지난 시즌: ${SEASON.mine.rank}위 · ${esc(SEASON.mine.reward || '')} (선물함으로 지급)</small>` : '';
+  return `<div class="season"><div><b>🏆 이번 주 PvP 시즌</b><span>월요일 0시까지 ${seasonLeft()}</span></div>`
+    + `<small>1위 강화석 150·300만G·자동사냥 3시간 / 2위 100·200만G·2시간 / 3위 70·100만G·1시간 / 4~10위 30·30만G / 1판 이상 강화석 10</small>`
+    + (top ? `<small>지난 시즌: ${top}</small>` : '') + mine + '</div>';
 }

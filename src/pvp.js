@@ -45,8 +45,8 @@ function pvpOpen() {
   const saved = loadGame(); if (!saved) { toast('1탄을 먼저 시작해야 PvP에 나갈 수 있어요', 'warn'); return; }
   G.pd = saved; G.P = null; calcStats(); G.pvp = null;
   $('#title').hidden = true; showHUD(false); G.state = 'pvpLobby'; playBgm('home');
-  $('#pvp').hidden = false; pvpRender('<div class="pvmsg">서버에 연결하는 중...</div>');
-  sbInit().then(pvpLoadMe).then(() => { if (!PV.me) pvpNickBox(true); else { pvpUpload().catch(() => { }); pvpTab(PV.tab); } }).catch(e => pvpRender(`<div class="pvmsg">연결 실패: ${esc(pvErr(e))}<br><small>잠시 후 다시 시도해 주세요</small></div>`));
+  $('#pvp').hidden = false; $('#pvpSeason').innerHTML = ''; pvpRender('<div class="pvmsg">서버에 연결하는 중...</div>');
+  sbInit().then(seasonLoad).then(() => { $('#pvpSeason').innerHTML = seasonBar(); }).then(pvpLoadMe).then(() => { if (!PV.me) pvpNickBox(true); else { pvpUpload().catch(() => { }); pvpTab(PV.tab); } }).catch(e => pvpRender(`<div class="pvmsg">연결 실패: ${esc(pvErr(e))}<br><small>잠시 후 다시 시도해 주세요</small></div>`));
 }
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function pvpRender(html) {

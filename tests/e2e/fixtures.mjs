@@ -25,6 +25,8 @@ export const MOCK_SB = `(() => {
       if (!me) { if (!args.p_nick) return { data: { ok: false, reason: 'nickname' }, error: null }; __rows.push({ user_id: 'u-me', nickname: args.p_nick, snap: args.p_snap, power: pw, rating: 1000, wins: 0, losses: 0 }); }
       else Object.assign(me, { snap: args.p_snap, power: pw }, args.p_nick ? { nickname: args.p_nick } : {});
       return { data: { ok: true, power: pw }, error: null }; }
+    if (name === 'hb_season_info') return { data: { season: '2026-11-16', ends_at: new Date(Date.now() + 2 * 86400000 + 5.5 * 3600000).toISOString(), prev: '2026-11-09',
+      top: [{ rank: 1, nickname: '원조희수', rating: 1100, wins: 5, losses: 1 }, { rank: 2, nickname: '보리언니', rating: 1050, wins: 3, losses: 2 }], mine: { rank: 2, rating: 1050, reward: '강화석 100 · 200만G · 자동사냥 2시간' } }, error: null };
     if (name === 'hb_make_transfer_code') return { data: [{ code: 'ABCD2345', expires_at: new Date(Date.now() + 600000).toISOString() }], error: null };
     return { data: null, error: null }; };
   SB = { from: q, rpc }; PV.uid = 'u-me';
