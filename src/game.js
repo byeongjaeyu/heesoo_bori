@@ -16,6 +16,7 @@ const newSid = () => { try { if (crypto && crypto.randomUUID) return crypto.rand
 function newPD() {
   return {
     sid: newSid(),
+    guide: 0,
     lv: 1, xp: 0, gold: 30, sp: 1, skills: {},
     inv: { fist: 1, cap_grey: 1, fleece: 1, sneakers: 1, silverbag: 1 },
     eq: { weapon: 'fist', hat: 'cap_grey', armor: 'fleece', shoes: 'sneakers', bag: 'silverbag' },
@@ -33,6 +34,8 @@ function loadGame() {
     pd.stats = Object.assign(newPD().stats, d.stats || {});
     pd.beq = Object.assign({ bcloth: null, btoy: null }, d.beq || {}); pd.enh = d.enh || {}; pd.ilv = d.ilv || {}; pd.iexp = d.iexp || {}; pd.stones = d.stones || 0;
     for (const sl of SLOTS) if (!ITEMS[pd.eq[sl]]) pd.eq[sl] = newPD().eq[sl];
+    // 가이드가 생기기 전 세이브: 초반을 지났으면 건너뜀
+    if (d.guide === undefined) pd.guide = (d.lv >= 5 || d.cleared || d.zone > 0) ? 99 : 0;
     // 예전 세이브엔 sid 가 없음: 한 번 만들어서 바로 저장 (불러올 때마다 바뀌면 안 됨)
     if (!d.sid) { try { localStorage.setItem(SAVEKEY, JSON.stringify(pd)); } catch (e) { } }
     return pd;
@@ -180,7 +183,7 @@ function trySkill(id) {
   if ((P.cds[id] || 0) > 0) return;
   if (P.mp < S.mp) { toast('MP가 부족해요! 가만히 있으면 폰 보면서 MP가 빨리 차요', 'warn'); sfx('warn'); return; }
   P.mp -= S.mp; P.cds[id] = S.cd(lv); P.idleT = 0;
-  const keepAtk = G.st.atk; G.st.atk = Math.round(keepAtk * (G.st.skillMul || 1)); try { CAST[id](lv); } finally { G.st.atk = keepAtk; }
+  const keepAtk = G.st.atk; G.st.atk = Math.round(keepAtk * (G.st.skillMul || 1)); try { CAST[id](lv); } finally { G.st.atk = keepAtk; } guideEv('skill:' + id);
 }
 function aimNearest(range) { const P = G.P; const t = nearestEnemy(P.x, P.y - 6, range); if (t) { const a = Math.atan2((t.y - t.h * 0.35) - (P.y - 8), t.x - P.x); P.fx = Math.cos(a); P.fy = Math.sin(a); P.dir = dirOf(P.fx, P.fy); } return Math.atan2(P.fy, P.fx); }
 const ULT_SLOTS = [[0.3, 0.19], [0.7, 0.215], [0.28, 0.45], [0.72, 0.5], [0.3, 0.58], [0.7, 0.65], [0.3, 0.73], [0.68, 0.8]];
@@ -426,7 +429,7 @@ function separateEnemies() {
 }
 function killEnemy(e) {
   if (e.rival) { e.hp = 0; pvpEnd(true, `${e.nick}의 희수 KO!`); return; }
-  e.dead = true; e.deadT = 0.25; e.hp = 0; G.pd.stats.kills++; dailyAdd('kill'); if (e.boss) dailyAdd('boss');
+  e.dead = true; e.deadT = 0.25; e.hp = 0; G.pd.stats.kills++; dailyAdd('kill'); guideEv('kill'); if (e.boss) dailyAdd('boss');
   burst(e.x, e.y - e.h / 2, e.col, e.boss ? 40 : 10, e.boss ? 140 : 80); burst(e.x, e.y - e.h / 2, '#ffffff', 4);
   const LM = loopMul(), em = e.elite ? 1 : 0, RW = infWaveMul().rew;
   sfx('pop'); gainXp(Math.round(e.m.xp * LM.xp * (em ? 3 : 1) * RW));
@@ -505,7 +508,7 @@ function tryEnhance(useStone, slot) {
   else if (r < o.p + o.dn) { pd.enh[wid] = Math.max(0, en - 1); res = 'down'; }
   else if (r < o.p + o.dn + o.ds) { if (o.protect) { pd.enh[wid] = Math.max(0, en - 1); res = 'saved'; } else { pd.enh[wid] = Math.min(en, enhReset(en)); res = 'boom'; } }
   else res = 'keep';
-  dailyAdd('enh');
+  dailyAdd('enh'); if (res === 'up') guideEv('enh');
   calcStats(); saveGame(); return { res, from: en, to: pd.enh[wid], id: wid };
 }
 const sellPrice = id => { const it = ITEMS[id]; return it.price ? Math.floor(it.price * 0.3) : [40, 150, 400, 800, 1600, 3200][it.rar]; };
@@ -596,7 +599,7 @@ function spawnBoss() {
   bubble(P, choice(['뭐야 저 거대한 건...!', '보스다! 정신 차리자', '저거 잡으면 나갈 수 있겠지?']), 1.8);
 }
 function onBossDefeated(e) {
-  G.bossDefeated = true; G.boss = null; G.exitOpen = true;
+  G.bossDefeated = true; G.boss = null; G.exitOpen = true; guideEv('boss');
   for (const o of G.enemies) if (!o.dead && o !== e) { o.dead = true; o.deadT = 0.25; burst(o.x, o.y - o.h / 2, o.col, 6); }
   G.projs = G.projs.filter(p => !p.enemy);
   setTimeout(() => { if (G.state === 'play') banner('CLEAR!', G.zone < 3 ? '출구가 열렸다! 위쪽 출구로 가자' : '탈출구가 열렸다! 위쪽으로 탈출하자!', 'clear'); }, 600);

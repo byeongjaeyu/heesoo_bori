@@ -10,6 +10,8 @@ type AwakenStat = 'atk' | 'def' | 'hp' | 'mp' | 'crit' | 'skill' | 'bori';
 
 /** 1탄 세이브 (localStorage heesu_bori_save_v1) */
 interface SaveData {
+  /** 첫 걸음 가이드 단계 (GUIDE.length 이상 = 끝) */
+  guide?: number;
   /** 세이브 고유 번호 (랭킹 중복 등록 방지). 예전 세이브는 loadGame 때 생성 */
   sid?: string;
   lv: number;

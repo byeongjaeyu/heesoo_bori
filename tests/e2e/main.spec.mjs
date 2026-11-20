@@ -127,3 +127,15 @@ test('시즌 보상 선물: 받으면 보상 모달(아이콘 카드)', async ({
   await expect(page.locator('#seasonModal .rwc')).toHaveCount(2);
   await expect(page.locator('#seasonModal .rwc').first()).toContainText('150개');
 });
+
+test('첫 걸음 가이드: 새 게임에서 카드 + 공격 버튼 반짝, 5마리 잡으면 다음 단계', async ({ page }) => {
+  await withSave(page, URL_MAIN, { guide: 0, lv: 1 });
+  await enterZone(page, 0);
+  await expect(page.locator('#guide')).toContainText('첫 걸음 1/7');
+  await expect(page.locator('#ctrl .atk.gpulse')).toBeVisible();
+  const gold0 = await page.evaluate(() => G.pd.gold);
+  await page.evaluate(() => { for (let i = 0; i < 5; i++) { const e = spawnEnemy('slime', G.P.x + 20, G.P.y); dealDamage(e, 1e6, {}); } });
+  await expect(page.locator('#guide')).toContainText('첫 걸음 2/7');
+  await expect(page.locator('#menuBtn.gpulse')).toBeVisible();
+  expect(await page.evaluate(() => G.pd.gold)).toBeGreaterThanOrEqual(gold0 + 300);
+});

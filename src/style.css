@@ -320,3 +320,11 @@ button{font-family:inherit;color:inherit;border:none;background:none;padding:0;c
 @keyframes rwpop{from{transform:scale(.3);opacity:0}70%{transform:scale(1.12)}to{transform:none;opacity:1}}
 .sgot{display:flex;flex-direction:column;align-items:center;gap:6px}.sbig{font-size:64px;line-height:1;animation:rwpop .5s}
 .season .srow{display:flex;justify-content:space-between;align-items:center;gap:6px}
+#guide{position:absolute;top:calc(var(--sat) + 116px);left:50%;transform:translateX(-50%);width:min(300px,82vw);background:rgba(255,248,238,.96);border:3px solid var(--ink);border-radius:12px;padding:6px 10px 7px;display:flex;flex-direction:column;gap:2px;pointer-events:auto;box-shadow:0 3px 0 rgba(0,0,0,.25);z-index:5}
+#guide .gtop{display:flex;justify-content:space-between;align-items:center}#guide .gtop b{font-size:11px;color:#c0306a}
+#guide .gx{background:none;border:0;font:inherit;font-size:13px;color:#999;padding:0 2px;cursor:pointer}
+#guide .gtxt{font-size:14px;font-weight:bold}#guide small{font-size:11px;color:#666;line-height:1.3}#guide .grw{color:#7a5cff}
+.gpulse{animation:gpulse 1s ease-in-out infinite;outline:3px solid #ffd84a;outline-offset:2px;border-radius:12px}
+@keyframes gpulse{50%{outline-color:#ff7ab8;box-shadow:0 0 0 6px rgba(255,122,184,.35)}}
+.guiding #toasts{top:calc(var(--sat) + 214px)}
+@media (max-height:500px){#guide{top:calc(var(--sat) + 34px);width:min(260px,40vw)}.guiding #toasts{top:calc(var(--sat) + 150px)}}
