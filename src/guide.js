@@ -23,7 +23,7 @@ function guideApply(pd, r) {
   if (r.g) pd.gold += r.g; if (r.s) pd.stones = (pd.stones || 0) + r.s; if (r.a) pd.autoBonus = (pd.autoBonus || 0) + r.a;
   if (r.f) for (const id in r.f) pd.foods[id] = (pd.foods[id] || 0) + r.f[id];
 }
-const guideOn = pd => !FORCE_EASY && !!pd && (pd.guide || 0) < GUIDE_DONE && !G.pvp && !G.inf;
+const guideOn = pd => !FORCE_EASY && !!pd && (pd.guide || 0) < GUIDE_DONE && !G.pvp && !G.inf && !G.raid;
 
 /** 단계 완료 처리 → 보상 → 다음 단계 (여러 단계가 이미 충족이면 연달아) */
 function guideCheck() {

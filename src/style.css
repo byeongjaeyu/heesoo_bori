@@ -358,3 +358,13 @@ button{font-family:inherit;color:inherit;border:none;background:none;padding:0;c
 /* 모달 맨 아래 닫기/확인 버튼: 위 내용과 간격 */
 .dbox>.btn:last-child:not(:first-child){margin-top:14px}
 .sharebox{display:flex;flex-direction:column;align-items:center}.sharebox .tbtns{margin-top:4px}
+.raidbtn{background:linear-gradient(135deg,#ff6b4a,#c02a5c)!important;color:#fff!important}.raidbtn small{color:#ffe0d6!important}
+.rdpanel{overflow:auto}#raidBody{padding:10px;display:flex;flex-direction:column;gap:8px}
+.rdboss{display:flex;gap:12px;align-items:center;background:linear-gradient(135deg,#2b1b24,#5a2140);color:#fff;border:3px solid var(--ink);border-radius:12px;padding:10px}
+.rdboss img{width:96px;height:96px;object-fit:contain;image-rendering:pixelated}.rdboss div{display:flex;flex-direction:column;gap:2px}.rdboss small{font-size:11px;color:#ffb3d9}.rdboss b{font-size:18px}.rdboss span{font-size:12px;color:#ffd84a}
+.rdhp{position:relative;height:26px;background:#3a2232;border:3px solid var(--ink);border-radius:8px;overflow:hidden}.rdhp i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#ff3b5c,#ff9a3c)}
+.rdhp span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:bold;text-shadow:0 1px 0 #000}.rdhp.dead{background:#3a8a3a}
+.rdmine{display:flex;justify-content:space-between;font-size:13px}.rdbtns{gap:6px}.rdbtns .btn.pk{flex:1}.rdbtns small{display:block;font-size:10px}
+.rdlist{display:flex;flex-direction:column;gap:4px}.rdrow{display:flex;gap:8px;align-items:center;background:#fff;border:2px solid #eee;border-radius:8px;padding:6px 10px}
+.rdrow i{font-style:normal;width:24px;text-align:center}.rdrow em{flex:1;font-style:normal}.rdrow.mine{border-color:var(--pink);background:#fff0f6}
+.rdbig{display:block;font-size:30px;color:#c0306a;margin:4px 0}

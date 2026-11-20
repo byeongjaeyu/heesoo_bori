@@ -177,3 +177,9 @@ revoke all on public.hb_transfer_codes, public.hb_transfer_tries from anon, auth
 
 -- ===== 플레이한 희수만 노출 (마이그레이션 hb_fighters_played) =====
 -- hb_fighters.played = (snap.lv > 1) or (wins + losses > 0)  (generated stored). 랭킹·PvP 목록·hb_opponents 는 played 만
+
+-- ===== 월드 보스 레이드 (마이그레이션 hb_world_boss_raid) =====
+-- hb_raid(week, boss, max_hp, hp, killed_at, settled_at) / hb_raid_hits(week, user_id, damage, day_tries, open_at)
+-- hb_raid_ensure(): 주간 보스 생성. HP = 최근 14일 활동 희수 Σ 0.376 × 전투력^1.905 (최소 100만) — 실측 1회 피해 ≈ 0.0358 × 전투력^1.905
+-- hb_raid_start(): 하루 3회(입장 시 차감, 랭킹 등록 필요) / hb_raid_report(dmg): 3분 내 1회, 상한 전투력×250+5만(넘으면 hb_flags 'raid_cap')
+-- hb_raid_settle(): 월요일 0시(cron 1 15 * * 0 UTC) + hb_raid_info 호출 시. 처치: 참가자 강화석 40·50만G, 1위 +100·150만, 2~3위 +60·80만 / 실패: 참가 15석

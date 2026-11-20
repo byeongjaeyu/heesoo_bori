@@ -202,3 +202,42 @@ test('랭킹: 플레이 안 한 Lv1 은 안 보임', async ({ page }) => {
   await expect(page.locator('#rankList')).toContainText('나');
   await expect(page.locator('#rankList')).not.toContainText('구경만함');
 });
+
+test('월드 보스: 로비 → 도전 → 60초 전투 피해 집계 → 서버 보고 → 남은 도전 감소', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 30 });
+  await page.evaluate(MOCK_SB);
+  await page.evaluate(() => { __rows.push({ user_id: 'u-me', nickname: '나', snap: { lv: 30 }, power: 1500, rating: 1000, wins: 0, losses: 0 }); });
+  await page.click('#tRaid');
+  await expect(page.locator('.rdboss')).toContainText('폭주 회전컵');
+  await expect(page.locator('[data-rd=go]')).toContainText('3/3');
+  await page.click('[data-rd=go]');
+  await page.waitForFunction(() => G.state === 'play' && G.raid);
+  const hp0 = await page.evaluate(() => G.boss.hp);
+  await page.evaluate(() => { for (let i = 0; i < 10; i++) dealDamage(G.boss, 5000, {}); });
+  expect(await page.evaluate(h0 => [!!G.boss.dead, G.boss.hp < h0, G.raid.dmg > 0], hp0)).toEqual([false, true, true]);
+  await page.evaluate(() => { G.raid.t = 0.05; });
+  await expect(page.locator('#raidRes')).toBeVisible();
+  await expect(page.locator('#raidResS')).toContainText('내 누적');
+  const sent = await page.evaluate(() => [Math.round(G.raid.dmg), __raid.my.damage]);
+  expect(sent[1]).toBe(sent[0]);
+  await page.click('[data-rr=lobby]');
+  await expect(page.locator('[data-rd=go]')).toContainText('2/3');
+});
+
+test('월드 보스: 미등록이면 도전 대신 등록 안내', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 30 });
+  await page.evaluate(MOCK_SB);
+  await page.click('#tRaid');
+  await expect(page.locator('[data-rd=go]')).toBeDisabled();
+  await expect(page.locator('[data-rd=join]')).toBeVisible();
+});
+
+test('월드 보스 보상 선물: 모달로 표시', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 30, stones: 0, gold: 0 });
+  await page.evaluate(MOCK_SB);
+  await page.evaluate(() => { __rows.push({ user_id: 'u-me', nickname: '나', snap: {}, power: 1 }); PV.notReg = false; PV.me = null;
+    __grants = [{ kind: 'stones', amount: 140, note: '지난 주 월드 보스 처치 보상 / 지난 주 월드 보스 피해량 1위 보상' }, { kind: 'gold', amount: 2000000, note: '지난 주 월드 보스 처치 보상 / 지난 주 월드 보스 피해량 1위 보상' }]; });
+  await page.evaluate(() => rankSync(true));
+  await expect(page.locator('#seasonModal h2')).toContainText('1위');
+  expect(await page.evaluate(() => [loadGame().stones, loadGame().gold])).toEqual([140, 2000000]);
+});

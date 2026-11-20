@@ -92,11 +92,13 @@ async function claimGifts(pd) {
   if (FORCE_EASY || !pd || !SB) return;
   const { data, error } = await SB.rpc('hb_claim_grants', { p_kinds: ['auto', 'gold', 'stage', 'awaken', 'stones'] }); if (error || !data || !data.length) return;
   const tgt = G.pd || pd; // 그 사이 게임을 시작했으면 실제 플레이 중인 세이브에 넣음
-  const season = { rank: 0, items: /** @type {any[]} */ ([]) };
+  const season = { rank: 0, items: /** @type {any[]} */ ([]) }, raid = { rank: 0, killed: false, items: /** @type {any[]} */ ([]) };
   for (const g of data) {
-    const sm = g.note && /시즌 (\d+)위/.exec(String(g.note)); // 시즌 보상은 알림 대신 모달로 모아서
-    if (sm && (g.kind === 'stones' || g.kind === 'gold' || g.kind === 'auto')) {
-      const n = Number(g.amount) || 0; if (!n) continue; season.rank = Number(sm[1]); season.items.push({ kind: g.kind, amount: n });
+    const note = String(g.note || ''), sm = /시즌 (\d+)위/.exec(note), isRaid = /월드 보스/.test(note); // 시즌·레이드 보상은 알림 대신 모달로 모아서
+    if ((sm || isRaid) && (g.kind === 'stones' || g.kind === 'gold' || g.kind === 'auto')) {
+      const n = Number(g.amount) || 0; if (!n) continue; const grp = isRaid ? raid : season, rm = /(\d+)위/.exec(note);
+      if (rm) grp.rank = grp.rank ? Math.min(grp.rank, Number(rm[1])) : Number(rm[1]); if (/처치/.test(note)) raid.killed = true;
+      const ex = grp.items.find(x => x.kind === g.kind); if (ex) ex.amount += n; else grp.items.push({ kind: g.kind, amount: n });
       if (g.kind === 'stones') tgt.stones = (tgt.stones || 0) + n; else if (g.kind === 'gold') tgt.gold = (tgt.gold || 0) + n; else tgt.autoBonus = (tgt.autoBonus || 0) + n;
       continue;
     }
@@ -124,7 +126,12 @@ async function claimGifts(pd) {
     }
   }
   try { localStorage.setItem(SAVEKEY, JSON.stringify(tgt)); } catch (e) { }
-  if (season.items.length) { const ord = { stones: 0, gold: 1, auto: 2 }; season.items.sort((x, y) => ord[x.kind] - ord[y.kind]); seasonGotOpen(season.rank, season.items); }
+  const ord = { stones: 0, gold: 1, auto: 2 };
+  if (season.items.length) { season.items.sort((x, y) => ord[x.kind] - ord[y.kind]); seasonGotOpen(season.rank, season.items); }
+  if (raid.items.length) {
+    raid.items.sort((x, y) => ord[x.kind] - ord[y.kind]); const show = () => raidGotOpen(raid.rank, raid.killed, raid.items);
+    if (!season.items.length) show(); else SM_NEXT = show; // 시즌 모달 닫으면 이어서
+  }
   if (G.pd === tgt) calcStats();
   if (!G.pd && G.state === 'title' && !$('#title').hidden) showTitle(); // 타이틀 버튼 정보 갱신
 }
@@ -174,4 +181,5 @@ function seasonGotOpen(rank, items) {
 }
 let SM_PAUSED = false;
 function seasonModalShow() { if (G.state === 'play') { G.state = 'menu'; SM_PAUSED = true; INP.atk = false; } $('#seasonModal').hidden = false; }
-function seasonModalClose() { $('#seasonModal').hidden = true; if (SM_PAUSED && G.state === 'menu' && $('#menu').hidden) G.state = 'play'; SM_PAUSED = false; }
+let SM_NEXT = /** @type {null|(() => void)} */ (null);
+function seasonModalClose() { $('#seasonModal').hidden = true; if (SM_NEXT) { const f = SM_NEXT; SM_NEXT = null; setTimeout(f, 80); } if (SM_PAUSED && G.state === 'menu' && $('#menu').hidden) G.state = 'play'; SM_PAUSED = false; }
