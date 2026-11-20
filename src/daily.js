@@ -95,7 +95,11 @@ function dailyAct(act, v) {
 }
 function dailyOpen() {
   const pd = dailyPD(); if (!pd) return;
-  $('#dailyBody').innerHTML = dailyHtml(pd); $('#daily').hidden = false;
+  $('#dailyBody').innerHTML = dailyHtml(pd); $('#daily').hidden = false; dailyScrollToday();
+}
+/** 출석 칸 가로 스크롤을 오늘(받을/받은) 칸으로 */
+function dailyScrollToday() {
+  requestAnimationFrame(() => { for (const row of document.querySelectorAll('.attrow')) { const c = row.querySelector('.attc.now') || [...row.querySelectorAll('.attc.got')].pop(); if (c) row.scrollLeft = Math.max(0, /** @type {HTMLElement} */ (c).offsetLeft - row.clientWidth / 2 + /** @type {HTMLElement} */ (c).offsetWidth / 2 - /** @type {HTMLElement} */ (row).offsetLeft); } });
 }
 function dailyClose() { $('#daily').hidden = true; if (G.state === 'title') showTitle(); }
 /** 타이틀에서 그날 처음이면 출석 창 자동으로 (닉네임 창이 떠 있으면 다음에) */
@@ -106,7 +110,7 @@ function dailyAutoOpen() {
 }
 function dailyBoot() {
   if (FORCE_EASY) return;
-  $('#daily').addEventListener('click', e => { const b = /** @type {HTMLElement} */ (e.target).closest('[data-d]'); if (!b) return; if (dailyAct(b.getAttribute('data-d'), b.getAttribute('data-v'))) $('#dailyBody').innerHTML = dailyHtml(dailyPD()); });
+  $('#daily').addEventListener('click', e => { const b = /** @type {HTMLElement} */ (e.target).closest('[data-d]'); if (!b) return; if (dailyAct(b.getAttribute('data-d'), b.getAttribute('data-v'))) { $('#dailyBody').innerHTML = dailyHtml(dailyPD()); dailyScrollToday(); } });
   $('#dailyX').onclick = dailyClose;
   // 메뉴 '미션' 탭 버튼
   $('#mbody').addEventListener('click', e => { const b = /** @type {HTMLElement} */ (e.target).closest('[data-d]'); if (!b) return; if (dailyAct(b.getAttribute('data-d'), b.getAttribute('data-v'))) renderMenu(); });

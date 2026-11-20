@@ -164,7 +164,7 @@ const MREN = {
     }
     return h;
   },
-  daily() { return dailyHtml(G.pd); },
+  daily() { dailyScrollToday(); return dailyHtml(G.pd); },
   skill() {
     const pd = G.pd; const used = Object.values(pd.skills).reduce((a, b) => a + b, 0);
     return awkPanel() + `<div class="sprow"><span>스킬 포인트 <b>${pd.sp}</b></span><button class="btn wh" data-m="reset" ${used ? '' : 'disabled'}>초기화 (무료)</button></div>
