@@ -10,6 +10,8 @@ type AwakenStat = 'atk' | 'def' | 'hp' | 'mp' | 'crit' | 'skill' | 'bori';
 
 /** 1탄 세이브 (localStorage heesu_bori_save_v1) */
 interface SaveData {
+  /** 꾸미기: 부위별 겉모습 장비(도감에 있어야 적용) + 헤어 색 */
+  look?: Partial<Record<HeroSlot, ItemId>> & { hair?: string };
   /** 장비 도감: 한 번이라도 얻은 장비 */
   book?: Record<ItemId, number>;
   /** 첫 걸음 가이드 단계 (GUIDE.length 이상 = 끝) */

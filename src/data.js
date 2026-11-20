@@ -153,3 +153,18 @@ const BOOK_SETS = [
 /** 세트에 들어가는 장비 id (시작 장비 제외) */
 const bookIds = set => Object.keys(ITEMS).filter(id => { const it = ITEMS[id]; return !it.start && (set.bori ? !!it.bori : !it.bori && it.rar === set.rar); });
 const BOOK_ALL = Object.keys(ITEMS).filter(id => !ITEMS[id].start);
+
+// ===== 희수 꾸미기 (능력치 없음, 겉모습만) =====
+/** 겉모습을 바꿀 수 있는 부위 (도감에 등록한 장비의 모습으로) */
+const LOOK_SLOTS = /** @type {HeroSlot[]} */ (['hat', 'armor', 'shoes', 'bag']);
+/** 헤어 색. need 가 있으면 조건 달성 시 열림 */
+const HAIRS = [
+  { k: 'base', name: '흑갈색', H: '#2a1c1c', h: '#4a3430' },
+  { k: 'choco', name: '초코 브라운', H: '#5a3422', h: '#80513a' },
+  { k: 'ash', name: '애쉬 브라운', H: '#5f5450', h: '#857873' },
+  { k: 'pink', name: '벚꽃 핑크', H: '#c8578a', h: '#ee94bb', need: 'book10', cond: '도감 10종' },
+  { k: 'mint', name: '민트', H: '#2f8f78', h: '#6fd3b6', need: 'loop5', cond: '5회차 도달' },
+  { k: 'blonde', name: '금발', H: '#b8862a', h: '#e9c35a', need: 'book25', cond: '도감 25종' },
+  { k: 'red', name: '레드', H: '#a11f2a', h: '#dd4651', need: 'enh25', cond: '장비 하나 +25 강화' },
+  { k: 'silver', name: '은발', H: '#9da2b0', h: '#dde0e8', need: 'aw50', cond: '각성 ★50' }
+];

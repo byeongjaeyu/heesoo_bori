@@ -25,7 +25,7 @@ function pvpSnap() {
   const skl = {}; for (const id of ['fist', 'smash', 'nag', 'flash', 'menhera', 'mukbang', 'shop']) skl[id] = sk(id);
   const snap = { v: 1, lv: pd.lv, aw: pd.aw || 0, hp: st.hp, atk: st.atk, def: st.def, crit: Math.round(st.crit * 1000) / 1000, critMul: st.critMul, spd: Math.round(st.spd * 100) / 100, enh: st.enh || 0, tenh: st.toyEnh || 0,
     w: { id: pd.eq.weapon, mul: w.mul, rate: w.rate, reach: w.reach, arc: w.arc, style: w.style }, eq: Object.assign({}, pd.eq), sk: skl,
-    bori: !!pd.boriJoined, beq: pd.boriJoined ? Object.assign({}, pd.beq) : null, boriMul: Math.round((st.boriMul || 1) * 100) / 100, cleared: pd.cleared || 0, infBest: pd.infBest || 0, skm: Math.round((st.skillMul || 1) * 100) / 100, sid: pd.sid || null, book: st.book || 0 };
+    bori: !!pd.boriJoined, beq: pd.boriJoined ? Object.assign({}, pd.beq) : null, boriMul: Math.round((st.boriMul || 1) * 100) / 100, cleared: pd.cleared || 0, infBest: pd.infBest || 0, skm: Math.round((st.skillMul || 1) * 100) / 100, sid: pd.sid || null, book: st.book || 0, vis: visEq(pd), hair: (pd.look && pd.look.hair) || 'base' };
   const power = Math.round(st.atk * 4 + st.hp * 0.5 + st.def * 6 + st.crit * 300 + Math.max(0, st.spd - 1) * 150 + (pd.boriJoined ? 50 + ((st.boriMul || 1) - 1) * 300 : 0) + (skl.smash + skl.nag + skl.flash + skl.fist) * 12 + skl.menhera * 40 + ((st.skillMul || 1) - 1) * 600);
   if (keepP) calcStats();
   return { snap, power };
@@ -57,7 +57,7 @@ function pvpRender(html) {
 }
 function pvpCard(f, btn) {
   const s = f.snap || {}, mine = f.user_id === PV.uid;
-  return `<div class="pvc${mine ? ' mine' : ''}"><img src="${pvpFaceURL(s.eq)}"><span><em>${esc(f.nickname)}${mine ? ' (나)' : ''}</em><small>Lv.${s.lv || '?'} · 전투력 ${f.power} · 점수 ${f.rating}</small>${s.atk != null ? `<small>공 ${s.atk} · 방 ${s.def} · HP ${s.hp}${s.enh ? ' · 무기+' + s.enh : ''}${s.tenh ? ' · 장난감+' + s.tenh : ''}</small>` : ''}</span>${btn || ''}</div>`;
+  return `<div class="pvc${mine ? ' mine' : ''}"><img src="${pvpFaceURL(s.vis || s.eq, s.hair)}"><span><em>${esc(f.nickname)}${mine ? ' (나)' : ''}</em><small>Lv.${s.lv || '?'} · 전투력 ${f.power} · 점수 ${f.rating}</small>${s.atk != null ? `<small>공 ${s.atk} · 방 ${s.def} · HP ${s.hp}${s.enh ? ' · 무기+' + s.enh : ''}${s.tenh ? ' · 장난감+' + s.tenh : ''}</small>` : ''}</span>${btn || ''}</div>`;
 }
 async function pvpTab(t) {
   PV.tab = t; if (!PV.me) return; pvpRender('<div class="pvmsg">불러오는 중...</div>');
@@ -191,13 +191,13 @@ function pvpResClick(e) {
 function pvpForfeit() { if (!G.pvp || G.pvp.over) return; confirmBox('항복할까요? (패배로 기록돼요)', () => pvpEnd(false, '항복')); }
 
 // ---------- 그리기 ----------
-function heeSetFor(eq) { const keep = G.pd; G.pd = /** @type {SaveData} */ (/** @type {unknown} */ ({ eq })); /* 초상화 렌더용 임시 세이브 */ try { return heeSet(); } finally { G.pd = keep; } }
-function pvpFaceURL(eq) {
-  try { const set = heeSetFor(eq && ITEMS[eq.hat] && ITEMS[eq.armor] && ITEMS[eq.shoes] && ITEMS[eq.bag] ? eq : newPD().eq); const s = set.down[0]; const o = mkCanvas(s.W * 3, s.H * 3), g = o.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(s.n, 0, 0, s.W * 3, s.H * 3); return o.toDataURL(); } catch (e) { return ''; }
+function heeSetFor(eq, hair) { const keep = G.pd; G.pd = /** @type {SaveData} */ (/** @type {unknown} */ ({ eq, look: { hair } })); /* 초상화 렌더용 임시 세이브 */ try { return heeSet(); } finally { G.pd = keep; } }
+function pvpFaceURL(eq, hair) {
+  try { const set = heeSetFor(eq && ITEMS[eq.hat] && ITEMS[eq.armor] && ITEMS[eq.shoes] && ITEMS[eq.bag] ? eq : newPD().eq, hair); const s = set.down[0]; const o = mkCanvas(s.W * 3, s.H * 3), g = o.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(s.n, 0, 0, s.W * 3, s.H * 3); return o.toDataURL(); } catch (e) { return ''; }
 }
 function drawRival(e) {
-  let eq = e.snap.eq; if (!eq || !ITEMS[eq.hat] || !ITEMS[eq.armor] || !ITEMS[eq.shoes] || !ITEMS[eq.bag]) eq = newPD().eq;
-  const set = heeSetFor(eq); const d = dirOf(Math.cos(e.ang), Math.sin(e.ang)); const arr = set[d === 'left' ? 'right' : d];
+  let eq = e.snap.vis || e.snap.eq; if (!eq || !ITEMS[eq.hat] || !ITEMS[eq.armor] || !ITEMS[eq.shoes] || !ITEMS[eq.bag]) eq = newPD().eq;
+  const set = heeSetFor(eq, e.snap.hair); const d = dirOf(Math.cos(e.ang), Math.sin(e.ang)); const arr = set[d === 'left' ? 'right' : d];
   let s = arr[0]; if (e.mv > 8 && !e.cast) { const fi = Math.floor(e.t * 8) % 4; s = arr[[1, 0, 2, 0][fi]]; }
   shadow(e.x, e.y, 12);
   if (e.spawnT > 0) { const p = 1 - e.spawnT / 1.3; drawSpr(s, e.x, e.y - (1 - p) * 30, { alpha: p, white: Math.floor(G.time * 12) % 2 === 0, flip: d === 'left' }); return; }

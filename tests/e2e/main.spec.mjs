@@ -148,3 +148,14 @@ test('도감 탭: 보유 장비는 보이고 없는 건 ???', async ({ page }) =
   await expect(page.locator('.bcell:not(.no)')).toHaveCount(1);
   await expect(page.locator('.bcell:not(.no)')).toContainText('츄러스');
 });
+
+test('꾸미기 탭: 헤어·모자 겉모습 바꾸면 저장되고 능력치는 그대로', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 30, inv: { fist: 1, cap_grey: 1, fleece: 1, sneakers: 1, silverbag: 1, cap_sky: 1 } });
+  await enterZone(page, 1);
+  const atk0 = await page.evaluate(() => G.st.atk);
+  await openTab(page, 'look');
+  await expect(page.locator('button[data-m=hair][data-v=silver]')).toBeDisabled();
+  await page.click('button[data-m=hair][data-v=choco]');
+  await page.click('button[data-m=look][data-v="hat:cap_sky"]');
+  expect(await page.evaluate(() => [loadGame().look.hair, loadGame().look.hat, visEq(G.pd).hat, G.st.atk])).toEqual(['choco', 'cap_sky', 'cap_sky', atk0]);
+});

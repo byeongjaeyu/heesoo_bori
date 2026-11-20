@@ -2,9 +2,9 @@
 const RK = { tab: 'power', cache: {}, from: 'title' };
 const validEq = eq => (eq && SLOTS.every(sl => eq[sl] && ITEMS[eq[sl]])) ? eq : newPD().eq;
 function fighterURL(snap, scale) {
-  scale = scale || 4; const key = JSON.stringify([snap.eq, snap.bori, snap.beq, scale]); if (RK.cache[key]) return RK.cache[key];
+  scale = scale || 4; const key = JSON.stringify([snap.vis || snap.eq, snap.hair, snap.bori, snap.beq, scale]); if (RK.cache[key]) return RK.cache[key];
   const keep = G.pd; const beq = snap.bori && snap.beq ? { bcloth: ITEMS[snap.beq.bcloth] ? snap.beq.bcloth : null, btoy: ITEMS[snap.beq.btoy] ? snap.beq.btoy : null } : { bcloth: null, btoy: null };
-  G.pd = /** @type {SaveData} */ (/** @type {unknown} */ ({ eq: validEq(snap.eq), beq })); // 초상화 렌더용 임시 세이브
+  G.pd = /** @type {SaveData} */ (/** @type {unknown} */ ({ eq: validEq(snap.vis || snap.eq), beq, look: { hair: snap.hair } })); // 초상화 렌더용 임시 세이브
   try {
     const hs = heeSet().down[0]; let bs = null, ts = null;
     if (snap.bori) { bs = boriSpr('sit'); if (beq.btoy) ts = spr('t_' + beq.btoy, ICONS[ITEMS[beq.btoy].icon]); }

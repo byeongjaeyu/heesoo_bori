@@ -59,6 +59,23 @@ function feedEquip(it) {
   } else { pd.iexp[cur] = n; toast(`${it.name} → ${ci.name} 경험치 ${n}/${ILV_NEED}`, 'sub'); sfx('coin'); }
   return true;
 }
+/** 화면에 보이는 장비 (꾸미기로 바꾼 겉모습 반영. 도감에 있고 색이 있는 장비만) */
+function visEq(pd) {
+  const e = Object.assign({}, pd.eq), L = pd.look || {}, b = pd.book || {};
+  for (const sl of LOOK_SLOTS) { const id = L[sl], it = id && ITEMS[id]; if (it && it.slot === sl && !it.bori && it.color && b[id]) e[sl] = id; }
+  return e;
+}
+const hairPal = k => HAIRS.find(h => h.k === k) || HAIRS[0];
+/** 헤어 색 해금 여부 */
+function hairOk(pd, h) {
+  if (!h.need) return true;
+  if (h.need === 'book10') return bookStats(pd).n >= 10;
+  if (h.need === 'book25') return bookStats(pd).n >= 25;
+  if (h.need === 'loop5') return (pd.cleared || 0) >= 4;
+  if (h.need === 'enh25') return Object.values(pd.enh || {}).some(v => v >= 25);
+  if (h.need === 'aw50') return (pd.aw || 0) >= 50;
+  return false;
+}
 /** 도감 상태 (보유·착용 중인 장비는 자동 등록) */
 function bookStats(pd) {
   const b = pd.book = pd.book || {};

@@ -91,7 +91,7 @@ function updateHUD() {
 
 // ---------- menu ----------
 let MTAB = 'skill';
-const TABS = [['skill', '스킬'], ['equip', '장비'], ['bori', '보리'], ['daily', '미션'], ['book', '도감'], ['food', '음식'], ['shop', '배달앱'], ['info', '정보']];
+const TABS = [['skill', '스킬'], ['equip', '장비'], ['bori', '보리'], ['daily', '미션'], ['book', '도감'], ['look', '꾸미기'], ['food', '음식'], ['shop', '배달앱'], ['info', '정보']];
 function openMenu(tab) { if (G.state !== 'play') return; G.state = 'menu'; INP.atk = false; INP.joy.on = false; hideJoy(); if (tab) MTAB = tab; else if (G.pd.sp > 0) MTAB = 'skill'; else if (G.pd.newItem) MTAB = 'equip'; else if (G.pd.newBori) MTAB = 'bori'; $('#menu').hidden = false; renderMenu(true); sfx('select'); }
 function closeMenu() { $('#menu').hidden = true; if (G.state === 'menu') G.state = 'play'; saveGame(); setHudImages(); }
 function renderMenu(top) {
@@ -140,6 +140,20 @@ function skillCard(id) {
   return `<div class="card ${(!reqOk || locked) ? 'dim' : ''}"><div class="ic"><img src="${iconURL('sk_' + s.icon, ICONS[s.icon])}"></div><div class="mid"><div class="nm">${s.name}<span class="tag ${s.type}">${SKILL_TYPE[s.type]}</span><span class="lvdots">${dots}</span></div><div class="ds">${lv ? '<b>현재</b> ' : ''}${cur}${meta}</div><div class="nx">${nx}</div></div><button class="btn plus" data-m="learn" data-v="${id}" ${can ? '' : 'disabled'}>+</button></div>`;
 }
 const MREN = {
+  look() {
+    const pd = G.pd, L = pd.look || {}, b = pd.book || {};
+    const prev = fighterURL({ vis: visEq(pd), hair: L.hair || 'base', bori: pd.boriJoined, beq: pd.beq }, 5);
+    let h = `<div class="lookhead"><img src="${prev}"><div><b>희수 꾸미기</b><small>능력치는 그대로, 겉모습만 바뀌어요.<br>랭킹·PvP에서도 이 모습으로 보여요.</small></div></div>`;
+    h += `<h3>헤어 색</h3><div class="hairs">` + HAIRS.map(hr => { const ok = hairOk(pd, hr), on = (L.hair || 'base') === hr.k;
+      return `<button class="hair${on ? ' on' : ''}${ok ? '' : ' lock'}" data-m="hair" data-v="${hr.k}" ${ok ? '' : 'disabled'}><i style="background:linear-gradient(135deg,${hr.h},${hr.H})"></i><small>${ok ? hr.name : '🔒 ' + hr.cond}</small></button>`; }).join('') + '</div>';
+    for (const sl of LOOK_SLOTS) {
+      const own = Object.keys(b).filter(id => ITEMS[id] && ITEMS[id].slot === sl && !ITEMS[id].bori && ITEMS[id].color).sort((x, y) => ITEMS[x].rar - ITEMS[y].rar || (ITEMS[x].tier || 0) - (ITEMS[y].tier || 0));
+      h += `<h3>${SLOTNAME[sl]} 겉모습 <small>도감에 있는 장비 ${own.length}종</small></h3><div class="looks">`
+        + `<button class="lk${!L[sl] ? ' on' : ''}" data-m="look" data-v="${sl}:"><span class="lkdef">착용<br>장비대로</span></button>`
+        + own.map(id => `<button class="lk${L[sl] === id ? ' on' : ''}" data-m="look" data-v="${sl}:${id}" title="${ITEMS[id].name}"><img src="${itemURL(id)}"><small class="r${ITEMS[id].rar}">${ITEMS[id].name}</small></button>`).join('') + '</div>';
+    }
+    return h;
+  },
   book() {
     const pd = G.pd, bk = bookStats(pd), b = pd.book || {};
     let h = `<div class="bookhead"><b>장비 도감</b><span>${bk.n} / ${BOOK_ALL.length}</span></div><div class="gbar"><span>1칸마다 최대 HP +${BOOK_PER_HP}</span><span>지금 +${BOOK_PER_HP * bk.n}</span></div>`;
@@ -233,6 +247,8 @@ function menuClick(e) {
   const m = t.dataset.m, v = t.dataset.v, pd = G.pd;
   if (m === 'close') { closeMenu(); return; }
   if (m === 'tab') { MTAB = v; renderMenu(true); sfx('select'); return; }
+  if (m === 'hair') { const hr = HAIRS.find(x => x.k === v); if (!hr || !hairOk(pd, hr)) return; pd.look = Object.assign({}, pd.look, { hair: v }); sfx('ding'); renderMenu(); setHudImages(); saveGame(); return; }
+  if (m === 'look') { const [sl, id] = v.split(':'); pd.look = Object.assign({}, pd.look); if (id) pd.look[sl] = id; else delete pd.look[sl]; sfx('ding'); renderMenu(); setHudImages(); saveGame(); return; }
   if (m === 'learn') { const s = SKILLS[v], lv = sk(v); if (pd.sp <= 0 || lv >= s.max || pd.lv < s.req) return; pd.sp--; pd.skills[v] = lv + 1; calcStats(); sfx('ding'); if (!lv && s.btn) toast(`${s.name} 버튼이 활성화됐어요!`, 'item r2'); renderMenu(); saveGame(); return; }
   if (m === 'awk') { const A = AWK[v], lv = awkLv(v); if (!A || !(pd.ap > 0) || (A.max && lv >= A.max) || (A.bori && !pd.boriJoined)) return; pd.ap--; pd.awp = pd.awp || {}; pd.awp[v] = lv + 1; calcStats(); sfx('ding'); renderMenu(); saveGame(); return; }
   if (m === 'awkReset') { confirmBox('각성 포인트를 전부 돌려받고 다시 찍을까요?', () => { const n = Object.values(pd.awp || {}).reduce((a, b) => a + b, 0); pd.ap = (pd.ap || 0) + n; pd.awp = {}; calcStats(); renderMenu(); sfx('select'); saveGame(); }); return; }
