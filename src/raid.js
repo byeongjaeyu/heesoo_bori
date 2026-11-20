@@ -23,10 +23,10 @@ function raidOpen() {
 function raidRender() {
   const I = RAID.info; if (!I) return; const m = MONS[I.boss] || MONS.boss4, pct = I.max_hp ? Math.max(0, I.hp) / I.max_hp : 0, my = I.my || { damage: 0, tries_today: 0 };
   const left = Math.max(0, (I.max_tries || 3) - (my.tries_today || 0)), killed = !!I.killed_at;
-  const top = (I.top || []).map((t, i) => `<div class="rdrow${t.mine ? ' mine' : ''}"><i>${i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1}</i><em>${esc(t.nickname)}</em><b>${Number(t.damage).toLocaleString()}</b></div>`).join('') || '<div class="pvmsg">아직 아무도 도전하지 않았어요. 첫 타를 날려보세요!</div>';
+  const top = (I.top || []).map((t, i) => `<div class="rdrow${t.mine ? ' mine' : ''}"><i>${i < 3 ? MEDAL(i + 1) : i + 1}</i><em>${esc(t.nickname)}</em><b>${Number(t.damage).toLocaleString()}</b></div>`).join('') || '<div class="pvmsg">아직 아무도 도전하지 않았어요. 첫 타를 날려보세요!</div>';
   const can = PV.me && left > 0;
   $('#raidBody').innerHTML = `<div class="rdboss"><img src="${raidBossURL(I.boss)}"><div><small>이번 주 월드 보스</small><b>${esc(m.name)}</b><span>${killed ? '처치 완료! 남은 기간은 피해량 경쟁' : `월요일 0시까지 ${raidLeft(I)}`}</span></div></div>`
-    + `<div class="rdhp${killed ? ' dead' : ''}"><i style="width:${(pct * 100).toFixed(2)}%"></i><span>${killed ? '처치 완료 🎉' : `${Math.max(0, I.hp).toLocaleString()} / ${Number(I.max_hp).toLocaleString()}`}</span></div>`
+    + `<div class="rdhp${killed ? ' dead' : ''}"><i style="width:${(pct * 100).toFixed(2)}%"></i><span>${killed ? '처치 완료!' : `${Math.max(0, I.hp).toLocaleString()} / ${Number(I.max_hp).toLocaleString()}`}</span></div>`
     + `<div class="rdmine"><span>내 누적 피해 <b>${Number(my.damage || 0).toLocaleString()}</b></span><span>참가 ${I.participants || 0}명</span></div>`
     + `<div class="row rdbtns"><button class="btn pk" data-rd="go" ${can ? '' : 'disabled'}>${PV.me ? `도전하기 <small>오늘 남은 도전 ${left}/${I.max_tries || 3}</small>` : '랭킹 등록 후 도전할 수 있어요'}</button><button class="btn wh sm" data-rd="rw">보상 보기</button></div>`
     + (PV.me ? '' : `<button class="btn wh" data-rd="join">랭킹에 내 희수 올리기</button>`)
@@ -34,7 +34,7 @@ function raidRender() {
 }
 function raidRewardsOpen() {
   $('#seasonModalBody').innerHTML = `<h2>월드 보스 보상</h2><p class="smsub">월요일 0시에 선물함으로 지급돼요<br>(그 주에 1번이라도 도전한 희수만)</p>`
-    + RAID_REWARDS.map(r => `<div class="srw"><div class="srk"><i>${r.k === 1 ? '🥇' : r.k === 2 ? '🥈' : r.k === 4 ? '🎉' : '🎗️'}</i><b>${r.label}</b></div>${rewardCards(rwItems(r))}</div>`).join('')
+    + RAID_REWARDS.map(r => `<div class="srw"><div class="srk"><i>${r.k === 1 ? MEDAL(1) : r.k === 2 ? MEDAL(2) : r.k === 4 ? PXI('trophy') : PXI('rosette')}</i><b>${r.label}</b></div>${rewardCards(rwItems(r))}</div>`).join('')
     + '<p class="smsub">순위 보상은 처치 성공 보상과 함께 받아요</p>';
   seasonModalShow();
 }
@@ -98,6 +98,6 @@ function raidBoot() {
 /** 받은 레이드 보상 모달 */
 function raidGotOpen(rank, killed, items) {
   const head = rank ? `월드 보스 피해량<br><em>${rank}위</em> 달성!` : killed ? '월드 보스<br><em>처치 성공!</em>' : '월드 보스<br><em>참가 보상</em>';
-  $('#seasonModalBody').innerHTML = `<div class="sgot"><div class="sbig">${rank === 1 ? '🥇' : rank ? '🥈' : killed ? '🎉' : '🎗️'}</div><h2>지난 주 ${head}</h2><p class="smsub">${killed ? '다 같이 보스를 쓰러뜨렸어요!' : '아쉽게 못 잡았지만 함께해줘서 고마워요'}</p>${rewardCards(items, true)}</div>`;
+  $('#seasonModalBody').innerHTML = `<div class="sgot"><div class="sbig">${rank === 1 ? MEDAL(1) : rank ? MEDAL(rank <= 3 ? rank : 4) : killed ? PXI('trophy') : PXI('rosette')}</div><h2>지난 주 ${head}</h2><p class="smsub">${killed ? '다 같이 보스를 쓰러뜨렸어요!' : '아쉽게 못 잡았지만 함께해줘서 고마워요'}</p>${rewardCards(items, true)}</div>`;
   seasonModalShow(); sfx('lvl');
 }

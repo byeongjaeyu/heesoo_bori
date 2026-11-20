@@ -30,6 +30,11 @@ describe('강화석 수입', () => {
     // 확률표로 정확히 계산 (정예 비율 반영, 착용 중인 초월과 같은 등급은 장비 레벨 재료라 제외)
     const L = g.loopLv(), lm = g.loopMul(), elite = lm.elite || 0; let perKill = 0;
     for (let r = 0; r < 5; r++) { const p = g.DROP_RATE[r] * lm.item * ((1 - elite) * 1 + elite * g.DROP_MUL.elite); perKill += p * g.DUP_YIELD[r]; }
-    expect(L).toBe(10); expect(perKill).toBeGreaterThan(0.07); expect(perKill).toBeLessThan(0.1);
+    expect(L).toBe(11); expect(perKill).toBeGreaterThan(0.07); expect(perKill).toBeLessThan(0.1);
+  });
+  test('11회차부터도 난이도는 계속 오름 (증가폭 절반), 드롭 배율은 상한 유지', () => {
+    const at = cl => { fresh({ cleared: cl }); return [g.loopLv(), g.loopMul()]; };
+    expect(at(10)[0]).toBe(10); expect(at(11)[0]).toBe(10.5); expect(at(50)[0]).toBe(30);
+    expect(at(50)[1].hp).toBeGreaterThan(at(20)[1].hp); expect(at(50)[1].item).toBe(at(10)[1].item);
   });
 });

@@ -300,7 +300,9 @@ function updateBori(dt) {
 
 // ---------- 회차 (NG+) ----------
 const LOOP_CAP = 10;
-function loopLv() { return G.pvp ? 0 : G.inf ? G.inf.loop : Math.min(LOOP_CAP, (G.pd && G.pd.cleared) || 0); }
+/** 회차 → 난이도 단계. 11회차부터도 계속 오르되 증가폭은 절반 (예: 50회차 = 30단계) */
+const loopEff = cl => cl <= LOOP_CAP ? cl : LOOP_CAP + (cl - LOOP_CAP) * 0.5;
+function loopLv() { return G.pvp ? 0 : G.inf ? G.inf.loop : loopEff((G.pd && G.pd.cleared) || 0); }
 function loopMul() { const L = loopLv(); return { L, hp: 1 + 0.6 * L, atk: 1 + 0.35 * L, def: 3 * L, spd: Math.min(1.3, 1 + 0.05 * L), xp: 1 + 0.5 * L, gold: 1 + 0.6 * L, item: Math.min(1.6, 1 + 0.2 * L), cnt: Math.min(2, 1 + 0.25 * L), elite: Math.min(0.25, 0.07 * L), legend: Math.min(0.3, 0.08 * L) }; }
 const zoneQuota = Z => Math.round(Z.quota * loopMul().cnt);
 // 처치 1마리당 등급별 드롭 확률 (일반 몬스터 기준). 높은 등급부터 굴려서 하나만 떨어짐
@@ -322,7 +324,7 @@ function rollItem(minRar, legendChance) {
 }
 
 function loopIntro(L) {
-  const n = L + 1, LM = loopMul();
+  const n = (G.pd.cleared || 0) + 1, LM = loopMul();
   const lines = L === 1 ? [
     { who: 'sys', text: '다시 에버랜드에 발을 들인 순간...\n공기가 확 달라졌다.' },
     { who: 'sys', text: '【2회차】 한층 더 강해진 몬스터들이 훨씬 더 많이 몰려온다!\n황금 왕관을 쓴 「정예 몬스터」까지 어슬렁거린다.' },
@@ -648,13 +650,17 @@ function onBossDefeated(e) {
 function goNextZone() {
   if (G.state !== 'play') return;
   G.state = 'trans'; sfx('open');
-  if (G.zone >= ZONES.length - 1) { G.pd.cleared = (G.pd.cleared || 0) + 1; saveGame(); fadeTo(() => startEnding()); return; }
+  if (G.zone >= ZONES.length - 1) {
+    const first = !G.pd.cleared; G.pd.cleared = (G.pd.cleared || 0) + 1;
+    // 자동사냥 중이면(첫 클리어 제외) 엔딩을 건너뛰고 바로 다음 회차 STAGE 1로
+    if (G.auto && !first) { G.pd.zone = 0; saveGame(); fadeTo(() => { startZone(0); toast(`🎉 ${G.pd.cleared}회차 클리어! 자동사냥으로 ${G.pd.cleared + 1}회차 시작`, 'lvl'); }); return; }
+    saveGame(); fadeTo(() => startEnding()); return; }
   G.pd.zone = G.zone + 1; const n = 2 + Math.floor(loopLv() / 2); G.pd.foods.gimbap = (G.pd.foods.gimbap || 0) + n; G.pd.foods.drink = (G.pd.foods.drink || 0) + n; saveGame();
   fadeTo(() => { startZone(G.pd.zone); setTimeout(() => { if (G.state === 'play' || G.state === 'dialog') { toast(`스마트 푸드 센터 재고떨이! 유통기한 임박 김밥 ×${n} · 음료수 ×${n}`, 'item r2'); sfx('coin'); if (G.P) bubble(G.P, '공짜는 못 참지!', 1.4); } }, 2900); });
 }
 function startZone(i) {
   G.pvp = null; G.inf = null; G.raid = null; G.husUsed = false;
-  G.zone = i; G.pd.zone = i; G.world = buildWorld(i); const W = G.world;
+  G.zone = i; G.pd.zone = i; G.world = buildWorld(i); const W = G.world; G.autoExitSaid = false;
   G.enemies = []; G.projs = []; G.fx = []; G.drops = []; G.parts = []; G.texts = []; G.bubbles = [];
   G.zoneKills = 0; G.bossSpawned = false; G.bossDefeated = false; G.boss = null; G.exitOpen = false; G.spawnT = 1.5; G.ult = null;
   G.P = null; calcStats(); G.P = newPlayer(W.start.x, W.start.y); G.P.fy = -1; G.P.dir = 'up';
@@ -662,7 +668,7 @@ function startZone(i) {
   for (let k = 0; k < 5; k++) { const e = spawnAround(wpick(ZONES[i].mons), 140, 260); if (e) e.spawnT = 0; }
   G.cam.x = clamp(G.P.x - VW / 2, 0, Math.max(0, W.W - VW)); G.cam.y = clamp(G.P.y - 12 - VH / 2, 0, Math.max(0, W.H - VH));
   G.state = 'play'; playBgm('field'); showHUD(true); saveGame();
-  { const L = loopLv(), RL = G.pd.cleared || 0; banner(RL ? `${RL + 1}회차 · ${ZONES[i].sub}` : ZONES[i].sub, ZONES[i].name, 'stage'); if (L && i === 0) setTimeout(() => { if (G.state === 'play' && !G.pvp) loopIntro(L); }, 1700); }
+  { const L = loopLv(), RL = G.pd.cleared || 0; banner(RL ? `${RL + 1}회차 · ${ZONES[i].sub}` : ZONES[i].sub, ZONES[i].name, 'stage'); if (L && i === 0 && !G.auto) setTimeout(() => { if (G.state === 'play' && !G.pvp && !G.auto) loopIntro(L); }, 1700); }
   if (!G.pd.boriJoined) { if (G.pd.lv >= 3) G.pendingEvent = 'bori'; else setTimeout(() => { if (G.state === 'play' && !G.pd.boriJoined) bubble(G.P, '보리야... 어디 있어ㅠㅠ', 2.6); }, 1800); }
 }
 function playerDie() {

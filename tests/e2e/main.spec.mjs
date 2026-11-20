@@ -102,8 +102,9 @@ test('PvP 시즌: 랭킹 PvP 탭에 남은 시간·지난 시즌 TOP·내 기록
   await page.click('#rankTabs [data-rt=pvp]');
   const bar = page.locator('#rankList .season');
   await expect(bar).toContainText('월요일 0시까지 2일 5시간');
-  await expect(bar).toContainText('🥇 원조희수');
-  await expect(bar).toContainText('내 지난 시즌: 🥈 2위');
+  await expect(bar).toContainText('원조희수');
+  await expect(bar).toContainText('내 지난 시즌:  2위');
+  await expect(bar.locator('img.pxi')).toHaveCount(4); // 트로피 + 메달 3개 (픽셀)
   await page.click('#rankList .season button');
   await expect(page.locator('#seasonModal')).toBeVisible();
   await expect(page.locator('#seasonModal .srw')).toHaveCount(5);
@@ -307,4 +308,16 @@ test('로비에서 장비·스킬 메뉴 열기 (음식 탭 없음), 닫으면 �
   await expect(page.locator('#menu')).toBeVisible();
   await page.click('#menu [data-m="title"]');
   await expect(page.locator('#tCont')).toBeVisible();
+});
+
+test('자동사냥: 출구가 열리면 출구로 가서 다음 스테이지도 자동사냥', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 50, cleared: 2, zone: 3 });
+  await enterZone(page, 2);
+  await page.evaluate(() => { G.st.atk = 1e6; autoToggle(); onBossDefeated({}); });
+  await page.waitForFunction(() => G.zone === 3 && G.state === 'play', null, { timeout: 30000 });
+  expect(await page.evaluate(() => G.auto)).toBe(true);
+  // 마지막 스테이지: 엔딩 없이 다음 회차 STAGE 1
+  await page.evaluate(() => onBossDefeated({}));
+  await page.waitForFunction(() => G.zone === 0 && G.state === 'play', null, { timeout: 30000 });
+  expect(await page.evaluate(() => [G.pd.cleared, G.auto])).toEqual([3, true]);
 });

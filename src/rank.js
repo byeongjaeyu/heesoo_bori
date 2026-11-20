@@ -151,7 +151,18 @@ function seasonLeft() {
 /** 시즌 보상표 (서버 hb_season_rollover 와 같아야 함) */
 const SEASON_REWARDS = [{ k: 1, label: '1위', s: 150, g: 3000000, a: 10800 }, { k: 2, label: '2위', s: 100, g: 2000000, a: 7200 }, { k: 3, label: '3위', s: 70, g: 1000000, a: 3600 },
   { k: 4, label: '4~10위', s: 30, g: 300000 }, { k: 11, label: '1판 이상', s: 10 }];
-const MEDAL = r => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : '🏅';
+// ---------- 픽셀 메달·리본 ----------
+const PX_DIG = { 1: ['.m.', 'mm.', '.m.', '.m.', 'mmm'], 2: ['mm.', '..m', '.m.', 'm..', 'mmm'], 3: ['mm.', '..m', '.m.', '..m', 'mm.'] };
+function pxMedalRows(M, m, d) {
+  const rows = ['..KK...KK..', '..KRK.KUK..', '...KRKUK...', '....KKK....', '...KKKKK...', '.KKMMMMMKK.', '.KMMMMMMMK.', 'KMeMMMMMMMK', 'KMMMMMMMMMK', 'KMMMMMMMMMK', '.KMMMMMMMK.', '.KKMMMMMKK.', '...KKKKK...'].map(r => r.split(''));
+  if (d) PX_DIG[d].forEach((r, y) => r.split('').forEach((c, x) => { if (c === 'm') rows[6 + y][4 + x] = 'm'; }));
+  return rows.map(r => r.join('').replace(/M/g, M).replace(/m/g, m));
+}
+ICONS.medal1 = pxMedalRows('A', 'D', 1); ICONS.medal2 = pxMedalRows('G', 'j', 2); ICONS.medal3 = pxMedalRows('F', 'f', 3); ICONS.medal4 = pxMedalRows('U', 'u', 0);
+ICONS.rosette = ['..KK.K.KK..', '.KQQKQKQQK.', 'KQQQQQQQQQK', '.KQQeeeQQK.', 'KQQeAAAeQQK', '.KQeAAAeQK.', 'KQQeAAAeQQK', '.KQQeeeQQK.', 'KQQQQQQQQQK', '.KQQKQKQQK.', '..KK.K.KK..', '...KVK.KVK.', '...KVK.KVK.', '...KK...KK.'];
+/** 픽셀 아이콘 <img> (medal1~4·rosette·trophy 등) */
+const PXI = (k, cls) => `<img class="pxi${cls ? ' ' + cls : ''}" src="${iconURL('px_' + k, ICONS[k])}" alt="">`;
+const MEDAL = r => PXI(r === 1 ? 'medal1' : r === 2 ? 'medal2' : r === 3 ? 'medal3' : 'medal4');
 const fmtGold = n => n >= 10000 ? `${(n / 10000).toLocaleString()}만` : n.toLocaleString();
 const fmtAuto = s => s >= 3600 ? `${Math.round(s / 360) / 10}시간` : `${Math.round(s / 60)}분`;
 /** 보상 아이콘 카드 HTML. items: [{kind:'stones'|'gold'|'auto', amount}] */
@@ -165,13 +176,13 @@ function seasonBar() {
   if (!SEASON) return '';
   const top = (SEASON.top || []).map(t => `${MEDAL(t.rank)} ${esc(t.nickname)}`).join(' · ');
   const mine = SEASON.mine ? `<small class="smine">내 지난 시즌: ${MEDAL(SEASON.mine.rank)} ${SEASON.mine.rank}위</small>` : '';
-  return `<div class="season"><div><b>🏆 이번 주 PvP 시즌</b><span>월요일 0시까지 ${seasonLeft()}</span></div>`
+  return `<div class="season"><div><b>${PXI('trophy', 'in')} 이번 주 PvP 시즌</b><span>월요일 0시까지 ${seasonLeft()}</span></div>`
     + `<div class="srow">${top ? `<small>지난 시즌 ${top}</small>` : '<small>첫 시즌 진행 중!</small>'}<button class="btn pk sm" onclick="seasonRewardsOpen()">보상 보기</button></div>` + mine + '</div>';
 }
 /** 순위별 보상 모달 */
 function seasonRewardsOpen() {
   $('#seasonModalBody').innerHTML = `<h2>주간 PvP 시즌 보상</h2><p class="smsub">매주 월요일 0시에 순위대로 선물함으로 지급돼요<br>(그 주에 PvP를 1판 이상 한 희수만)</p>`
-    + SEASON_REWARDS.map(r => `<div class="srw"><div class="srk"><i>${r.k <= 3 ? MEDAL(r.k) : r.k === 4 ? '🏅' : '🎗️'}</i><b>${r.label}</b></div>${rewardCards(rwItems(r))}</div>`).join('');
+    + SEASON_REWARDS.map(r => `<div class="srw"><div class="srk"><i>${r.k <= 4 ? MEDAL(r.k) : PXI('rosette')}</i><b>${r.label}</b></div>${rewardCards(rwItems(r))}</div>`).join('');
   seasonModalShow();
 }
 /** 받은 시즌 보상 모달 */

@@ -348,7 +348,7 @@ function showDeath() { $('#death p').innerHTML = G.inf ? '할로윈파티에선 
 function showEnd() {
   G.state = 'end'; $('#endScr h2').textContent = '희수와 보리의 에버랜드 대탈출'; const s = G.pd.stats; showHUD(false);
   $('#endStats').innerHTML = `최종 레벨 <b>Lv.${G.pd.lv}</b><br>처치한 몬스터 <b>${s.kills}</b>마리<br>멘헤라 공격 <b>${s.ults}</b>회<br>먹은 음식 <b>${s.eaten}</b>개 · 기절 <b>${s.deaths}</b>회<br>플레이 시간 <b>${fmtTime(s.time)}</b>`;
-  $('#endBtns').innerHTML = `<button class="btn pk" id="eAgain">${Math.min(LOOP_CAP, G.pd.cleared) + 1}회차 시작<small>${G.pd.cleared >= 2 ? '더 강한 몬스터 · 신화·초월 장비가 더 자주!' : (G.pd.cleared >= 1 ? '더 강하고 더 많은 몬스터 · 신화·초월 장비 등장!' : '')}</small></button><button class="btn wh" id="eTitle">타이틀로</button><div class="tsub">다음 이야기: 낚시터 대모험...?</div>`;
+  $('#endBtns').innerHTML = `<button class="btn pk" id="eAgain">${G.pd.cleared + 1}회차 시작<small>${G.pd.cleared >= 2 ? '더 강한 몬스터 · 신화·초월 장비가 더 자주!' : (G.pd.cleared >= 1 ? '더 강하고 더 많은 몬스터 · 신화·초월 장비 등장!' : '')}</small></button><button class="btn wh" id="eTitle">타이틀로</button><div class="tsub">다음 이야기: 낚시터 대모험...?</div>`;
   $('#endScr').hidden = false;
   $('#eAgain').onclick = () => { $('#endScr').hidden = true; G.pd.zone = 0; saveGame(); fadeTo(() => startZone(0)); };
   $('#eTitle').onclick = () => { $('#endScr').hidden = true; G.pd.zone = 0; saveGame(); showTitle(); };

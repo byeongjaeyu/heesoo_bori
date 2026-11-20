@@ -48,7 +48,7 @@ function guideEv(kind) {
 }
 function guideFinish(last) {
   guideRender();
-  $('#seasonModalBody').innerHTML = `<div class="sgot"><div class="sbig">🎉</div><h2>첫 걸음 <em>완료!</em></h2><p class="smsub">이제 혼자서도 잘 할 수 있어요!<br>매일 출석·미션도 챙겨보세요</p>`
+  $('#seasonModalBody').innerHTML = `<div class="sgot"><div class="sbig">${PXI('trophy')}</div><h2>첫 걸음 <em>완료!</em></h2><p class="smsub">이제 혼자서도 잘 할 수 있어요!<br>매일 출석·미션도 챙겨보세요</p>`
     + rewardCards([{ kind: 'stones', amount: last.s || 0 }, { kind: 'auto', amount: last.a || 0 }], true)
     + (PV.me ? '' : `<button class="btn pvpbtn" onclick="seasonModalClose(); rankJoin();">랭킹에 내 희수 올리기<small>친구들과 전투력·PvP 겨루기</small></button>`) + '</div>';
   seasonModalShow();

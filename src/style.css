@@ -412,3 +412,5 @@ button{font-family:inherit;color:inherit;border:none;background:none;padding:0;c
 .abar{display:block;height:6px;border-radius:4px;background:#eee;overflow:hidden}.abar u{display:block;height:100%;background:#ff7ab8;text-decoration:none}
 .tprof .ttag{align-self:flex-start;margin-bottom:1px}.rpod .ttag{display:block;width:max-content;margin:0 auto 2px}
 .tprof{cursor:pointer}.tbag{background:linear-gradient(#fff,#ffe3f0)!important}
+.pxi{width:28px;height:28px;image-rendering:pixelated;vertical-align:middle}.pxi.in{width:20px;height:20px;vertical-align:-4px}
+.sbig .pxi{width:104px;height:104px;filter:drop-shadow(0 4px 0 rgba(0,0,0,.18))}.srk .pxi{width:44px;height:44px;margin-bottom:-4px}.rdrow i .pxi{width:22px;height:22px}.season small .pxi,.smine .pxi{width:18px;height:18px;vertical-align:-4px}

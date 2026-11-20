@@ -45,7 +45,11 @@ function autoTick(dt) {
   let mv = [0, 0]; G.autoAtk = false;
   const hpR = P.hp / G.st.hp;
   if (hpR < 0.35 && !sk('feed') && P.eatCd <= 0) { const id = pickQuickFood('hp', G.st.hp - P.hp); if (id && !PREMIUM.includes(id)) eatFood(id); }
-  if (tgt && hpR < 0.25 && td < 60) { const dx = P.x - tgt.x, dy = P.y - tgt.y, d = Math.hypot(dx, dy) || 1; mv = [dx / d, dy / d]; G.autoAtk = td < w.reach + 4; if (Math.random() < dt * 0.6) bubble(P, choice(['잠깐 숨 좀...', '후퇴!']), 1); }
+  // 보스를 잡아 출구가 열리면: 근처 드롭만 줍고 출구로 → 다음 스테이지에서도 자동사냥 계속
+  const W = G.world, exitGo = G.exitOpen && !G.inf && !G.raid && W && W.gate;
+  if (exitGo) { const go = drop && dd < 140 ? drop : { x: W.gate.x, y: W.gate.y + 4 }, dx = go.x - P.x, dy = go.y - P.y, d = Math.hypot(dx, dy) || 1; if (d > 2) mv = [dx / d, dy / d]; G.autoAtk = !!tgt && td < w.reach + 4;
+    if (go !== drop && !G.autoExitSaid) { G.autoExitSaid = true; bubble(P, choice(['출구로 가자!', '다음 스테이지 고고!', '보리야 따라와~']), 1.2); } }
+  else if (tgt && hpR < 0.25 && td < 60) { const dx = P.x - tgt.x, dy = P.y - tgt.y, d = Math.hypot(dx, dy) || 1; mv = [dx / d, dy / d]; G.autoAtk = td < w.reach + 4; if (Math.random() < dt * 0.6) bubble(P, choice(['잠깐 숨 좀...', '후퇴!']), 1); }
   else if (drop && dd < 60 && td > 28) { const dx = drop.x - P.x, dy = drop.y - P.y, d = Math.hypot(dx, dy) || 1; if (d > 3) mv = [dx / d, dy / d]; G.autoAtk = td < w.reach + 6; }
   else if (tgt && (td < 70 || !drop || dd > 160)) {
     const dx = tgt.x - P.x, dy = (tgt.y - 2) - P.y, d = Math.hypot(dx, dy) || 1;
