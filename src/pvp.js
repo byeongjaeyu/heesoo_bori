@@ -66,7 +66,7 @@ async function pvpTab(t) {
       const { data, error } = await SB.rpc('hb_opponents'); if (error) throw error; PV.list = data || [];
       pvpRender(PV.list.length ? `<div class="pvmsg sm">상대는 스펙만 가진 봇이 자동으로 싸워요. 나는 직접 조작!</div>` + PV.list.map((f, i) => pvpCard(f, `<button class="btn pk" data-pv="fight" data-i="${i}">대결</button>`)).join('') : '<div class="pvmsg">아직 다른 희수가 없어요.<br>링크를 친구에게 보내보세요!</div>');
     } else if (t === 'rank') {
-      const { data, error } = await SB.from('hb_fighters').select('user_id,nickname,snap,power,rating,wins,losses').order('rating', { ascending: false }).order('power', { ascending: false }).limit(50); if (error) throw error;
+      const { data, error } = await SB.from('hb_fighters').select('user_id,nickname,snap,power,rating,wins,losses').eq('played', true).order('rating', { ascending: false }).order('power', { ascending: false }).limit(50); if (error) throw error;
       pvpRender((data || []).map((f, i) => `<div class="pvr${f.user_id === PV.uid ? ' mine' : ''}"><b>${i + 1}</b>${pvpCard(f)}</div>`).join('') || '<div class="pvmsg">랭킹이 비어 있어요</div>');
     } else if (t === 'log') {
       const { data, error } = await SB.from('hb_battles').select('attacker,defender,attacker_won,delta,created_at,a:hb_fighters!hb_battles_attacker_fkey(nickname),d:hb_fighters!hb_battles_defender_fkey(nickname)').or(`attacker.eq.${PV.uid},defender.eq.${PV.uid}`).order('created_at', { ascending: false }).limit(30); if (error) throw error;

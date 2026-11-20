@@ -177,3 +177,28 @@ test('초대 링크로 들어오면 알림 + 랭킹 열림', async ({ page }) =>
   await expect(page.locator('#toasts')).toContainText('원조희수님이 초대했어요');
   await expect(page.locator('#rank')).toBeVisible();
 });
+
+test('처음 온 사람(세이브 없음)은 닉네임 창 없이 바로 시작, 가이드 끝낸 사람은 물어봄', async ({ page }) => {
+  await page.goto(URL_MAIN);
+  await page.evaluate(MOCK_SB);
+  await page.evaluate(() => { entryRegDone = false; return entryRegister(); });
+  await expect(page.locator('#pvpNick')).toBeHidden();
+  await withSave(page, URL_MAIN, { lv: 3, guide: 2 });
+  await page.evaluate(MOCK_SB);
+  await page.evaluate(() => { entryRegDone = false; return entryRegister(); });
+  await expect(page.locator('#pvpNick')).toBeHidden();
+  await withSave(page, URL_MAIN, { lv: 3 }); // withSave 기본 guide: 99 (끝냄)
+  await page.evaluate(MOCK_SB);
+  await page.evaluate(() => { entryRegDone = false; return entryRegister(); });
+  await expect(page.locator('#pvpNick')).toBeVisible();
+});
+
+test('랭킹: 플레이 안 한 Lv1 은 안 보임', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 20 });
+  await page.evaluate(MOCK_SB);
+  await page.evaluate(() => { __rows.push({ user_id: 'u-me', nickname: '나', snap: { lv: 20, eq: newPD().eq }, power: 800, rating: 1000, wins: 0, losses: 0 },
+    { user_id: 'z', nickname: '구경만함', snap: { lv: 1, eq: newPD().eq }, power: 100, rating: 1000, wins: 0, losses: 0 }); PV.notReg = false; });
+  await page.click('#tRank');
+  await expect(page.locator('#rankList')).toContainText('나');
+  await expect(page.locator('#rankList')).not.toContainText('구경만함');
+});

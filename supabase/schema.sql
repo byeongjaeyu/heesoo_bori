@@ -174,3 +174,6 @@ revoke all on public.hb_transfer_codes, public.hb_transfer_tries from anon, auth
 -- hb_season_rollover(): 주가 바뀌었으면 1번만 정산 → 순위 기록, 보상 hb_grants(stones/gold/auto, note '지난 주 PvP 시즌 N위 보상'), 점수 1000·전적 0 리셋
 --   대상: 그 주에 1판 이상(wins+losses>0) & hidden 아님. 1위 150석·300만G·3h / 2위 100·200만·2h / 3위 70·100만·1h / 4~10위 30·30만 / 그 외 10석
 -- hb_season_info(): 화면용 (부를 때 필요하면 정산). pg_cron 이 매주 일 15:00 UTC(=월 0시 KST)에도 정산
+
+-- ===== 플레이한 희수만 노출 (마이그레이션 hb_fighters_played) =====
+-- hb_fighters.played = (snap.lv > 1) or (wins + losses > 0)  (generated stored). 랭킹·PvP 목록·hb_opponents 는 played 만

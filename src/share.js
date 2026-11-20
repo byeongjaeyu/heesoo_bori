@@ -13,8 +13,8 @@ async function shareInfo() {
     await sbInit(); const me = PV.me || await pvpLoadMe();
     if (me) {
       info.nick = me.nickname; info.rating = me.rating; info.power = me.power;
-      const above = await SB.from('hb_fighters').select('user_id', { count: 'exact', head: true }).gt('power', me.power);
-      const all = await SB.from('hb_fighters').select('user_id', { count: 'exact', head: true });
+      const above = await SB.from('hb_fighters').select('user_id', { count: 'exact', head: true }).eq('played', true).gt('power', me.power);
+      const all = await SB.from('hb_fighters').select('user_id', { count: 'exact', head: true }).eq('played', true);
       info.rank = (above.count || 0) + 1; info.total = all.count || 0;
     }
   } catch (e) { }

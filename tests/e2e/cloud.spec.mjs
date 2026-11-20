@@ -41,14 +41,13 @@ test('새 기기: 코드로 불러오면 세이브가 바뀌고 새로고침', a
   await expect(page.locator('#toasts')).toContainText('원조희수 희수를 불러왔어요');
 });
 
-test('첫 접속 닉네임 창에서 "다른 기기에서 하던 희수 불러오기"', async ({ page }) => {
-  await page.goto(URL_MAIN);
+test('닉네임 창에서 "다른 기기에서 하던 희수 불러오기"', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 6 });
   await page.evaluate(MOCK_SB);
   await page.evaluate(() => { entryRegDone = false; return entryRegister(); });
   await expect(page.locator('#pvpNick')).toBeVisible();
   await page.click('#pvpNickCloud');
   await expect(page.locator('#cloud')).toBeVisible();
-  await expect(page.locator('#cloudMk')).toBeDisabled(); // 이 기기엔 기록 없음
   await page.click('#cloudX');
   await expect(page.locator('#pvpNick')).toBeVisible(); // 닫으면 닉네임 창으로 돌아감
 });

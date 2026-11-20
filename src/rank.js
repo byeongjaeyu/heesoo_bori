@@ -27,10 +27,10 @@ async function rankTab(t) {
     if (!FORCE_EASY && !PV.me && !PV.notReg) await pvpLoadMe().catch(() => { });
     if (t === 'pvp') await seasonLoad(); // 정산이 먼저 돌아야 점수가 맞음
     const col = 'user_id,nickname,snap,power,rating,wins,losses';
-    const q = SB.from('hb_fighters').select(col).limit(50);
+    const q = SB.from('hb_fighters').select(col).eq('played', true).limit(50); // 플레이 안 한 Lv1 은 숨김
     const { data, error } = t === 'power' ? await q.order('power', { ascending: false }) : await q.order('rating', { ascending: false }).order('wins', { ascending: false });
     if (error) throw error;
-    const { count } = await SB.from('hb_fighters').select('user_id', { count: 'exact', head: true });
+    const { count } = await SB.from('hb_fighters').select('user_id', { count: 'exact', head: true }).eq('played', true);
     rankRender(data || [], count || (data || []).length);
   } catch (e) { $('#rankList').innerHTML = `<div class="pvmsg">랭킹을 불러오지 못했어요: ${esc(pvErr(e))}</div>`; }
 }
@@ -76,7 +76,10 @@ function rankSync(force) {
 // 처음 들어오면 바로 닉네임 등록 (원터치 에디션 제외, 서버 연결 실패 시엔 그냥 넘어감)
 let entryRegDone = false;
 async function entryRegister() {
-  if (FORCE_EASY || entryRegDone) return; entryRegDone = true;
+  if (FORCE_EASY || entryRegDone) return;
+  // 처음 온 사람은 바로 게임부터: 첫 걸음 가이드를 끝냈거나(Lv5·2회차 이상 포함) 했을 때만 닉네임을 물어봄
+  const pd = loadGame(); if (!pd || ((pd.guide || 0) < GUIDE_DONE && (pd.lv || 1) < 5 && !pd.cleared)) return;
+  entryRegDone = true;
   try {
     await sbInit(); const me = PV.me || await pvpLoadMe(); if (me) return;
     if (G.state === 'play' || G.state === 'menu' || G.state === 'dlg') { entryRegDone = false; return; } // 게임 중이면 다음 타이틀에서
