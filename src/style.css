@@ -414,3 +414,5 @@ button{font-family:inherit;color:inherit;border:none;background:none;padding:0;c
 .tprof{cursor:pointer}.tbag{background:linear-gradient(#fff,#ffe3f0)!important}
 .pxi{width:28px;height:28px;image-rendering:pixelated;vertical-align:middle}.pxi.in{width:20px;height:20px;vertical-align:-4px}
 .sbig .pxi{width:104px;height:104px;filter:drop-shadow(0 4px 0 rgba(0,0,0,.18))}.srk .pxi{width:44px;height:44px;margin-bottom:-4px}.rdrow i .pxi{width:22px;height:22px}.season small .pxi,.smine .pxi{width:18px;height:18px;vertical-align:-4px}
+/* 다른 창 위에 뜨는 팝업은 뒤를 어둡게 (바깥 닫기 버튼이 눌릴 것처럼 보이지 않게) */
+#seasonModal,#share,#pvpNick,#cloud,#daily,#buddy,#raidRes,#pvpRes{background:rgba(20,8,30,.6)}
