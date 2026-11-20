@@ -387,7 +387,7 @@ button{font-family:inherit;color:inherit;border:none;background:none;padding:0;c
 .ticon:active{transform:translateY(2px);box-shadow:0 1px 0 #2b1b24}.ticon img{width:30px;height:30px;image-rendering:pixelated}.ticon small{font-size:10px;white-space:nowrap;letter-spacing:-.3px}
 .tbar .tsnd{margin-left:auto}.tsnd.off img{opacity:.35}
 .ticon .dot{position:absolute;top:-5px;right:-5px;width:13px;height:13px;border-radius:50%;background:#ff3b5c;border:2px solid #fff}
-.tside{position:absolute;top:calc(var(--sat) + 210px);display:flex;flex-direction:column;gap:10px}.tside.tl{left:12px}.tside.tr{right:12px}.tside:empty{display:none}
+.tside{position:absolute;top:calc(var(--sat) + 78px);display:flex;flex-direction:column;gap:10px}.tside.tl{left:12px}.tside.tr{right:12px}.tside:empty{display:none}
 .tmini{display:flex;flex-direction:column;align-items:center;width:78px;padding:6px 4px 6px;background:linear-gradient(#fff7c2,#ffd84a);border:2px solid #2b1b24;border-radius:16px;box-shadow:0 3px 0 #2b1b24;font-family:inherit;color:var(--ink);cursor:pointer}
 .tmini:active{transform:translateY(2px);box-shadow:0 1px 0 #2b1b24}.tmini em{font-style:normal;font-size:9px;background:#2b1b24;color:#ffd84a;border-radius:6px;padding:1px 5px;letter-spacing:.5px}
 .tmini img{width:52px;height:52px;image-rendering:pixelated;margin:2px 0}.tmini b{font-size:12px;white-space:nowrap}.tmini small{font-size:10px;color:#7a5a2a}
@@ -399,7 +399,7 @@ button{font-family:inherit;color:inherit;border:none;background:none;padding:0;c
 .m-inf{background:linear-gradient(160deg,#ff9a4a,#7a3ac0)}.m-pvp{background:linear-gradient(160deg,#c77dff,#6a2fc0)}.m-raid{background:linear-gradient(160deg,#ff6b4a,#a8224c)}
 .tbtns .btn.tstart{font-size:22px;padding:12px 10px 10px;border-radius:18px;box-shadow:0 5px 0 #2b1b24;animation:tstartGlow 1.6s ease-in-out infinite}.tbtns .btn.tstart small{font-size:12px}
 @keyframes tstartGlow{50%{filter:brightness(1.08)}}
-@media (max-height:700px){.tside{top:calc(var(--sat) + 175px)}.tside .ticon{padding:3px 0 2px}.tside .ticon img{width:24px;height:24px}#title:not(.big) .ttl h1{font-size:min(8vw,36px)}}
+@media (max-height:700px){.tside .ticon{padding:3px 0 2px}.tside .ticon img{width:24px;height:24px}#title:not(.big) .ttl h1{font-size:min(8vw,36px)}}
 /* ---------- 업적·칭호 ---------- */
 .ttag{display:inline-block;font-style:normal;font-weight:bold;font-size:10px;line-height:1.35;padding:0 5px;margin-right:4px;border-radius:6px;border:1.5px solid #2b1b24;vertical-align:1px;white-space:nowrap;background:#eee;color:#555}
 .ttag.t1{background:#f6d6b4;color:#7a4a1e}.ttag.t2{background:#e3ecf5;color:#3c5470}.ttag.t3{background:#ffe58a;color:#7a5200}
@@ -438,3 +438,4 @@ button{font-family:inherit;color:inherit;border:none;background:none;padding:0;c
 .refl .lk{font-family:inherit;font-size:10px;border:2px solid #2b1b24;border-radius:8px;background:#fff;padding:1px 6px;cursor:pointer}.refl .lk.on{background:#2b1b24;color:#ffd84a}
 .refc>.btn{margin-top:8px;width:100%}
 .card.refc{display:flex;flex-direction:column;align-items:stretch;gap:0}.card.refc>.nm{margin-bottom:2px}.card.refc>.ds{margin-top:6px;font-size:11px}
+@media (max-height:780px){.tside{gap:7px}.tside .ticon{padding:3px 0 2px}.tside .ticon img{width:26px;height:26px}.tmini img,.tidle img{width:40px;height:40px}}

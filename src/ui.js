@@ -299,6 +299,13 @@ function updateSndBtn() { $('#sndBtn').textContent = SND.on ? '♪' : '×'; }
 
 // ---------- screens ----------
 let TITLE_PD = /** @type {any} */ (null);
+/** 로비 양옆 버튼 줄 위치: 왼쪽은 프로필 아래, 오른쪽은 로고 아래 (화면 높이·칭호 유무와 상관없이 안 겹치게) */
+function titleLayout() {
+  if (FORCE_EASY || $('#title').hidden) return;
+  const top0 = $('#title').getBoundingClientRect().top, tb = $('#tbar').getBoundingClientRect().bottom - top0, lg = $('.ttl h1').getBoundingClientRect().bottom - top0;
+  $('#tsideL').style.top = Math.round(tb + 8) + 'px'; $('#tsideR').style.top = Math.round(Math.max(tb, lg) + 8) + 'px';
+}
+addEventListener('resize', () => { try { titleLayout(); } catch (e) { } });
 function showTitle() {
   if (typeof rankSync === 'function') { rankSync(); entryRegister(); dailyAutoOpen(); }
   G.inf = null; G.raid = null; G.auto = false; G.autoMove = null; G.state = 'title'; showHUD(false); if (typeof e2HideAll === 'function') e2HideAll(); $('#title').hidden = false; $('#endScr').hidden = true; $('#death').hidden = true; $('#dlg').hidden = true; $('#skip').hidden = true; $('#mission').hidden = true;
@@ -351,6 +358,7 @@ function showTitle() {
   if ($('#tDaily')) $('#tDaily').onclick = () => { audioInit(); dailyOpen(); };
   if ($('#tNew')) $('#tNew').onclick = () => { audioInit(); newGame(); };
   $('#tSnd').onclick = () => { audioInit(); setSound(!SND.on); showTitle(); };
+  titleLayout(); requestAnimationFrame(() => titleLayout()); setTimeout(() => { try { titleLayout(); } catch (e) { } }, 400); if (document.fonts) document.fonts.ready.then(() => { try { titleLayout(); } catch (e) { } });
   playBgm('story');
 }
 function newGame() { G.pd = newPD(); saveGame(); $('#title').hidden = true; G.world = null; calcStats(); playCut(INTRO, () => startZone(0)); }
