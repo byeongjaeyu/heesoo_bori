@@ -33,7 +33,7 @@
 - 장비 레벨: 착용 장비와 같은 부위·같은 등급 5개 → Lv+1, 기본 스탯 +5%/Lv.
 - 장비 도감(`BOOK_SETS`, data.js / `bookStats`, game.js): 시작 장비 제외 44종. 보유하면 자동 등록(분해해도 기록 유지), 1칸 최대 HP +5, 등급별·보리 용품 세트 완성 보너스. 새 장비 획득 경로를 추가하면 `bookNotify(id)` 호출.
 - 꾸미기(`LOOK_SLOTS`/`HAIRS`, data.js / `visEq`·`hairOk`, game.js): 능력치 없음. 모자·옷·신발·가방은 **도감에 있는** 장비 모습으로, 헤어 8색(5색은 도감·회차·+25·각성 조건). 그리기는 `heePal()`이 visEq+헤어 사용, 스냅샷 `vis`/`hair`로 랭킹·PvP 반영.
-- 타이틀 = 게임 로비(`showTitle`, ui.js): 상단 내 희수(얼굴·닉·Lv·전투력)+소리, 왼쪽 아이콘(출석·랭킹·카드 공유·기기 이동), 오른쪽 미니게임(보리 주세요), 하단 모드 타일(할로윈·PvP·월드 보스)+「모험 계속하기」. 버튼 id(tCont/tNew/tEp2/tInf/tPvp/tRaid/tRank/tDaily/tShare/tCloud/tSnd)는 e2e가 씀. 타이틀 희수는 `TITLE_PD`(세이브) 꾸미기로 그림.
+- 타이틀 = 게임 로비(`showTitle`, ui.js): 상단 내 희수(얼굴·닉·Lv·전투력)+소리, 왼쪽 아이콘(출석·랭킹·카드 공유·기기 이동), 오른쪽 미니게임(보리 주세요), 하단 모드 타일(할로윈·PvP·월드 보스)+「모험 계속하기」. 「장비·스킬」(tBag)·프로필 탭 → `lobbyMenu()`: state `lobbyMenu`로 메뉴를 열고(음식 탭 제외, G.P 없음) 닫으면 로비로. 버튼 id(tCont/tNew/tEp2/tInf/tPvp/tRaid/tRank/tDaily/tShare/tCloud/tSnd/tBag)는 e2e가 씀. 타이틀 희수는 `TITLE_PD`(세이브) 꾸미기로 그림.
 - 「보리 주세요」(ep2*)는 본편과 별개인 **미니게임** 취급(화면 문구에 '2탄' 쓰지 않음). 데이터·세이브 키는 그대로.
 - 업적·칭호(`src/achv.js`): `ACH` 표(28개, 티어 1~4 → 강화석 5·15·40·100). 1초마다 `achvCheck`가 조건 검사 → `pd.ach[id]` 등록·보상(예전 기록도 소급 달성). 메뉴 「칭호」 탭에서 장착(`pd.title`) → snap `ttl`(달성한 것만)·`achN`. 표시는 `achTag(id)`(모르는 id는 빈 문자열) — 랭킹·PvP·동료 목록·로비·카드·이름표. 통계 `stats.boss`·`pvpW`·`raidBest` 추가. 업적 id는 바꾸지 말 것(세이브·랭킹에 저장됨).
 - 카드 공유(`src/share.js`): 랭킹 「내 카드 공유」 → 1080×1350 PNG(꾸민 희수·보리, 전투력 순위, PvP, 도감, 최고 강화). 모바일은 Web Share(파일), PC는 저장·링크 복사. 링크 `?from=닉네임` → 초대 알림 + 랭킹 열림.

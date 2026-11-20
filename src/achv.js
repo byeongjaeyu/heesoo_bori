@@ -66,4 +66,4 @@ function achvHtml(pd) {
   }
   return h;
 }
-function achvBoot() { if (FORCE_EASY) return; setInterval(() => { try { if (G.state === 'play' || G.state === 'menu') achvCheck(); } catch (e) { } }, 1000); }
+function achvBoot() { if (FORCE_EASY) return; setInterval(() => { try { if (G.state === 'play' || G.state === 'menu' || G.state === 'lobbyMenu') achvCheck(); } catch (e) { } }, 1000); }

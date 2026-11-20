@@ -8,6 +8,7 @@ function frame(now) {
     INP.act.delete('ok');
     switch (G.state) {
       case 'title': G.time += dt; renderTitle(); INP.act.clear(); break;
+      case 'lobbyMenu': G.time += dt; renderTitle(); if (INP.act.has('esc') || INP.act.has('menu')) closeMenu(); INP.act.clear(); break;
       case 'e2menu': G.time += dt; e2RenderMenuBg(); INP.act.clear(); break;
       case 'ep2': G.time += dt; e2Frame(dt); break;
       case 'cut': G.time += dt; updateCut(dt); if (G.state === 'cut') renderCut(); else if (G.world) renderGame(); INP.act.clear(); break;

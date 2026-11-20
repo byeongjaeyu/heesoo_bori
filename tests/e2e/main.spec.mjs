@@ -291,3 +291,20 @@ test('메뉴 정보 탭 「타이틀로」 버튼', async ({ page }) => {
   await expect(page.locator('#title')).toBeVisible();
   await expect(page.locator('#tCont')).toBeVisible();
 });
+
+test('로비에서 장비·스킬 메뉴 열기 (음식 탭 없음), 닫으면 로비로', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 20, gold: 100000, stones: 10 });
+  await page.click('#tBag');
+  await expect(page.locator('#menu')).toBeVisible();
+  await expect(page.locator('#tabs [data-v="food"]')).toHaveCount(0);
+  await page.click('#tabs [data-v="equip"]');
+  await page.locator('#mbody [data-m="enhance"]').first().click();
+  expect(await page.evaluate(() => loadGame().gold)).toBeLessThan(100000);
+  await page.click('#menu [data-m="close"]');
+  await expect(page.locator('#title')).toBeVisible();
+  expect(await page.evaluate(() => G.state)).toBe('title');
+  await page.click('.tprof');
+  await expect(page.locator('#menu')).toBeVisible();
+  await page.click('#menu [data-m="title"]');
+  await expect(page.locator('#tCont')).toBeVisible();
+});

@@ -411,3 +411,4 @@ button{font-family:inherit;color:inherit;border:none;background:none;padding:0;c
 .ach>span{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}.ach>span b .ttag{font-size:12px}.ach small{font-size:11px;color:#777}
 .abar{display:block;height:6px;border-radius:4px;background:#eee;overflow:hidden}.abar u{display:block;height:100%;background:#ff7ab8;text-decoration:none}
 .tprof .ttag{align-self:flex-start;margin-bottom:1px}.rpod .ttag{display:block;width:max-content;margin:0 auto 2px}
+.tprof{cursor:pointer}.tbag{background:linear-gradient(#fff,#ffe3f0)!important}

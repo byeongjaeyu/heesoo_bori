@@ -94,10 +94,18 @@ function updateHUD() {
 let MTAB = 'skill';
 const TABS = [['skill', '스킬'], ['equip', '장비'], ['bori', '보리'], ['daily', '미션'], ['book', '도감'], ['achv', '칭호'], ['look', '꾸미기'], ['food', '음식'], ['shop', '배달앱'], ['info', '정보']];
 function openMenu(tab) { if (G.state !== 'play') return; G.state = 'menu'; INP.atk = false; INP.joy.on = false; hideJoy(); if (tab) MTAB = tab; else if (G.pd.sp > 0) MTAB = 'skill'; else if (G.pd.newItem) MTAB = 'equip'; else if (G.pd.newBori) MTAB = 'bori'; $('#menu').hidden = false; renderMenu(true); sfx('select'); }
-function closeMenu() { $('#menu').hidden = true; if (G.state === 'menu') G.state = 'play'; saveGame(); setHudImages(); }
+/** 로비(타이틀)에서 메뉴 열기 — 음식 탭 빼고 장비·스킬·강화·도감·칭호·꾸미기 등 */
+function lobbyMenu(tab) {
+  const saved = loadGame(); if (!saved || G.state !== 'title') return;
+  G.pd = saved; G.P = null; G.bori = null; calcStats(); G.state = 'lobbyMenu'; $('#title').hidden = true;
+  MTAB = tab || (G.pd.sp > 0 ? 'skill' : G.pd.newItem ? 'equip' : G.pd.newBori ? 'bori' : 'equip'); $('#menu').hidden = false; renderMenu(true);
+}
+function closeMenu() { if (G.state === 'lobbyMenu') { $('#menu').hidden = true; saveGame(); showTitle(); return; }
+  $('#menu').hidden = true; if (G.state === 'menu') G.state = 'play'; saveGame(); setHudImages(); }
 function renderMenu(top) {
   const pd = G.pd;
-  $('#tabs').innerHTML = TABS.map(([k, n]) => `<button class="tab ${k === MTAB ? 'on' : ''}" data-m="tab" data-v="${k}">${n}${k === 'skill' && pd.sp > 0 ? `<em>${pd.sp}</em>` : ''}${k === 'equip' && pd.newItem ? '<em>N</em>' : ''}${k === 'bori' && pd.newBori ? '<em>N</em>' : ''}${k === 'achv' && pd.achNew ? '<em>N</em>' : ''}${k === 'daily' && dailyClaimable(pd) ? `<em>${dailyClaimable(pd)}</em>` : ''}</button>`).join('');
+  if (G.state === 'lobbyMenu' && MTAB === 'food') MTAB = 'equip';
+  $('#tabs').innerHTML = TABS.filter(([k]) => !(G.state === 'lobbyMenu' && k === 'food')).map(([k, n]) => `<button class="tab ${k === MTAB ? 'on' : ''}" data-m="tab" data-v="${k}">${n}${k === 'skill' && pd.sp > 0 ? `<em>${pd.sp}</em>` : ''}${k === 'equip' && pd.newItem ? '<em>N</em>' : ''}${k === 'bori' && pd.newBori ? '<em>N</em>' : ''}${k === 'achv' && pd.achNew ? '<em>N</em>' : ''}${k === 'daily' && dailyClaimable(pd) ? `<em>${dailyClaimable(pd)}</em>` : ''}</button>`).join('');
   const b = $('#mbody'), sc = b.scrollTop; b.innerHTML = MREN[MTAB](); b.scrollTop = top ? 0 : sc;
   if (MTAB === 'equip' && pd.newItem) { pd.newItem = false; }
   if (MTAB === 'bori' && pd.newBori) { pd.newBori = false; }
@@ -255,9 +263,10 @@ function menuClick(e) {
   if (m === 'learn') { const s = SKILLS[v], lv = sk(v); if (pd.sp <= 0 || lv >= s.max || pd.lv < s.req) return; pd.sp--; pd.skills[v] = lv + 1; calcStats(); sfx('ding'); if (!lv && s.btn) toast(`${s.name} 버튼이 활성화됐어요!`, 'item r2'); renderMenu(); saveGame(); return; }
   if (m === 'awk') { const A = AWK[v], lv = awkLv(v); if (!A || !(pd.ap > 0) || (A.max && lv >= A.max) || (A.bori && !pd.boriJoined)) return; pd.ap--; pd.awp = pd.awp || {}; pd.awp[v] = lv + 1; calcStats(); sfx('ding'); renderMenu(); saveGame(); return; }
   if (m === 'awkReset') { confirmBox('각성 포인트를 전부 돌려받고 다시 찍을까요?', () => { const n = Object.values(pd.awp || {}).reduce((a, b) => a + b, 0); pd.ap = (pd.ap || 0) + n; pd.awp = {}; calcStats(); renderMenu(); sfx('select'); saveGame(); }); return; }
-  if (m === 'reset') { confirmBox('스킬 포인트를 전부 돌려받고 다시 찍을까요?', () => { const used = Object.values(pd.skills).reduce((a, b) => a + b, 0); pd.sp += used; pd.skills = {}; G.P.cds = {}; calcStats(); renderMenu(); sfx('select'); saveGame(); }); return; }
+  if (m === 'reset') { confirmBox('스킬 포인트를 전부 돌려받고 다시 찍을까요?', () => { const used = Object.values(pd.skills).reduce((a, b) => a + b, 0); pd.sp += used; pd.skills = {}; if (G.P) G.P.cds = {}; calcStats(); renderMenu(); sfx('select'); saveGame(); }); return; }
   if (m === 'equip') { const it = ITEMS[v]; if (it.bori) { pd.beq[it.slot] = v; if (G.bori) bubble(G.bori, it.slot === 'btoy' ? '앙! (꼬옥)' : '멍멍! (신남)', 1.4); } else pd.eq[it.slot] = v; calcStats(); sfx('ding'); renderMenu(); saveGame(); return; }
   if (m === 'sell') { const it = ITEMS[v]; confirmBox(`${it.name}을(를) ${sellPrice(v)}G에 팔까요?`, () => { delete pd.inv[v]; pd.gold += sellPrice(v); sfx('coin'); renderMenu(); saveGame(); }); return; }
+  if (m === 'eat' && !G.P) return;
   if (m === 'eat') { G.P.eatCd = 0; eatFood(v); G.P.eatCd = 0; renderMenu(); return; }
   if (m === 'buy') { const f = FOODS[v]; if (pd.gold < f.price) return; pd.gold -= f.price; pd.foods[v] = (pd.foods[v] || 0) + 1; sfx('coin'); renderMenu(); return; }
   if (m === 'buyItem') { const it = ITEMS[v]; if (pd.gold < it.price || pd.inv[v]) return; const isNewBook = !(pd.book || {})[v]; pd.gold -= it.price; pd.inv[v] = 1; sfx('ding'); if (isNewBook) bookNotify(v); if (it.bori) { pd.beq[it.slot] = v; calcStats(); toast(`${it.name} 구매! 보리가 바로 ${it.slot === 'btoy' ? '물었어요' : '입었어요'} (보리 탭)`, 'item r' + it.rar); if (G.bori) bubble(G.bori, '멍멍! (신남)', 1.4); } else toast(`${it.name} 구매! 장비 탭에서 장착하세요`, 'item r' + it.rar); renderMenu(); saveGame(); return; }
@@ -305,7 +314,8 @@ function showTitle() {
     prof = `<div class="tprof"><img src="${pvpFaceURL(visEq(saved), saved.look && saved.look.hair)}" alt=""><span>${saved.title && (saved.ach || {})[saved.title] ? achTag(saved.title) : ''}<b>${esc(nick)}</b><small>Lv.${saved.lv}${saved.aw ? ' ★' + saved.aw : ''}${saved.cleared ? ' · ' + (saved.cleared + 1) + '회차' : ''}</small><small class="tpw">전투력 ${pw.toLocaleString()}</small></span></div>`; }
   $('#tbar').innerHTML = prof + `<button class="ticon tsnd${SND.on ? '' : ' off'}" id="tSnd" aria-label="소리">${I('sound')}<small>${SND.on ? '소리 ON' : '소리 OFF'}</small></button>`;
   // 왼쪽 세로 아이콘
-  $('#tsideL').innerHTML = (saved ? `<button class="ticon" id="tDaily">${I('cal')}<small>출석·미션</small>${dailyClaimable(saved) ? '<em class="dot"></em>' : ''}</button>` : '')
+  const bagDot = saved && (saved.sp > 0 || saved.newItem || saved.newBori || saved.achNew || (saved.ap || 0) > 0);
+  $('#tsideL').innerHTML = (saved ? `<button class="ticon tbag" id="tBag">${I('bag')}<small>장비·스킬</small>${bagDot ? '<em class="dot"></em>' : ''}</button>` : '') + (saved ? `<button class="ticon" id="tDaily">${I('cal')}<small>출석·미션</small>${dailyClaimable(saved) ? '<em class="dot"></em>' : ''}</button>` : '')
     + `<button class="ticon" id="tRank">${I('trophy')}<small>랭킹</small></button>`
     + (saved ? `<button class="ticon" id="tShare">${I('camera')}<small>카드 공유</small></button>` : '')
     + `<button class="ticon" id="tCloud">${I('phone')}<small>기기 이동</small></button>`;
@@ -323,6 +333,8 @@ function showTitle() {
   $('#tEp2').onclick = () => { audioInit(); e2Open(); };
   if (saved) { $('#tRaid').onclick = () => { audioInit(); raidOpen(); }; $('#tPvp').onclick = () => { audioInit(); pvpOpen(); }; $('#tInf').onclick = () => { audioInit(); fadeTo(startInfinite, '에버랜드: 할로윈파티'); };
     $('#tShare').onclick = () => { audioInit(); shareOpen(); };
+    $('#tBag').onclick = () => { audioInit(); sfx('select'); lobbyMenu(); };
+    $('.tprof').onclick = () => { audioInit(); sfx('select'); lobbyMenu('info'); };
     $('#tCont').onclick = () => { audioInit(); G.pd = loadGame() || saved; $('#title').hidden = true; fadeTo(() => startZone(G.pd.zone)); }; }
   $('#tRank').onclick = () => { audioInit(); rankOpen('title'); };
   $('#tCloud').onclick = () => { audioInit(); cloudOpen('title'); };
