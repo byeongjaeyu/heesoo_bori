@@ -53,7 +53,7 @@ function infKill(e) {
   const V = G.inf, pd = G.pd; V.kills++;
   if (e.boss) { G.boss = null; banner(`WAVE ${V.wave}`, '할로윈 보스 격파!', 'stage'); sfx('lvl'); return; }
   if (++V.waveKills >= INF_WAVE_KILLS) {
-    V.waveKills = 0; V.wave++; pd.infBest = Math.max(pd.infBest || 0, V.wave); sfx('ding');
+    V.waveKills = 0; V.wave++; pd.infBest = Math.max(pd.infBest || 0, V.wave); sfx('ding'); dailyAdd('wave');
     if (V.wave % 5 === 0) {
       const W = G.world, P = G.P, a = rand(0, 6.28); const b = spawnEnemy(ZONES[G.zone].boss, clamp(P.x + Math.cos(a) * 120, 60, W.W - 60), clamp(P.y + Math.sin(a) * 120, 120, W.H - 80));
       b.spawnT = 1.3; G.boss = b; G.husUsed = false; banner(`WAVE ${V.wave}`, '할로윈 보스 출현!', 'boss'); sfx('boss'); G.shake = 6;

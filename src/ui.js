@@ -91,12 +91,12 @@ function updateHUD() {
 
 // ---------- menu ----------
 let MTAB = 'skill';
-const TABS = [['skill', '스킬'], ['equip', '장비'], ['bori', '보리'], ['food', '음식'], ['shop', '배달앱'], ['info', '정보']];
+const TABS = [['skill', '스킬'], ['equip', '장비'], ['bori', '보리'], ['daily', '미션'], ['food', '음식'], ['shop', '배달앱'], ['info', '정보']];
 function openMenu(tab) { if (G.state !== 'play') return; G.state = 'menu'; INP.atk = false; INP.joy.on = false; hideJoy(); if (tab) MTAB = tab; else if (G.pd.sp > 0) MTAB = 'skill'; else if (G.pd.newItem) MTAB = 'equip'; else if (G.pd.newBori) MTAB = 'bori'; $('#menu').hidden = false; renderMenu(true); sfx('select'); }
 function closeMenu() { $('#menu').hidden = true; if (G.state === 'menu') G.state = 'play'; saveGame(); setHudImages(); }
 function renderMenu(top) {
   const pd = G.pd;
-  $('#tabs').innerHTML = TABS.map(([k, n]) => `<button class="tab ${k === MTAB ? 'on' : ''}" data-m="tab" data-v="${k}">${n}${k === 'skill' && pd.sp > 0 ? `<em>${pd.sp}</em>` : ''}${k === 'equip' && pd.newItem ? '<em>N</em>' : ''}${k === 'bori' && pd.newBori ? '<em>N</em>' : ''}</button>`).join('');
+  $('#tabs').innerHTML = TABS.map(([k, n]) => `<button class="tab ${k === MTAB ? 'on' : ''}" data-m="tab" data-v="${k}">${n}${k === 'skill' && pd.sp > 0 ? `<em>${pd.sp}</em>` : ''}${k === 'equip' && pd.newItem ? '<em>N</em>' : ''}${k === 'bori' && pd.newBori ? '<em>N</em>' : ''}${k === 'daily' && dailyClaimable(pd) ? `<em>${dailyClaimable(pd)}</em>` : ''}</button>`).join('');
   const b = $('#mbody'), sc = b.scrollTop; b.innerHTML = MREN[MTAB](); b.scrollTop = top ? 0 : sc;
   if (MTAB === 'equip' && pd.newItem) { pd.newItem = false; }
   if (MTAB === 'bori' && pd.newBori) { pd.newBori = false; }
@@ -140,6 +140,7 @@ function skillCard(id) {
   return `<div class="card ${(!reqOk || locked) ? 'dim' : ''}"><div class="ic"><img src="${iconURL('sk_' + s.icon, ICONS[s.icon])}"></div><div class="mid"><div class="nm">${s.name}<span class="tag ${s.type}">${SKILL_TYPE[s.type]}</span><span class="lvdots">${dots}</span></div><div class="ds">${lv ? '<b>현재</b> ' : ''}${cur}${meta}</div><div class="nx">${nx}</div></div><button class="btn plus" data-m="learn" data-v="${id}" ${can ? '' : 'disabled'}>+</button></div>`;
 }
 const MREN = {
+  daily() { return dailyHtml(G.pd); },
   skill() {
     const pd = G.pd; const used = Object.values(pd.skills).reduce((a, b) => a + b, 0);
     return awkPanel() + `<div class="sprow"><span>스킬 포인트 <b>${pd.sp}</b></span><button class="btn wh" data-m="reset" ${used ? '' : 'disabled'}>초기화 (무료)</button></div>
@@ -254,7 +255,7 @@ function updateSndBtn() { $('#sndBtn').textContent = SND.on ? '♪' : '×'; }
 
 // ---------- screens ----------
 function showTitle() {
-  if (typeof rankSync === 'function') { rankSync(); entryRegister(); }
+  if (typeof rankSync === 'function') { rankSync(); entryRegister(); dailyAutoOpen(); }
   G.inf = null; G.auto = false; G.autoMove = null; G.state = 'title'; showHUD(false); if (typeof e2HideAll === 'function') e2HideAll(); $('#title').hidden = false; $('#endScr').hidden = true; $('#death').hidden = true; $('#dlg').hidden = true; $('#skip').hidden = true; $('#mission').hidden = true;
   const saved = hasSave() ? loadGame() : null;
   let e2s = null; try { e2s = JSON.parse(localStorage.getItem(E2KEY) || 'null'); } catch (e) { }
@@ -269,12 +270,13 @@ function showTitle() {
     `<button class="btn e2new" id="tEp2">2탄 · 보리 주세요<small>${e2s ? '보리 단독 외전 · 별 ' + e2n + '/24' : '보리 단독 외전 · 미니게임 · NEW'}</small></button>` +
     (saved ? `<button class="btn infbtn" id="tInf">에버랜드: 할로윈파티<small>무한던전 · ${infBasisLabel(infBasis(saved))} 몬스터 기준${saved.infBest ? ' · 최고 WAVE ' + saved.infBest : ''}</small></button>` : '') +
     (saved ? `<button class="btn pvpbtn" id="tPvp">희수 PvP 아레나<small>내가 키운 희수 vs 친구가 키운 희수</small></button>` : '') +
-    `<div class="tsmall"><button class="btn wh" id="tRank">랭킹</button>${FORCE_EASY ? '' : '<button class="btn wh" id="tCloud">기기 옮기기</button>'}<button class="btn wh" id="tSnd">소리 ${SND.on ? '켜짐 ♪' : '꺼짐'}</button></div><div class="tsub">♥ 희수 & 보리 ♥</div>`;
+    `<div class="tsmall"><button class="btn wh" id="tRank">랭킹</button>${!FORCE_EASY && saved ? `<button class="btn wh" id="tDaily">출석·미션${dailyClaimable(saved) ? '<em class="dot"></em>' : ''}</button>` : ''}${FORCE_EASY ? '' : '<button class="btn wh" id="tCloud">기기 이동</button>'}<button class="btn wh" id="tSnd">소리 ${SND.on ? '켜짐 ♪' : '꺼짐'}</button></div><div class="tsub">♥ 희수 & 보리 ♥</div>`;
   $('#tEp2').onclick = () => { audioInit(); e2Open(); };
   if (saved) { $('#tPvp').onclick = () => { audioInit(); pvpOpen(); }; $('#tInf').onclick = () => { audioInit(); fadeTo(startInfinite, '에버랜드: 할로윈파티'); }; }
   if (saved) $('#tCont').onclick = () => { audioInit(); G.pd = loadGame() || saved; $('#title').hidden = true; fadeTo(() => startZone(G.pd.zone)); };
   if ($('#tRank')) $('#tRank').onclick = () => { audioInit(); rankOpen('title'); };
   if ($('#tCloud')) $('#tCloud').onclick = () => { audioInit(); cloudOpen('title'); };
+  if ($('#tDaily')) $('#tDaily').onclick = () => { audioInit(); dailyOpen(); };
   if ($('#tNew')) $('#tNew').onclick = () => { audioInit(); if (saved) confirmBox('저장된 진행이 사라져요. 처음부터 시작할까요?', newGame); else newGame(); };
   $('#tSnd').onclick = () => { audioInit(); setSound(!SND.on); showTitle(); };
   playBgm('story');

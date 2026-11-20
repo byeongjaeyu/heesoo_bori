@@ -71,3 +71,25 @@ test('랭킹 등록: 다른 기기로 옮겨진 희수면 안내 문구', async 
   await page.fill('#pvpNickIn', '옛기기희수'); await page.click('#pvpNickOk');
   await expect(page.locator('#pvpNickMsg')).toContainText('다른 기기로 옮겨졌어요');
 });
+
+test('출석: 그날 처음 들어오면 창이 뜨고, 출석하면 보상 + 같은 날엔 다시 안 뜸', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 20, gold: 100, att: { last: 'never', n: 0 } });
+  await expect(page.locator('#daily')).toBeVisible();
+  await page.click('[data-d=att]');
+  await expect(page.locator('[data-d=att]')).toHaveText('오늘 출석 완료 ✔');
+  expect(await page.evaluate(() => loadGame().gold)).toBeGreaterThan(100);
+  await page.click('#dailyX');
+  await page.reload(); await page.waitForTimeout(1300);
+  await expect(page.locator('#daily')).toBeHidden();
+});
+
+test('미션: 게임 중 진행 → 메뉴 미션 탭에서 받기', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 20, stones: 0 });
+  await enterZone(page, 1);
+  await page.evaluate(() => { for (let i = 0; i < 150; i++) dailyAdd('kill'); });
+  await openTab(page, 'daily');
+  await expect(page.locator('.tab.on em')).toBeVisible();
+  await page.click('[data-d=claim][data-v=kill]');
+  expect(await page.evaluate(() => G.pd.stones)).toBe(5);
+  await expect(page.locator('[data-d=claim][data-v=kill]')).toHaveText('받음');
+});

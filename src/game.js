@@ -426,7 +426,7 @@ function separateEnemies() {
 }
 function killEnemy(e) {
   if (e.rival) { e.hp = 0; pvpEnd(true, `${e.nick}의 희수 KO!`); return; }
-  e.dead = true; e.deadT = 0.25; e.hp = 0; G.pd.stats.kills++;
+  e.dead = true; e.deadT = 0.25; e.hp = 0; G.pd.stats.kills++; dailyAdd('kill'); if (e.boss) dailyAdd('boss');
   burst(e.x, e.y - e.h / 2, e.col, e.boss ? 40 : 10, e.boss ? 140 : 80); burst(e.x, e.y - e.h / 2, '#ffffff', 4);
   const LM = loopMul(), em = e.elite ? 1 : 0, RW = infWaveMul().rew;
   sfx('pop'); gainXp(Math.round(e.m.xp * LM.xp * (em ? 3 : 1) * RW));
@@ -505,6 +505,7 @@ function tryEnhance(useStone, slot) {
   else if (r < o.p + o.dn) { pd.enh[wid] = Math.max(0, en - 1); res = 'down'; }
   else if (r < o.p + o.dn + o.ds) { if (o.protect) { pd.enh[wid] = Math.max(0, en - 1); res = 'saved'; } else { pd.enh[wid] = Math.min(en, enhReset(en)); res = 'boom'; } }
   else res = 'keep';
+  dailyAdd('enh');
   calcStats(); saveGame(); return { res, from: en, to: pd.enh[wid], id: wid };
 }
 const sellPrice = id => { const it = ITEMS[id]; return it.price ? Math.floor(it.price * 0.3) : [40, 150, 400, 800, 1600, 3200][it.rar]; };

@@ -175,7 +175,7 @@ function pvpUpdate(dt) {
   V.t -= dt; if (V.t <= 0) { V.t = 0; const r = G.boss; const mine = G.P.hp / G.st.hp, theirs = r ? r.hp / r.maxHp : 0; pvpEnd(mine >= theirs, '시간 종료!'); }
 }
 async function pvpEnd(won, why) {
-  const V = G.pvp; if (!V || V.over) return; V.over = true; G.state = 'pvpEnd'; INP.atk = false;
+  const V = G.pvp; if (!V || V.over) return; V.over = true; G.state = 'pvpEnd'; INP.atk = false; dailyAdd('pvp');
   if (won && G.boss) { const r = G.boss; r.dead = true; r.deadT = 0.25; burst(r.x, r.y - 10, '#ff7ab8', 30, 120); }
   sfx(won ? 'lvl' : 'hurt'); const gold = won ? 40 + G.pd.lv * 3 : 10; G.pd.gold += gold; saveGame();
   $('#pvpRes').hidden = false; $('#pvpResT').textContent = won ? '승리!' : '패배...'; $('#pvpResT').className = won ? 'w' : 'l';

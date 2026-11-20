@@ -51,6 +51,10 @@ interface SaveData {
   autoBonus?: number;
   /** 할로윈파티 최고 웨이브 */
   infBest?: number;
+  /** 출석: 마지막 출석일(todayKey), 누적 일수 */
+  att?: { last: string; n: number };
+  /** 오늘의 미션 */
+  daily?: { day: string; picks: string[]; prog: Record<string, number>; got: string[]; all: boolean };
   /** 메뉴 알림 점 */
   newItem?: boolean;
   newBori?: boolean;

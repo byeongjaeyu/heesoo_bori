@@ -148,7 +148,7 @@ function e2End(res) {
   if (EP2.phase !== 'run') return; EP2.phase = 'res'; e2HideAll(); G.state = 'ep2';
   const i = EP2.si, st = EP2.st, s = EP2.save;
   if (res.ok) {
-    s.stars[i] = Math.max(s.stars[i] || 0, res.stars); s.unlocked = Math.max(s.unlocked, i + 1);
+    s.stars[i] = Math.max(s.stars[i] || 0, res.stars); s.unlocked = Math.max(s.unlocked, i + 1); dailyAdd('ep2');
     if (st.reward) e2Unlock(st.reward);
     if (e2Stars() >= 6) e2Unlock('toy_melon'); if (e2Stars() >= 12) e2Unlock('toy_doll');
     e2SaveNow(); sfx('lvl');

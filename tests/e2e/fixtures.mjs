@@ -44,10 +44,10 @@ export const test = base.extend({
 });
 export { expect };
 
-/** 세이브를 심고 새로고침 (기본: 보리 합류 완료 → 스토리 대화가 끼어들지 않게) */
+/** 세이브를 심고 새로고침 (기본: 보리 합류 완료·오늘 출석 완료 → 스토리 대화나 출석 창이 끼어들지 않게) */
 export async function withSave(page, url, patch = {}) {
   await page.goto(url);
-  await page.evaluate(p => { const pd = Object.assign(newPD(), { boriJoined: true }, p); localStorage.setItem(SAVEKEY, JSON.stringify(pd)); }, patch);
+  await page.evaluate(p => { const pd = Object.assign(newPD(), { boriJoined: true, att: { last: todayKey(), n: 1 } }, p); localStorage.setItem(SAVEKEY, JSON.stringify(pd)); }, patch);
   await page.reload(); await page.waitForTimeout(500);
 }
 /** 게임 화면으로 바로 진입 */
