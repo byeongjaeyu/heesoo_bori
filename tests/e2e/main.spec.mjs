@@ -159,3 +159,21 @@ test('꾸미기 탭: 헤어·모자 겉모습 바꾸면 저장되고 능력치�
   await page.click('button[data-m=look][data-v="hat:cap_sky"]');
   expect(await page.evaluate(() => [loadGame().look.hair, loadGame().look.hat, visEq(G.pd).hat, G.st.atk])).toEqual(['choco', 'cap_sky', 'cap_sky', atk0]);
 });
+
+test('내 카드 공유: 카드 이미지 생성 + 초대 링크', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 30, look: { hair: 'pink' } });
+  await page.evaluate(MOCK_SB);
+  await page.evaluate(() => { __rows.push({ user_id: 'u-me', nickname: '공유희수', snap: {}, power: 900, rating: 1010, wins: 1, losses: 0 }, { user_id: 'x', nickname: '1등', snap: {}, power: 99999, rating: 1000, wins: 0, losses: 0 }); });
+  await page.click('#tRank');
+  await page.click('#rankShare');
+  await expect(page.locator('#shareImg')).toHaveAttribute('src', /^data:image\/png/, { timeout: 15000 });
+  const size = await page.evaluate(() => { const i = document.querySelector('#shareImg'); return [i.naturalWidth, i.naturalHeight]; });
+  expect(size).toEqual([1080, 1350]);
+  expect(await page.evaluate(() => SHARE.url)).toContain('?from=' + encodeURIComponent('공유희수'));
+});
+
+test('초대 링크로 들어오면 알림 + 랭킹 열림', async ({ page }) => {
+  await page.goto(URL_MAIN + '?from=' + encodeURIComponent('원조희수'));
+  await expect(page.locator('#toasts')).toContainText('원조희수님이 초대했어요');
+  await expect(page.locator('#rank')).toBeVisible();
+});

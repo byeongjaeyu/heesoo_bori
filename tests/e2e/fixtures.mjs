@@ -11,10 +11,10 @@ export const MOCK_SB = `(() => {
   window.__db = window.__db || { hb_fighters: __rows, hb_saves: [] };
   window.__grants = window.__grants || [];
   window.__rpc = window.__rpc || {};             // 테스트가 rpc 응답을 갈아끼움
-  const q = (table) => { const T = __db[table] || (__db[table] = []); const st = { f: [], head: false, single: false, upd: null };
-    const run = () => { const rows = T.filter(r => st.f.every(([k, v]) => r[k] === v)); if (st.upd) { rows.forEach(r => Object.assign(r, st.upd)); return { error: null }; }
+  const q = (table) => { const T = __db[table] || (__db[table] = []); const st = { f: [], gt: [], head: false, single: false, upd: null };
+    const run = () => { const rows = T.filter(r => st.f.every(([k, v]) => r[k] === v) && st.gt.every(([k, v]) => r[k] > v)); if (st.upd) { rows.forEach(r => Object.assign(r, st.upd)); return { error: null }; }
       if (st.single) return { data: rows[0] || null, error: null }; if (st.head) return { count: rows.length, error: null }; return { data: rows, error: null }; };
-    const o = { select(c, opt) { if (opt && opt.head) st.head = true; return o; }, limit() { return o; }, order() { return o; }, eq(k, v) { st.f.push([k, v]); return o; },
+    const o = { select(c, opt) { if (opt && opt.head) st.head = true; return o; }, limit() { return o; }, order() { return o; }, eq(k, v) { st.f.push([k, v]); return o; }, gt(k, v) { st.gt.push([k, v]); return o; },
       maybeSingle() { st.single = true; return Promise.resolve(run()); }, insert(row) { T.push(Object.assign({ user_id: 'u-me' }, table === 'hb_fighters' ? { rating: 1000, wins: 0, losses: 0 } : {}, row)); return Promise.resolve({ error: null }); },
       update(u) { st.upd = u; return o; }, then(res, rej) { return Promise.resolve(run()).then(res, rej); } };
     return o; };
