@@ -25,6 +25,9 @@ function fadeTo(cb, label) { const f = $('#fade'); f.textContent = label || ''; 
 
 // ---------- dialog ----------
 const DLG = { q: [], cur: null, shown: 0, cb: null };
+/** 자동사냥 중 대사 자동 넘김 (컷신·필드 대사 공통) */
+let DLG_AUTO_T = 0;
+function dlgAuto(dt) { if (!G.auto || !DLG.cur || $('#dlg').hidden) { DLG_AUTO_T = 0; return; } if (DLG.shown < DLG.cur.text.length) { DLG_AUTO_T = 0; return; } DLG_AUTO_T += dt; if (DLG_AUTO_T > 2.4) { DLG_AUTO_T = 0; dlgTap(); } }
 function dialog(lines, cb) { DLG.q = lines.slice(); DLG.cb = cb; if (G.state === 'play') G.state = 'dialog'; INP.atk = false; nextLine(); }
 function nextLine() {
   const l = DLG.q.shift();

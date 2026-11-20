@@ -712,8 +712,8 @@ function goNextZone() {
   if (zoneCh(G.zone) === 2 && isChLast(G.zone)) { ch2Finish(); return; }
   if (zoneCh(G.zone) === 1 && G.zone >= CH1_N - 1) {
     const first = !G.pd.cleared; G.pd.cleared = (G.pd.cleared || 0) + 1;
-    // 자동사냥 중이면(첫 클리어 제외) 엔딩을 건너뛰고 바로 다음 회차 STAGE 1로
-    if (G.auto && !first) { G.pd.zone = 0; saveGame(); fadeTo(() => { startZone(0); toast(`🎉 ${G.pd.cleared}회차 클리어! 자동사냥으로 ${G.pd.cleared + 1}회차 시작`, 'lvl'); }); return; }
+    // 자동사냥 중이면(첫 클리어 제외) 엔딩 컷신(대사 자동 넘김)을 보여주고 결과 화면 없이 바로 다음 회차 STAGE 1로
+    if (G.auto && !first) { setCurZone(G.pd, 0); saveGame(); fadeTo(() => { showHUD(false); playCut(ENDING, () => fadeTo(() => { G.auto = true; startZone(0); toast(`🎉 ${G.pd.cleared}회차 클리어! 자동사냥으로 ${G.pd.cleared + 1}회차 시작`, 'lvl'); })); }); return; }
     saveGame(); fadeTo(() => startEnding()); return; }
   setCurZone(G.pd, G.zone + 1); const n = 2 + Math.floor(loopLv() / 2); G.pd.foods.gimbap = (G.pd.foods.gimbap || 0) + n; G.pd.foods.drink = (G.pd.foods.drink || 0) + n; saveGame();
   fadeTo(() => { startZone(G.zone + 1); setTimeout(() => { if (G.state === 'play' || G.state === 'dialog') { toast(`스마트 푸드 센터 재고떨이! 유통기한 임박 김밥 ×${n} · 음료수 ×${n}`, 'item r2'); sfx('coin'); if (G.P) bubble(G.P, '공짜는 못 참지!', 1.4); } }, 2900); });
@@ -728,7 +728,7 @@ function startZone(i) {
   for (let k = 0; k < 5; k++) { const e = spawnAround(wpick(ZONES[i].mons), 140, 260); if (e) e.spawnT = 0; }
   G.cam.x = clamp(G.P.x - VW / 2, 0, Math.max(0, W.W - VW)); G.cam.y = clamp(G.P.y - 12 - VH / 2, 0, Math.max(0, W.H - VH));
   G.state = 'play'; playBgm('field'); showHUD(true); saveGame();
-  { const L = loopLv(), RL = chCleared(G.pd, i); banner(RL ? `${RL + 1}회차 · ${ZONES[i].sub}` : ZONES[i].sub, ZONES[i].name, 'stage'); if (L && i === 0 && !G.auto) setTimeout(() => { if (G.state === 'play' && !G.pvp && !G.auto) loopIntro(L); }, 1700); }
+  { const L = loopLv(), RL = chCleared(G.pd, i); banner(RL ? `${RL + 1}회차 · ${ZONES[i].sub}` : ZONES[i].sub, ZONES[i].name, 'stage'); if (L && i === 0) setTimeout(() => { if (G.state === 'play' && !G.pvp) loopIntro(L); }, 1700); }
   { const st = zoneCh(i) === 2 && ch2StageStory(i); if (st) { saveGame(); playCut(st, () => { G.state = 'play'; showHUD(true); playBgm('field'); }); } }
   if (!G.pd.boriJoined) { if (G.pd.lv >= 3) G.pendingEvent = 'bori'; else setTimeout(() => { if (G.state === 'play' && !G.pd.boriJoined) bubble(G.P, '보리야... 어디 있어ㅠㅠ', 2.6); }, 1800); }
 }

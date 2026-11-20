@@ -310,16 +310,13 @@ test('로비에서 장비·스킬 메뉴 열기 (음식 탭 없음), 닫으면 �
   await expect(page.locator('#tCont')).toBeVisible();
 });
 
+test.setTimeout(150000);
 test('자동사냥: 출구가 열리면 출구로 가서 다음 스테이지도 자동사냥', async ({ page }) => {
   await withSave(page, URL_MAIN, { lv: 50, cleared: 2, zone: 3 });
   await enterZone(page, 2);
   await page.evaluate(() => { G.st.atk = 1e6; autoToggle(); onBossDefeated({}); });
   await page.waitForFunction(() => G.zone === 3 && G.state === 'play', null, { timeout: 30000 });
-  expect(await page.evaluate(() => G.auto)).toBe(true);
-  // 마지막 스테이지: 엔딩 없이 다음 회차 STAGE 1
-  await page.evaluate(() => onBossDefeated({}));
-  await page.waitForFunction(() => G.zone === 0 && G.state === 'play', null, { timeout: 30000 });
-  expect(await page.evaluate(() => [G.pd.cleared, G.auto])).toEqual([3, true]);
+  expect(await page.evaluate(() => G.auto)).toBe(true); // 마지막 스테이지 → 다음 회차는 아래 엔딩 테스트에서
 });
 
 test('방치 보상: 로비에서 받기 → 골드·강화석 증가, 다시 0부터', async ({ page }) => {
@@ -369,4 +366,23 @@ test('2장 마지막 보스 → 엔딩 → 2장 클리어 기록·칭호', async
   expect(await page.evaluate(() => loadGame().ch2.cleared)).toBe(1);
   await page.click('#eTitle');
   await expect(page.locator('#tCont')).toContainText('2회차');
+});
+
+test('2장 이야기: 자동사냥 중에도 처음 들어가는 스테이지에선 나오고, 대사가 저절로 넘어감', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 40, cleared: 3, chap: 2, ch2: { zone: 4, cleared: 0, intro: 1 } });
+  await page.click('#tCont');
+  await page.waitForFunction(() => G.state === 'play' && G.zone === 4, null, { timeout: 8000 });
+  await page.evaluate(() => { G.auto = true; startZone(5); });
+  await page.waitForFunction(() => G.state === 'cut');
+  await page.waitForFunction(() => G.state === 'play' && G.zone === 5, null, { timeout: 30000 }); // 탭 없이 끝까지
+  expect(await page.evaluate(() => [G.auto, loadGame().ch2.seen[5]])).toEqual([true, 1]);
+});
+
+test('자동사냥 중 1장 회차 클리어: 엔딩 컷신이 저절로 넘어가고 다음 회차 STAGE 1로', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 50, cleared: 2, zone: 3 });
+  await enterZone(page, 3);
+  await page.evaluate(() => { G.auto = true; G.st.atk = 1e6; onBossDefeated({}); });
+  await page.waitForFunction(() => G.state === 'cut', null, { timeout: 30000 });
+  await page.waitForFunction(() => G.state === 'play' && G.zone === 0, null, { timeout: 90000 });
+  expect(await page.evaluate(() => [G.pd.cleared, G.auto])).toEqual([3, true]);
 });

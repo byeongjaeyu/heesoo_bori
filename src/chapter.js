@@ -35,14 +35,14 @@ function adventureGo(pd) {
 }
 /** 2장 스테이지에 처음 들어갈 때 이야기 (첫 회차, 자동사냥 아닐 때만) */
 function ch2StageStory(z) {
-  const c2 = G.pd.ch2; if (!c2 || c2.cleared || G.auto) return null;
+  const c2 = G.pd.ch2; if (!c2) return null;
   c2.seen = c2.seen || {}; if (c2.seen[z]) return null; c2.seen[z] = 1;
   return z === 5 ? CH2_DAY : z === 6 ? CH2_NIGHT : null;
 }
 /** 2장 마지막 보스를 잡고 출구로 */
 function ch2Finish() {
   const c2 = ch2Of(G.pd), first = !c2.cleared; c2.cleared++; c2.zone = CH2_Z0; G.pd.chap = 2;
-  if (G.auto && !first) { saveGame(); fadeTo(() => { startZone(CH2_Z0); toast(`🎉 2장 ${c2.cleared}회차 클리어! 자동사냥으로 ${c2.cleared + 1}회차 시작`, 'lvl'); }); return; }
+  if (G.auto && !first) { saveGame(); fadeTo(() => { showHUD(false); playCut(CH2_ENDING, () => fadeTo(() => { G.auto = true; startZone(CH2_Z0); toast(`🎉 2장 ${c2.cleared}회차 클리어! 자동사냥으로 ${c2.cleared + 1}회차 시작`, 'lvl'); })); }); return; }
   saveGame(); fadeTo(() => { showHUD(false); playCut(CH2_ENDING, () => showEnd2()); });
 }
 function showEnd2() {

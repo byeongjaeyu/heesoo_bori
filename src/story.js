@@ -1,5 +1,5 @@
 // ===================== STORY / CUTSCENES =====================
-const CUT = { steps: null, i: -1, t: 0, st: null, A: {}, scene: 'park', linesDone: true, started: false, onEnd: null, light: 0 };
+const CUT = { steps: null, i: -1, t: 0, st: null, A: {}, scene: 'park', linesDone: true, started: false, onEnd: null, light: 0, autoT: 0 };
 function playCut(steps, onEnd) {
   G.state = 'cut'; CUT.steps = steps; CUT.i = -1; CUT.onEnd = onEnd; CUT.A = {}; CUT.light = 0; CUT.scene = 'park';
   showHUD(false); $('#skip').hidden = false; nextStep();
@@ -19,6 +19,7 @@ function updateCut(dt) {
   const st = CUT.st; if (!st) return; CUT.t += dt;
   if (st.update) st.update(CUT.A, dt, CUT.t);
   if (st.lines && !CUT.started && CUT.t >= (st.delay || 0)) { CUT.started = true; dialog(st.lines, () => { CUT.linesDone = true; }); }
+  dlgAuto(dt);
   if (CUT.light > 0) CUT.light -= dt * 2.5;
   if (CUT.steps && CUT.linesDone && CUT.t >= (st.dur || 0)) nextStep();
 }

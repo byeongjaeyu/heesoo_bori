@@ -14,8 +14,8 @@ function frame(now) {
       case 'cut': G.time += dt; updateCut(dt); if (G.state === 'cut') renderCut(); else if (G.world) renderGame(); INP.act.clear(); break;
       case 'end': G.time += dt; renderCut(); INP.act.clear(); break;
       case 'play': update(dt); if (G.world) renderGame(); updateHUD(); break;
-      case 'event': G.time += dt; updateEvent(dt); renderGame(); updateHUD(); INP.act.clear(); break;
-      case 'dialog': G.time += dt; updateBubbles(dt); renderGame(); updateHUD(); INP.act.clear(); break;
+      case 'event': G.time += dt; dlgAuto(dt); updateEvent(dt); renderGame(); updateHUD(); INP.act.clear(); break;
+      case 'dialog': G.time += dt; dlgAuto(dt); updateBubbles(dt); renderGame(); updateHUD(); INP.act.clear(); break;
       case 'menu': G.time += dt; renderGame(); updateHUD(); if (INP.act.has('esc') || INP.act.has('menu')) closeMenu(); INP.act.clear(); break;
       case 'dead': G.time += dt; updateFx(dt); updateCam(dt); renderGame(); updateHUD(); INP.act.clear(); break;
       default: G.time += dt; if (G.world) renderGame(); INP.act.clear(); break;
