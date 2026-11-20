@@ -495,7 +495,7 @@ function pickup(d) {
   else if (d.kind === 'item') {
     const it = ITEMS[d.id];
     const fed = feedEquip(it), isNewBook = !(pd.book || {})[d.id];
-    if (pd.inv[d.id]) { if (fed) return; const s = stoneYield(d.id); pd.stones = (pd.stones || 0) + s; toast(`${it.name} (중복) → 강화석 ${s}개`, 'sub'); sfx('coin'); }
+    if (pd.inv[d.id]) { if (fed) return; const s = dupStones(d.id); pd.stones = (pd.stones || 0) + s; toast(s ? `${it.name} (중복) → 강화석 ${s}개` : `${it.name} (중복) → 강화석은 꽝...`, 'sub'); if (s) sfx('coin'); }
     else if (it.bori) { pd.inv[d.id] = 1; if (!pd.beq[it.slot]) { pd.beq[it.slot] = d.id; calcStats(); toast(`${it.name} 획득! 보리가 바로 ${it.slot === 'btoy' ? '물었어요' : '입었어요'}`, 'item r' + it.rar); if (G.bori) bubble(G.bori, '멍멍! (신남)', 1.4); } else { pd.newBori = true; toast(`보리 장비 획득: ${it.name}! (메뉴 → 보리)`, 'item r' + it.rar); } sfx('ding'); }
     else { pd.inv[d.id] = 1; pd.newItem = true; toast(`새 장비 획득: ${it.name}! (메뉴 → 장비)`, 'item r' + it.rar); sfx('ding'); }
     if (isNewBook) bookNotify(d.id);
@@ -528,7 +528,11 @@ const ENH_FX = {
   bcloth: { boriMul: 0.03, txt: en => `보리 공격 +${3 * en}%` },
   btoy:   { boriMul: 0.03, txt: en => `보리 공격 +${3 * en}%` }
 };
-const STONE_YIELD = [1, 3, 8, 20, 50, 120];
+// 분해 강화석 (등급별, 화면에 숫자로 보임)
+const STONE_YIELD = [1, 2, 4, 10, 25, 60];
+// 사냥 중 주운 중복 장비 강화석 (평균값, 소수는 확률: 0.5 = 50%로 1개). 엔드급 자동사냥 시간당 약 350개 → 강화석으로 +25 1개 ≈ 사냥 8시간
+const DUP_YIELD = [0.5, 1.5, 4, 10, 25, 60];
+const dupStones = id => { const v = DUP_YIELD[ITEMS[id].rar] || 1, w = Math.floor(v); return w + (Math.random() < v - w ? 1 : 0); };
 const stoneYield = id => STONE_YIELD[ITEMS[id].rar] || 1;
 function canDismantle(id) { const it = ITEMS[id], pd = G.pd; return !!(it && !it.start && pd.inv[id] && pd.eq[it.slot] !== id && (pd.beq || {})[it.slot] !== id && !((pd.enh || {})[id] > 0) && !ilvOf(id) && !((pd.iexp || {})[id] > 0)); }
 function dismantle(ids) { let s = 0, n = 0; for (const id of ids) { if (!canDismantle(id)) continue; s += stoneYield(id); n++; delete G.pd.inv[id]; } G.pd.stones = (G.pd.stones || 0) + s; return { n, s }; }
