@@ -321,3 +321,14 @@ test('자동사냥: 출구가 열리면 출구로 가서 다음 스테이지도 
   await page.waitForFunction(() => G.zone === 0 && G.state === 'play', null, { timeout: 30000 });
   expect(await page.evaluate(() => [G.pd.cleared, G.auto])).toEqual([3, true]);
 });
+
+test('방치 보상: 로비에서 받기 → 골드·강화석 증가, 다시 0부터', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 20, gold: 0, stones: 0, idleT: Date.now() - 3 * 3600e3 });
+  await expect(page.locator('#tIdle')).toContainText('3시간');
+  await page.click('#tIdle');
+  await expect(page.locator('#seasonModal')).toContainText('방치 보상');
+  const pd = await page.evaluate(() => loadGame());
+  expect(pd.gold).toBeGreaterThan(0); expect(pd.stones).toBeGreaterThan(0);
+  await page.click('#seasonModal .btn');
+  await expect(page.locator('#tIdle')).toContainText('모으는 중');
+});

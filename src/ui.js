@@ -321,7 +321,7 @@ function showTitle() {
     + `<button class="ticon" id="tCloud">${I('phone')}<small>기기 이동</small></button>`;
   // 오른쪽: 미니게임
   let boriImg = ''; try { const c = mkCanvas(20, 20), g = c.getContext('2d'); g.drawImage(b2Spr('sit').n, 3, 4); const o = mkCanvas(80, 80), og = o.getContext('2d'); og.imageSmoothingEnabled = false; og.drawImage(c, 0, 0, 80, 80); boriImg = o.toDataURL(); } catch (e) { }
-  $('#tsideR').innerHTML = `<button class="tmini" id="tEp2"><em>MINI GAME</em><img src="${boriImg}" alt=""><b>보리 주세요</b><small>${e2s ? '★ ' + e2n + '/24' : 'NEW'}</small></button>`;
+  $('#tsideR').innerHTML = (saved ? idleTileHtml(saved) : '') + `<button class="tmini" id="tEp2"><em>MINI GAME</em><img src="${boriImg}" alt=""><b>보리 주세요</b><small>${e2s ? '★ ' + e2n + '/24' : 'NEW'}</small></button>`;
   // 하단: 모드 타일 + 시작
   const rb = (typeof RAID !== 'undefined' && RAID.info && RAID.info.boss) || 'boss4';
   $('#tbtns').innerHTML = (saved ? `<div class="tmodes">`
@@ -331,6 +331,7 @@ function showTitle() {
     + (saved ? `<button class="btn pk tstart" id="tCont"><span>▶ 모험 계속하기</span><small>${saved.cleared ? (saved.cleared + 1) + '회차 · ' : ''}Lv.${saved.lv} · ${ZONES[saved.zone] ? ZONES[saved.zone].name : ''}</small></button>`
       : `<button class="btn pk tstart" id="tNew"><span>▶ 모험 시작</span><small>에버랜드 대탈출 · 도트 액션 RPG</small></button>`);
   $('#tEp2').onclick = () => { audioInit(); e2Open(); };
+  if ($('#tIdle')) $('#tIdle').onclick = () => { audioInit(); idleClaim(); };
   if (saved) { $('#tRaid').onclick = () => { audioInit(); raidOpen(); }; $('#tPvp').onclick = () => { audioInit(); pvpOpen(); }; $('#tInf').onclick = () => { audioInit(); fadeTo(startInfinite, '에버랜드: 할로윈파티'); };
     $('#tShare').onclick = () => { audioInit(); shareOpen(); };
     $('#tBag').onclick = () => { audioInit(); sfx('select'); lobbyMenu(); };

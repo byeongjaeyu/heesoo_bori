@@ -51,6 +51,8 @@ interface SaveData {
   /** 장착 칭호 (업적 id) */
   title?: string;
   achNew?: boolean;
+  /** 방치 보상이 쌓이기 시작한 시각 (플레이 중 저장할 때마다 갱신) */
+  idleT?: number;
 
   /** 각성 단계 (Lv50 이후) */
   aw?: number;

@@ -17,14 +17,14 @@ function newPD() {
   return {
     sid: newSid(),
     guide: 0,
-    lv: 1, xp: 0, gold: 30, sp: 1, skills: {},
+    lv: 1, xp: 0, gold: 30, sp: 1, skills: {}, idleT: Date.now(),
     inv: { fist: 1, cap_grey: 1, fleece: 1, sneakers: 1, silverbag: 1 },
     eq: { weapon: 'fist', hat: 'cap_grey', armor: 'fleece', shoes: 'sneakers', bag: 'silverbag' },
     foods: { persimmon: 3, popcorn: 3 }, enh: {}, ilv: {}, iexp: {}, stones: 0, zone: 0, boriJoined: false, cleared: 0, beq: { bcloth: null, btoy: null },
     stats: { kills: 0, ults: 0, deaths: 0, time: 0, eaten: 0 }
   };
 }
-function saveGame() { if (!G.pd) return; try { localStorage.setItem(SAVEKEY, JSON.stringify(G.pd)); } catch (e) { } if (G.state === 'play' && !G.pvp && typeof rankSync === 'function') rankSync(); if (typeof cloudSync === 'function') cloudSync(); }
+function saveGame() { if (!G.pd) return; if (G.state !== 'title' && G.state !== 'lobbyMenu') G.pd.idleT = Date.now(); try { localStorage.setItem(SAVEKEY, JSON.stringify(G.pd)); } catch (e) { } if (G.state === 'play' && !G.pvp && typeof rankSync === 'function') rankSync(); if (typeof cloudSync === 'function') cloudSync(); }
 /** @returns {SaveData|null} */
 function loadGame() {
   try {
@@ -37,7 +37,8 @@ function loadGame() {
     // 가이드가 생기기 전 세이브: 초반을 지났으면 건너뜀
     if (d.guide === undefined) pd.guide = (d.lv >= 5 || d.cleared || d.zone > 0) ? 99 : 0;
     // 예전 세이브엔 sid 가 없음: 한 번 만들어서 바로 저장 (불러올 때마다 바뀌면 안 됨)
-    if (!d.sid) { try { localStorage.setItem(SAVEKEY, JSON.stringify(pd)); } catch (e) { } }
+    if (!d.idleT) pd.idleT = Date.now();
+    if (!d.sid || !d.idleT) { try { localStorage.setItem(SAVEKEY, JSON.stringify(pd)); } catch (e) { } }
     return pd;
   } catch (e) { return null; }
 }

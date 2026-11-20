@@ -417,3 +417,9 @@ button{font-family:inherit;color:inherit;border:none;background:none;padding:0;c
 /* 다른 창 위에 뜨는 팝업은 뒤를 어둡게 (바깥 닫기 버튼이 눌릴 것처럼 보이지 않게) */
 #seasonModal,#share,#pvpNick,#cloud,#daily,#buddy,#raidRes,#pvpRes{background:rgba(20,8,30,.6)}
 .mhead.rkhead{padding:8px 10px 8px 12px}
+.tidle{position:relative;display:flex;flex-direction:column;align-items:center;width:78px;padding:6px 4px;background:linear-gradient(#fff,#ffe9c7);border:2px solid #2b1b24;border-radius:16px;box-shadow:0 3px 0 #2b1b24;font-family:inherit;color:var(--ink);cursor:pointer}
+.tidle:active{transform:translateY(2px);box-shadow:0 1px 0 #2b1b24}.tidle em{font-style:normal;font-size:9px;background:#2b1b24;color:#ffe9c7;border-radius:6px;padding:1px 5px}
+.tidle img{width:44px;height:44px;image-rendering:pixelated;margin:2px 0}.tidle b{font-size:11px;white-space:nowrap}.tidle small{font-size:10px;color:#8a5a3a}
+.tidle.ready img{animation:idleBob 1.4s ease-in-out infinite}.tidle.ready small{color:#e0407a;font-weight:bold}.tidle.full{background:linear-gradient(#fff7c2,#ffd84a)}
+.tidle .dot{position:absolute;top:-5px;right:-5px;width:13px;height:13px;border-radius:50%;background:#ff3b5c;border:2px solid #fff;padding:0}
+@keyframes idleBob{50%{transform:translateY(-3px)}}

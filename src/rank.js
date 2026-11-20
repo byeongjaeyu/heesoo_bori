@@ -167,7 +167,7 @@ const fmtGold = n => n >= 10000 ? `${(n / 10000).toLocaleString()}만` : n.toLoc
 const fmtAuto = s => s >= 3600 ? `${Math.round(s / 360) / 10}시간` : `${Math.round(s / 60)}분`;
 /** 보상 아이콘 카드 HTML. items: [{kind:'stones'|'gold'|'auto', amount}] */
 function rewardCards(items, big) {
-  const def = { stones: ['stone', '강화석', n => n + '개'], gold: ['gcoin', '골드', n => fmtGold(n) + 'G'], auto: ['alarm', '자동사냥', fmtAuto] };
+  const def = { stones: ['stone', '강화석', n => n + '개'], gold: ['gcoin', '골드', n => fmtGold(n) + 'G'], auto: ['alarm', '자동사냥', fmtAuto], xp: ['bolt', '경험치', n => fmtGold(n)] };
   return `<div class="rwcs${big ? ' big' : ''}">` + items.filter(it => def[it.kind] && it.amount > 0).map((it, i) => { const [ic, nm, f] = def[it.kind];
     return `<div class="rwc" style="animation-delay:${i * 0.12}s"><img src="${iconURL('i_' + ic, ICONS[ic])}"><b>${f(Number(it.amount))}</b><small>${nm}</small></div>`; }).join('') + '</div>';
 }
