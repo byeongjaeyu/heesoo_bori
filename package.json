@@ -5,7 +5,7 @@
   "description": "희수와 보리의 대모험 - 도트 웹게임",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node build/publish.mjs",
+    "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",

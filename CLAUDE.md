@@ -6,7 +6,8 @@
 ## 명령
 - `npm run dev` — 개발 서버 (src 저장 시 새로고침)
 - `npm run check` — **변경 후 반드시 실행**: typecheck → vitest → build → playwright
-- `npm run build` — `index.html`, `onetouch/index.html` 갱신. **소스를 바꿨으면 빌드 결과도 같이 커밋** (CI가 불일치를 막음)
+- `npm run build` — `dist/`에 두 에디션 생성 (커밋하지 않음)
+- **배포**: main에 푸시하면 GitHub Actions(`.github/workflows/deploy.yml`)가 검사를 전부 통과한 경우에만 `dist/`를 Pages로 배포. 검사 실패 = 배포 안 됨. 진행 확인: `gh api repos/byeongjaeyu/heesoo_bori/actions/runs?per_page=1`
 - 로컬 크롬으로 e2e: `CHROME_PATH=/usr/bin/google-chrome npm run test:e2e` (없으면 `npx playwright install chromium`)
 
 ## 코드 구조 (중요)
@@ -15,6 +16,7 @@
   - 파일을 `.ts`로 바꿔도 됨(빌드 시 타입만 제거). 단 `import`/`export`를 쓰면 전역 공유가 깨지니 쓰지 말 것.
   - HTML 문자열 안의 `onclick="rankJoin()"`처럼 전역 이름에 의존하는 곳이 있음.
 - `FORCE_EASY` — 빌드가 맨 앞에 주입. `true`면 원터치 에디션(2탄만, 큰 글씨, 서버 기능 없음).
+- 정적 파일(og 이미지, `.nojekyll`)은 `public/` → `dist/`로 그대로 복사.
 - 주요 파일: `data.js`(장비·몬스터·스킬·각성 표), `game.js`(전투·드롭·강화·세이브), `ui.js`(메뉴·HUD), `render.js`/`sprites*.js`(도트), `pvp.js`/`rank.js`(Supabase), `inf.js`(할로윈파티), `auto.js`(자동사냥), `ep2*.js`(2탄).
 - 타입: `src/types.d.ts`(SaveData, ItemDef), `src/globals.d.ts`. JS 파일도 `checkJs`로 검사됨.
 
