@@ -332,3 +332,14 @@ test('방치 보상: 로비에서 받기 → 골드·강화석 증가, 다시 0�
   await page.click('#seasonModal .btn');
   await expect(page.locator('#tIdle')).toContainText('모으는 중');
 });
+
+test('뉴비 패키지: 로비에서 무료로 받기 → 자동사냥·강화석·칭호, 타일 사라짐', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 5, stones: 0 });
+  await expect(page.locator('#tPack')).toContainText('24:00');
+  await page.click('#tPack'); await page.click('#packGo');
+  await expect(page.locator('#packBody')).toContainText('받았어요');
+  const pd = await page.evaluate(() => loadGame());
+  expect([pd.stones, pd.autoBonus >= 3 * 3600, pd.title, !!pd.pack.got]).toEqual([300, true, 'beta', true]);
+  await page.click('#packX');
+  await expect(page.locator('#tPack')).toHaveCount(0);
+});

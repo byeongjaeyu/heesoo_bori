@@ -5,7 +5,7 @@ const ACH_COL = ['', '#f0b27a', '#cfe0f0', '#ffd84a', '#ff9ce0'];
 const achMaxEnh = pd => Math.max(0, ...Object.values(pd.enh || {}).map(Number));
 const achFullEnh = pd => { const ids = [...SLOTS.map(s => pd.eq[s]), ...(pd.boriJoined ? BSLOTS.map(s => (pd.beq || {})[s]) : [])]; return ids.filter(id => id && ((pd.enh || {})[id] || 0) >= 25).length; };
 const achFullN = pd => SLOTS.length + (pd.boriJoined ? BSLOTS.length : 0) || 1;
-/** @type {{id:string, t:string, d:string, tier:number, v:(pd:any)=>number, g:number|((pd:any)=>number)}[]} */
+/** @type {{id:string, t:string, d:string, tier:number, sp?:number, v:(pd:any)=>number, g:number|((pd:any)=>number)}[]} */
 const ACH = [
   { id: 'k100', t: '새내기 사냥꾼', d: '몬스터 100마리 처치', tier: 1, v: pd => pd.stats.kills, g: 100 },
   { id: 'k1k', t: '몬스터 사냥꾼', d: '몬스터 1,000마리 처치', tier: 2, v: pd => pd.stats.kills, g: 1000 },
@@ -35,6 +35,8 @@ const ACH = [
   { id: 'd100', t: '칠전팔기', d: '100번 기절하고 일어나기', tier: 1, v: pd => pd.stats.deaths, g: 100 },
   { id: 't10', t: '에버랜드 단골', d: '플레이 10시간', tier: 1, v: pd => pd.stats.time, g: 36000 },
   { id: 't100', t: '에버랜드 주민', d: '플레이 100시간', tier: 3, v: pd => pd.stats.time, g: 360000 },
+  // 한정 칭호 (가진 사람만 목록에 보임, 업적 보상 없음)
+  { id: 'beta', t: '베타 개척자', d: '베타 기간 뉴비 패키지', tier: 4, sp: 1, v: pd => pd.pack && pd.pack.got ? 1 : 0, g: 1 },
 ];
 const ACH_BY = Object.fromEntries(ACH.map(a => [a.id, a]));
 const achGoal = (a, pd) => typeof a.g === 'function' ? a.g(pd) : a.g;
@@ -45,22 +47,22 @@ const achTag = id => { const a = id && ACH_BY[id]; return a ? `<span class="ttag
 function achvCheck() {
   const pd = G.pd; if (FORCE_EASY || !pd || !pd.stats) return;
   pd.ach = pd.ach || {}; const got = [];
-  for (const a of ACH) if (!pd.ach[a.id] && achDone(pd, a)) { pd.ach[a.id] = Date.now(); pd.stones = (pd.stones || 0) + ACH_REW[a.tier]; got.push(a); }
+  for (const a of ACH) if (!pd.ach[a.id] && achDone(pd, a)) { pd.ach[a.id] = Date.now(); pd.stones = (pd.stones || 0) + (a.sp ? 0 : ACH_REW[a.tier]); got.push(a); }
   if (!got.length) return;
   pd.achNew = true; saveGame(); sfx('lvl');
-  const st = got.reduce((s, a) => s + ACH_REW[a.tier], 0);
+  const st = got.reduce((s, a) => s + (a.sp ? 0 : ACH_REW[a.tier]), 0);
   if (got.length === 1) toast(`🏅 업적 달성! 칭호 「${got[0].t}」 · 강화석 ${st}개`, 'lvl');
   else toast(`🏅 업적 ${got.length}개 달성! 강화석 ${st}개 · 메뉴 「칭호」에서 확인해요`, 'lvl');
   if (!$('#menu').hidden && MTAB === 'achv') renderMenu();
 }
 function achvHtml(pd) {
-  pd.achNew = false; const own = pd.ach || {}, n = ACH.filter(a => own[a.id]).length, cur = pd.title && own[pd.title] ? pd.title : '';
-  let h = `<div class="bookhead"><b>업적과 칭호</b><span>${n} / ${ACH.length}</span></div>`
+  pd.achNew = false; const own = pd.ach || {}, n = ACH.filter(a => own[a.id] && !a.sp).length, NA = ACH.filter(a => !a.sp).length, cur = pd.title && own[pd.title] ? pd.title : '';
+  let h = `<div class="bookhead"><b>업적과 칭호</b><span>${n} / ${NA}</span></div>`
     + `<div class="achnow">지금 칭호 ${cur ? achTag(cur) : '<span class="ttag">없음</span>'}${cur ? '<button class="btn wh sm" data-m="ttl" data-v="">떼기</button>' : ''}<small>칭호는 랭킹·PvP·카드·동료 이름표에 붙어요</small></div>`;
-  const list = ACH.slice().sort((x, y) => (own[y.id] ? 1 : 0) - (own[x.id] ? 1 : 0) || x.tier - y.tier);
+  const list = ACH.filter(a => !a.sp || own[a.id]).sort((x, y) => (own[y.id] ? 1 : 0) - (own[x.id] ? 1 : 0) || x.tier - y.tier);
   for (const a of list) {
     const ok = !!own[a.id], g = achGoal(a, pd), v = Math.min(g, Math.floor(a.v(pd) || 0)), on = cur === a.id;
-    h += `<div class="ach${ok ? ' ok' : ''}${on ? ' on' : ''}"><i class="am t${a.tier}">${ACH_TIER[a.tier][0]}</i><span><b>${ok ? achTag(a.id) : `<span class="ttag lock">${a.t}</span>`}</b><small>${a.d} · 보상 강화석 ${ACH_REW[a.tier]}</small>`
+    h += `<div class="ach${ok ? ' ok' : ''}${on ? ' on' : ''}"><i class="am t${a.tier}">${ACH_TIER[a.tier][0]}</i><span><b>${ok ? achTag(a.id) : `<span class="ttag lock">${a.t}</span>`}</b><small>${a.d}${a.sp ? ' · 한정' : ' · 보상 강화석 ' + ACH_REW[a.tier]}</small>`
       + (ok ? '' : `<em class="abar"><u style="width:${Math.round(v / g * 100)}%"></u></em><small>${a.id[0] === 't' ? fmtTime(v) + ' / ' + fmtTime(g) : v.toLocaleString() + ' / ' + g.toLocaleString()}</small>`) + '</span>'
       + (ok ? (on ? '<button class="btn sm" disabled>장착 중</button>' : `<button class="btn pk sm" data-m="ttl" data-v="${a.id}">장착</button>`) : '') + '</div>';
   }

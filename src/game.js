@@ -75,6 +75,7 @@ function hairOk(pd, h) {
   if (h.need === 'loop5') return (pd.cleared || 0) >= 4;
   if (h.need === 'enh25') return Object.values(pd.enh || {}).some(v => v >= 25);
   if (h.need === 'aw50') return (pd.aw || 0) >= 50;
+  if (h.need === 'pack') return !!(pd.pack && pd.pack.got);
   return false;
 }
 /** 도감 상태 (보유·착용 중인 장비는 자동 등록) */

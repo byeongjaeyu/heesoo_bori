@@ -153,7 +153,7 @@ const MREN = {
     const pd = G.pd, L = pd.look || {}, b = pd.book || {};
     const prev = fighterURL({ vis: visEq(pd), hair: L.hair || 'base', bori: pd.boriJoined, beq: pd.beq }, 5);
     let h = `<div class="lookhead"><img src="${prev}"><div><b>희수 꾸미기</b><small>능력치는 그대로, 겉모습만 바뀌어요.<br>랭킹·PvP에서도 이 모습으로 보여요.</small></div></div>`;
-    h += `<h3>헤어 색</h3><div class="hairs">` + HAIRS.map(hr => { const ok = hairOk(pd, hr), on = (L.hair || 'base') === hr.k;
+    h += `<h3>헤어 색</h3><div class="hairs">` + HAIRS.filter(hr => !hr.excl || hairOk(pd, hr)).map(hr => { const ok = hairOk(pd, hr), on = (L.hair || 'base') === hr.k;
       return `<button class="hair${on ? ' on' : ''}${ok ? '' : ' lock'}" data-m="hair" data-v="${hr.k}" ${ok ? '' : 'disabled'}><i style="background:linear-gradient(135deg,${hr.h},${hr.H})"></i><small>${ok ? hr.name : '🔒 ' + hr.cond}</small></button>`; }).join('') + '</div>';
     for (const sl of LOOK_SLOTS) {
       const own = Object.keys(b).filter(id => ITEMS[id] && ITEMS[id].slot === sl && !ITEMS[id].bori && ITEMS[id].color).sort((x, y) => ITEMS[x].rar - ITEMS[y].rar || (ITEMS[x].tier || 0) - (ITEMS[y].tier || 0));
@@ -306,13 +306,14 @@ function showTitle() {
     $('#tSnd').onclick = () => { audioInit(); setSound(!SND.on); showTitle(); };
     playBgm('story'); return;
   }
+  if (saved) packSeen(saved);
   TITLE_PD = saved; const I = (k, ic) => `<img src="${iconURL('i_' + k, ICONS[ic || k])}" alt="">`;
   // 상단: 내 희수 정보 + 소리
   let prof = '';
   if (saved) { let pw = 0; const keep = G.pd; try { G.pd = saved; pw = pvpSnap().power; } catch (e) { } G.pd = keep; G.st = null;
     const nick = (typeof PV !== 'undefined' && PV.me && PV.me.nickname) || '희수';
     prof = `<div class="tprof"><img src="${pvpFaceURL(visEq(saved), saved.look && saved.look.hair)}" alt=""><span>${saved.title && (saved.ach || {})[saved.title] ? achTag(saved.title) : ''}<b>${esc(nick)}</b><small>Lv.${saved.lv}${saved.aw ? ' ★' + saved.aw : ''}${saved.cleared ? ' · ' + (saved.cleared + 1) + '회차' : ''}</small><small class="tpw">전투력 ${pw.toLocaleString()}</small></span></div>`; }
-  $('#tbar').innerHTML = prof + `<button class="ticon tsnd${SND.on ? '' : ' off'}" id="tSnd" aria-label="소리">${I('sound')}<small>${SND.on ? '소리 ON' : '소리 OFF'}</small></button>`;
+  $('#tbar').innerHTML = prof + (saved ? packTileHtml(saved) : '') + `<button class="ticon tsnd${SND.on ? '' : ' off'}" id="tSnd" aria-label="소리">${I('sound')}<small>${SND.on ? '소리 ON' : '소리 OFF'}</small></button>`;
   // 왼쪽 세로 아이콘
   const bagDot = saved && (saved.sp > 0 || saved.newItem || saved.newBori || saved.achNew || (saved.ap || 0) > 0);
   $('#tsideL').innerHTML = (saved ? `<button class="ticon tbag" id="tBag">${I('bag')}<small>장비·스킬</small>${bagDot ? '<em class="dot"></em>' : ''}</button>` : '') + (saved ? `<button class="ticon" id="tDaily">${I('cal')}<small>출석·미션</small>${dailyClaimable(saved) ? '<em class="dot"></em>' : ''}</button>` : '')
@@ -331,6 +332,7 @@ function showTitle() {
     + (saved ? `<button class="btn pk tstart" id="tCont"><span>▶ 모험 계속하기</span><small>${saved.cleared ? (saved.cleared + 1) + '회차 · ' : ''}Lv.${saved.lv} · ${ZONES[saved.zone] ? ZONES[saved.zone].name : ''}</small></button>`
       : `<button class="btn pk tstart" id="tNew"><span>▶ 모험 시작</span><small>에버랜드 대탈출 · 도트 액션 RPG</small></button>`);
   $('#tEp2').onclick = () => { audioInit(); e2Open(); };
+  if ($('#tPack')) $('#tPack').onclick = () => { audioInit(); packOpen(); };
   if ($('#tIdle')) $('#tIdle').onclick = () => { audioInit(); idleClaim(); };
   if (saved) { $('#tRaid').onclick = () => { audioInit(); raidOpen(); }; $('#tPvp').onclick = () => { audioInit(); pvpOpen(); }; $('#tInf').onclick = () => { audioInit(); fadeTo(startInfinite, '에버랜드: 할로윈파티'); };
     $('#tShare').onclick = () => { audioInit(); shareOpen(); };

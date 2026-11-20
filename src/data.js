@@ -166,5 +166,6 @@ const HAIRS = [
   { k: 'mint', name: '민트', H: '#2f8f78', h: '#6fd3b6', need: 'loop5', cond: '5회차 도달' },
   { k: 'blonde', name: '금발', H: '#b8862a', h: '#e9c35a', need: 'book25', cond: '도감 25종' },
   { k: 'red', name: '레드', H: '#a11f2a', h: '#dd4651', need: 'enh25', cond: '장비 하나 +25 강화' },
-  { k: 'silver', name: '은발', H: '#9da2b0', h: '#dde0e8', need: 'aw50', cond: '각성 ★50' }
+  { k: 'silver', name: '은발', H: '#9da2b0', h: '#dde0e8', need: 'aw50', cond: '각성 ★50' },
+  { k: 'lavender', name: '베타 라벤더', H: '#6a4cb8', h: '#b49cf0', need: 'pack', cond: '뉴비 패키지 (베타 한정)', excl: 1 }
 ];
