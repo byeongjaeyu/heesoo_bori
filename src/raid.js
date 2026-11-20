@@ -73,7 +73,7 @@ function raidUpdate(dt) {
 }
 async function raidEnd(why) {
   const V = G.raid; if (!V || V.over) return; V.over = true; G.state = 'raidEnd'; INP.atk = false; if (typeof autoOff === 'function') autoOff();
-  const dmg = Math.round(V.dmg); sfx('lvl');
+  const dmg = Math.round(V.dmg); sfx('lvl'); G.pd.stats.raidBest = Math.max(G.pd.stats.raidBest || 0, dmg); saveGame();
   $('#raidRes').hidden = false; $('#raidResT').textContent = why;
   $('#raidResS').innerHTML = `이번 도전 피해량<br><b class="rdbig">${dmg.toLocaleString()}</b><span id="raidResM">서버에 반영하는 중...</span>`;
   try {

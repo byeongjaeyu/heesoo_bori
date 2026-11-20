@@ -40,8 +40,10 @@ async function shareCardMake(info) {
   g.imageSmoothingEnabled = false; const cw = Math.min(img.width, 820), ch = img.height * cw / img.width; g.drawImage(img, (W - cw) / 2, 960 - ch, cw, ch);
   // 이름표
   const nick = info.nick || '이름 없는 희수', lv = `Lv.${info.pd.lv}${info.pd.aw ? ' ★' + info.pd.aw : ''}${info.pd.cleared ? ' · ' + (info.pd.cleared + 1) + '회차' : ''}`;
-  rr(g, 200, 250, W - 400, 150, 28); g.fillStyle = 'rgba(255,255,255,.92)'; g.fill(); g.lineWidth = 8; g.strokeStyle = ink; g.stroke();
-  g.fillStyle = ink; g.font = F(64, true); g.fillText(nick, W / 2, 330); g.font = F(36); g.fillStyle = '#7a5cff'; g.fillText(lv, W / 2, 382);
+  const ta = info.pd.title && (info.pd.ach || {})[info.pd.title] ? ACH_BY[info.pd.title] : null;
+  rr(g, 200, ta ? 214 : 250, W - 400, ta ? 186 : 150, 28); g.fillStyle = 'rgba(255,255,255,.92)'; g.fill(); g.lineWidth = 8; g.strokeStyle = ink; g.stroke();
+  if (ta) { g.font = F(32, true); const tw = g.measureText(ta.t).width + 44; rr(g, (W - tw) / 2, 232, tw, 48, 16); g.fillStyle = ACH_COL[ta.tier]; g.fill(); g.lineWidth = 4; g.strokeStyle = ink; g.stroke(); g.fillStyle = ink; g.fillText(ta.t, W / 2, 268); }
+  g.fillStyle = ink; g.font = F(ta ? 58 : 64, true); g.fillText(nick, W / 2, ta ? 340 : 330); g.font = F(ta ? 32 : 36); g.fillStyle = '#7a5cff'; g.fillText(lv, W / 2, ta ? 384 : 382);
   // 기록 카드 4개
   const maxEnh = Math.max(0, ...Object.values(info.pd.enh || {}).map(Number));
   const cards = [

@@ -38,6 +38,7 @@ guideBoot();
 shareBoot();
 raidBoot();
 buddyBoot();
+achvBoot();
 
 if (FORCE_EASY) { document.documentElement.classList.add('big'); const t = document.querySelector('.ttl'); if (t) t.innerHTML = '<small>희수와 보리 외전 · 원터치</small><h1><em>보리</em><br><span>주세요</span></h1>'; }
 

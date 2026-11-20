@@ -457,7 +457,7 @@ function separateEnemies() {
 }
 function killEnemy(e) {
   if (e.rival) { e.hp = 0; pvpEnd(true, `${e.nick}의 희수 KO!`); return; }
-  e.dead = true; e.deadT = 0.25; e.hp = 0; G.pd.stats.kills++; dailyAdd('kill'); guideEv('kill'); if (e.boss) dailyAdd('boss');
+  e.dead = true; e.deadT = 0.25; e.hp = 0; G.pd.stats.kills++; dailyAdd('kill'); guideEv('kill'); if (e.boss) { dailyAdd('boss'); G.pd.stats.boss = (G.pd.stats.boss || 0) + 1; }
   burst(e.x, e.y - e.h / 2, e.col, e.boss ? 40 : 10, e.boss ? 140 : 80); burst(e.x, e.y - e.h / 2, '#ffffff', 4);
   const LM = loopMul(), em = e.elite ? 1 : 0, RW = infWaveMul().rew;
   sfx('pop'); gainXp(Math.round(e.m.xp * LM.xp * (em ? 3 : 1) * RW));

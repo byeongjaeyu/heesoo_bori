@@ -25,7 +25,7 @@ function pvpSnap() {
   const skl = {}; for (const id of ['fist', 'smash', 'nag', 'flash', 'menhera', 'mukbang', 'shop']) skl[id] = sk(id);
   const snap = { v: 1, lv: pd.lv, aw: pd.aw || 0, hp: st.hp, atk: st.atk, def: st.def, crit: Math.round(st.crit * 1000) / 1000, critMul: st.critMul, spd: Math.round(st.spd * 100) / 100, enh: st.enh || 0, tenh: st.toyEnh || 0,
     w: { id: pd.eq.weapon, mul: w.mul, rate: w.rate, reach: w.reach, arc: w.arc, style: w.style }, eq: Object.assign({}, pd.eq), sk: skl,
-    bori: !!pd.boriJoined, beq: pd.boriJoined ? Object.assign({}, pd.beq) : null, boriMul: Math.round((st.boriMul || 1) * 100) / 100, cleared: pd.cleared || 0, infBest: pd.infBest || 0, skm: Math.round((st.skillMul || 1) * 100) / 100, sid: pd.sid || null, book: st.book || 0, vis: visEq(pd), hair: (pd.look && pd.look.hair) || 'base' };
+    bori: !!pd.boriJoined, beq: pd.boriJoined ? Object.assign({}, pd.beq) : null, boriMul: Math.round((st.boriMul || 1) * 100) / 100, cleared: pd.cleared || 0, infBest: pd.infBest || 0, ttl: pd.title && pd.ach && pd.ach[pd.title] ? pd.title : null, achN: Object.keys(pd.ach || {}).length, skm: Math.round((st.skillMul || 1) * 100) / 100, sid: pd.sid || null, book: st.book || 0, vis: visEq(pd), hair: (pd.look && pd.look.hair) || 'base' };
   const power = Math.round(st.atk * 4 + st.hp * 0.5 + st.def * 6 + st.crit * 300 + Math.max(0, st.spd - 1) * 150 + (pd.boriJoined ? 50 + ((st.boriMul || 1) - 1) * 300 : 0) + (skl.smash + skl.nag + skl.flash + skl.fist) * 12 + skl.menhera * 40 + ((st.skillMul || 1) - 1) * 600);
   if (keepP) calcStats();
   return { snap, power };
@@ -57,7 +57,7 @@ function pvpRender(html) {
 }
 function pvpCard(f, btn) {
   const s = f.snap || {}, mine = f.user_id === PV.uid;
-  return `<div class="pvc${mine ? ' mine' : ''}"><img src="${pvpFaceURL(s.vis || s.eq, s.hair)}"><span><em>${esc(f.nickname)}${mine ? ' (나)' : ''}</em><small>Lv.${s.lv || '?'} · 전투력 ${f.power} · 점수 ${f.rating}</small>${s.atk != null ? `<small>공 ${s.atk} · 방 ${s.def} · HP ${s.hp}${s.enh ? ' · 무기+' + s.enh : ''}${s.tenh ? ' · 장난감+' + s.tenh : ''}</small>` : ''}</span>${btn || ''}</div>`;
+  return `<div class="pvc${mine ? ' mine' : ''}"><img src="${pvpFaceURL(s.vis || s.eq, s.hair)}"><span><em>${achTag(s.ttl)}${esc(f.nickname)}${mine ? ' (나)' : ''}</em><small>Lv.${s.lv || '?'} · 전투력 ${f.power} · 점수 ${f.rating}</small>${s.atk != null ? `<small>공 ${s.atk} · 방 ${s.def} · HP ${s.hp}${s.enh ? ' · 무기+' + s.enh : ''}${s.tenh ? ' · 장난감+' + s.tenh : ''}</small>` : ''}</span>${btn || ''}</div>`;
 }
 async function pvpTab(t) {
   PV.tab = t; if (!PV.me) return; pvpRender('<div class="pvmsg">불러오는 중...</div>');
@@ -177,6 +177,7 @@ function pvpUpdate(dt) {
 async function pvpEnd(won, why) {
   const V = G.pvp; if (!V || V.over) return; V.over = true; G.state = 'pvpEnd'; INP.atk = false; dailyAdd('pvp');
   if (won && G.boss) { const r = G.boss; r.dead = true; r.deadT = 0.25; burst(r.x, r.y - 10, '#ff7ab8', 30, 120); }
+  if (won) G.pd.stats.pvpW = (G.pd.stats.pvpW || 0) + 1;
   sfx(won ? 'lvl' : 'hurt'); const gold = won ? 40 + G.pd.lv * 3 : 10; G.pd.gold += gold; saveGame();
   $('#pvpRes').hidden = false; $('#pvpResT').textContent = won ? '승리!' : '패배...'; $('#pvpResT').className = won ? 'w' : 'l';
   $('#pvpResS').innerHTML = `${why ? esc(why) + '<br>' : ''}VS ${esc(V.opp.nickname)}의 희수<br>골드 +${gold}<br><span id="pvpDelta">점수 반영 중...</span>`;

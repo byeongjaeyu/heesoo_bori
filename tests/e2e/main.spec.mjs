@@ -272,3 +272,13 @@ test('내 희수를 친구가 데려가면 강화석 알림', async ({ page }) =
   await expect(page.locator('#toasts')).toContainText('🤝 보리언니님이 내 희수를 데려갔어요! 강화석 3개');
   expect(await page.evaluate(() => loadGame().stones)).toBe(3);
 });
+
+test('업적 달성 → 칭호 장착 → 랭킹 snap에 칭호', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 20, stats: { kills: 150, ults: 0, deaths: 0, time: 0, eaten: 0 } });
+  await enterZone(page, 1);
+  await expect(page.locator('#toasts')).toContainText('칭호 「새내기 사냥꾼」', { timeout: 4000 });
+  await page.evaluate(() => openMenu('achv'));
+  await page.click('[data-m="title"][data-v="k100"]');
+  await expect(page.locator('.achnow')).toContainText('새내기 사냥꾼');
+  expect(await page.evaluate(() => [loadGame().title, pvpSnap().snap.ttl])).toEqual(['k100', 'k100']);
+});

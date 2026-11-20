@@ -46,7 +46,7 @@ async function buddyOpen() {
     const { data, error } = await SB.from('hb_fighters').select('user_id,nickname,snap,power').eq('played', true).order('power', { ascending: false }).limit(30); if (error) throw error;
     BUDDY.list = (data || []).filter(f => f.user_id !== PV.uid);
     $('#buddyBody').innerHTML = `<p class="smsub">하루 한 번, 친구의 희수가 ${BUDDY_TIME / 60}분 동안 같이 싸워줘요 (공격력 ${BUDDY_MUL * 100}%)<br>데려간 친구는 강화석 3개를 받아요</p>`
-      + (BUDDY.list.length ? BUDDY.list.map((f, i) => { const s = f.snap || {}; return `<div class="bdrow"><img src="${pvpFaceURL(s.vis || s.eq, s.hair)}"><span><em>${esc(f.nickname)}</em><small>Lv.${s.lv || '?'}${s.aw ? '★' + s.aw : ''} · 전투력 ${Number(f.power).toLocaleString()}</small></span><button class="btn pk sm" data-bd="${i}">데려가기</button></div>`; }).join('')
+      + (BUDDY.list.length ? BUDDY.list.map((f, i) => { const s = f.snap || {}; return `<div class="bdrow"><img src="${pvpFaceURL(s.vis || s.eq, s.hair)}"><span><em>${achTag(s.ttl)}${esc(f.nickname)}</em><small>Lv.${s.lv || '?'}${s.aw ? '★' + s.aw : ''} · 전투력 ${Number(f.power).toLocaleString()}</small></span><button class="btn pk sm" data-bd="${i}">데려가기</button></div>`; }).join('')
         : '<div class="pvmsg">아직 데려올 친구가 없어요. 카드 공유로 친구를 불러보세요!</div>');
   } catch (e) { $('#buddyBody').innerHTML = `<div class="pvmsg">불러오지 못했어요: ${esc(pvErr(e))}</div>`; }
 }

@@ -92,12 +92,12 @@ function updateHUD() {
 
 // ---------- menu ----------
 let MTAB = 'skill';
-const TABS = [['skill', '스킬'], ['equip', '장비'], ['bori', '보리'], ['daily', '미션'], ['book', '도감'], ['look', '꾸미기'], ['food', '음식'], ['shop', '배달앱'], ['info', '정보']];
+const TABS = [['skill', '스킬'], ['equip', '장비'], ['bori', '보리'], ['daily', '미션'], ['book', '도감'], ['achv', '칭호'], ['look', '꾸미기'], ['food', '음식'], ['shop', '배달앱'], ['info', '정보']];
 function openMenu(tab) { if (G.state !== 'play') return; G.state = 'menu'; INP.atk = false; INP.joy.on = false; hideJoy(); if (tab) MTAB = tab; else if (G.pd.sp > 0) MTAB = 'skill'; else if (G.pd.newItem) MTAB = 'equip'; else if (G.pd.newBori) MTAB = 'bori'; $('#menu').hidden = false; renderMenu(true); sfx('select'); }
 function closeMenu() { $('#menu').hidden = true; if (G.state === 'menu') G.state = 'play'; saveGame(); setHudImages(); }
 function renderMenu(top) {
   const pd = G.pd;
-  $('#tabs').innerHTML = TABS.map(([k, n]) => `<button class="tab ${k === MTAB ? 'on' : ''}" data-m="tab" data-v="${k}">${n}${k === 'skill' && pd.sp > 0 ? `<em>${pd.sp}</em>` : ''}${k === 'equip' && pd.newItem ? '<em>N</em>' : ''}${k === 'bori' && pd.newBori ? '<em>N</em>' : ''}${k === 'daily' && dailyClaimable(pd) ? `<em>${dailyClaimable(pd)}</em>` : ''}</button>`).join('');
+  $('#tabs').innerHTML = TABS.map(([k, n]) => `<button class="tab ${k === MTAB ? 'on' : ''}" data-m="tab" data-v="${k}">${n}${k === 'skill' && pd.sp > 0 ? `<em>${pd.sp}</em>` : ''}${k === 'equip' && pd.newItem ? '<em>N</em>' : ''}${k === 'bori' && pd.newBori ? '<em>N</em>' : ''}${k === 'achv' && pd.achNew ? '<em>N</em>' : ''}${k === 'daily' && dailyClaimable(pd) ? `<em>${dailyClaimable(pd)}</em>` : ''}</button>`).join('');
   const b = $('#mbody'), sc = b.scrollTop; b.innerHTML = MREN[MTAB](); b.scrollTop = top ? 0 : sc;
   if (MTAB === 'equip' && pd.newItem) { pd.newItem = false; }
   if (MTAB === 'bori' && pd.newBori) { pd.newBori = false; }
@@ -166,6 +166,7 @@ const MREN = {
     return h;
   },
   daily() { dailyScrollToday(); return dailyHtml(G.pd); },
+  achv() { return achvHtml(G.pd); },
   skill() {
     const pd = G.pd; const used = Object.values(pd.skills).reduce((a, b) => a + b, 0);
     return awkPanel() + `<div class="sprow"><span>스킬 포인트 <b>${pd.sp}</b></span><button class="btn wh" data-m="reset" ${used ? '' : 'disabled'}>초기화 (무료)</button></div>
@@ -248,6 +249,7 @@ function menuClick(e) {
   const m = t.dataset.m, v = t.dataset.v, pd = G.pd;
   if (m === 'close') { closeMenu(); return; }
   if (m === 'tab') { MTAB = v; renderMenu(true); sfx('select'); return; }
+  if (m === 'title') { if (v && !(pd.ach || {})[v]) return; pd.title = v || undefined; sfx('ding'); saveGame(); renderMenu(); if (typeof rankSync === 'function') rankSync(true); return; }
   if (m === 'hair') { const hr = HAIRS.find(x => x.k === v); if (!hr || !hairOk(pd, hr)) return; pd.look = Object.assign({}, pd.look, { hair: v }); sfx('ding'); renderMenu(); setHudImages(); saveGame(); return; }
   if (m === 'look') { const [sl, id] = v.split(':'); pd.look = Object.assign({}, pd.look); if (id) pd.look[sl] = id; else delete pd.look[sl]; sfx('ding'); renderMenu(); setHudImages(); saveGame(); return; }
   if (m === 'learn') { const s = SKILLS[v], lv = sk(v); if (pd.sp <= 0 || lv >= s.max || pd.lv < s.req) return; pd.sp--; pd.skills[v] = lv + 1; calcStats(); sfx('ding'); if (!lv && s.btn) toast(`${s.name} 버튼이 활성화됐어요!`, 'item r2'); renderMenu(); saveGame(); return; }
@@ -300,7 +302,7 @@ function showTitle() {
   let prof = '';
   if (saved) { let pw = 0; const keep = G.pd; try { G.pd = saved; pw = pvpSnap().power; } catch (e) { } G.pd = keep; G.st = null;
     const nick = (typeof PV !== 'undefined' && PV.me && PV.me.nickname) || '희수';
-    prof = `<div class="tprof"><img src="${pvpFaceURL(visEq(saved), saved.look && saved.look.hair)}" alt=""><span><b>${esc(nick)}</b><small>Lv.${saved.lv}${saved.aw ? ' ★' + saved.aw : ''}${saved.cleared ? ' · ' + (saved.cleared + 1) + '회차' : ''}</small><small class="tpw">전투력 ${pw.toLocaleString()}</small></span></div>`; }
+    prof = `<div class="tprof"><img src="${pvpFaceURL(visEq(saved), saved.look && saved.look.hair)}" alt=""><span>${saved.title && (saved.ach || {})[saved.title] ? achTag(saved.title) : ''}<b>${esc(nick)}</b><small>Lv.${saved.lv}${saved.aw ? ' ★' + saved.aw : ''}${saved.cleared ? ' · ' + (saved.cleared + 1) + '회차' : ''}</small><small class="tpw">전투력 ${pw.toLocaleString()}</small></span></div>`; }
   $('#tbar').innerHTML = prof + `<button class="ticon tsnd${SND.on ? '' : ' off'}" id="tSnd" aria-label="소리">${I('sound')}<small>${SND.on ? '소리 ON' : '소리 OFF'}</small></button>`;
   // 왼쪽 세로 아이콘
   $('#tsideL').innerHTML = (saved ? `<button class="ticon" id="tDaily">${I('cal')}<small>출석·미션</small>${dailyClaimable(saved) ? '<em class="dot"></em>' : ''}</button>` : '')

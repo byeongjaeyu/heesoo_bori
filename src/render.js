@@ -246,8 +246,8 @@ function renderScreen() {
     else if (f.k === 'lvl') { const [x, y] = W2S(f.x, f.y - 36 - p * 10); ctx.globalAlpha = p > 0.7 ? (1 - p) / 0.3 : 1; txt('LEVEL UP!', x, y, U * 7, '#ffd84a', '#2b1b24'); ctx.globalAlpha = 1; }
   }
   // enemy status
-  for (const e of G.enemies) if (e.rival && !e.dead && e.spawnT <= 0) { const [x, y] = W2S(e.x, e.y - 30); txt(e.nick, x, y, U * 3.6, '#ffd1e6', '#2b1b24'); }
-  if (G.buddy && G.buddy.spawnT <= 0) { const [x, y] = W2S(G.buddy.x, G.buddy.y - 30); txt('🤝' + G.buddy.nick, x, y, U * 3.4, '#d6f5ff', '#2b1b24'); }
+  for (const e of G.enemies) if (e.rival && !e.dead && e.spawnT <= 0) { const [x, y] = W2S(e.x, e.y - 30); txt(e.nick, x, y, U * 3.6, '#ffd1e6', '#2b1b24'); achNameTag(e.snap, x, y, U); }
+  if (G.buddy && G.buddy.spawnT <= 0) { const [x, y] = W2S(G.buddy.x, G.buddy.y - 30); txt('🤝' + G.buddy.nick, x, y, U * 3.4, '#d6f5ff', '#2b1b24'); achNameTag(G.buddy.snap, x, y, U); }
   for (const e of G.enemies) { if (e.dead || e.spawnT > 0) continue; const [x, y] = W2S(e.x, e.y - (e.hopY || 0) - e.h - 6); if (e.mental > 0 || e.confuse > 0) txt(Math.floor(G.time * 3) % 2 ? '@_@' : '?!', x, y, U * 4, '#ff7ab8', '#2b1b24'); else if (e.panic > 0) { txt(Math.floor(G.time * 4) % 2 ? '헉!' : '당황', x, y - Math.abs(Math.sin(G.time * 10)) * U * 2, U * 4.2, '#7ec8ff', '#2b1b24'); const [sx, sy] = W2S(e.x + e.w * 0.4, e.y - e.h * 0.8); ctx.fillStyle = '#9fe8ff'; ctx.fillRect(sx, sy + ((G.time * 30) % 6) * U * 0.5, U * 1.4, U * 2); } else if (e.fear > 0) txt('!!', x, y, U * 4.5, '#ffd84a', '#2b1b24'); }
   // speech bubbles
   for (const b of G.bubbles) {
@@ -349,3 +349,6 @@ function drawEscape(SW, SH, mid, gy, T) {
   ctx.fillStyle = 'rgba(255,246,190,0.9)'; ctx.fillRect(gx + 12, gyy + 15, 38, 39); ctx.drawImage(img, gx, gyy);
 }
 function drawStars(SW, SH, T) { fr(0, 0, SW, SH, '#1a0a2a'); for (let i = 0; i < 70; i++) { const x = (i * 97.3) % SW, y = (i * 53.7) % SH; if ((Math.floor(T * 2 + i) % 5) !== 0) fr(x, y, 1, 1, i % 3 ? '#ffffff' : '#ffd1e6'); } }
+
+/** 이름표 위 칭호 (snap.ttl) */
+function achNameTag(snap, x, y, U) { const a = snap && snap.ttl && ACH_BY[snap.ttl]; if (a) txt('「' + a.t + '」', x, y - U * 4, U * 3, ACH_COL[a.tier], '#2b1b24'); }

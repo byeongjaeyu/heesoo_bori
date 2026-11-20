@@ -45,7 +45,12 @@ interface SaveData {
   /** 엔딩을 본 횟수 = 회차 - 1 */
   cleared: number;
   boriJoined: boolean;
-  stats: { kills: number; ults: number; deaths: number; time: number; eaten: number };
+  stats: { kills: number; ults: number; deaths: number; time: number; eaten: number; boss?: number; pvpW?: number; raidBest?: number };
+  /** 업적: id → 달성 시각 */
+  ach?: Record<string, number>;
+  /** 장착 칭호 (업적 id) */
+  title?: string;
+  achNew?: boolean;
 
   /** 각성 단계 (Lv50 이후) */
   aw?: number;
