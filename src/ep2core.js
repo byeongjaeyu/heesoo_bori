@@ -11,7 +11,7 @@ function e2Load() {
   const p1 = loadGame(); if (p1 && p1.inv) for (const id of ['b_knit', 'b_pad', 'toy_melon', 'toy_doll', 'toy_bone']) if (p1.inv[id]) d.own[id] = true;
   return d;
 }
-function e2SaveNow() { try { localStorage.setItem(E2KEY, JSON.stringify(EP2.save)); } catch (e) { } }
+function e2SaveNow() { try { localStorage.setItem(E2KEY, JSON.stringify(EP2.save)); } catch (e) { } if (typeof cloudSync === 'function') cloudSync(); }
 const e2Stars = () => EP2.save.stars.reduce((a, b) => a + (b || 0), 0);
 function e2Unlock(id, quiet) {
   const s = EP2.save; if (s.own[id]) return; s.own[id] = true; const it = ITEMS[id];

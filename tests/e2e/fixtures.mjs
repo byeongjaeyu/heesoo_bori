@@ -7,16 +7,22 @@ export const URL_ONETOUCH = 'file://' + path.join(DIST, 'onetouch/index.html');
 
 /** 가짜 Supabase (메모리). page.evaluate 로 주입 */
 export const MOCK_SB = `(() => {
-  window.__rows = window.__rows || [];
+  window.__rows = window.__rows || [];          // hb_fighters
+  window.__db = window.__db || { hb_fighters: __rows, hb_saves: [] };
   window.__grants = window.__grants || [];
-  const q = () => { const st = { f: [], head: false, single: false, upd: null };
-    const run = () => { const rows = __rows.filter(r => st.f.every(([k, v]) => r[k] === v)); if (st.upd) { rows.forEach(r => Object.assign(r, st.upd)); return { error: null }; }
+  window.__rpc = window.__rpc || {};             // 테스트가 rpc 응답을 갈아끼움
+  const q = (table) => { const T = __db[table] || (__db[table] = []); const st = { f: [], head: false, single: false, upd: null };
+    const run = () => { const rows = T.filter(r => st.f.every(([k, v]) => r[k] === v)); if (st.upd) { rows.forEach(r => Object.assign(r, st.upd)); return { error: null }; }
       if (st.single) return { data: rows[0] || null, error: null }; if (st.head) return { count: rows.length, error: null }; return { data: rows, error: null }; };
     const o = { select(c, opt) { if (opt && opt.head) st.head = true; return o; }, limit() { return o; }, order() { return o; }, eq(k, v) { st.f.push([k, v]); return o; },
-      maybeSingle() { st.single = true; return Promise.resolve(run()); }, insert(row) { __rows.push(Object.assign({ user_id: 'u-me', rating: 1000, wins: 0, losses: 0 }, row)); return Promise.resolve({ error: null }); },
+      maybeSingle() { st.single = true; return Promise.resolve(run()); }, insert(row) { T.push(Object.assign({ user_id: 'u-me' }, table === 'hb_fighters' ? { rating: 1000, wins: 0, losses: 0 } : {}, row)); return Promise.resolve({ error: null }); },
       update(u) { st.upd = u; return o; }, then(res, rej) { return Promise.resolve(run()).then(res, rej); } };
     return o; };
-  const rpc = async (name) => { if (name === 'hb_claim_grants') { const d = __grants; __grants = []; return { data: d, error: null }; } return { data: null, error: null }; };
+  const rpc = async (name, args) => {
+    if (__rpc[name]) return { data: await __rpc[name](args), error: null };
+    if (name === 'hb_claim_grants') { const d = __grants; __grants = []; return { data: d, error: null }; }
+    if (name === 'hb_make_transfer_code') return { data: [{ code: 'ABCD2345', expires_at: new Date(Date.now() + 600000).toISOString() }], error: null };
+    return { data: null, error: null }; };
   SB = { from: q, rpc }; PV.uid = 'u-me';
   sbInit = async () => { SB = { from: q, rpc }; PV.uid = 'u-me'; };
 })()`;

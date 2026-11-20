@@ -74,7 +74,7 @@ async function pvpTab(t) {
   } catch (e) { pvpRender(`<div class="pvmsg">불러오기 실패: ${esc(pvErr(e))}</div>`); }
 }
 function pvpNickBox(first) {
-  $('#pvpNick').hidden = false; $('#pvpNickNo').hidden = RK.joining === 'entry'; const inp = $('#pvpNickIn'); inp.value = PV.me ? PV.me.nickname : ''; $('#pvpNickMsg').textContent = first ? 'PvP에서 쓸 닉네임을 정해주세요 (2~10자)' : '새 닉네임 (2~10자)';
+  $('#pvpNick').hidden = false; $('#pvpNickNo').hidden = RK.joining === 'entry'; $('#pvpNickCloud').hidden = RK.joining !== 'entry'; const inp = $('#pvpNickIn'); inp.value = PV.me ? PV.me.nickname : ''; $('#pvpNickMsg').textContent = first ? 'PvP에서 쓸 닉네임을 정해주세요 (2~10자)' : '새 닉네임 (2~10자)';
   setTimeout(() => inp.focus(), 50);
 }
 async function pvpNickSave() {

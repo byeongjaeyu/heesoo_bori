@@ -133,3 +133,30 @@ grant execute on function public.hb_claim_grants(text[]) to authenticated;
 create or replace function public.hb_claim_grants()
 returns table(kind text, amount bigint, note text)
 language sql security definer set search_path = public as $$ select * from public.hb_claim_grants(array['auto','gold']); $$;
+
+-- ===== 클라우드 세이브 + 기기 옮기기 =====
+create table if not exists public.hb_saves (
+  user_id uuid primary key default auth.uid() references auth.users(id) on delete cascade,
+  data jsonb,   -- 1탄 세이브 (SaveData)
+  ep2 jsonb,    -- 2탄 세이브
+  updated_at timestamptz not null default now(),
+  constraint hb_saves_size check (coalesce(octet_length(data::text), 0) + coalesce(octet_length(ep2::text), 0) < 400000)
+);
+alter table public.hb_saves enable row level security;
+revoke all on public.hb_saves from anon, authenticated;
+grant select on public.hb_saves to authenticated;
+grant insert (data, ep2) on public.hb_saves to authenticated;
+grant update (data, ep2, updated_at) on public.hb_saves to authenticated;
+create policy hb_saves_sel on public.hb_saves for select to authenticated using (user_id = auth.uid());
+create policy hb_saves_ins on public.hb_saves for insert to authenticated with check (user_id = auth.uid());
+create policy hb_saves_upd on public.hb_saves for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+create table if not exists public.hb_transfer_codes (code text primary key, user_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(), expires_at timestamptz not null default now() + interval '10 minutes', used_at timestamptz, used_by uuid);
+create table if not exists public.hb_transfer_tries (id bigserial primary key, user_id uuid not null, ok boolean not null, at timestamptz not null default now());
+alter table public.hb_transfer_codes enable row level security;
+alter table public.hb_transfer_tries enable row level security;
+revoke all on public.hb_transfer_codes, public.hb_transfer_tries from anon, authenticated;
+-- hb_make_transfer_code(): 8자리 코드(혼동 문자 제외), 10분, 이전 미사용 코드 무효화. 클라우드 세이브가 있어야 발급
+-- hb_use_transfer_code(p_code): 10분에 5번 틀리면 잠금. 세이브 이동, 랭킹 행 복사→전투기록 이전→원래 행 삭제→닉네임 복원, 미수령 선물 이동
+-- (본문은 마이그레이션 hb_cloud_save 참고: supabase 대시보드 → Database → Migrations)
