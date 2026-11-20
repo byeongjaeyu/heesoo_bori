@@ -89,8 +89,15 @@ async function claimGifts(pd) {
   if (FORCE_EASY || !pd || !SB) return;
   const { data, error } = await SB.rpc('hb_claim_grants', { p_kinds: ['auto', 'gold', 'stage', 'awaken', 'stones'] }); if (error || !data || !data.length) return;
   const tgt = G.pd || pd; // 그 사이 게임을 시작했으면 실제 플레이 중인 세이브에 넣음
+  const season = { rank: 0, items: /** @type {any[]} */ ([]) };
   for (const g of data) {
-    const lead = g.note && /시즌/.test(g.note) ? `🏆 ${String(g.note).split(' / ')[0]}!` : '🎁 선물 도착!';
+    const sm = g.note && /시즌 (\d+)위/.exec(String(g.note)); // 시즌 보상은 알림 대신 모달로 모아서
+    if (sm && (g.kind === 'stones' || g.kind === 'gold' || g.kind === 'auto')) {
+      const n = Number(g.amount) || 0; if (!n) continue; season.rank = Number(sm[1]); season.items.push({ kind: g.kind, amount: n });
+      if (g.kind === 'stones') tgt.stones = (tgt.stones || 0) + n; else if (g.kind === 'gold') tgt.gold = (tgt.gold || 0) + n; else tgt.autoBonus = (tgt.autoBonus || 0) + n;
+      continue;
+    }
+    const lead = '🎁 선물 도착!';
     if (g.kind === 'auto') {
       const sec = Number(g.amount) || 0; if (!sec) continue;
       tgt.autoBonus = (tgt.autoBonus || 0) + sec;
@@ -114,6 +121,7 @@ async function claimGifts(pd) {
     }
   }
   try { localStorage.setItem(SAVEKEY, JSON.stringify(tgt)); } catch (e) { }
+  if (season.items.length) { const ord = { stones: 0, gold: 1, auto: 2 }; season.items.sort((x, y) => ord[x.kind] - ord[y.kind]); seasonGotOpen(season.rank, season.items); }
   if (G.pd === tgt) calcStats();
   if (!G.pd && G.state === 'title' && !$('#title').hidden) showTitle(); // 타이틀 버튼 정보 갱신
 }
@@ -130,11 +138,37 @@ function seasonLeft() {
   const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
   return d ? `${d}일 ${h}시간` : h ? `${h}시간 ${m}분` : `${m}분`;
 }
+/** 시즌 보상표 (서버 hb_season_rollover 와 같아야 함) */
+const SEASON_REWARDS = [{ k: 1, label: '1위', s: 150, g: 3000000, a: 10800 }, { k: 2, label: '2위', s: 100, g: 2000000, a: 7200 }, { k: 3, label: '3위', s: 70, g: 1000000, a: 3600 },
+  { k: 4, label: '4~10위', s: 30, g: 300000 }, { k: 11, label: '1판 이상', s: 10 }];
+const MEDAL = r => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : '🏅';
+const fmtGold = n => n >= 10000 ? `${(n / 10000).toLocaleString()}만` : n.toLocaleString();
+const fmtAuto = s => s >= 3600 ? `${Math.round(s / 360) / 10}시간` : `${Math.round(s / 60)}분`;
+/** 보상 아이콘 카드 HTML. items: [{kind:'stones'|'gold'|'auto', amount}] */
+function rewardCards(items, big) {
+  const def = { stones: ['stone', '강화석', n => n + '개'], gold: ['coin', '골드', n => fmtGold(n) + 'G'], auto: ['alarm', '자동사냥', fmtAuto] };
+  return `<div class="rwcs${big ? ' big' : ''}">` + items.filter(it => def[it.kind] && it.amount > 0).map((it, i) => { const [ic, nm, f] = def[it.kind];
+    return `<div class="rwc" style="animation-delay:${i * 0.12}s"><img src="${iconURL('i_' + ic, ICONS[ic])}"><b>${f(Number(it.amount))}</b><small>${nm}</small></div>`; }).join('') + '</div>';
+}
+const rwItems = r => [{ kind: 'stones', amount: r.s }, { kind: 'gold', amount: r.g || 0 }, { kind: 'auto', amount: r.a || 0 }];
 function seasonBar() {
   if (!SEASON) return '';
-  const medal = ['🥇', '🥈', '🥉'], top = (SEASON.top || []).map(t => `${medal[t.rank - 1] || t.rank + '위'} ${esc(t.nickname)}`).join(' · ');
-  const mine = SEASON.mine ? `<small class="smine">내 지난 시즌: ${SEASON.mine.rank}위 · ${esc(SEASON.mine.reward || '')} (선물함으로 지급)</small>` : '';
+  const top = (SEASON.top || []).map(t => `${MEDAL(t.rank)} ${esc(t.nickname)}`).join(' · ');
+  const mine = SEASON.mine ? `<small class="smine">내 지난 시즌: ${MEDAL(SEASON.mine.rank)} ${SEASON.mine.rank}위</small>` : '';
   return `<div class="season"><div><b>🏆 이번 주 PvP 시즌</b><span>월요일 0시까지 ${seasonLeft()}</span></div>`
-    + `<small>1위 강화석 150·300만G·자동사냥 3시간 / 2위 100·200만G·2시간 / 3위 70·100만G·1시간 / 4~10위 30·30만G / 1판 이상 강화석 10</small>`
-    + (top ? `<small>지난 시즌: ${top}</small>` : '') + mine + '</div>';
+    + `<div class="srow">${top ? `<small>지난 시즌 ${top}</small>` : '<small>첫 시즌 진행 중!</small>'}<button class="btn pk sm" onclick="seasonRewardsOpen()">보상 보기</button></div>` + mine + '</div>';
 }
+/** 순위별 보상 모달 */
+function seasonRewardsOpen() {
+  $('#seasonModalBody').innerHTML = `<h2>주간 PvP 시즌 보상</h2><p class="smsub">매주 월요일 0시에 순위대로 선물함으로 지급돼요<br>(그 주에 PvP를 1판 이상 한 희수만)</p>`
+    + SEASON_REWARDS.map(r => `<div class="srw"><div class="srk"><i>${r.k <= 3 ? MEDAL(r.k) : r.k === 4 ? '🏅' : '🎗️'}</i><b>${r.label}</b></div>${rewardCards(rwItems(r))}</div>`).join('');
+  seasonModalShow();
+}
+/** 받은 시즌 보상 모달 */
+function seasonGotOpen(rank, items) {
+  $('#seasonModalBody').innerHTML = `<div class="sgot"><div class="sbig">${MEDAL(rank)}</div><h2>지난 주 PvP 시즌<br><em>${rank}위</em> 달성!</h2><p class="smsub">보상이 도착했어요</p>${rewardCards(items, true)}</div>`;
+  seasonModalShow(); sfx('lvl');
+}
+let SM_PAUSED = false;
+function seasonModalShow() { if (G.state === 'play') { G.state = 'menu'; SM_PAUSED = true; INP.atk = false; } $('#seasonModal').hidden = false; }
+function seasonModalClose() { $('#seasonModal').hidden = true; if (SM_PAUSED && G.state === 'menu' && $('#menu').hidden) G.state = 'play'; SM_PAUSED = false; }

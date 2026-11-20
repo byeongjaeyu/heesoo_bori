@@ -103,10 +103,18 @@ test('PvP 시즌: 랭킹 PvP 탭에 남은 시간·지난 시즌 TOP·내 기록
   const bar = page.locator('#rankList .season');
   await expect(bar).toContainText('월요일 0시까지 2일 5시간');
   await expect(bar).toContainText('🥇 원조희수');
-  await expect(bar).toContainText('내 지난 시즌: 2위');
+  await expect(bar).toContainText('내 지난 시즌: 🥈 2위');
+  await page.click('#rankList .season button');
+  await expect(page.locator('#seasonModal')).toBeVisible();
+  await expect(page.locator('#seasonModal .srw')).toHaveCount(5);
+  await expect(page.locator('#seasonModal .srw').first()).toContainText('150개');
+  await expect(page.locator('#seasonModal .srw').first()).toContainText('300만G');
+  await expect(page.locator('#seasonModal .srw').first()).toContainText('3시간');
+  await page.click('#seasonModal .btn');
+  await expect(page.locator('#seasonModal')).toBeHidden();
 });
 
-test('시즌 보상 선물: 강화석·골드에 시즌 문구', async ({ page }) => {
+test('시즌 보상 선물: 받으면 보상 모달(아이콘 카드)', async ({ page }) => {
   await withSave(page, URL_MAIN, { lv: 30, stones: 0, gold: 0 });
   await page.evaluate(MOCK_SB);
   await page.evaluate(() => { __rows.push({ user_id: 'u-me', nickname: '나', snap: {}, power: 1 }); PV.notReg = false; PV.me = null;
@@ -114,5 +122,8 @@ test('시즌 보상 선물: 강화석·골드에 시즌 문구', async ({ page }
   await page.evaluate(() => rankSync(true));
   const d = await page.evaluate(() => JSON.parse(localStorage.getItem(SAVEKEY)));
   expect([d.stones, d.gold]).toEqual([150, 3000000]);
-  await expect(page.locator('#toasts')).toContainText('🏆 지난 주 PvP 시즌 1위 보상! 강화석 150개');
+  await expect(page.locator('#seasonModal')).toBeVisible();
+  await expect(page.locator('#seasonModal h2')).toContainText('1위');
+  await expect(page.locator('#seasonModal .rwc')).toHaveCount(2);
+  await expect(page.locator('#seasonModal .rwc').first()).toContainText('150개');
 });
