@@ -386,3 +386,14 @@ test('자동사냥 중 1장 회차 클리어: 엔딩 컷신이 저절로 넘어�
   await page.waitForFunction(() => G.state === 'play' && G.zone === 0, null, { timeout: 90000 });
   expect(await page.evaluate(() => [G.pd.cleared, G.auto])).toEqual([3, true]);
 });
+
+test('재련·교환소: 장비 탭에서 재련, 배달앱에서 강화석 교환', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 50, gold: 10000000, stones: 0, inv: { starstick: 1 }, eq: { weapon: 'starstick' } });
+  await enterZone(page, 0);
+  await page.evaluate(() => openMenu('equip'));
+  await page.click('[data-m="refine"]');
+  await expect(page.locator('.refc .refl:not(.none)')).toHaveCount(3);
+  await page.click('#tabs [data-v="shop"]');
+  await page.click('[data-m="xch"][data-v="10"]');
+  expect(await page.evaluate(() => [loadGame().stones, loadGame().gold])).toEqual([10, 10000000 - 1500000 - 30000]);
+});

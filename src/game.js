@@ -100,10 +100,13 @@ function calcStats() {
   st.hp += BOOK_PER_HP * bk.n + (bk.done.r0 ? 80 : 0); if (bk.done.r1) st.atk += 12; if (bk.done.r2) st.def += 12; if (bk.done.r3) st.crit += 0.03;
   if (bk.done.sea) { st.atk *= 1.04; st.def *= 1.04; } if (bk.done.r4) st.atk *= 1.05; if (bk.done.r5) { st.atk *= 1.05; st.def *= 1.05; st.hp *= 1.05; } st.hp = Math.round(st.hp);
   if (G.P && G.P.buffs) { let ba = 0, bc = 0; for (const k in G.P.buffs) { ba += G.P.buffs[k].atk || 0; bc += G.P.buffs[k].crit || 0; } st.atk *= 1 + ba; st.crit += bc; }
+  // 재련 추가 옵션
+  { const R = refSum(pd); st.atk *= 1 + (R.atkP || 0) / 100; st.def *= 1 + (R.defP || 0) / 100; st.hp = Math.round(st.hp * (1 + (R.hpP || 0) / 100)); st.crit += (R.crit || 0) / 100; st.critMul += (R.critD || 0) / 100;
+    st.spd *= 1 + (R.spdP || 0) / 100; st.goldMul *= 1 + (R.goldP || 0) / 100; st.bossMul = 1 + (R.bossP || 0) / 100; st.refBori = (R.boriP || 0) / 100; }
   st.atk = Math.round(st.atk); st.def = Math.round(st.def); st.mp = Math.round(st.mp);
   st.weapon = ITEMS[pd.eq.weapon].w; st.moveSpd = 66 * st.spd;
   st.boriMul = 1 + AWK.bori.per * awkLv('bori'); for (const sl of BSLOTS) { const it = ITEMS[(pd.beq || {})[sl]]; if (it) st.boriMul += (it.bdmg || 0) * ilvMul(pd.beq[sl]); }
-  for (const sl of BSLOTS) { const en = (pd.enh || {})[(pd.beq || {})[sl]] || 0; st.enhs[sl] = en; st.boriMul += ENH_FX[sl].boriMul * en; } st.toyEnh = st.enhs.btoy; st.clothEnh = st.enhs.bcloth; if (bk.done.bori) st.boriMul += 0.15;
+  for (const sl of BSLOTS) { const en = (pd.enh || {})[(pd.beq || {})[sl]] || 0; st.enhs[sl] = en; st.boriMul += ENH_FX[sl].boriMul * en; } st.toyEnh = st.enhs.btoy; st.clothEnh = st.enhs.bcloth; if (bk.done.bori) st.boriMul += 0.15; st.boriMul += st.refBori || 0;
   G.st = st;
   if (G.P) { G.P.hp = Math.min(G.P.hp, st.hp); G.P.mp = Math.min(G.P.mp, st.mp); }
   return st;
@@ -182,6 +185,7 @@ function dealDamage(e, raw, o) {
   const crit = !o.noCrit && Math.random() < G.st.crit + (o.critAdd || 0);
   let dmg = o.trueDmg ? raw : Math.max(raw * 0.2, raw - e.def * 0.5);
   if (e.rival) dmg *= o.col === 'mental' ? PVP_MUL * 0.35 : PVP_MUL;
+  if (e.boss && !e.rival) dmg *= G.st.bossMul || 1;
   dmg *= rand(0.9, 1.1); if (crit) dmg *= G.st.critMul; dmg = Math.max(1, Math.round(dmg));
   e.hp -= dmg; e.flash = 0.12; if (e.raid) raidHit(e, dmg);
   if (o.kb && !e.boss) { e.kbx += Math.cos(o.ang) * o.kb; e.kby += Math.sin(o.ang) * o.kb; }

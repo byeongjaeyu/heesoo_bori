@@ -10,7 +10,7 @@ export const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname)
 const SRC = path.join(ROOT, 'src');
 
 /** 이어 붙이는 순서 (앞 파일의 전역을 뒤 파일이 씀). 확장자 없이, .ts 가 있으면 .ts 우선 */
-export const ORDER = ['sprites', 'sprites2', 'engine', 'data', 'world', 'chapter', 'game', 'render', 'ui', 'pvp', 'inf', 'auto', 'rank', 'cloud', 'daily', 'guide', 'share', 'raid', 'buddy', 'achv', 'idle', 'pack', 'story', 'story2', 'ep2core', 'ep2stages', 'ep2easy', 'ep2story', 'main'];
+export const ORDER = ['sprites', 'sprites2', 'engine', 'data', 'world', 'chapter', 'refine', 'game', 'render', 'ui', 'pvp', 'inf', 'auto', 'rank', 'cloud', 'daily', 'guide', 'share', 'raid', 'buddy', 'achv', 'idle', 'pack', 'story', 'story2', 'ep2core', 'ep2stages', 'ep2easy', 'ep2story', 'main'];
 
 export const BASE_URL = 'https://byeongjaeyu.github.io/heesoo_bori/';
 export const EDITIONS = {

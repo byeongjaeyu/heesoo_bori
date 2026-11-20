@@ -57,6 +57,10 @@ interface SaveData {
   pack?: { seen?: number; got?: number };
   /** 지금 고른 장 (1 에버랜드 · 2 바다낚시터) */
   chap?: number;
+  /** 강화석 교환소: 오늘 산 개수 */
+  xch?: { day: string; n: number };
+  /** 장비 재련 추가 옵션 (item id → 옵션 줄) */
+  ref?: Record<string, { lines: { k: string; v: number; g: number; lk?: number }[]; n: number }>;
   /** 2장 진행도 (zone 4~7) */
   ch2?: { zone: number; cleared: number; intro?: number; seen?: Record<string, number> };
 

@@ -187,7 +187,7 @@ const MREN = {
   equip() {
     const pd = G.pd, st = G.st;
     let h = `<div class="stats"><div>공격력<b>${st.atk}</b></div><div>방어력<b>${st.def}</b></div><div>치명타<b>${Math.round(st.crit * 100)}%</b></div><div>최대 HP<b>${st.hp}</b></div><div>최대 MP<b>${st.mp}</b></div><div>이동속도<b>${Math.round(st.spd * 100)}%</b></div></div>`;
-    h += enhCard(SLOTS);
+    h += enhCard(SLOTS); h += refCardHtml(pd, SLOTS);
     h += `<div class="slots">${SLOTS.map(sl => { const it = ITEMS[pd.eq[sl]]; return `<div class="slot"><img src="${itemURL(pd.eq[sl])}">${SLOTNAME[sl]}<br><b class="r${it.rar}">${it.name}${ilvTag(pd.eq[sl])}${(pd.enh || {})[pd.eq[sl]] ? ' +' + pd.enh[pd.eq[sl]] : ''}</b></div>`; }).join('')}</div>`;
     h += `<div class="gbar" style="margin-top:8px"><span>보리 옷·장난감은 '보리' 탭에 있어요</span><button class="btn" data-m="tab" data-v="bori" style="padding:3px 9px;font-size:12px">보리 탭</button></div>`;
     h += `<h3 style="margin-top:16px">희수 장비 목록</h3>` + `<div class="gbar dis"><span>강화석 <b>${pd.stones || 0}</b>개</span><span class="disb">일괄 분해 <button class="btn sm" data-m="bulk" data-v="0">일반</button><button class="btn sm" data-m="bulk" data-v="1">희귀↓</button><button class="btn sm" data-m="bulk" data-v="2">영웅↓</button></span></div>`;
@@ -206,7 +206,7 @@ const MREN = {
     if (!pd.boriJoined) h += `<p class="ds" style="margin:4px">Lv3에 보리를 찾으면 입히고 물려줄 수 있어요.</p>`;
     else {
       h += `<div class="bprev"><img src="${boriPreviewURL()}"><div><b>보리</b><br>귀여워서 무적이라<br>장비는 전부 공격 보너스!</div></div><div class="gbar"><span>보리 공격 보너스</span><span>+${Math.round((st.boriMul - 1) * 100)}%</span></div><div class="slots" style="grid-template-columns:repeat(2,1fr)">${BSLOTS.map(sl => { const id = pd.beq[sl], it = ITEMS[id]; return `<div class="slot">${it ? `<img src="${itemURL(id)}">` : '<div style="height:34px;line-height:34px;color:#aaa">없음</div>'}${SLOTNAME[sl]}<br><b class="r${it ? it.rar : 0}">${it ? it.name + ilvTag(id) : '-'}${it && (pd.enh || {})[id] ? ' +' + pd.enh[id] : ''}</b></div>`; }).join('')}</div>`;
-      h += enhCard(BSLOTS);
+      h += enhCard(BSLOTS) + refCardHtml(pd, BSLOTS);
       h += `<div class="gbar dis"><span>강화석 <b>${pd.stones || 0}</b>개</span><span class="disb">일괄 분해 <button class="btn sm" data-m="bulk" data-v="0">일반</button><button class="btn sm" data-m="bulk" data-v="1">희귀↓</button><button class="btn sm" data-m="bulk" data-v="2">영웅↓</button></span></div>`;
       for (const sl of BSLOTS) {
         const ids = Object.keys(pd.inv).filter(id => ITEMS[id] && ITEMS[id].slot === sl).sort((a, b) => ITEMS[a].rar - ITEMS[b].rar);
@@ -223,7 +223,7 @@ const MREN = {
   },
   shop() {
     const pd = G.pd;
-    let h = `<div class="shophead"><b>희수의 배달앱</b><div>폰으로 주문하면 보리가 받아와요. 배달비 무료!</div></div><div class="gbar"><span>보유 골드</span><span>${pd.gold.toLocaleString()}G</span></div><h3>음식</h3>`;
+    let h = `<div class="shophead"><b>희수의 배달앱</b><div>폰으로 주문하면 보리가 받아와요. 배달비 무료!</div></div><div class="gbar"><span>보유 골드</span><span>${pd.gold.toLocaleString()}G</span></div>` + xchCardHtml(pd) + `<h3>음식</h3>`;
     h += FOOD_ORDER.filter(id => !FOODS[id].noShop).map(id => { const f = FOODS[id]; return `<div class="card"><div class="ic"><img src="${iconURL('f_' + id, ICONS[f.icon])}"></div><div class="mid"><div class="nm"><span class="${f.rar ? 'r' + f.rar : ''}">${f.name}</span>${f.rar === 3 ? '<span class="tag ult">최고급</span>' : ''}<span class="tag">보유 ${pd.foods[id] || 0}</span></div><div class="ds">${f.desc}</div></div><button class="btn" data-m="buy" data-v="${id}" ${pd.gold >= f.price ? '' : 'disabled'}>${f.price}G</button></div>`; }).join('');
     const bitems = Object.keys(ITEMS).filter(id => ITEMS[id].bori && ITEMS[id].price && (ITEMS[id].tier || 0) <= G.zone + 1 && !pd.inv[id]).sort((a, b) => ITEMS[a].price - ITEMS[b].price);
     h += `<h3>보리 용품 <small>${pd.boriJoined ? '보리 공격력이 올라가요' : '보리를 찾으면 살 수 있어요'}</small></h3>`;
@@ -260,6 +260,9 @@ function menuClick(e) {
   const m = t.dataset.m, v = t.dataset.v, pd = G.pd;
   if (m === 'close') { closeMenu(); return; }
   if (m === 'tab') { MTAB = v; renderMenu(true); sfx('select'); return; }
+  if (m === 'xch') { xchBuy(v === 'max' ? Infinity : +v); renderMenu(); return; }
+  if (m === 'refine') { if (refine(v)) { const r = refOf(pd, v); const best = r.lines.filter(l => !l.lk).sort((a, b) => b.g - a.g)[0]; if (best && best.g >= 2) toast(`✨ ${REF_GRADE[best.g].n} 옵션! ${refLineTxt(best)}`, 'lvl'); } renderMenu(); return; }
+  if (m === 'refLock') { const [id, i] = v.split(':'); refLock(id, +i); renderMenu(); return; }
   if (m === 'ttl') { if (v && !(pd.ach || {})[v]) return; pd.title = v || undefined; sfx('ding'); saveGame(); renderMenu(); if (typeof rankSync === 'function') rankSync(true); return; }
   if (m === 'hair') { const hr = HAIRS.find(x => x.k === v); if (!hr || !hairOk(pd, hr)) return; pd.look = Object.assign({}, pd.look, { hair: v }); sfx('ding'); renderMenu(); setHudImages(); saveGame(); return; }
   if (m === 'look') { const [sl, id] = v.split(':'); pd.look = Object.assign({}, pd.look); if (id) pd.look[sl] = id; else delete pd.look[sl]; sfx('ding'); renderMenu(); setHudImages(); saveGame(); return; }
