@@ -139,3 +139,12 @@ test('첫 걸음 가이드: 새 게임에서 카드 + 공격 버튼 반짝, 5마
   await expect(page.locator('#menuBtn.gpulse')).toBeVisible();
   expect(await page.evaluate(() => G.pd.gold)).toBeGreaterThanOrEqual(gold0 + 300);
 });
+
+test('도감 탭: 보유 장비는 보이고 없는 건 ???', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 20, inv: { fist: 1, cap_grey: 1, fleece: 1, sneakers: 1, silverbag: 1, churros: 1 } });
+  await enterZone(page, 1);
+  await openTab(page, 'book');
+  await expect(page.locator('.bookhead')).toContainText('1 / 44');
+  await expect(page.locator('.bcell:not(.no)')).toHaveCount(1);
+  await expect(page.locator('.bcell:not(.no)')).toContainText('츄러스');
+});

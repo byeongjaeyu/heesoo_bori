@@ -138,3 +138,18 @@ const AWK = {
   bori:  { name: '보리 공격', icon: 'paw',   per: 0.02,  bori: 1, fmt: v => `+${Math.round(v * 100)}%`, desc: '보리 물기·멍멍·우다다 피해' }
 };
 const awkNeed = aw => Math.round(xpNeed(50) * (1 + 0.03 * aw));
+
+// ===== 장비 도감: 처음 얻은 장비 기록. 1칸당 최대 HP +5, 세트(등급별·보리 용품) 완성 보너스 =====
+const BOOK_PER_HP = 5;
+const BOOK_SETS = [
+  { k: 'r0', name: '일반', rar: 0, txt: '최대 HP +80' },
+  { k: 'r1', name: '희귀', rar: 1, txt: '공격 +12' },
+  { k: 'r2', name: '영웅', rar: 2, txt: '방어 +12' },
+  { k: 'r3', name: '전설', rar: 3, txt: '치명 +3%' },
+  { k: 'r4', name: '신화', rar: 4, txt: '공격 +5%' },
+  { k: 'r5', name: '초월', rar: 5, txt: '공격·방어·HP +5%' },
+  { k: 'bori', name: '보리 용품', rar: -1, bori: true, txt: '보리 공격 +15%' }
+];
+/** 세트에 들어가는 장비 id (시작 장비 제외) */
+const bookIds = set => Object.keys(ITEMS).filter(id => { const it = ITEMS[id]; return !it.start && (set.bori ? !!it.bori : !it.bori && it.rar === set.rar); });
+const BOOK_ALL = Object.keys(ITEMS).filter(id => !ITEMS[id].start);

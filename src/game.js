@@ -59,6 +59,14 @@ function feedEquip(it) {
   } else { pd.iexp[cur] = n; toast(`${it.name} → ${ci.name} 경험치 ${n}/${ILV_NEED}`, 'sub'); sfx('coin'); }
   return true;
 }
+/** 도감 상태 (보유·착용 중인 장비는 자동 등록) */
+function bookStats(pd) {
+  const b = pd.book = pd.book || {};
+  for (const id in pd.inv) if (ITEMS[id] && !ITEMS[id].start) b[id] = 1;
+  const n = BOOK_ALL.filter(id => b[id]).length, done = {};
+  for (const s of BOOK_SETS) done[s.k] = bookIds(s).every(id => b[id]);
+  return { n, done };
+}
 function calcStats() {
   const pd = G.pd, lv = pd.lv;
   const st = { hp: 100 + (lv - 1) * 22, mp: 50 + (lv - 1) * 8, atk: 10 + (lv - 1) * 3.5, def: 2 + (lv - 1) * 1.2, spd: 1, crit: 0.08, critMul: 1.6 };
@@ -68,11 +76,14 @@ function calcStats() {
   st.enhs = {}; for (const sl of SLOTS) { const en = (pd.enh || {})[pd.eq[sl]] || 0; st.enhs[sl] = en; const f = ENH_FX[sl]; for (const k in f) if (k !== 'txt') st[k] += f[k] * en; } st.enh = st.enhs.weapon;
   st.atk += AWK.atk.per * awkLv('atk'); st.def += AWK.def.per * awkLv('def'); st.hp += AWK.hp.per * awkLv('hp'); st.mp += AWK.mp.per * awkLv('mp'); st.crit += AWK.crit.per * awkLv('crit');
   st.skillMul = 1 + AWK.skill.per * awkLv('skill');
+  const bk = bookStats(pd); st.book = bk.n;
+  st.hp += BOOK_PER_HP * bk.n + (bk.done.r0 ? 80 : 0); if (bk.done.r1) st.atk += 12; if (bk.done.r2) st.def += 12; if (bk.done.r3) st.crit += 0.03;
+  if (bk.done.r4) st.atk *= 1.05; if (bk.done.r5) { st.atk *= 1.05; st.def *= 1.05; st.hp *= 1.05; } st.hp = Math.round(st.hp);
   if (G.P && G.P.buffs) { let ba = 0, bc = 0; for (const k in G.P.buffs) { ba += G.P.buffs[k].atk || 0; bc += G.P.buffs[k].crit || 0; } st.atk *= 1 + ba; st.crit += bc; }
   st.atk = Math.round(st.atk); st.def = Math.round(st.def); st.mp = Math.round(st.mp);
   st.weapon = ITEMS[pd.eq.weapon].w; st.moveSpd = 66 * st.spd;
   st.boriMul = 1 + AWK.bori.per * awkLv('bori'); for (const sl of BSLOTS) { const it = ITEMS[(pd.beq || {})[sl]]; if (it) st.boriMul += (it.bdmg || 0) * ilvMul(pd.beq[sl]); }
-  for (const sl of BSLOTS) { const en = (pd.enh || {})[(pd.beq || {})[sl]] || 0; st.enhs[sl] = en; st.boriMul += ENH_FX[sl].boriMul * en; } st.toyEnh = st.enhs.btoy; st.clothEnh = st.enhs.bcloth;
+  for (const sl of BSLOTS) { const en = (pd.enh || {})[(pd.beq || {})[sl]] || 0; st.enhs[sl] = en; st.boriMul += ENH_FX[sl].boriMul * en; } st.toyEnh = st.enhs.btoy; st.clothEnh = st.enhs.bcloth; if (bk.done.bori) st.boriMul += 0.15;
   G.st = st;
   if (G.P) { G.P.hp = Math.min(G.P.hp, st.hp); G.P.mp = Math.min(G.P.mp, st.mp); }
   return st;
@@ -466,11 +477,18 @@ function pickup(d) {
   else if (d.kind === 'food') { pd.foods[d.id] = (pd.foods[d.id] || 0) + 1; addText(P.x, P.y - 30, '+' + FOODS[d.id].name, 'food'); sfx('ding'); if (PREMIUM.includes(d.id)) toast(`${FOODS[d.id].name} 획득! 최고급 보양식`, 'lvl'); }
   else if (d.kind === 'item') {
     const it = ITEMS[d.id];
-    const fed = feedEquip(it);
+    const fed = feedEquip(it), isNewBook = !(pd.book || {})[d.id];
     if (pd.inv[d.id]) { if (fed) return; const s = stoneYield(d.id); pd.stones = (pd.stones || 0) + s; toast(`${it.name} (중복) → 강화석 ${s}개`, 'sub'); sfx('coin'); }
     else if (it.bori) { pd.inv[d.id] = 1; if (!pd.beq[it.slot]) { pd.beq[it.slot] = d.id; calcStats(); toast(`${it.name} 획득! 보리가 바로 ${it.slot === 'btoy' ? '물었어요' : '입었어요'}`, 'item r' + it.rar); if (G.bori) bubble(G.bori, '멍멍! (신남)', 1.4); } else { pd.newBori = true; toast(`보리 장비 획득: ${it.name}! (메뉴 → 보리)`, 'item r' + it.rar); } sfx('ding'); }
     else { pd.inv[d.id] = 1; pd.newItem = true; toast(`새 장비 획득: ${it.name}! (메뉴 → 장비)`, 'item r' + it.rar); sfx('ding'); }
+    if (isNewBook) bookNotify(d.id);
   }
+}
+/** 도감 새로 등록 알림 + 세트 완성 축하 */
+function bookNotify(id) {
+  const pd = G.pd, before = bookStats(pd).done; pd.book[id] = 1; calcStats(); const after = bookStats(pd);
+  toast(`📖 도감 등록! ${ITEMS[id].name} (${after.n}/${BOOK_ALL.length})`, 'sub');
+  for (const s of BOOK_SETS) if (after.done[s.k] && !before[s.k]) { toast(`📖 ${s.name} 도감 완성! ${s.txt}`, 'lvl'); sfx('lvl'); }
 }
 // ---------- 강화 (+20, 확률) · 강화석 ----------
 // 강화: 모든 장비(보리 포함) +25까지. 0→+25 기댓값 약 500만G (+17 약 15만, +20 약 52만)

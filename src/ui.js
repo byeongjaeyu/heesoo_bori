@@ -91,7 +91,7 @@ function updateHUD() {
 
 // ---------- menu ----------
 let MTAB = 'skill';
-const TABS = [['skill', '스킬'], ['equip', '장비'], ['bori', '보리'], ['daily', '미션'], ['food', '음식'], ['shop', '배달앱'], ['info', '정보']];
+const TABS = [['skill', '스킬'], ['equip', '장비'], ['bori', '보리'], ['daily', '미션'], ['book', '도감'], ['food', '음식'], ['shop', '배달앱'], ['info', '정보']];
 function openMenu(tab) { if (G.state !== 'play') return; G.state = 'menu'; INP.atk = false; INP.joy.on = false; hideJoy(); if (tab) MTAB = tab; else if (G.pd.sp > 0) MTAB = 'skill'; else if (G.pd.newItem) MTAB = 'equip'; else if (G.pd.newBori) MTAB = 'bori'; $('#menu').hidden = false; renderMenu(true); sfx('select'); }
 function closeMenu() { $('#menu').hidden = true; if (G.state === 'menu') G.state = 'play'; saveGame(); setHudImages(); }
 function renderMenu(top) {
@@ -140,6 +140,16 @@ function skillCard(id) {
   return `<div class="card ${(!reqOk || locked) ? 'dim' : ''}"><div class="ic"><img src="${iconURL('sk_' + s.icon, ICONS[s.icon])}"></div><div class="mid"><div class="nm">${s.name}<span class="tag ${s.type}">${SKILL_TYPE[s.type]}</span><span class="lvdots">${dots}</span></div><div class="ds">${lv ? '<b>현재</b> ' : ''}${cur}${meta}</div><div class="nx">${nx}</div></div><button class="btn plus" data-m="learn" data-v="${id}" ${can ? '' : 'disabled'}>+</button></div>`;
 }
 const MREN = {
+  book() {
+    const pd = G.pd, bk = bookStats(pd), b = pd.book || {};
+    let h = `<div class="bookhead"><b>장비 도감</b><span>${bk.n} / ${BOOK_ALL.length}</span></div><div class="gbar"><span>1칸마다 최대 HP +${BOOK_PER_HP}</span><span>지금 +${BOOK_PER_HP * bk.n}</span></div>`;
+    for (const s of BOOK_SETS) {
+      const ids = bookIds(s).sort((x, y) => (ITEMS[x].tier || 0) - (ITEMS[y].tier || 0) || ITEMS[x].slot.localeCompare(ITEMS[y].slot)), got = ids.filter(id => b[id]).length, done = bk.done[s.k];
+      h += `<div class="bookset${done ? ' done' : ''}"><div class="bsh"><b class="${s.bori ? '' : 'r' + s.rar}">${s.name}</b><span>${got}/${ids.length}</span><em>${done ? '✔ ' : ''}완성 보너스: ${s.txt}</em></div><div class="bgrid">`
+        + ids.map(id => { const it = ITEMS[id], has = !!b[id]; return `<div class="bcell${has ? '' : ' no'}" title="${has ? it.name : '???'}"><img src="${itemURL(id)}"><small>${has ? it.name : '???'}</small></div>`; }).join('') + '</div></div>';
+    }
+    return h;
+  },
   daily() { return dailyHtml(G.pd); },
   skill() {
     const pd = G.pd; const used = Object.values(pd.skills).reduce((a, b) => a + b, 0);
@@ -231,7 +241,7 @@ function menuClick(e) {
   if (m === 'sell') { const it = ITEMS[v]; confirmBox(`${it.name}을(를) ${sellPrice(v)}G에 팔까요?`, () => { delete pd.inv[v]; pd.gold += sellPrice(v); sfx('coin'); renderMenu(); saveGame(); }); return; }
   if (m === 'eat') { G.P.eatCd = 0; eatFood(v); G.P.eatCd = 0; renderMenu(); return; }
   if (m === 'buy') { const f = FOODS[v]; if (pd.gold < f.price) return; pd.gold -= f.price; pd.foods[v] = (pd.foods[v] || 0) + 1; sfx('coin'); renderMenu(); return; }
-  if (m === 'buyItem') { const it = ITEMS[v]; if (pd.gold < it.price || pd.inv[v]) return; pd.gold -= it.price; pd.inv[v] = 1; sfx('ding'); if (it.bori) { pd.beq[it.slot] = v; calcStats(); toast(`${it.name} 구매! 보리가 바로 ${it.slot === 'btoy' ? '물었어요' : '입었어요'} (보리 탭)`, 'item r' + it.rar); if (G.bori) bubble(G.bori, '멍멍! (신남)', 1.4); } else toast(`${it.name} 구매! 장비 탭에서 장착하세요`, 'item r' + it.rar); renderMenu(); saveGame(); return; }
+  if (m === 'buyItem') { const it = ITEMS[v]; if (pd.gold < it.price || pd.inv[v]) return; const isNewBook = !(pd.book || {})[v]; pd.gold -= it.price; pd.inv[v] = 1; sfx('ding'); if (isNewBook) bookNotify(v); if (it.bori) { pd.beq[it.slot] = v; calcStats(); toast(`${it.name} 구매! 보리가 바로 ${it.slot === 'btoy' ? '물었어요' : '입었어요'} (보리 탭)`, 'item r' + it.rar); if (G.bori) bubble(G.bori, '멍멍! (신남)', 1.4); } else toast(`${it.name} 구매! 장비 탭에서 장착하세요`, 'item r' + it.rar); renderMenu(); saveGame(); return; }
   if (m === 'enhSel') { const [g, s2] = v.split(':'); ENH_SEL[g] = s2; renderMenu(); return; }
   if (m === 'enhance' || m === 'enhanceS') {
     const toy = BSLOTS.includes(v), r = tryEnhance(m === 'enhanceS', v || 'weapon'); if (!r) return; const nm = ITEMS[r.id].name, P = toy && G.bori ? G.bori : G.P;

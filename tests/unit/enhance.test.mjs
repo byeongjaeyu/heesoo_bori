@@ -41,11 +41,12 @@ describe('tryEnhance', () => {
     const pd = fresh({ gold: 1e9 }); pd.enh[pd.eq.weapon] = 25;
     expect(g.tryEnhance(false, 'weapon')).toBeFalsy(); expect(pd.enh[pd.eq.weapon]).toBe(25);
   });
-  test('파괴되면 리셋 단계로 떨어지고 장비는 남음', () => {
-    const pd = fresh({ gold: 1e9 }); const id = pd.eq.armor; pd.enh[id] = 22;
+  test('파괴되면 리셋 단계로 떨어지고 장비는 남음 (장비 레벨·재료는 그대로)', () => {
+    const pd = fresh({ gold: 1e9 }); const id = pd.eq.armor; pd.enh[id] = 22; pd.ilv[id] = 1; pd.iexp[id] = 1;
     // 굴림 순서: 성공 → 하락 → 파괴 → 유지. 파괴 구간 한가운데 값
     const o = g.enhOdds(22, false); const r = withRandom(o.p + o.dn + o.ds / 2, () => g.tryEnhance(false, 'armor'));
     expect(r.res).toBe('boom'); expect(pd.enh[id]).toBe(17); expect(pd.inv[id]).toBe(1);
+    expect(pd.ilv[id]).toBe(1); expect(pd.iexp[id]).toBe(1);
   });
   test('강화 효과: 무기 +10 = 공격 +25, 치명 +10%', () => {
     const pd = fresh(); g.calcStats(); const a0 = g.G.st.atk, c0 = g.G.st.crit;
