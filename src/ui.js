@@ -249,7 +249,7 @@ function menuClick(e) {
   const m = t.dataset.m, v = t.dataset.v, pd = G.pd;
   if (m === 'close') { closeMenu(); return; }
   if (m === 'tab') { MTAB = v; renderMenu(true); sfx('select'); return; }
-  if (m === 'title') { if (v && !(pd.ach || {})[v]) return; pd.title = v || undefined; sfx('ding'); saveGame(); renderMenu(); if (typeof rankSync === 'function') rankSync(true); return; }
+  if (m === 'ttl') { if (v && !(pd.ach || {})[v]) return; pd.title = v || undefined; sfx('ding'); saveGame(); renderMenu(); if (typeof rankSync === 'function') rankSync(true); return; }
   if (m === 'hair') { const hr = HAIRS.find(x => x.k === v); if (!hr || !hairOk(pd, hr)) return; pd.look = Object.assign({}, pd.look, { hair: v }); sfx('ding'); renderMenu(); setHudImages(); saveGame(); return; }
   if (m === 'look') { const [sl, id] = v.split(':'); pd.look = Object.assign({}, pd.look); if (id) pd.look[sl] = id; else delete pd.look[sl]; sfx('ding'); renderMenu(); setHudImages(); saveGame(); return; }
   if (m === 'learn') { const s = SKILLS[v], lv = sk(v); if (pd.sp <= 0 || lv >= s.max || pd.lv < s.req) return; pd.sp--; pd.skills[v] = lv + 1; calcStats(); sfx('ding'); if (!lv && s.btn) toast(`${s.name} 버튼이 활성화됐어요!`, 'item r2'); renderMenu(); saveGame(); return; }

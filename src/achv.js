@@ -56,13 +56,13 @@ function achvCheck() {
 function achvHtml(pd) {
   pd.achNew = false; const own = pd.ach || {}, n = ACH.filter(a => own[a.id]).length, cur = pd.title && own[pd.title] ? pd.title : '';
   let h = `<div class="bookhead"><b>업적과 칭호</b><span>${n} / ${ACH.length}</span></div>`
-    + `<div class="achnow">지금 칭호 ${cur ? achTag(cur) : '<span class="ttag">없음</span>'}${cur ? '<button class="btn wh sm" data-m="title" data-v="">떼기</button>' : ''}<small>칭호는 랭킹·PvP·카드·동료 이름표에 붙어요</small></div>`;
+    + `<div class="achnow">지금 칭호 ${cur ? achTag(cur) : '<span class="ttag">없음</span>'}${cur ? '<button class="btn wh sm" data-m="ttl" data-v="">떼기</button>' : ''}<small>칭호는 랭킹·PvP·카드·동료 이름표에 붙어요</small></div>`;
   const list = ACH.slice().sort((x, y) => (own[y.id] ? 1 : 0) - (own[x.id] ? 1 : 0) || x.tier - y.tier);
   for (const a of list) {
     const ok = !!own[a.id], g = achGoal(a, pd), v = Math.min(g, Math.floor(a.v(pd) || 0)), on = cur === a.id;
     h += `<div class="ach${ok ? ' ok' : ''}${on ? ' on' : ''}"><i class="am t${a.tier}">${ACH_TIER[a.tier][0]}</i><span><b>${ok ? achTag(a.id) : `<span class="ttag lock">${a.t}</span>`}</b><small>${a.d} · 보상 강화석 ${ACH_REW[a.tier]}</small>`
       + (ok ? '' : `<em class="abar"><u style="width:${Math.round(v / g * 100)}%"></u></em><small>${a.id[0] === 't' ? fmtTime(v) + ' / ' + fmtTime(g) : v.toLocaleString() + ' / ' + g.toLocaleString()}</small>`) + '</span>'
-      + (ok ? (on ? '<button class="btn sm" disabled>장착 중</button>' : `<button class="btn pk sm" data-m="title" data-v="${a.id}">장착</button>`) : '') + '</div>';
+      + (ok ? (on ? '<button class="btn sm" disabled>장착 중</button>' : `<button class="btn pk sm" data-m="ttl" data-v="${a.id}">장착</button>`) : '') + '</div>';
   }
   return h;
 }

@@ -278,7 +278,16 @@ test('업적 달성 → 칭호 장착 → 랭킹 snap에 칭호', async ({ page 
   await enterZone(page, 1);
   await expect(page.locator('#toasts')).toContainText('칭호 「새내기 사냥꾼」', { timeout: 4000 });
   await page.evaluate(() => openMenu('achv'));
-  await page.click('[data-m="title"][data-v="k100"]');
+  await page.click('[data-m="ttl"][data-v="k100"]');
   await expect(page.locator('.achnow')).toContainText('새내기 사냥꾼');
   expect(await page.evaluate(() => [loadGame().title, pvpSnap().snap.ttl])).toEqual(['k100', 'k100']);
+});
+
+test('메뉴 정보 탭 「타이틀로」 버튼', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 10 });
+  await enterZone(page, 1);
+  await page.evaluate(() => openMenu('info'));
+  await page.click('#menu [data-m="title"]');
+  await expect(page.locator('#title')).toBeVisible();
+  await expect(page.locator('#tCont')).toBeVisible();
 });
