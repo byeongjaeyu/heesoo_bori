@@ -430,7 +430,7 @@ button{font-family:inherit;color:inherit;border:none;background:none;padding:0;c
 .tchap{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .tch{font-family:inherit;font-size:13px;padding:7px 4px;border:2px solid #2b1b24;border-radius:12px;background:rgba(255,255,255,.85);color:var(--ink);box-shadow:0 3px 0 #2b1b24;cursor:pointer;white-space:nowrap}
 .tch b{color:#e0407a}.tch.on{background:linear-gradient(#fff,#ffe0ef);outline:3px solid #ff7ab8;outline-offset:-5px}.tch.lock{opacity:.6}.tch em{font-style:normal;font-size:9px;background:#ff3b5c;color:#fff;border-radius:6px;padding:0 4px;vertical-align:2px}.tch small{font-size:10px;color:#888}
-.xch .nm small{font-size:11px;color:#888;margin-left:4px}.xbtn{display:flex;gap:6px;margin-top:6px}.xbtn .btn{flex:1}
+.xch .nm small{font-size:11px;color:#888;margin-left:4px}.xchbtns{display:flex;gap:6px;margin-top:6px}.xchbtns .btn{flex:1}
 .refc .nm small{font-size:11px;color:#777;font-weight:normal}.refl{display:flex;align-items:center;gap:6px;background:#fff;border:2px solid #eee;border-radius:10px;padding:5px 8px;margin-top:5px;font-size:13px}
 .refl span{flex:1}.refl em{font-style:normal;font-size:10px;padding:1px 6px;border-radius:6px;background:#eee;color:#666}.refl.none{color:#aaa;border-style:dashed}
 .refl.g1{border-color:#9fd0f5}.refl.g1 em{background:#3a9ad9;color:#fff}.refl.g2{border-color:#ffc27a;background:#fff8ee}.refl.g2 em{background:#ff9a2a;color:#fff}

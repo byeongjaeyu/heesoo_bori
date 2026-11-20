@@ -20,7 +20,7 @@ function xchCardHtml(pd) {
   const n0 = xchToday(pd), left = XCH_MAX - n0, p = xchPriceNow(n0);
   return `<h3>강화석 교환소</h3><div class="card xch"><div class="ic"><img src="${iconURL('i_stone', ICONS.stone)}"></div><div class="mid"><div class="nm">강화석 <small>오늘 ${n0} / ${XCH_MAX}</small></div>`
     + `<div class="ds">${left ? `지금 1개 <b>${p.toLocaleString()}G</b> · 100개마다 값이 두 배` : '오늘 한도를 다 썼어요. 자정에 다시 열려요'}</div>`
-    + `<div class="xbtn"><button class="btn sm pk" data-m="xch" data-v="10" ${left ? '' : 'disabled'}>10개 · ${xchCost(n0, Math.min(10, left)).toLocaleString()}G</button><button class="btn sm wh" data-m="xch" data-v="max" ${left ? '' : 'disabled'}>살 수 있는 만큼</button></div></div></div>`;
+    + `<div class="xchbtns"><button class="btn sm pk" data-m="xch" data-v="10" ${left ? '' : 'disabled'}>10개 · ${xchCost(n0, Math.min(10, left)).toLocaleString()}G</button><button class="btn sm wh" data-m="xch" data-v="max" ${left ? '' : 'disabled'}>살 수 있는 만큼</button></div></div></div>`;
 }
 
 // ---------- 장비 재련 (추가 옵션) ----------
