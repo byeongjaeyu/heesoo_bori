@@ -49,3 +49,19 @@ describe('자동사냥 시간', () => {
     expect(g.autoLeft()).toBe(1800 + 3600);
   });
 });
+
+describe('세이브 고유 번호(sid)', () => {
+  test('새 세이브마다 다른 sid', () => {
+    expect(g.newPD().sid).toBeTruthy(); expect(g.newPD().sid).not.toBe(g.newPD().sid);
+  });
+  test('sid 없는 예전 세이브는 처음 불러올 때 만들어 저장 → 다시 불러와도 같은 값', () => {
+    const old = g.newPD(); delete old.sid; localStorage.setItem(g.SAVEKEY, JSON.stringify(old));
+    const a = g.loadGame().sid, b = g.loadGame().sid;
+    expect(a).toBeTruthy(); expect(b).toBe(a); expect(JSON.parse(localStorage.getItem(g.SAVEKEY)).sid).toBe(a);
+  });
+  test('랭킹 스냅샷에 sid·스킬 위력(skm) 포함', () => {
+    const pd = fresh({ lv: g.MAX_LV }); pd.awp = { skill: 10 }; g.calcStats();
+    const { snap } = g.pvpSnap();
+    expect(snap.sid).toBe(pd.sid); expect(snap.skm).toBeCloseTo(1 + 10 * g.AWK.skill.per);
+  });
+});

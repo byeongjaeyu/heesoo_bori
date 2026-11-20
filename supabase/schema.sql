@@ -160,3 +160,11 @@ revoke all on public.hb_transfer_codes, public.hb_transfer_tries from anon, auth
 -- hb_make_transfer_code(): 8자리 코드(혼동 문자 제외), 10분, 이전 미사용 코드 무효화. 클라우드 세이브가 있어야 발급
 -- hb_use_transfer_code(p_code): 10분에 5번 틀리면 잠금. 세이브 이동, 랭킹 행 복사→전투기록 이전→원래 행 삭제→닉네임 복원, 미수령 선물 이동
 -- (본문은 마이그레이션 hb_cloud_save 참고: supabase 대시보드 → Database → Migrations)
+
+-- ===== 랭킹 조작 방지 (마이그레이션 hb_anticheat_v1, hb_submit_fighter_return_reason, hb_transfer_keep_sid) =====
+-- hb_fighters.hidden: 운영자가 숨긴 희수 (본인만 보임, hb_opponents 제외)
+-- hb_fighters.sid: 세이브 고유 번호 (unique). 다른 user_id 가 같은 sid 로 등록하면 'moved'
+-- hb_flags: 'rejected'(범위 밖 값), 'jump'(1시간 내 전투력 2배+1000 초과) 기록
+-- hb_power(snap): 전투력 공식. **src/pvp.js pvpSnap 의 power 공식과 반드시 같아야 함**
+-- hb_submit_fighter(p_snap, p_nick): 클라이언트의 유일한 등록/갱신 경로. 반환 {ok, power} | {ok:false, reason: invalid|moved|nickname, field}
+-- 클라이언트의 hb_fighters 직접 insert/update 권한은 회수 (revoke insert, update on hb_fighters from authenticated)

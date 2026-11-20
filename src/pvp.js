@@ -3,7 +3,7 @@ const SB_URL = 'https://ujxuzduomfssguibnjux.supabase.co';
 const SB_KEY = 'sb_publishable_PcjuTpqwZMObF0YuHmTTjA_ifajvlMg';
 const PVP_MUL = 0.12, PVP_TIME = 100;
 let SB = null, SBP = null;
-const PV = { me: null, uid: null, tab: 'find', list: [], busy: false };
+const PV = { me: null, uid: null, tab: 'find', list: [], busy: false, notReg: /** @type {boolean|undefined} */ (undefined), moved: false };
 
 function sbInit() {
   if (SBP) return SBP;
@@ -17,7 +17,7 @@ function sbInit() {
   SBP.catch(() => { SBP = null; });
   return SBP;
 }
-function pvErr(e) { const m = (e && (e.message || e.msg)) || String(e); if (/anonymous/i.test(m)) return '서버에서 익명 로그인이 꺼져 있어요'; if (/import|fetch|network|Failed/i.test(m)) return '서버에 연결할 수 없어요 (인터넷 확인)'; if (/duplicate|unique/i.test(m)) return '이미 누가 쓰는 닉네임이에요'; if (/too fast|rate/i.test(m)) return '조금만 쉬었다가 다시 도전해 주세요'; return m.slice(0, 80); }
+function pvErr(e) { const m = (e && (e.message || e.msg)) || String(e); if (/anonymous/i.test(m)) return '서버에서 익명 로그인이 꺼져 있어요'; if (/import|fetch|network|Failed/i.test(m)) return '서버에 연결할 수 없어요 (인터넷 확인)'; if (/duplicate|unique/i.test(m)) return '이미 누가 쓰는 닉네임이에요'; if (/hb:moved/.test(m)) return '이 희수는 다른 기기로 옮겨졌어요. 「다른 기기에서 하던 희수 불러오기」로 가져오거나 새로 시작해 주세요'; if (/hb:invalid/.test(m)) return '기록에 이상한 값이 있어서 등록할 수 없어요'; if (/hb:nickname/.test(m)) return '닉네임을 정해주세요'; if (/too fast|rate/i.test(m)) return '조금만 쉬었다가 다시 도전해 주세요'; return m.slice(0, 80); }
 
 // ---------- 내 희수 스냅샷 ----------
 function pvpSnap() {
@@ -25,16 +25,18 @@ function pvpSnap() {
   const skl = {}; for (const id of ['fist', 'smash', 'nag', 'flash', 'menhera', 'mukbang', 'shop']) skl[id] = sk(id);
   const snap = { v: 1, lv: pd.lv, aw: pd.aw || 0, hp: st.hp, atk: st.atk, def: st.def, crit: Math.round(st.crit * 1000) / 1000, critMul: st.critMul, spd: Math.round(st.spd * 100) / 100, enh: st.enh || 0, tenh: st.toyEnh || 0,
     w: { id: pd.eq.weapon, mul: w.mul, rate: w.rate, reach: w.reach, arc: w.arc, style: w.style }, eq: Object.assign({}, pd.eq), sk: skl,
-    bori: !!pd.boriJoined, beq: pd.boriJoined ? Object.assign({}, pd.beq) : null, boriMul: Math.round((st.boriMul || 1) * 100) / 100, cleared: pd.cleared || 0, infBest: pd.infBest || 0 };
+    bori: !!pd.boriJoined, beq: pd.boriJoined ? Object.assign({}, pd.beq) : null, boriMul: Math.round((st.boriMul || 1) * 100) / 100, cleared: pd.cleared || 0, infBest: pd.infBest || 0, skm: Math.round((st.skillMul || 1) * 100) / 100, sid: pd.sid || null };
   const power = Math.round(st.atk * 4 + st.hp * 0.5 + st.def * 6 + st.crit * 300 + Math.max(0, st.spd - 1) * 150 + (pd.boriJoined ? 50 + ((st.boriMul || 1) - 1) * 300 : 0) + (skl.smash + skl.nag + skl.flash + skl.fist) * 12 + skl.menhera * 40 + ((st.skillMul || 1) - 1) * 600);
   if (keepP) calcStats();
   return { snap, power };
 }
+// 등록·갱신은 서버 함수로만: 전투력은 서버가 snap 으로 계산하고, 말이 안 되는 값·같은 세이브 중복 등록은 거절
 async function pvpUpload(nick) {
-  await sbInit(); const { snap, power } = pvpSnap(); let r;
-  if (!PV.me) r = await SB.from('hb_fighters').insert({ user_id: PV.uid, nickname: nick, snap, power });
-  else r = await SB.from('hb_fighters').update(nick ? { nickname: nick, snap, power } : { snap, power }).eq('user_id', PV.uid);
-  if (r.error) throw r.error; await pvpLoadMe();
+  await sbInit(); const { snap } = pvpSnap();
+  const { data, error } = await SB.rpc('hb_submit_fighter', { p_snap: snap, p_nick: nick || null });
+  if (error) throw error;
+  if (data && data.ok === false) { if (data.reason === 'moved') PV.moved = true; throw new Error('hb:' + data.reason + (data.field ? ':' + data.field : '')); }
+  await pvpLoadMe();
 }
 async function pvpLoadMe() { await sbInit(); const { data, error } = await SB.from('hb_fighters').select('*').eq('user_id', PV.uid).maybeSingle(); if (error) throw error; PV.me = data; PV.notReg = !data; if (data) try { localStorage.setItem('heesu_bori_pvp_reg', '1'); } catch (e) { } return data; }
 

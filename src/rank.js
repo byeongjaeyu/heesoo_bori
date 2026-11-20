@@ -60,7 +60,7 @@ function rankRender(rows, total) {
 let rankSyncT = 0, rankSyncP = null;
 async function rankSyncNow() {
   if (FORCE_EASY) return false; const pd = G.pd || loadGame(); if (!pd) return false;
-  if (PV.notReg) return false;
+  if (PV.notReg || PV.moved) return false;
   await sbInit(); const me = PV.me || await pvpLoadMe(); if (!me) { PV.notReg = true; return false; }
   const keep = G.pd; G.pd = pd;
   try { await pvpUpload(); } finally { if (keep !== pd) { G.pd = keep; if (keep) calcStats(); } }

@@ -11,8 +11,11 @@ const monSpr = n => spr('m_' + n, MONSPR[n]);
 // ---------- persistent data ----------
 const SAVEKEY = 'heesu_bori_save_v1';
 /** @returns {SaveData} */
+/** 세이브 고유 번호 (기기 옮기기 후 옛 기기에서 같은 희수로 중복 등록 막는 용도) */
+const newSid = () => { try { if (crypto && crypto.randomUUID) return crypto.randomUUID(); } catch (e) { } return 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 12); };
 function newPD() {
   return {
+    sid: newSid(),
     lv: 1, xp: 0, gold: 30, sp: 1, skills: {},
     inv: { fist: 1, cap_grey: 1, fleece: 1, sneakers: 1, silverbag: 1 },
     eq: { weapon: 'fist', hat: 'cap_grey', armor: 'fleece', shoes: 'sneakers', bag: 'silverbag' },
@@ -30,6 +33,8 @@ function loadGame() {
     pd.stats = Object.assign(newPD().stats, d.stats || {});
     pd.beq = Object.assign({ bcloth: null, btoy: null }, d.beq || {}); pd.enh = d.enh || {}; pd.ilv = d.ilv || {}; pd.iexp = d.iexp || {}; pd.stones = d.stones || 0;
     for (const sl of SLOTS) if (!ITEMS[pd.eq[sl]]) pd.eq[sl] = newPD().eq[sl];
+    // 예전 세이브엔 sid 가 없음: 한 번 만들어서 바로 저장 (불러올 때마다 바뀌면 안 됨)
+    if (!d.sid) { try { localStorage.setItem(SAVEKEY, JSON.stringify(pd)); } catch (e) { } }
     return pd;
   } catch (e) { return null; }
 }

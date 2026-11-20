@@ -21,6 +21,10 @@ export const MOCK_SB = `(() => {
   const rpc = async (name, args) => {
     if (__rpc[name]) return { data: await __rpc[name](args), error: null };
     if (name === 'hb_claim_grants') { const d = __grants; __grants = []; return { data: d, error: null }; }
+    if (name === 'hb_submit_fighter') { const me = __rows.find(r => r.user_id === 'u-me'); const pw = Math.round(args.p_snap.atk * 4 + args.p_snap.hp * 0.5);
+      if (!me) { if (!args.p_nick) return { data: { ok: false, reason: 'nickname' }, error: null }; __rows.push({ user_id: 'u-me', nickname: args.p_nick, snap: args.p_snap, power: pw, rating: 1000, wins: 0, losses: 0 }); }
+      else Object.assign(me, { snap: args.p_snap, power: pw }, args.p_nick ? { nickname: args.p_nick } : {});
+      return { data: { ok: true, power: pw }, error: null }; }
     if (name === 'hb_make_transfer_code') return { data: [{ code: 'ABCD2345', expires_at: new Date(Date.now() + 600000).toISOString() }], error: null };
     return { data: null, error: null }; };
   SB = { from: q, rpc }; PV.uid = 'u-me';

@@ -61,3 +61,13 @@ test('원터치 에디션: 큰 글씨 모드로 열림', async ({ page }) => {
   await expect(page.locator('#title')).toBeVisible();
   expect(await page.evaluate(() => [FORCE_EASY, document.documentElement.classList.contains('big')])).toEqual([true, true]);
 });
+
+test('랭킹 등록: 다른 기기로 옮겨진 희수면 안내 문구', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 12 });
+  await page.evaluate(MOCK_SB);
+  await page.evaluate(() => { __rpc.hb_submit_fighter = () => ({ ok: false, reason: 'moved' }); });
+  await page.click('#tRank');
+  await page.click('.rjoin button');
+  await page.fill('#pvpNickIn', '옛기기희수'); await page.click('#pvpNickOk');
+  await expect(page.locator('#pvpNickMsg')).toContainText('다른 기기로 옮겨졌어요');
+});
