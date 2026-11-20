@@ -42,7 +42,7 @@ async function pvpLoadMe() { await sbInit(); const { data, error } = await SB.fr
 
 // ---------- 로비 UI ----------
 function pvpOpen() {
-  const saved = loadGame(); if (!saved) { toast('1탄을 먼저 시작해야 PvP에 나갈 수 있어요', 'warn'); return; }
+  const saved = loadGame(); if (!saved) { toast('모험을 먼저 시작해야 PvP에 나갈 수 있어요', 'warn'); return; }
   G.pd = saved; G.P = null; calcStats(); G.pvp = null;
   $('#title').hidden = true; showHUD(false); G.state = 'pvpLobby'; playBgm('home');
   $('#pvp').hidden = false; $('#pvpSeason').innerHTML = ''; pvpRender('<div class="pvmsg">서버에 연결하는 중...</div>');

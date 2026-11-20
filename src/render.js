@@ -36,8 +36,9 @@ const itemSpr = id => { const it = ITEMS[id]; return spr('it_' + id, ICONS[it.ic
 const itemURL = id => { const it = ITEMS[id]; return iconURL('it_' + id, ICONS[it.icon], itemPal(it)); };
 
 function heePal() {
-  const eq = G.pd ? visEq(G.pd) : newPD().eq; const hat = ITEMS[eq.hat].color, arm = ITEMS[eq.armor].color, sh = ITEMS[eq.shoes].color, bag = ITEMS[eq.bag].color;
-  const hr = hairPal(G.pd && G.pd.look && G.pd.look.hair);
+  const pd = G.pd || (G.state === 'title' ? TITLE_PD : null);
+  const eq = pd ? visEq(pd) : newPD().eq; const hat = ITEMS[eq.hat].color, arm = ITEMS[eq.armor].color, sh = ITEMS[eq.shoes].color, bag = ITEMS[eq.bag].color;
+  const hr = hairPal(pd && pd.look && pd.look.hair);
   return { C: hat, c: shadeHex(hat, -0.22), W: arm, w: shadeHex(arm, arm === '#3a3a46' ? 0.12 : -0.15), O: sh, o: shadeHex(sh, -0.18), G: bag, g: shadeHex(bag, -0.25), H: hr.H, h: hr.h };
 }
 function heeSet() {

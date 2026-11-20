@@ -281,6 +281,7 @@ function menuClick(e) {
 function updateSndBtn() { $('#sndBtn').textContent = SND.on ? '♪' : '×'; }
 
 // ---------- screens ----------
+let TITLE_PD = /** @type {any} */ (null);
 function showTitle() {
   if (typeof rankSync === 'function') { rankSync(); entryRegister(); dailyAutoOpen(); }
   G.inf = null; G.raid = null; G.auto = false; G.autoMove = null; G.state = 'title'; showHUD(false); if (typeof e2HideAll === 'function') e2HideAll(); $('#title').hidden = false; $('#endScr').hidden = true; $('#death').hidden = true; $('#dlg').hidden = true; $('#skip').hidden = true; $('#mission').hidden = true;
@@ -288,25 +289,43 @@ function showTitle() {
   let e2s = null; try { e2s = JSON.parse(localStorage.getItem(E2KEY) || 'null'); } catch (e) { }
   const e2n = e2s ? (e2s.stars || []).reduce((a, b) => a + (b || 0), 0) : 0;
   if (FORCE_EASY) {
+    $('#tbar').innerHTML = $('#tsideL').innerHTML = $('#tsideR').innerHTML = '';
     $('#tbtns').innerHTML = `<button class="btn e2new" id="tEp2">${e2s ? '이어하기' : '시작하기'}<small>${e2s ? '별 ' + e2n + '/24' : '탭 한 번이면 끝!'}</small></button><div class="tsmall"><button class="btn wh" id="tSnd">소리 ${SND.on ? '켜짐 ♪' : '꺼짐'}</button></div><div class="tsub">♥ 희수 & 보리 ♥</div>`;
     $('#tEp2').onclick = () => { audioInit(); e2Open(); };
     $('#tSnd').onclick = () => { audioInit(); setSound(!SND.on); showTitle(); };
     playBgm('story'); return;
   }
-  $('#tbtns').innerHTML = (saved ? `<button class="btn pk" id="tCont">1탄 · 에버랜드 대탈출<small>이어하기 · ${saved.cleared ? (saved.cleared + 1) + '회차 · ' : ''}Lv.${saved.lv} ${ZONES[saved.zone] ? ZONES[saved.zone].name : ''}</small></button>` : `<button class="btn pk" id="tNew">1탄 · 에버랜드 대탈출<small>희수의 도트 액션 RPG</small></button>`) +
-    `<button class="btn e2new" id="tEp2">2탄 · 보리 주세요<small>${e2s ? '보리 단독 외전 · 별 ' + e2n + '/24' : '보리 단독 외전 · 미니게임 · NEW'}</small></button>` +
-    (saved ? `<button class="btn infbtn" id="tInf">에버랜드: 할로윈파티<small>무한던전 · ${infBasisLabel(infBasis(saved))} 몬스터 기준${saved.infBest ? ' · 최고 WAVE ' + saved.infBest : ''}</small></button>` : '') +
-    (saved ? `<button class="btn pvpbtn" id="tPvp">희수 PvP 아레나<small>내가 키운 희수 vs 친구가 키운 희수</small></button>` : '') +
-    (saved && !FORCE_EASY ? `<button class="btn raidbtn" id="tRaid">월드 보스 레이드<small>이번 주 보스를 다 같이 잡아요 · 하루 3번</small></button>` : '') +
-    `<div class="tsmall"><button class="btn wh" id="tRank">랭킹</button>${!FORCE_EASY && saved ? `<button class="btn wh" id="tDaily">출석·미션${dailyClaimable(saved) ? '<em class="dot"></em>' : ''}</button>` : ''}${FORCE_EASY ? '' : '<button class="btn wh" id="tCloud">기기 이동</button>'}<button class="btn wh" id="tSnd">소리 ${SND.on ? '켜짐 ♪' : '꺼짐'}</button></div><div class="tsub">♥ 희수 & 보리 ♥</div>`;
+  TITLE_PD = saved; const I = (k, ic) => `<img src="${iconURL('i_' + k, ICONS[ic || k])}" alt="">`;
+  // 상단: 내 희수 정보 + 소리
+  let prof = '';
+  if (saved) { let pw = 0; const keep = G.pd; try { G.pd = saved; pw = pvpSnap().power; } catch (e) { } G.pd = keep; G.st = null;
+    const nick = (typeof PV !== 'undefined' && PV.me && PV.me.nickname) || '희수';
+    prof = `<div class="tprof"><img src="${pvpFaceURL(visEq(saved), saved.look && saved.look.hair)}" alt=""><span><b>${esc(nick)}</b><small>Lv.${saved.lv}${saved.aw ? ' ★' + saved.aw : ''}${saved.cleared ? ' · ' + (saved.cleared + 1) + '회차' : ''}</small><small class="tpw">전투력 ${pw.toLocaleString()}</small></span></div>`; }
+  $('#tbar').innerHTML = prof + `<button class="ticon tsnd${SND.on ? '' : ' off'}" id="tSnd" aria-label="소리">${I('sound')}<small>${SND.on ? '소리 ON' : '소리 OFF'}</small></button>`;
+  // 왼쪽 세로 아이콘
+  $('#tsideL').innerHTML = (saved ? `<button class="ticon" id="tDaily">${I('cal')}<small>출석·미션</small>${dailyClaimable(saved) ? '<em class="dot"></em>' : ''}</button>` : '')
+    + `<button class="ticon" id="tRank">${I('trophy')}<small>랭킹</small></button>`
+    + (saved ? `<button class="ticon" id="tShare">${I('camera')}<small>카드 공유</small></button>` : '')
+    + `<button class="ticon" id="tCloud">${I('phone')}<small>기기 이동</small></button>`;
+  // 오른쪽: 미니게임
+  let boriImg = ''; try { const c = mkCanvas(20, 20), g = c.getContext('2d'); g.drawImage(b2Spr('sit').n, 3, 4); const o = mkCanvas(80, 80), og = o.getContext('2d'); og.imageSmoothingEnabled = false; og.drawImage(c, 0, 0, 80, 80); boriImg = o.toDataURL(); } catch (e) { }
+  $('#tsideR').innerHTML = `<button class="tmini" id="tEp2"><em>MINI GAME</em><img src="${boriImg}" alt=""><b>보리 주세요</b><small>${e2s ? '★ ' + e2n + '/24' : 'NEW'}</small></button>`;
+  // 하단: 모드 타일 + 시작
+  const rb = (typeof RAID !== 'undefined' && RAID.info && RAID.info.boss) || 'boss4';
+  $('#tbtns').innerHTML = (saved ? `<div class="tmodes">`
+    + `<button class="tmode m-inf" id="tInf">${I('pumpkin')}<b>할로윈파티</b><small>${saved.infBest ? '최고 WAVE ' + saved.infBest : '무한던전'}</small></button>`
+    + `<button class="tmode m-pvp" id="tPvp">${I('swords')}<b>PvP 아레나</b><small>주간 시즌</small></button>`
+    + `<button class="tmode m-raid" id="tRaid"><img src="${raidBossURL(rb)}" alt=""><b>월드 보스</b><small>하루 3번</small></button></div>` : '')
+    + (saved ? `<button class="btn pk tstart" id="tCont"><span>▶ 모험 계속하기</span><small>${saved.cleared ? (saved.cleared + 1) + '회차 · ' : ''}Lv.${saved.lv} · ${ZONES[saved.zone] ? ZONES[saved.zone].name : ''}</small></button>`
+      : `<button class="btn pk tstart" id="tNew"><span>▶ 모험 시작</span><small>에버랜드 대탈출 · 도트 액션 RPG</small></button>`);
   $('#tEp2').onclick = () => { audioInit(); e2Open(); };
-  if (saved && $('#tRaid')) $('#tRaid').onclick = () => { audioInit(); raidOpen(); };
-  if (saved) { $('#tPvp').onclick = () => { audioInit(); pvpOpen(); }; $('#tInf').onclick = () => { audioInit(); fadeTo(startInfinite, '에버랜드: 할로윈파티'); }; }
-  if (saved) $('#tCont').onclick = () => { audioInit(); G.pd = loadGame() || saved; $('#title').hidden = true; fadeTo(() => startZone(G.pd.zone)); };
-  if ($('#tRank')) $('#tRank').onclick = () => { audioInit(); rankOpen('title'); };
-  if ($('#tCloud')) $('#tCloud').onclick = () => { audioInit(); cloudOpen('title'); };
+  if (saved) { $('#tRaid').onclick = () => { audioInit(); raidOpen(); }; $('#tPvp').onclick = () => { audioInit(); pvpOpen(); }; $('#tInf').onclick = () => { audioInit(); fadeTo(startInfinite, '에버랜드: 할로윈파티'); };
+    $('#tShare').onclick = () => { audioInit(); shareOpen(); };
+    $('#tCont').onclick = () => { audioInit(); G.pd = loadGame() || saved; $('#title').hidden = true; fadeTo(() => startZone(G.pd.zone)); }; }
+  $('#tRank').onclick = () => { audioInit(); rankOpen('title'); };
+  $('#tCloud').onclick = () => { audioInit(); cloudOpen('title'); };
   if ($('#tDaily')) $('#tDaily').onclick = () => { audioInit(); dailyOpen(); };
-  if ($('#tNew')) $('#tNew').onclick = () => { audioInit(); if (saved) confirmBox('저장된 진행이 사라져요. 처음부터 시작할까요?', newGame); else newGame(); };
+  if ($('#tNew')) $('#tNew').onclick = () => { audioInit(); newGame(); };
   $('#tSnd').onclick = () => { audioInit(); setSound(!SND.on); showTitle(); };
   playBgm('story');
 }

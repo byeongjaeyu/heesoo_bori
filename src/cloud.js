@@ -33,7 +33,7 @@ let cloudCodeT = 0;
 function cloudOpen(from) {
   if (FORCE_EASY) return;
   CLOUD.from = from; const has = !!loadGame();
-  $('#cloudMk').disabled = !has; $('#cloudMkMsg').textContent = has ? '지금 이 기기의 희수를 다른 기기로 보내요' : '이 기기에는 아직 1탄 기록이 없어요';
+  $('#cloudMk').disabled = !has; $('#cloudMkMsg').textContent = has ? '지금 이 기기의 희수를 다른 기기로 보내요' : '이 기기에는 아직 모험 기록이 없어요';
   $('#cloudCode').hidden = true; $('#cloudIn').value = ''; $('#cloudUseMsg').textContent = '';
   $('#cloud').hidden = false;
 }

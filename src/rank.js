@@ -38,7 +38,7 @@ function rankJoin() { RK.joining = true; pvpNickBox(true); $('#pvpNickMsg').text
 function rankJoinBar() {
   if (FORCE_EASY || PV.me || !PV.notReg) return '';
   const has = !!(G.pd || loadGame());
-  return `<div class="rjoin">${has ? `<span>내 희수는 아직 랭킹에 없어요</span><button class="btn pk" onclick="rankJoin()">내 희수도 올리기</button>` : '<span>1탄을 시작하면 내 희수도 랭킹에 올릴 수 있어요</span>'}</div>`;
+  return `<div class="rjoin">${has ? `<span>내 희수는 아직 랭킹에 없어요</span><button class="btn pk" onclick="rankJoin()">내 희수도 올리기</button>` : '<span>모험을 시작하면 내 희수도 랭킹에 올릴 수 있어요</span>'}</div>`;
 }
 function rankRender(rows, total) {
   const t = RK.tab, val = f => t === 'power' ? f.power.toLocaleString() : f.rating.toLocaleString(), unit = t === 'power' ? '전투력' : '이번 주 점수';

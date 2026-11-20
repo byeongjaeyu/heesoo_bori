@@ -28,7 +28,7 @@ function halloweenize(W) {
   }
 }
 function startInfinite() {
-  const saved = loadGame(); if (!saved) { toast('1탄을 먼저 시작해야 들어갈 수 있어요', 'warn'); return; }
+  const saved = loadGame(); if (!saved) { toast('모험을 먼저 시작해야 들어갈 수 있어요', 'warn'); return; }
   G.pd = saved; const b = infBasis(G.pd), pd = G.pd;
   G.pvp = null; G.husUsed = false; G.inf = { zone: b.zone, loop: b.loop, wave: 1, kills: 0, waveKills: 0 };
   G.zone = b.zone; G.world = buildWorld(b.zone); const W = G.world; halloweenize(W);

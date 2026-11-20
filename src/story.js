@@ -131,6 +131,7 @@ function renderTitle() {
   const CS = cutScale(), SW = cv.width / CS, SH = cv.height / CS; ctx.setTransform(CS, 0, 0, CS, 0, 0);
   const mid = Math.round(SW / 2), gy = Math.round(SH * 0.56), T = G.time;
   drawPark(SW, SH, mid, gy, 0, false, T);
+  const k = FORCE_EASY ? 1 : 1.5; ctx.setTransform(CS * k, 0, 0, CS * k, CS * mid * (1 - k), CS * (gy + 12) * (1 - k)); // 로비: 희수·보리 크게
   shadow(mid - 8, gy + 12, 12); drawHeeAt(mid - 8, gy + 12, 'phone', 'down', T, {});
   shadow(mid + 11, gy + 13, 10); drawBoriAt(mid + 11, gy + 13, 'sit', 1, T, { pant: true });
   for (let i = 0; i < 3; i++) { const p = ((T * 0.5 + i / 3) % 1); ctx.globalAlpha = 1 - p; drawSpr(ispr('heart'), mid - 4 + Math.sin(p * 6 + i) * 6, gy - 14 - p * 20); } ctx.globalAlpha = 1;

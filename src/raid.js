@@ -14,7 +14,7 @@ const raidBossURL = boss => { try { const m = MONS[boss], s = monSpr(m.spr), k =
 const raidLeft = I => { const s = Math.max(0, (new Date(I.ends_at).getTime() - Date.now()) / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600); return d ? `${d}일 ${h}시간` : `${h}시간 ${Math.floor(s % 3600 / 60)}분`; };
 
 function raidOpen() {
-  if (FORCE_EASY) return; const saved = loadGame(); if (!saved) { toast('1탄을 먼저 시작해야 레이드에 갈 수 있어요', 'warn'); return; }
+  if (FORCE_EASY) return; const saved = loadGame(); if (!saved) { toast('모험을 먼저 시작해야 레이드에 갈 수 있어요', 'warn'); return; }
   G.pd = saved; G.P = null; calcStats(); G.pvp = null; G.raid = null;
   $('#title').hidden = true; showHUD(false); G.state = 'raidLobby'; playBgm('boss');
   $('#raid').hidden = false; $('#raidBody').innerHTML = '<div class="pvmsg">서버에 연결하는 중...</div>';

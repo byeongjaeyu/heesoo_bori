@@ -375,3 +375,28 @@ button{font-family:inherit;color:inherit;border:none;background:none;padding:0;c
 .bdrow img{width:40px;height:40px;object-fit:contain;image-rendering:pixelated}.bdrow span{flex:1;display:flex;flex-direction:column}.bdrow em{font-style:normal;font-weight:bold}.bdrow small{font-size:11px;color:#777}
 .bdnow{display:flex;gap:10px;align-items:center;background:#e6f7ff;border:2px solid #3a9ad9;border-radius:12px;padding:10px;text-align:left}.bdnow img{width:56px;height:56px;object-fit:contain;image-rendering:pixelated}.bdnow div{display:flex;flex-direction:column;gap:3px}.bdnow small{font-size:12px;color:#555}
 #bBuddy span{position:static!important;border:none!important;min-width:0!important;height:auto!important;background:none!important;line-height:1}
+
+/* ---------- 타이틀 (게임 로비형) ---------- */
+#title:not(.big){justify-content:flex-start;padding:calc(var(--sat) + 10px) 12px calc(var(--sab) + 16px);background:linear-gradient(rgba(26,10,42,.28),rgba(26,10,42,0) 22%,rgba(26,10,42,0) 62%,rgba(26,10,42,.5))}
+#title:not(.big) .ttl{margin-top:8px}#title:not(.big) .ttl small{font-size:11px}#title:not(.big) .ttl h1{font-size:min(9vw,44px)}
+.tbar{display:flex;align-items:center;gap:8px;width:100%;min-height:52px}.tbar:empty{display:none}
+.tprof{display:flex;align-items:center;gap:8px;background:rgba(43,27,36,.72);border:2px solid #2b1b24;border-radius:14px;padding:4px 12px 4px 4px;color:#fff;margin-right:auto;box-shadow:0 3px 0 rgba(0,0,0,.25)}
+.tprof img{width:44px;height:44px;object-fit:contain;image-rendering:pixelated;background:#ffd1e6;border:2px solid #fff;border-radius:10px}
+.tprof span{display:flex;flex-direction:column;line-height:1.25;text-align:left}.tprof b{font-size:15px}.tprof small{font-size:11px;opacity:.9}.tprof .tpw{color:#ffd84a;opacity:1}
+.ticon{position:relative;display:flex;flex-direction:column;align-items:center;gap:1px;width:58px;padding:5px 0 4px;background:rgba(255,255,255,.92);border:2px solid #2b1b24;border-radius:14px;box-shadow:0 3px 0 #2b1b24;font-family:inherit;color:var(--ink);cursor:pointer}
+.ticon:active{transform:translateY(2px);box-shadow:0 1px 0 #2b1b24}.ticon img{width:30px;height:30px;image-rendering:pixelated}.ticon small{font-size:10px;white-space:nowrap;letter-spacing:-.3px}
+.tbar .tsnd{margin-left:auto}.tsnd.off img{opacity:.35}
+.ticon .dot{position:absolute;top:-5px;right:-5px;width:13px;height:13px;border-radius:50%;background:#ff3b5c;border:2px solid #fff}
+.tside{position:absolute;top:calc(var(--sat) + 210px);display:flex;flex-direction:column;gap:10px}.tside.tl{left:12px}.tside.tr{right:12px}.tside:empty{display:none}
+.tmini{display:flex;flex-direction:column;align-items:center;width:78px;padding:6px 4px 6px;background:linear-gradient(#fff7c2,#ffd84a);border:2px solid #2b1b24;border-radius:16px;box-shadow:0 3px 0 #2b1b24;font-family:inherit;color:var(--ink);cursor:pointer}
+.tmini:active{transform:translateY(2px);box-shadow:0 1px 0 #2b1b24}.tmini em{font-style:normal;font-size:9px;background:#2b1b24;color:#ffd84a;border-radius:6px;padding:1px 5px;letter-spacing:.5px}
+.tmini img{width:52px;height:52px;image-rendering:pixelated;margin:2px 0}.tmini b{font-size:12px;white-space:nowrap}.tmini small{font-size:10px;color:#7a5a2a}
+#title:not(.big) .tbtns{margin-top:auto;width:min(94vw,420px);gap:10px}
+.tmodes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tmode{display:flex;flex-direction:column;align-items:center;gap:1px;padding:8px 2px 7px;border:2px solid #2b1b24;border-radius:16px;box-shadow:0 4px 0 #2b1b24;color:#fff;font-family:inherit;cursor:pointer;text-shadow:1px 1px 0 rgba(0,0,0,.35)}
+.tmode:active{transform:translateY(3px);box-shadow:0 1px 0 #2b1b24}.tmode img{width:40px;height:40px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 2px 0 rgba(0,0,0,.25))}
+.tmode b{font-size:14px;white-space:nowrap}.tmode small{font-size:10px;opacity:.92;white-space:nowrap}
+.m-inf{background:linear-gradient(160deg,#ff9a4a,#7a3ac0)}.m-pvp{background:linear-gradient(160deg,#c77dff,#6a2fc0)}.m-raid{background:linear-gradient(160deg,#ff6b4a,#a8224c)}
+.tbtns .btn.tstart{font-size:22px;padding:12px 10px 10px;border-radius:18px;box-shadow:0 5px 0 #2b1b24;animation:tstartGlow 1.6s ease-in-out infinite}.tbtns .btn.tstart small{font-size:12px}
+@keyframes tstartGlow{50%{filter:brightness(1.08)}}
+@media (max-height:700px){.tside{top:calc(var(--sat) + 175px)}.tside .ticon{padding:3px 0 2px}.tside .ticon img{width:24px;height:24px}#title:not(.big) .ttl h1{font-size:min(8vw,36px)}}

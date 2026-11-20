@@ -66,7 +66,7 @@ async function shareOpen() {
   if (FORCE_EASY) return;
   const box = $('#share'); $('#shareImg').removeAttribute('src'); $('#shareMsg').textContent = '카드를 만드는 중...'; box.hidden = false;
   try {
-    const info = await shareInfo(); if (!info) { $('#shareMsg').textContent = '1탄을 먼저 시작해야 카드를 만들 수 있어요'; return; }
+    const info = await shareInfo(); if (!info) { $('#shareMsg').textContent = '모험을 먼저 시작해야 카드를 만들 수 있어요'; return; }
     const c = await shareCardMake(info);
     SHARE.blob = await new Promise(r => c.toBlob(b => r(b), 'image/png'));
     SHARE.url = SHARE_URL + (info.nick ? '?from=' + encodeURIComponent(info.nick) : '');
