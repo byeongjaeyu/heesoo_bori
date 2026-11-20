@@ -75,6 +75,7 @@ function hairOk(pd, h) {
   if (h.need === 'loop5') return (pd.cleared || 0) >= 4;
   if (h.need === 'enh25') return Object.values(pd.enh || {}).some(v => v >= 25);
   if (h.need === 'aw50') return (pd.aw || 0) >= 50;
+  if (h.need === 'ch2') return !!(pd.ch2 && pd.ch2.cleared >= 1);
   if (h.need === 'pack') return !!(pd.pack && pd.pack.got);
   return false;
 }
@@ -97,7 +98,7 @@ function calcStats() {
   st.skillMul = 1 + AWK.skill.per * awkLv('skill');
   const bk = bookStats(pd); st.book = bk.n;
   st.hp += BOOK_PER_HP * bk.n + (bk.done.r0 ? 80 : 0); if (bk.done.r1) st.atk += 12; if (bk.done.r2) st.def += 12; if (bk.done.r3) st.crit += 0.03;
-  if (bk.done.r4) st.atk *= 1.05; if (bk.done.r5) { st.atk *= 1.05; st.def *= 1.05; st.hp *= 1.05; } st.hp = Math.round(st.hp);
+  if (bk.done.sea) { st.atk *= 1.04; st.def *= 1.04; } if (bk.done.r4) st.atk *= 1.05; if (bk.done.r5) { st.atk *= 1.05; st.def *= 1.05; st.hp *= 1.05; } st.hp = Math.round(st.hp);
   if (G.P && G.P.buffs) { let ba = 0, bc = 0; for (const k in G.P.buffs) { ba += G.P.buffs[k].atk || 0; bc += G.P.buffs[k].crit || 0; } st.atk *= 1 + ba; st.crit += bc; }
   st.atk = Math.round(st.atk); st.def = Math.round(st.def); st.mp = Math.round(st.mp);
   st.weapon = ITEMS[pd.eq.weapon].w; st.moveSpd = 66 * st.spd;
@@ -304,7 +305,7 @@ function updateBori(dt) {
 const LOOP_CAP = 10;
 /** 회차 → 난이도 단계. 11회차부터도 계속 오르되 증가폭은 절반 (예: 50회차 = 30단계) */
 const loopEff = cl => cl <= LOOP_CAP ? cl : LOOP_CAP + (cl - LOOP_CAP) * 0.5;
-function loopLv() { return G.pvp ? 0 : G.inf ? G.inf.loop : loopEff((G.pd && G.pd.cleared) || 0); }
+function loopLv() { return G.pvp ? 0 : G.inf ? G.inf.loop : G.pd ? zoneL(G.pd, G.zone || 0) : 0; }
 function loopMul() { const L = loopLv(); return { L, hp: 1 + 0.6 * L, atk: 1 + 0.35 * L, def: 3 * L, spd: Math.min(1.3, 1 + 0.05 * L), xp: 1 + 0.5 * L, gold: 1 + 0.6 * L, item: Math.min(1.6, 1 + 0.2 * L), cnt: Math.min(2, 1 + 0.25 * L), elite: Math.min(0.25, 0.07 * L), legend: Math.min(0.3, 0.08 * L) }; }
 const zoneQuota = Z => Math.round(Z.quota * loopMul().cnt);
 // 처치 1마리당 등급별 드롭 확률 (일반 몬스터 기준). 높은 등급부터 굴려서 하나만 떨어짐
@@ -314,13 +315,13 @@ function rollDrop(mul) {
   const L = loopLv(), lm = loopMul().item * (mul || 1);
   for (let r = DROP_RATE.length - 1; r >= 0; r--) {
     if (Math.random() >= DROP_RATE[r] * lm) continue;
-    const pool = Object.keys(ITEMS).filter(id => { const it = ITEMS[id]; return it.rar === r && it.tier && it.tier <= G.zone + 1 + L && L >= it.rar - 3 && (!it.bori || G.pd.boriJoined); });
+    const pool = Object.keys(ITEMS).filter(id => { const it = ITEMS[id]; return it.rar === r && it.tier && !it.bossOnly && it.tier <= G.zone + 1 + L && L >= it.rar - 3 && (!it.bori || G.pd.boriJoined); });
     if (pool.length) return choice(pool);
   }
   return null;
 }
 function rollItem(minRar, legendChance) {
-  const L = loopLv(); const ok = id => { const it = ITEMS[id]; return it.tier && it.tier <= G.zone + 1 + L && (!it.bori || G.pd.boriJoined) && it.rar >= (minRar || 0); };
+  const L = loopLv(); const ok = id => { const it = ITEMS[id]; return it.tier && !it.bossOnly && it.tier <= G.zone + 1 + L && (!it.bori || G.pd.boriJoined) && it.rar >= (minRar || 0); };
   const all = Object.keys(ITEMS).filter(ok); const leg = all.filter(id => ITEMS[id].rar >= 3), rest = all.filter(id => ITEMS[id].rar < 3);
   if (leg.length && Math.random() < (legendChance || 0)) return choice(leg); return rest.length ? choice(rest) : (leg.length ? choice(leg) : null);
 }
@@ -434,6 +435,62 @@ const AI = {
     if (e.stT <= 0) { e.st = 'walk'; e.stT = enr ? 1.2 : 2.0; }
   }
 };
+// ---------- 2장 보스 ----------
+/** 일직선 돌진 준비 (빨간 줄 예고) */
+function aimDash(e, len, w, say) { const a = Math.atan2(G.P.y - e.y, G.P.x - e.x); e.dx = Math.cos(a); e.dy = Math.sin(a); e.face = e.dx > 0 ? -1 : 1; G.fx.push({ k: 'line', x: e.x, y: e.y - 6, a, len, w, t: 0, dur: e.stT }); if (say) bubble(e, say, 1); }
+const dashStep = (e, spd, dt) => { const W = G.world; e.x += e.dx * spd * dt; e.y += e.dy * spd * dt; if (Math.random() < dt * 25) G.parts.push({ x: e.x + rand(-8, 8), y: e.y, vx: 0, vy: -8, life: 0.35, max: 0.35, col: '#e8e8f0', sz: 2, grav: 0 }); return e.x < 36 || e.x > W.W - 36 || e.y < 70 || e.y > W.H - 30; };
+Object.assign(AI, {
+  // 주차 빌런 트럭: 빵빵 돌진 → 벽에 박으면 경적 충격파(근처 피해), 화나면 모기떼 소환
+  truck(e, dt, sp, dP) {
+    const enr = e.hp < e.maxHp * 0.5; e.stT -= dt;
+    if (e.st === 'idle') { e.st = 'roam'; e.stT = 1.8; }
+    if (e.st === 'roam') { moveToward(e, G.P.x, G.P.y, sp, dt); e.face = G.P.x > e.x ? -1 : 1; if (e.stT <= 0) { e.st = 'tele'; e.stT = enr ? 0.65 : 0.85; aimDash(e, 320, e.r * 1.4, choice(['빵빵!! 비켜!!', '두 칸 내 자리야!', '부릉부릉!!'])); } }
+    else if (e.st === 'tele') { if (e.stT <= 0) { e.st = 'dash'; e.stT = 1.6; } }
+    else if (e.st === 'dash') { if (dashStep(e, 250, dt) || e.stT <= 0) { e.st = 'honk'; e.stT = 0.7; G.shake = 7; sfx('slam'); G.fx.push({ k: 'ring', x: e.x, y: e.y - 4, r: 72, col: '#ffd84a', t: 0, dur: 0.45 }); if (Math.hypot(G.P.x - e.x, G.P.y - e.y) < 72) hurtPlayer(e.atk * 1.2, e); bubble(e, '빠아아앙!!!', 1); if (enr) for (let i = 0; i < 3; i++) spawnEnemy('mosquito', e.x + rand(-30, 30), e.y + rand(-20, 20)); } }
+    else if (e.st === 'honk') { if (e.stT <= 0) { e.st = 'roam'; e.stT = enr ? 1.3 : 2.1; } }
+  },
+  // 핑크 참돔 왕: 높이 뛰어올라 내려찍기 → 물보라 탄막, 세 번마다 참돔 호출
+  bream(e, dt, sp, dP) {
+    const enr = e.hp < e.maxHp * 0.45;
+    if (e.st === 'jump') {
+      e.stT -= dt; const p = clamp(1 - e.stT / e.jdur, 0, 1); e.hopY = Math.sin(p * Math.PI) * 48; e.x = lerp(e.jx0, e.jx1, p); e.y = lerp(e.jy0, e.jy1, p);
+      if (e.stT <= 0) { e.hopY = 0; e.st = 'land'; e.stT = 0.55; G.shake = 6; sfx('slam'); G.fx.push({ k: 'ring', x: e.x, y: e.y - 2, r: e.slamR, col: '#9fd8ff', t: 0, dur: 0.4 }); burst(e.x, e.y, '#9fd8ff', 18, 90);
+        if (Math.hypot(G.P.x - e.x, G.P.y - e.y) < e.slamR + 4) hurtPlayer(e.atk * 1.4, e);
+        const n = enr ? 14 : 10, off = rand(0, 6.28); for (let i = 0; i < n; i++) shootAt(e, 'water', off + i / n * 6.283, 70);
+        e.jumps = (e.jumps || 0) + 1; if (e.jumps % 3 === 0) { spawnEnemy('bream', e.x - 28, e.y + 8); spawnEnemy('bream', e.x + 28, e.y + 8); bubble(e, '얘들아 팔딱팔딱!', 1.3); } } return;
+    }
+    if (e.st === 'land') { e.stT -= dt; if (e.stT <= 0) { e.st = 'walk'; e.stT = enr ? 1.4 : 2.3; } return; }
+    if (e.st === 'idle') { e.st = 'walk'; e.stT = 2; }
+    e.stT -= dt; e.hopY = Math.abs(Math.sin(e.t * 6)) * 3; moveToward(e, G.P.x, G.P.y, sp, dt); e.face = G.P.x > e.x ? -1 : 1;
+    if (e.stT <= 0) { e.st = 'jump'; e.jdur = 1.0; e.stT = e.jdur; e.jx0 = e.x; e.jy0 = e.y; e.jx1 = G.P.x; e.jy1 = G.P.y; e.slamR = enr ? 44 : 36; G.fx.push({ k: 'circle', x: G.P.x, y: G.P.y, r: e.slamR, t: 0, dur: e.jdur }); }
+  },
+  // 대물 농어 장군: 연속 돌진 3번(화나면 4번) → 농어 부하 호출
+  bassgen(e, dt, sp, dP) {
+    const enr = e.hp < e.maxHp * 0.5; e.stT -= dt;
+    if (e.st === 'idle') { e.st = 'roam'; e.stT = 1.8; }
+    if (e.st === 'roam') { moveToward(e, G.P.x, G.P.y, sp, dt); e.face = G.P.x > e.x ? -1 : 1; if (e.stT <= 0) { e.combo = enr ? 4 : 3; e.st = 'tele'; e.stT = 0.7; aimDash(e, 240, e.r * 1.2, '돌격하라!!'); } }
+    else if (e.st === 'tele') { if (e.stT <= 0) { e.st = 'dash'; e.stT = 0.75; } }
+    else if (e.st === 'dash') { if (dashStep(e, 300, dt) || e.stT <= 0) { e.combo--; G.shake = 3; if (e.combo > 0) { e.st = 'tele'; e.stT = 0.45; aimDash(e, 240, e.r * 1.2); } else { e.st = 'rest'; e.stT = 1.2; spawnEnemy('bass', e.x - 30, e.y); if (enr) spawnEnemy('bass', e.x + 30, e.y); bubble(e, '헉헉… 부하들아!', 1.2); } } }
+    else if (e.st === 'rest') { if (e.stT <= 0) { e.st = 'roam'; e.stT = enr ? 1.2 : 2; } }
+  },
+  // 월척 중국 대왕자바리: 빨아들이기(끌려감) → 크게 깨물기, 물대포 소용돌이, 물고기 호출
+  grouper(e, dt, sp, dP) {
+    const enr = e.hp < e.maxHp * 0.5; e.stT -= dt; e.hopY = Math.abs(Math.sin(e.t * 2.5)) * 2;
+    if (e.st === 'idle') { e.st = 'walk'; e.stT = 2; e.cyc = 0; }
+    if (e.st === 'walk') {
+      moveToward(e, G.P.x, G.P.y - 8, sp, dt); e.face = G.P.x > e.x ? -1 : 1;
+      if (e.stT <= 0) { e.cyc++; const pat = ['suck', 'spray', 'suck', 'summon', 'spray'][e.cyc % 5]; e.st = pat; e.shT = 0; e.sa = rand(0, 6.28);
+        e.stT = { suck: 2.2, spray: 3.0, summon: 0.9 }[pat];
+        if (pat === 'suck') { G.fx.push({ k: 'circle', x: e.x, y: e.y, r: 64, t: 0, dur: 2.2 }); bubble(e, '쓰읍~~~!!', 1.4); }
+        if (pat === 'summon') { spawnEnemy('rockfish', e.x - 34, e.y + 10); spawnEnemy('bass', e.x + 34, e.y + 10); if (enr) spawnEnemy('bream', e.x, e.y + 30); bubble(e, '내 저수지에서 나가라!', 1.4); } }
+      return;
+    }
+    if (e.st === 'suck') { const d = Math.hypot(e.x - G.P.x, e.y - G.P.y) || 1; if (d > e.r) { const k = (enr ? 52 : 40) * dt; G.P.x += (e.x - G.P.x) / d * k; G.P.y += (e.y - G.P.y) / d * k; } if (Math.random() < dt * 30) G.parts.push({ x: e.x + rand(-60, 60), y: e.y + rand(-36, 36), vx: 0, vy: 0, life: 0.4, max: 0.4, col: '#9fd8ff', sz: 2, grav: 0 });
+      if (e.stT <= 0) { G.shake = 8; sfx('slam'); G.fx.push({ k: 'ring', x: e.x, y: e.y - 4, r: 64, col: '#ff7b8a', t: 0, dur: 0.4 }); if (d < 64) hurtPlayer(e.atk * 1.8, e); bubble(e, '덥석!!', 0.9); e.st = 'walk'; e.stT = enr ? 1.3 : 2.1; } return; }
+    if (e.st === 'spray') { e.shT -= dt; if (e.shT <= 0) { e.shT = enr ? 0.09 : 0.12; e.sa += 0.36; shootAt(e, 'water', e.sa, 70); if (enr) shootAt(e, 'water', e.sa + Math.PI, 70); } }
+    if (e.stT <= 0) { e.st = 'walk'; e.stT = enr ? 1.3 : 2.1; }
+  }
+});
 function shootAt(e, kind, ang, spd) {
   const sy = e.y - e.h * 0.5 - (e.hopY || 0);
   const a = ang != null ? ang : Math.atan2(G.P.y - 8 - sy, G.P.x - e.x);
@@ -613,7 +670,7 @@ function levelUp() {
 function updateSpawner(dt) {
   const Z = ZONES[G.zone]; if (G.bossDefeated) return;
   const alive = G.enemies.filter(e => !e.dead && !e.boss).length;
-  const L = loopLv(); const max = (G.bossSpawned ? 3 + G.zone : Z.max) + Math.min(6, 2 * L);
+  const L = loopLv(); const max = (G.bossSpawned ? 3 + (G.zone % CH1_N) : Z.max) + Math.min(6, 2 * L);
   G.spawnT -= dt;
   if (G.spawnT <= 0 && alive < max) { G.spawnT = Z.spawnInt * (G.bossSpawned ? 2.2 : 1) / (1 + 0.15 * L); spawnAround(wpick(Z.mons)); }
 }
@@ -645,24 +702,25 @@ function onBossDefeated(e) {
   G.bossDefeated = true; G.boss = null; G.exitOpen = true; guideEv('boss');
   for (const o of G.enemies) if (!o.dead && o !== e) { o.dead = true; o.deadT = 0.25; burst(o.x, o.y - o.h / 2, o.col, 6); }
   G.projs = G.projs.filter(p => !p.enemy);
-  setTimeout(() => { if (G.state === 'play') banner('CLEAR!', G.zone < 3 ? '출구가 열렸다! 위쪽 출구로 가자' : '탈출구가 열렸다! 위쪽으로 탈출하자!', 'clear'); }, 600);
+  setTimeout(() => { if (G.state === 'play') banner('CLEAR!', !isChLast(G.zone) ? '출구가 열렸다! 위쪽 출구로 가자' : '탈출구가 열렸다! 위쪽으로 탈출하자!', 'clear'); }, 600);
   sfx('open'); playBgm('field'); G.shake = 8; saveGame();
   bubble(G.P, choice(['해냈다!!', '나 좀 멋있는 듯?', '보리야 봤어?!']), 1.8);
 }
 function goNextZone() {
   if (G.state !== 'play') return;
   G.state = 'trans'; sfx('open');
-  if (G.zone >= ZONES.length - 1) {
+  if (zoneCh(G.zone) === 2 && isChLast(G.zone)) { ch2Finish(); return; }
+  if (zoneCh(G.zone) === 1 && G.zone >= CH1_N - 1) {
     const first = !G.pd.cleared; G.pd.cleared = (G.pd.cleared || 0) + 1;
     // 자동사냥 중이면(첫 클리어 제외) 엔딩을 건너뛰고 바로 다음 회차 STAGE 1로
     if (G.auto && !first) { G.pd.zone = 0; saveGame(); fadeTo(() => { startZone(0); toast(`🎉 ${G.pd.cleared}회차 클리어! 자동사냥으로 ${G.pd.cleared + 1}회차 시작`, 'lvl'); }); return; }
     saveGame(); fadeTo(() => startEnding()); return; }
-  G.pd.zone = G.zone + 1; const n = 2 + Math.floor(loopLv() / 2); G.pd.foods.gimbap = (G.pd.foods.gimbap || 0) + n; G.pd.foods.drink = (G.pd.foods.drink || 0) + n; saveGame();
-  fadeTo(() => { startZone(G.pd.zone); setTimeout(() => { if (G.state === 'play' || G.state === 'dialog') { toast(`스마트 푸드 센터 재고떨이! 유통기한 임박 김밥 ×${n} · 음료수 ×${n}`, 'item r2'); sfx('coin'); if (G.P) bubble(G.P, '공짜는 못 참지!', 1.4); } }, 2900); });
+  setCurZone(G.pd, G.zone + 1); const n = 2 + Math.floor(loopLv() / 2); G.pd.foods.gimbap = (G.pd.foods.gimbap || 0) + n; G.pd.foods.drink = (G.pd.foods.drink || 0) + n; saveGame();
+  fadeTo(() => { startZone(G.zone + 1); setTimeout(() => { if (G.state === 'play' || G.state === 'dialog') { toast(`스마트 푸드 센터 재고떨이! 유통기한 임박 김밥 ×${n} · 음료수 ×${n}`, 'item r2'); sfx('coin'); if (G.P) bubble(G.P, '공짜는 못 참지!', 1.4); } }, 2900); });
 }
 function startZone(i) {
   G.pvp = null; G.inf = null; G.raid = null; G.husUsed = false;
-  G.zone = i; G.pd.zone = i; G.world = buildWorld(i); const W = G.world; G.autoExitSaid = false;
+  G.zone = i; setCurZone(G.pd, i); G.world = buildWorld(i); const W = G.world; G.autoExitSaid = false;
   G.enemies = []; G.projs = []; G.fx = []; G.drops = []; G.parts = []; G.texts = []; G.bubbles = [];
   G.zoneKills = 0; G.bossSpawned = false; G.bossDefeated = false; G.boss = null; G.exitOpen = false; G.spawnT = 1.5; G.ult = null;
   G.P = null; calcStats(); G.P = newPlayer(W.start.x, W.start.y); G.P.fy = -1; G.P.dir = 'up';
@@ -670,7 +728,8 @@ function startZone(i) {
   for (let k = 0; k < 5; k++) { const e = spawnAround(wpick(ZONES[i].mons), 140, 260); if (e) e.spawnT = 0; }
   G.cam.x = clamp(G.P.x - VW / 2, 0, Math.max(0, W.W - VW)); G.cam.y = clamp(G.P.y - 12 - VH / 2, 0, Math.max(0, W.H - VH));
   G.state = 'play'; playBgm('field'); showHUD(true); saveGame();
-  { const L = loopLv(), RL = G.pd.cleared || 0; banner(RL ? `${RL + 1}회차 · ${ZONES[i].sub}` : ZONES[i].sub, ZONES[i].name, 'stage'); if (L && i === 0 && !G.auto) setTimeout(() => { if (G.state === 'play' && !G.pvp && !G.auto) loopIntro(L); }, 1700); }
+  { const L = loopLv(), RL = chCleared(G.pd, i); banner(RL ? `${RL + 1}회차 · ${ZONES[i].sub}` : ZONES[i].sub, ZONES[i].name, 'stage'); if (L && i === 0 && !G.auto) setTimeout(() => { if (G.state === 'play' && !G.pvp && !G.auto) loopIntro(L); }, 1700); }
+  { const st = zoneCh(i) === 2 && ch2StageStory(i); if (st) { saveGame(); playCut(st, () => { G.state = 'play'; showHUD(true); playBgm('field'); }); } }
   if (!G.pd.boriJoined) { if (G.pd.lv >= 3) G.pendingEvent = 'bori'; else setTimeout(() => { if (G.state === 'play' && !G.pd.boriJoined) bubble(G.P, '보리야... 어디 있어ㅠㅠ', 2.6); }, 1800); }
 }
 function playerDie() {

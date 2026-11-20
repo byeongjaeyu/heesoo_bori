@@ -3,13 +3,13 @@ import { g, fresh, withRandom } from './helpers.mjs';
 
 describe('장비 드롭', () => {
   test('1회차에는 신화·초월이 안 나옴 (가장 높은 등급 굴림이 다 성공해도)', () => {
-    fresh({ cleared: 0 }); g.G.zone = g.ZONES.length - 1;
+    fresh({ cleared: 0 }); g.G.zone = 3;
     for (let i = 0; i < 50; i++) { const id = withRandom(0, () => g.rollDrop(1)); expect(id).toBeTruthy(); expect(g.ITEMS[id].rar).toBeLessThanOrEqual(3); }
   });
   test('2회차부터 신화, 3회차부터 초월', () => {
-    fresh({ cleared: 1 }); g.G.zone = g.ZONES.length - 1;
+    fresh({ cleared: 1 }); g.G.zone = 3;
     expect(g.ITEMS[withRandom(0, () => g.rollDrop(1))].rar).toBe(4);
-    fresh({ cleared: 2 }); g.G.zone = g.ZONES.length - 1;
+    fresh({ cleared: 2 }); g.G.zone = 3;
     expect(g.ITEMS[withRandom(0, () => g.rollDrop(1))].rar).toBe(5);
   });
   test('확률보다 큰 값이 나오면 아무것도 안 떨어짐', () => {
@@ -26,7 +26,7 @@ describe('강화석 수입', () => {
     expect(g.STONE_YIELD).toEqual([1, 2, 4, 10, 25, 60]); expect(g.DUP_YIELD).toEqual([0.5, 1.5, 4, 10, 25, 60]);
   });
   test('엔드급(11회차+) 기대 강화석: 처치당 약 0.07~0.1개 (시간당 4,000마리 기준 약 280~400개)', () => {
-    const pd = fresh({ cleared: 12, boriJoined: true }); g.G.zone = g.ZONES.length - 1;
+    const pd = fresh({ cleared: 12, boriJoined: true }); g.G.zone = 3;
     // 확률표로 정확히 계산 (정예 비율 반영, 착용 중인 초월과 같은 등급은 장비 레벨 재료라 제외)
     const L = g.loopLv(), lm = g.loopMul(), elite = lm.elite || 0; let perKill = 0;
     for (let r = 0; r < 5; r++) { const p = g.DROP_RATE[r] * lm.item * ((1 - elite) * 1 + elite * g.DROP_MUL.elite); perKill += p * g.DUP_YIELD[r]; }

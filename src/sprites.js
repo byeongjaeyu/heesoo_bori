@@ -354,6 +354,24 @@ const MONSPR = {
 ".KKKKKKK."]
 };
 
+// ---------- 2장 몬스터 (바다낚시터) ----------
+Object.assign(MONSPR, {
+  mosquito: ['..LL...LL..', '.LeeL.LeeL.', '..LLKKKLL..', '..KjjjjjK..', 'KKjEjjjRjK.', '..KjjjRRjK.', '...KjjjjK..', '....K..K...', '...K....K..'],
+  worm: ['........KKK.', '.......KQQQK', '..KKKKKQEQQK', '.KQqQqQqQQK.', 'KQQQQQQQQK..', '.KKKKKKKKK..'],
+  shrimp: ['KK...........', '..K..........', '...KKKKK.....', '..KGGGGGKK...', '.KGEGgGgGGK..', '.KGGGGGgGGGK.', '..KKGgGGgGGK.', '....KKKKGGK..', '........KK...'],
+  truck: ['.......KKKKKKKKKKKKKKKKK', '.......KWWWWWWWWWWWWWWWK', '..KKKKKKWWWWWWWWWWWWWWWK', '.KLLLKKKWWRRRRRRRRRRRWWK', '.KLLLKRKWWWWWWWWWWWWWWWK', 'KRRRRRRKWWWWWWWWWWWWWWWK', 'KAARRRRKKKKKKKKKKKKKKKKK', 'KRRRRRRRRRRRRRRRRRRRRRRK', '.KKKjjjKKKKKKKKKKjjjKKK.', '..KjXjK..........KjXjK..', '...KKK............KKK...']
+});
+// 물고기: 같은 틀에 색만 바꿔 찍음 (B 몸, b 배, F 지느러미, S 무늬, x 눈흰자, E 눈동자)
+const FISH_T = ['.....KKKKK......', '...KKFFFFFKK....', '..KBBBBBBBBBK.KK', '.KBxEBBSBBBBBKFK', 'KBBBBBBBBBBBBBFK', '.KbBBBSBBBBBBKFK', '..KbbbbbbbbbK.KK', '...KKFFKKFFK....', '.....KK..KK.....'];
+const fishRows = (map, stripes) => FISH_T.map(r => r.split('').map((c, x) => stripes && c === 'B' && stripes.includes(x) ? '4' : (map[c] || c)).join(''));
+Object.assign(MONSPR, {
+  bream: fishRows({ B: 'T', b: 'Q', F: 'R', S: 'U', x: 'e' }),
+  stripe: fishRows({ B: 'W', b: 'w', F: '4', S: 'W', x: 'e' }, [5, 8, 11]),
+  rockfish: fishRows({ B: 'j', b: 'J', F: '4', S: '4', x: 'A' }),
+  bass: fishRows({ B: 'G', b: 'O', F: 'g', S: 'j', x: 'e' }),
+  grouper: fishRows({ B: 'D', b: '5', F: 'd', S: '4', x: 'A' }, [4, 9])
+});
+
 // ---------- ICONS ----------
 const ICONS = {
   gimbap:[
@@ -748,6 +766,27 @@ const ICONS = {
 "KIKKKKIK",
 "KIIIIIIK",
 "KK....KK"],
+  net:[
+"....KKKK....",
+"..KKGeGeKK..",
+".KGeGeGeGeK.",
+".KeGeGeGeGK.",
+".KGeGeGeGeK.",
+"..KKeGeGKK..",
+"....KKKK....",
+".....KDK....",
+"....KDK.....",
+"...KDK......",
+"..KDK.......",
+"..KK........"],
+  lure:[
+"...KKKK...",
+"KKKAARRK..",
+"KeEAARRRK.",
+"KKKAARRK..",
+"...KKKK.K.",
+".......KK.",
+"......KK.."],
   trophy:[
 ".KKKKKKKKK.",
 "KKAAAAAAAKK",

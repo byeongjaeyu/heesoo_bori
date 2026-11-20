@@ -79,7 +79,16 @@ const ITEMS = {
   wingshoes:  { slot: 'shoes', name: '남편의 갯바위 낚시신발', rar: 5, def: 9, spd: 0.3, color: '#5a6a4a', icon: 'fishshoe', tier: 6, desc: '회차 전용. 미끄러운 갯바위도 성큼성큼' },
   aurorabag:  { slot: 'bag', name: '오로라 미니백', rar: 5, atk: 17, mp: 115, crit: 0.07, color: '#7ef08a', icon: 'bag', tier: 6, desc: '회차 전용' },
   b_royal:    { slot: 'bcloth', bori: 1, name: '왕자님 망토', rar: 5, bdmg: 0.85, color: '#7a3ac0', pat: 'pad', icon: 'bpad', tier: 6, desc: '회차 전용' },
-  toy_carp:   { slot: 'btoy', bori: 1, name: '전설의 월척 인형', rar: 5, bdmg: 0.95, icon: 'tdoll', tier: 6, desc: '회차 전용' }
+  toy_carp:   { slot: 'btoy', bori: 1, name: '전설의 월척 인형', rar: 5, bdmg: 0.95, icon: 'tdoll', tier: 6, desc: '회차 전용' },
+
+  // ---- 2장 · 낚시 장비 세트 (전설, 2장 보스 확정 드롭 전용 — 일반 드롭 풀에는 없음) ----
+  net:      { slot: 'weapon', name: '오빠의 뜰채', rar: 3, atk: 40, crit: 0.06, icon: 'net', tier: 5, bossOnly: 1, w: { reach: 30, arc: 140, mul: 1, rate: 2.0, kb: 120, style: 'swing' }, desc: '대물 건지라고 산 뜰채. 오늘은 몬스터를 건진다' },
+  vest:     { slot: 'armor', name: '구명 낚시조끼', rar: 3, def: 22, hp: 200, color: '#ee8a2a', icon: 'jacket', tier: 5, bossOnly: 1, desc: '주머니가 열두 개. 하나엔 오빠 간식' },
+  bucket:   { slot: 'hat', name: '벙거지 모자', rar: 3, def: 12, mp: 80, crit: 0.05, color: '#7a8a5a', icon: 'hat', tier: 5, bossOnly: 1, desc: '햇빛도 잔소리도 막아준다' },
+  rainboot: { slot: 'shoes', name: '갯바위 장화', rar: 3, def: 7, spd: 0.24, color: '#2f6a3f', icon: 'boots', tier: 5, bossOnly: 1, desc: '미끄러운 좌대도 문제없다' },
+  tackle:   { slot: 'bag', name: '오빠의 태클박스', rar: 3, atk: 10, mp: 80, crit: 0.05, color: '#3a6ac0', icon: 'bag', tier: 5, bossOnly: 1, desc: '"이거 다 필요한 거야" 라던 그 상자' },
+  b_life:   { slot: 'bcloth', bori: 1, name: '보리 구명조끼', rar: 3, bdmg: 0.62, color: '#ff8a3c', pat: 'pad', icon: 'bpad', tier: 5, bossOnly: 1, desc: '물에 빠져도 둥둥. 보리 최애 주황색' },
+  toy_lure: { slot: 'btoy', bori: 1, name: '반짝이 루어 장난감', rar: 3, bdmg: 0.7, icon: 'lure', tier: 5, bossOnly: 1, desc: '대왕자바리도 홀린 반짝이. 바늘은 뺐어요' }
 };
 
 const SKILLS = {
@@ -111,6 +120,18 @@ const MONS = {
   boss1: { name: '왕풍선 유령',   spr: 'balloon', scale: 3, crown: 1, hp: 900,   atk: 16, def: 2,  spd: 22, xp: 200,  gold: [90, 110],  r: 15, ai: 'boss1', boss: 1, col: '#b45cff', fly: 1, drops: ['churros', 'cap_pink', 'toy_melon'] },
   boss2: { name: '폭주 회전컵',   spr: 'teacup',  scale: 2, hp: 3200,  atk: 28, def: 6,  spd: 40, xp: 600,  gold: [250, 300], r: 17, ai: 'boss2', boss: 1, col: '#ffb3d9', drops: ['selfie', 'ugly', 'b_knit'] },
   boss3: { name: '거대 곰인형',   spr: 'bear',    scale: 3, crown: 1, hp: 9000,  atk: 42, def: 12, spd: 20, xp: 1300, gold: [500, 600], r: 19, ai: 'boss3', boss: 1, col: '#8a5a3a', drops: ['handbag', 'coat', 'toy_bone'] },
+  // ---- 2장 몬스터 ----
+  mosquito: { name: '피에 굶주린 모기떼', spr: 'mosquito', hp: 520,  atk: 58, def: 8,  spd: 46, xp: 70,  gold: [16, 26], r: 5, ai: 'float', col: '#6a6f7c', fly: 1 },
+  worm:     { name: '미끼 지렁이',       spr: 'worm',     hp: 900,  atk: 64, def: 12, spd: 22, xp: 84,  gold: [20, 30], r: 6, ai: 'chase', col: '#f28cc0' },
+  shrimp:   { name: '미끼 생새우',       spr: 'shrimp',   hp: 760,  atk: 70, def: 10, spd: 30, xp: 84,  gold: [20, 30], r: 6, ai: 'hop',   col: '#b9c0cc' },
+  bream:    { name: '팔딱 참돔',         spr: 'bream',    hp: 1150, atk: 78, def: 13, spd: 40, xp: 100, gold: [24, 36], r: 7, ai: 'charge', col: '#ff7b8a' },
+  stripe:   { name: '물총 줄돔',         spr: 'stripe',   hp: 1000, atk: 74, def: 12, spd: 28, xp: 100, gold: [24, 36], r: 6, ai: 'ranged', proj: 'water', col: '#f7f3ea' },
+  rockfish: { name: '대물 우럭',         spr: 'rockfish', hp: 1700, atk: 86, def: 16, spd: 26, xp: 118, gold: [28, 42], r: 7, ai: 'chase', col: '#8a5a3a' },
+  bass:     { name: '대물 농어',         spr: 'bass',     hp: 1350, atk: 92, def: 14, spd: 44, xp: 118, gold: [28, 42], r: 7, ai: 'charge', col: '#b9c0cc' },
+  truck:     { name: '주차 빌런 트럭',     spr: 'truck',    scale: 2.5, hp: 24000, atk: 72,  def: 16, spd: 34, xp: 3200, gold: [700, 900],   r: 24, ai: 'truck',  boss: 1, col: '#e8414f', drops: ['net', 'vest'] },
+  breamking: { name: '핑크 참돔 왕',       spr: 'bream',    scale: 3.5, crown: 1, hp: 30000, atk: 82,  def: 18, spd: 26, xp: 4200, gold: [900, 1100], r: 22, ai: 'bream',  boss: 1, col: '#ff7b8a', drops: ['bucket', 'b_life'] },
+  bassgen:   { name: '대물 농어 장군',     spr: 'bass',     scale: 3.5, crown: 1, hp: 38000, atk: 92,  def: 20, spd: 30, xp: 5200, gold: [1100, 1300], r: 22, ai: 'bassgen', boss: 1, col: '#b9c0cc', drops: ['rainboot', 'tackle'] },
+  grouper:   { name: '월척 중국 대왕자바리', spr: 'grouper', scale: 4.5, crown: 1, hp: 52000, atk: 108, def: 22, spd: 22, xp: 9000, gold: [0, 0],       r: 28, ai: 'grouper', boss: 1, col: '#d9822b', drops: ['toy_lure'] },
   boss4: { name: '퍼레이드 대왕', spr: 'clown',   scale: 4, crown: 1, hp: 20000, atk: 70, def: 14, spd: 24, xp: 3000, gold: [0, 0],     r: 21, ai: 'boss4', boss: 1, col: '#b45cff' }
 };
 
@@ -118,7 +139,12 @@ const ZONES = [
   { name: '정문 광장',          sub: 'STAGE 1',     quota: 20, max: 9,  spawnInt: 1.4, mons: [['slime', 6], ['balloon', 4]], boss: 'boss1', theme: 'plaza',  next: '매직랜드' },
   { name: '매직랜드',           sub: 'STAGE 2',     quota: 30, max: 10, spawnInt: 1.3, mons: [['horse', 5], ['soldier', 4], ['balloon', 2]], boss: 'boss2', theme: 'pastel', next: '사파리 월드' },
   { name: '사파리 월드',        sub: 'STAGE 3',     quota: 34, max: 11, spawnInt: 1.25, mons: [['raccoon', 5], ['bear', 4]], boss: 'boss3', theme: 'grass',  next: '유러피언 어드벤처' },
-  { name: '유러피언 어드벤처',  sub: 'FINAL STAGE', quota: 38, max: 12, spawnInt: 1.2, mons: [['coaster', 5], ['clown', 4], ['bear', 1]], boss: 'boss4', theme: 'cobble', next: '탈출구' }
+  { name: '유러피언 어드벤처',  sub: 'FINAL STAGE', quota: 38, max: 12, spawnInt: 1.2, mons: [['coaster', 5], ['clown', 4], ['bear', 1]], boss: 'boss4', theme: 'cobble', next: '탈출구' },
+  // ---- 2장: 유료 바다낚시터 (난이도는 1장 5회차 · Lv30 기준, CH2_BASE_L) ----
+  { name: '유료낚시터 주차장',  sub: 'STAGE 5', ch: 2, quota: 30, max: 11, spawnInt: 1.25, mons: [['mosquito', 5], ['worm', 4], ['shrimp', 4]], boss: 'truck', theme: 'lot', next: '유료낚시터 (낮)' },
+  { name: '유료낚시터 · 낮낚시', sub: 'STAGE 6', ch: 2, quota: 34, max: 11, spawnInt: 1.2, mons: [['bream', 5], ['stripe', 4], ['shrimp', 2]], boss: 'breamking', theme: 'pier', next: '유료낚시터 (밤)' },
+  { name: '유료낚시터 · 밤낚시', sub: 'STAGE 7', ch: 2, quota: 36, max: 12, spawnInt: 1.2, mons: [['rockfish', 5], ['bass', 4], ['mosquito', 2]], boss: 'bassgen', theme: 'night', next: '갯바위 끝' },
+  { name: '갯바위 끝',          sub: 'FINAL STAGE', ch: 2, quota: 38, max: 12, spawnInt: 1.15, mons: [['rockfish', 4], ['bass', 4], ['bream', 3], ['stripe', 2]], boss: 'grouper', theme: 'rock', next: '' }
 ];
 
 const NAG_WORDS = ['방 치워!', '밥 먹었어?', '양말!!', '또 게임해?', '설거지!', '일찍 와!', '물 마셔!', '옷 걸어!', '불 꺼!', '손 씻어!', '자세 똑바로!', '휴지 갈아!', '빨래 개!', '변기 커버!'];
@@ -148,10 +174,11 @@ const BOOK_SETS = [
   { k: 'r3', name: '전설', rar: 3, txt: '치명 +3%' },
   { k: 'r4', name: '신화', rar: 4, txt: '공격 +5%' },
   { k: 'r5', name: '초월', rar: 5, txt: '공격·방어·HP +5%' },
-  { k: 'bori', name: '보리 용품', rar: -1, bori: true, txt: '보리 공격 +15%' }
+  { k: 'bori', name: '보리 용품', rar: -1, bori: true, txt: '보리 공격 +15%' },
+  { k: 'sea', name: '2장 낚시 장비', rar: -1, sea: true, txt: '공격·방어 +4%' }
 ];
 /** 세트에 들어가는 장비 id (시작 장비 제외) */
-const bookIds = set => Object.keys(ITEMS).filter(id => { const it = ITEMS[id]; return !it.start && (set.bori ? !!it.bori : !it.bori && it.rar === set.rar); });
+const bookIds = set => Object.keys(ITEMS).filter(id => { const it = ITEMS[id]; if (it.start) return false; if (set.sea) return !!it.bossOnly; if (it.bossOnly) return false; return set.bori ? !!it.bori : !it.bori && it.rar === set.rar; });
 const BOOK_ALL = Object.keys(ITEMS).filter(id => !ITEMS[id].start);
 
 // ===== 희수 꾸미기 (능력치 없음, 겉모습만) =====
@@ -166,6 +193,7 @@ const HAIRS = [
   { k: 'mint', name: '민트', H: '#2f8f78', h: '#6fd3b6', need: 'loop5', cond: '5회차 도달' },
   { k: 'blonde', name: '금발', H: '#b8862a', h: '#e9c35a', need: 'book25', cond: '도감 25종' },
   { k: 'red', name: '레드', H: '#a11f2a', h: '#dd4651', need: 'enh25', cond: '장비 하나 +25 강화' },
+  { k: 'ocean', name: '바다 블루', H: '#1f4f9a', h: '#5a9ae8', need: 'ch2', cond: '2장 클리어' },
   { k: 'silver', name: '은발', H: '#9da2b0', h: '#dde0e8', need: 'aw50', cond: '각성 ★50' },
   { k: 'lavender', name: '베타 라벤더', H: '#6a4cb8', h: '#b49cf0', need: 'pack', cond: '뉴비 패키지 (베타 한정)', excl: 1 }
 ];

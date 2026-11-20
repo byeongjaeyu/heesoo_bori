@@ -51,7 +51,7 @@ async function raidGo() {
 function startRaidArena(I) {
   const m0 = MONS[I.boss] || MONS.boss4;
   G.raid = { t: RAID_TIME, dmg: 0, over: false, info: I }; G.pvp = null; G.inf = null; G.husUsed = false;
-  G.zone = ZONES.length - 1; G.world = buildWorld(G.zone); const W = G.world;
+  G.zone = CH1_N - 1; G.world = buildWorld(G.zone); const W = G.world;
   G.enemies = []; G.projs = []; G.fx = []; G.drops = []; G.parts = []; G.texts = []; G.bubbles = [];
   G.zoneKills = 0; G.bossSpawned = true; G.bossDefeated = false; G.exitOpen = false; G.spawnT = 99; G.ult = null; G.pendingEvent = null;
   G.P = null; calcStats(); G.P = newPlayer(W.start.x, W.start.y); G.P.fy = -1; G.P.dir = 'up';

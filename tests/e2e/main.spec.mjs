@@ -145,7 +145,7 @@ test('도감 탭: 보유 장비는 보이고 없는 건 ???', async ({ page }) =
   await withSave(page, URL_MAIN, { lv: 20, inv: { fist: 1, cap_grey: 1, fleece: 1, sneakers: 1, silverbag: 1, churros: 1 } });
   await enterZone(page, 1);
   await openTab(page, 'book');
-  await expect(page.locator('.bookhead')).toContainText('1 / 44');
+  await expect(page.locator('.bookhead')).toContainText('1 / 51');
   await expect(page.locator('.bcell:not(.no)')).toHaveCount(1);
   await expect(page.locator('.bcell:not(.no)')).toContainText('츄러스');
 });
@@ -342,4 +342,31 @@ test('뉴비 패키지: 로비에서 무료로 받기 → 자동사냥·강화�
   expect([pd.stones, pd.autoBonus >= 3 * 3600, pd.title, !!pd.pack.got]).toEqual([300, true, 'beta', true]);
   await page.click('#packX');
   await expect(page.locator('#tPack')).toHaveCount(0);
+});
+
+test('2장: Lv30 전엔 잠김 → 열리면 프롤로그 후 STAGE 5', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 20, cleared: 1 });
+  await page.click('.tch[data-ch="2"]');
+  await expect(page.locator('#toasts')).toContainText('Lv30');
+  await page.evaluate(() => { const pd = loadGame(); pd.lv = 30; localStorage.setItem(SAVEKEY, JSON.stringify(pd)); showTitle(); });
+  await page.click('.tch[data-ch="2"]');
+  await expect(page.locator('#tCont')).toContainText('유료낚시터 주차장');
+  await page.click('#tCont');
+  await page.waitForFunction(() => G.state === 'cut');
+  await page.evaluate(() => endCut());
+  await page.waitForFunction(() => G.state === 'play' && G.zone === 4, null, { timeout: 8000 });
+  expect(await page.evaluate(() => [loadGame().chap, loadGame().ch2.zone, loadGame().zone])).toEqual([2, 4, 0]);
+});
+
+test('2장 마지막 보스 → 엔딩 → 2장 클리어 기록·칭호', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 50, cleared: 3, chap: 2, ch2: { zone: 7, cleared: 0, intro: 1, seen: { 5: 1, 6: 1 } } });
+  await page.click('#tCont');
+  await page.waitForFunction(() => G.state === 'play' && G.zone === 7, null, { timeout: 8000 });
+  await page.evaluate(() => { onBossDefeated({}); G.P.x = G.world.gate.x; G.P.y = G.world.gate.y + 4; });
+  await page.waitForFunction(() => G.state === 'cut', null, { timeout: 10000 });
+  await page.evaluate(() => endCut());
+  await expect(page.locator('#endScr')).toContainText('2장');
+  expect(await page.evaluate(() => loadGame().ch2.cleared)).toBe(1);
+  await page.click('#eTitle');
+  await expect(page.locator('#tCont')).toContainText('2회차');
 });

@@ -109,8 +109,8 @@ async function claimGifts(pd) {
       const h = sec / 3600, txt = h >= 1 ? `${Math.round(h * 10) / 10}시간` : `${Math.round(sec / 60)}분`;
       toast(`${lead} 자동사냥 ${txt} 충전 (자정에도 안 사라져요)`, 'lvl'); sfx('lvl');
     } else if (g.kind === 'stage') {
-      // amount = 누적 스테이지 번호 (1회차 STAGE 1 = 1, 회차당 ZONES.length개). 지금보다 앞일 때만 이동
-      const n = Math.max(1, Number(g.amount) || 1) - 1, Z = ZONES.length, cl = Math.floor(n / Z), z = n % Z;
+      // amount = 누적 스테이지 번호 (1회차 STAGE 1 = 1, 회차당 CH1_N(4)개, 1장만). 지금보다 앞일 때만 이동
+      const n = Math.max(1, Number(g.amount) || 1) - 1, Z = CH1_N, cl = Math.floor(n / Z), z = n % Z;
       const cur = (tgt.cleared || 0) * Z + (tgt.zone || 0);
       if (n > cur) { tgt.cleared = cl; tgt.zone = z; toast(`${lead} ${cl + 1}회차 ${ZONES[z].sub}(으)로 이동했어요`, 'lvl'); sfx('lvl'); }
     } else if (g.kind === 'awaken') {

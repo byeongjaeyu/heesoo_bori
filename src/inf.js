@@ -4,7 +4,7 @@ const INF_WAVE_KILLS = 40;
 function infBasis(pd) {
   const cl = pd.cleared || 0, z = pd.zone || 0;
   if (z > 0) return { zone: z - 1, loop: loopEff(cl), real: cl };
-  if (cl > 0) return { zone: ZONES.length - 1, loop: loopEff(cl - 1), real: cl - 1 };
+  if (cl > 0) return { zone: CH1_N - 1, loop: loopEff(cl - 1), real: cl - 1 };
   return { zone: 0, loop: 0, none: true };
 }
 const infBasisLabel = b => `${(b.real != null ? b.real : b.loop) + 1}회차 ${ZONES[b.zone].name}${b.none ? ' (아직 깬 곳 없음)' : ''}`;

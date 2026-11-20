@@ -55,6 +55,10 @@ interface SaveData {
   idleT?: number;
   /** 뉴비 패키지: 처음 본 시각·받은 시각 */
   pack?: { seen?: number; got?: number };
+  /** 지금 고른 장 (1 에버랜드 · 2 바다낚시터) */
+  chap?: number;
+  /** 2장 진행도 (zone 4~7) */
+  ch2?: { zone: number; cleared: number; intro?: number; seen?: Record<string, number> };
 
   /** 각성 단계 (Lv50 이후) */
   aw?: number;
@@ -79,6 +83,8 @@ interface SaveData {
 
 /** 장비 정의 (data.js ITEMS) */
 interface ItemDef {
+  /** 보스 확정 드롭 전용 (일반 드롭·상자 풀에서 제외) */
+  bossOnly?: number;
   slot: EquipSlot;
   name: string;
   /** 0 일반 · 1 희귀 · 2 영웅 · 3 전설 · 4 신화 · 5 초월 */

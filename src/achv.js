@@ -35,6 +35,9 @@ const ACH = [
   { id: 'd100', t: '칠전팔기', d: '100번 기절하고 일어나기', tier: 1, v: pd => pd.stats.deaths, g: 100 },
   { id: 't10', t: '에버랜드 단골', d: '플레이 10시간', tier: 1, v: pd => pd.stats.time, g: 36000 },
   { id: 't100', t: '에버랜드 주민', d: '플레이 100시간', tier: 3, v: pd => pd.stats.time, g: 360000 },
+  { id: 'c2n', t: '밤낚시 생존자', d: '2장 STAGE 7 밤낚시 통과', tier: 2, v: pd => pd.ch2 && (pd.ch2.cleared || pd.ch2.zone >= 7) ? 1 : 0, g: 1 },
+  { id: 'c2', t: '월척 헌터', d: '2장 클리어 (오빠 구출)', tier: 3, v: pd => (pd.ch2 && pd.ch2.cleared) || 0, g: 1 },
+  { id: 'c2x5', t: '바다의 주인', d: '2장 5번 클리어', tier: 4, v: pd => (pd.ch2 && pd.ch2.cleared) || 0, g: 5 },
   // 한정 칭호 (가진 사람만 목록에 보임, 업적 보상 없음)
   { id: 'beta', t: '베타 개척자', d: '베타 기간 뉴비 패키지', tier: 4, sp: 1, v: pd => pd.pack && pd.pack.got ? 1 : 0, g: 1 },
 ];

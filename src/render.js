@@ -175,6 +175,7 @@ function drawProj(p) {
   if (p.k === 'balloon') drawSpr(pspr('balloon'), p.x, p.y + 3);
   else if (p.k === 'note') drawSpr(pspr('note'), p.x, p.y + 3);
   else if (p.k === 'tea') drawSpr(pspr('tea'), p.x, p.y + 2);
+  else if (p.k === 'water') { const x = Math.round(p.x), y = Math.round(p.y); fr(x - 2, y - 2, 4, 4, '#2b1b24'); fr(x - 1, y - 3, 2, 1, '#2b1b24'); fr(x - 1, y - 1, 2, 2, '#6fb8ff'); fr(x - 1, y - 2, 1, 1, '#d6f0ff'); }
   else if (p.k === 'card') { ctx.save(); ctx.translate(Math.round(p.x), Math.round(p.y)); ctx.rotate(p.rot); ctx.fillStyle = '#2b1b24'; ctx.fillRect(-4, -3, 8, 6); ctx.fillStyle = '#ffffff'; ctx.fillRect(-3, -2, 6, 4); ctx.fillStyle = '#6fb8ff'; ctx.fillRect(-3, 1, 6, 1); ctx.fillStyle = '#ffdcc2'; ctx.fillRect(-2, -1, 2, 2); ctx.restore(); }
   else if (p.k === 'churro') { ctx.save(); ctx.translate(Math.round(p.x), Math.round(p.y)); ctx.rotate(p.rot); ctx.fillStyle = '#2b1b24'; ctx.fillRect(-4, -2, 8, 4); ctx.fillStyle = '#c98a3a'; ctx.fillRect(-3, -1, 6, 2); ctx.restore(); }
   else if (p.k === 'confetti') { ctx.save(); ctx.translate(Math.round(p.x), Math.round(p.y)); ctx.rotate(p.rot); ctx.fillStyle = '#2b1b24'; ctx.fillRect(-2, -2, 4, 4); ctx.fillStyle = p.col; ctx.fillRect(-1, -1, 2, 2); ctx.restore(); }
@@ -216,6 +217,7 @@ function renderScreen() {
   const W = G.world, cw = cv.width, ch = cv.height;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   const [r, g, b, a] = W.tint; ctx.fillStyle = `rgba(${r},${g},${b},${a})`; ctx.fillRect(0, 0, cw, ch);
+  if (W.dark && G.P) drawDarkness(W, cw, ch);
   ctx.globalCompositeOperation = 'lighter';
   for (const d of W.decor) { if (!d.glow) continue; const [x, y] = W2S(d.x, d.y - 24); if (x < -60 * S || x > cw + 60 * S || y < -60 * S || y > ch + 60 * S) continue; const rg = ctx.createRadialGradient(x, y, 0, x, y, 26 * S); rg.addColorStop(0, hexA(d.glow, W.glowA)); rg.addColorStop(1, hexA(d.glow, 0)); ctx.fillStyle = rg; ctx.fillRect(x - 26 * S, y - 26 * S, 52 * S, 52 * S); }
   if (G.exitOpen) { const [x, y] = W2S(W.gate.x, W.gate.y - 24); const rg = ctx.createRadialGradient(x, y, 0, x, y, 50 * S); rg.addColorStop(0, 'rgba(255,240,170,0.5)'); rg.addColorStop(1, 'rgba(255,240,170,0)'); ctx.fillStyle = rg; ctx.fillRect(x - 50 * S, y - 50 * S, 100 * S, 100 * S); }
@@ -224,7 +226,7 @@ function renderScreen() {
   if (G.P && G.P.hp < G.st.hp * 0.25 && G.state === 'play') { const pa = 0.25 + Math.sin(G.time * 6) * 0.12; const lg = ctx.createRadialGradient(cw / 2, ch / 2, Math.min(cw, ch) * 0.3, cw / 2, ch / 2, Math.max(cw, ch) * 0.7); lg.addColorStop(0, 'rgba(255,0,40,0)'); lg.addColorStop(1, `rgba(255,0,40,${pa})`); ctx.fillStyle = lg; ctx.fillRect(0, 0, cw, ch); }
   const U = S;
   // gate label
-  { const [x, y] = W2S(W.gate.x, W.gate.y - 49); if (y > -20 && y < ch + 20) txt(G.zone < 3 ? '→ ' + ZONES[G.zone].next : '탈출구', x, y, U * 4.2, G.exitOpen ? '#7a3a1a' : '#9a8a8a', null, 'center'); }
+  { const [x, y] = W2S(W.gate.x, W.gate.y - 49); if (y > -20 && y < ch + 20) txt(!isChLast(G.zone) ? '→ ' + ZONES[G.zone].next : '탈출구', x, y, U * 4.2, G.exitOpen ? '#7a3a1a' : '#9a8a8a', null, 'center'); }
   if (W.mainGate) { const [x, y] = W2S(W.mainGate.x, W.mainGate.y - 49); if (y < ch + 20) txt('정문 (봉쇄됨)', x, y, U * 4, '#a03040'); }
   // texts
   for (const t of G.texts) {
@@ -352,3 +354,17 @@ function drawStars(SW, SH, T) { fr(0, 0, SW, SH, '#1a0a2a'); for (let i = 0; i <
 
 /** 이름표 위 칭호 (snap.ttl) */
 function achNameTag(snap, x, y, U) { const a = snap && snap.ttl && ACH_BY[snap.ttl]; if (a) txt('「' + a.t + '」', x, y - U * 4, U * 3, ACH_COL[a.tier], '#2b1b24'); }
+
+/** 밤낚시: 화면을 어둡게 덮고 희수 주변·랜턴·열린 출구만 밝게 */
+let DARKC = null;
+function drawDarkness(W, cw, ch) {
+  if (!DARKC || DARKC.width !== cw || DARKC.height !== ch) { DARKC = document.createElement('canvas'); DARKC.width = cw; DARKC.height = ch; }
+  const d = DARKC.getContext('2d'); d.globalCompositeOperation = 'source-over'; d.clearRect(0, 0, cw, ch); d.fillStyle = 'rgba(3,6,22,0.9)'; d.fillRect(0, 0, cw, ch);
+  d.globalCompositeOperation = 'destination-out';
+  const hole = (wx, wy, r) => { const [x, y] = W2S(wx, wy); if (x < -r || x > cw + r || y < -r || y > ch + r) return; const g = d.createRadialGradient(x, y, r * 0.45, x, y, r); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)'); d.fillStyle = g; d.fillRect(x - r, y - r, r * 2, r * 2); };
+  hole(G.P.x, G.P.y - 8, 62 * S);
+  for (const dd of W.decor) if (dd.glow) hole(dd.x, dd.y - 20, 34 * S);
+  if (G.exitOpen) hole(W.gate.x, W.gate.y - 24, 56 * S);
+  if (G.boss && !G.boss.dead) hole(G.boss.x, G.boss.y - 10, 34 * S);
+  d.globalCompositeOperation = 'source-over'; ctx.drawImage(DARKC, 0, 0);
+}

@@ -130,13 +130,37 @@ const THEME = {
   plaza:  { bg: '#3f8a34', hedge: ['#3f8a34', '#5aa845', '#2b6a26'], tint: [70, 20, 110, 0.10], glow: 0.14 },
   pastel: { bg: '#3f8a34', hedge: ['#4c9a52', '#79c78a', '#2f6a3a'], tint: [90, 20, 120, 0.14], glow: 0.07 },
   grass:  { bg: '#2f6a26', hedge: ['#2f7a2a', '#4f9a3f', '#1f5a1c'], tint: [40, 20, 90, 0.16], glow: 0.2 },
-  cobble: { bg: '#2a2a36', hedge: ['#36603a', '#4f7f4a', '#22402a'], tint: [30, 8, 70, 0.34], glow: 0.32 }
+  cobble: { bg: '#2a2a36', hedge: ['#36603a', '#4f7f4a', '#22402a'], tint: [30, 8, 70, 0.34], glow: 0.32 },
+  // 2장 바다낚시터: 가장자리는 산울타리 대신 바다
+  lot:   { bg: '#2f6fae', hedge: ['#3a3a42', '#55555f', '#2a2a30'], tint: [40, 30, 90, 0.10], glow: 0.16, sea: 1 },
+  pier:  { bg: '#2f6fae', hedge: ['#8a6a44', '#b98a5a', '#5e4430'], tint: [20, 40, 90, 0.06], glow: 0.10, sea: 1 },
+  night: { bg: '#0e1a33', hedge: ['#4a3a2a', '#6a5238', '#2e2418'], tint: [8, 12, 50, 0.30], glow: 0.55, sea: 1, dark: 1 },
+  rock:  { bg: '#182848', hedge: ['#3a3a48', '#55556a', '#262632'], tint: [30, 20, 80, 0.26], glow: 0.4, sea: 1 }
 };
+// ---------- 2장 소품 ----------
+function dCar(col) { const c = mkCanvas(30, 18), g = c.getContext('2d'); pRect(g, 1, 6, 28, 9, OK); pRect(g, 2, 7, 26, 7, col); pRect(g, 7, 1, 16, 7, OK); pRect(g, 8, 2, 6, 5, '#9fe8ff'); pRect(g, 16, 2, 6, 5, '#9fe8ff'); pRect(g, 2, 10, 26, 1, shadeHex(col, -0.25)); pCirc(g, 7, 15, 3, OK); pCirc(g, 7, 15, 1, '#6a6f7c'); pCirc(g, 23, 15, 3, OK); pCirc(g, 23, 15, 1, '#6a6f7c'); pRect(g, 27, 8, 2, 2, '#ffd84a'); return c; }
+function dCone() { const c = mkCanvas(9, 12), g = c.getContext('2d'); for (let y = 1; y < 10; y++) { const hw = Math.round(y / 2.4); pRect(g, 4 - hw - 1, y, hw * 2 + 3, 1, OK); pRect(g, 4 - hw, y, hw * 2 + 1, 1, y % 4 === 2 ? '#ffffff' : '#ff7a2a'); } pRect(g, 0, 10, 9, 2, OK); pRect(g, 1, 10, 7, 1, '#ff7a2a'); return c; }
+function dBaitShop() { const c = mkCanvas(40, 34), g = c.getContext('2d'); pRect(g, 3, 12, 34, 22, OK); pRect(g, 4, 13, 32, 21, '#d8ecff'); pRect(g, 0, 6, 40, 8, OK); for (let x = 1; x < 39; x++) pRect(g, x, 7, 1, 6, (Math.floor(x / 3) % 2) ? '#ffffff' : '#3a78c0'); pRect(g, 8, 18, 10, 8, OK); pRect(g, 9, 19, 8, 6, '#9fe8ff'); pRect(g, 23, 20, 9, 14, OK); pRect(g, 24, 21, 7, 13, '#8a5a3a'); pRect(g, 10, 0, 20, 7, OK); pRect(g, 11, 1, 18, 5, '#ffd84a'); pRect(g, 13, 3, 14, 1, '#2b1b24'); return c; }
+function dChair() { const c = mkCanvas(14, 16), g = c.getContext('2d'); pRect(g, 2, 0, 10, 9, OK); pRect(g, 3, 1, 8, 7, '#3a78c0'); pRect(g, 1, 8, 12, 4, OK); pRect(g, 2, 9, 10, 2, '#6fb8ff'); pRect(g, 2, 12, 1, 4, OK); pRect(g, 11, 12, 1, 4, OK); return c; }
+function dCooler() { const c = mkCanvas(16, 11), g = c.getContext('2d'); pRect(g, 0, 2, 16, 9, OK); pRect(g, 1, 3, 14, 7, '#ffffff'); pRect(g, 1, 3, 14, 2, '#3a78c0'); pRect(g, 5, 0, 6, 3, OK); pRect(g, 6, 1, 4, 1, '#c0c6d0'); return c; }
+function dParasol(col) { const c = mkCanvas(30, 34), g = c.getContext('2d'); pRect(g, 14, 9, 2, 25, OK); for (let y = 1; y <= 10; y++) { const hw = Math.round(y * 1.4); pRect(g, 15 - hw - 1, y, hw * 2 + 2, 1, OK); for (let x = -hw; x <= hw; x++) pRect(g, 15 + x, y, 1, 1, (Math.floor((x + 30) / 4) % 2) ? '#ffffff' : col); } pRect(g, 1, 11, 28, 1, OK); return c; }
+function dRod() { const c = mkCanvas(20, 30), g = c.getContext('2d'); for (let i = 0; i < 26; i++) pRect(g, 3 + Math.round(i * 0.55), 28 - i, 1, 1, OK); pRect(g, 2, 24, 3, 6, '#c98a3a'); pRect(g, 5, 22, 3, 3, OK); pRect(g, 6, 23, 1, 1, '#c0c6d0'); for (let y = 2; y < 18; y++) pRect(g, 17, y, 1, 1, '#d6e8ff'); return c; }
+function dBuoy() { const c = mkCanvas(14, 14), g = c.getContext('2d'); pCirc(g, 7, 7, 6, OK); pCirc(g, 7, 7, 5, '#ff7a2a'); pCirc(g, 7, 7, 2, OK); for (const [x, y] of [[7, 2], [7, 12], [2, 7], [12, 7]]) pRect(g, x - 1, y - 1, 2, 2, '#ffffff'); return c; }
+function dSeaRock(dark) { const c = mkCanvas(26, 16), g = c.getContext('2d'); pEll(g, 13, 9, 12, 7, OK); pEll(g, 13, 9, 11, 6, dark ? '#3a3a48' : '#6a6878'); pEll(g, 11, 7, 7, 3, dark ? '#4e4e60' : '#8a8898'); pRect(g, 8, 5, 3, 1, dark ? '#6a6a80' : '#aaa8b8'); return c; }
+function dLantern() { const c = mkCanvas(9, 26), g = c.getContext('2d'); pRect(g, 4, 8, 1, 18, OK); pRect(g, 2, 24, 5, 2, OK); pRect(g, 2, 0, 5, 1, OK); pRect(g, 1, 1, 7, 7, OK); pRect(g, 2, 2, 5, 5, '#ffcf6a'); pRect(g, 3, 3, 2, 2, '#fff6d0'); return c; }
+function dSeaGate(open) {
+  const c = mkCanvas(62, 54), g = c.getContext('2d');
+  if (!open) { pRect(g, 12, 18, 38, 36, '#3a2a24'); g.fillStyle = '#8a6a44'; for (let y = 20; y < 54; y += 5) g.fillRect(12, y, 38, 2); pRect(g, 27, 32, 8, 7, OK); pRect(g, 28, 33, 6, 5, '#e8414f'); }
+  for (const px of [4, 50]) { pRect(g, px, 10, 8, 44, OK); pRect(g, px + 1, 11, 6, 43, '#a8784a'); g.fillStyle = '#7a5434'; for (let y = 14; y < 54; y += 6) g.fillRect(px + 1, y, 6, 1); }
+  pRect(g, 0, 6, 62, 8, OK); pRect(g, 1, 7, 60, 6, '#3a78c0'); pRect(g, 1, 7, 60, 2, '#6fb8ff');
+  pRect(g, 14, 0, 34, 11, OK); pRect(g, 15, 1, 32, 9, '#fff6e0'); pRect(g, 18, 4, 4, 3, '#3a78c0'); pRect(g, 25, 4, 4, 3, '#3a78c0'); pRect(g, 32, 4, 4, 3, '#3a78c0'); pRect(g, 39, 4, 4, 3, '#3a78c0');
+  return c;
+}
 
 function buildWorld(zi) {
   const Z = ZONES[zi], th = THEME[Z.theme]; const R = mulberry(911 + zi * 131);
   const rr = (a, b) => a + R() * (b - a);
-  const W = { W: WORLD_W, H: WORLD_H, decor: [], solids: [], start: { x: WORLD_W / 2, y: WORLD_H - 76 }, gate: { x: WORLD_W / 2, y: 62 }, theme: Z.theme, bg: th.bg, tint: th.tint, glowA: th.glow, fountain: null, rails: [], gateClosed: dGate(false), gateOpen: dGate(true) };
+  const W = { W: WORLD_W, H: WORLD_H, decor: [], solids: [], start: { x: WORLD_W / 2, y: WORLD_H - 76 }, gate: { x: WORLD_W / 2, y: 62 }, theme: Z.theme, bg: th.bg, tint: th.tint, glowA: th.glow, fountain: null, rails: [], gateClosed: (th.sea ? dSeaGate : dGate)(false), gateOpen: (th.sea ? dSeaGate : dGate)(true), dark: !!th.dark };
   const gc = mkCanvas(WORLD_W, WORLD_H), g = gc.getContext('2d');
   const cx = WORLD_W / 2;
   const pathX = y => Z.theme === 'grass' ? cx + Math.sin(y / 95) * 70 * clamp((WORLD_H - 60 - y) / 120, 0, 1) * clamp((y - 80) / 120, 0, 1) : cx;
@@ -162,6 +186,24 @@ function buildWorld(zi) {
     for (let y = 0; y < WORLD_H; y++) { const px = Math.round(pathX(y)); g.fillStyle = '#b99260'; g.fillRect(px - 19, y, 38, 1); g.fillStyle = '#d6b47c'; g.fillRect(px - 17, y, 34, 1); }
     for (let i = 0; i < 700; i++) { const y = Math.floor(R() * WORLD_H); const px = pathX(y); g.fillStyle = R() < 0.5 ? '#c7a26c' : '#e2c48e'; g.fillRect(Math.round(px + rr(-16, 16)), y, 1, 1); }
     for (let i = 0; i < 40; i++) { g.fillStyle = choice(['#ffffff', '#ffd84a', '#ff9fcf']); const x = Math.round(rr(20, WORLD_W - 20)), y = Math.round(rr(20, WORLD_H - 20)); g.fillRect(x, y, 1, 1); g.fillRect(x - 1, y + 1, 3, 1); }
+  } else if (Z.theme === 'lot') {
+    // 주차장: 아스팔트 + 주차선, 위쪽은 바다로 이어지는 낚시터 입구
+    g.fillStyle = '#4a4a54'; g.fillRect(0, 0, WORLD_W, WORLD_H);
+    for (let i = 0; i < 6000; i++) { g.fillStyle = R() < 0.5 ? '#43434c' : '#55555f'; g.fillRect(Math.floor(R() * WORLD_W), Math.floor(R() * WORLD_H), 1, 1); }
+    g.fillStyle = '#f0d040'; for (let y = 0; y < WORLD_H; y += 22) g.fillRect(cx - 1, y, 2, 12);
+    g.fillStyle = '#e8e8ee'; for (const side of [-1, 1]) for (let y = 120; y < WORLD_H - 60; y += 46) { const x0 = side < 0 ? 40 : cx + 60; g.fillRect(x0, y, cx - 100, 2); for (let x = x0; x <= x0 + cx - 100; x += 46) g.fillRect(x, y, 2, 40); }
+  } else if (Z.theme === 'pier' || Z.theme === 'night') {
+    // 좌대: 나무 데크 (밤에는 어둡게)
+    const nt = Z.theme === 'night', tones = nt ? ['#5a4630', '#4e3c28', '#64503a'] : ['#c49460', '#b98a56', '#cc9e6a'];
+    for (let y = 0; y < WORLD_H; y += 8) { let x = -Math.floor(R() * 40); while (x < WORLD_W) { const w = 30 + Math.floor(R() * 50); g.fillStyle = choice(tones); g.fillRect(x, y, w, 7); g.fillStyle = nt ? '#2e2418' : '#8a6440'; g.fillRect(x + w - 1, y, 1, 7); x += w; } g.fillStyle = nt ? '#241a12' : '#7a5434'; g.fillRect(0, y + 7, WORLD_W, 1); }
+    for (let i = 0; i < 160; i++) { g.fillStyle = nt ? '#3a2c1e' : '#9a7048'; g.fillRect(Math.floor(R() * WORLD_W), Math.floor(R() * WORLD_H), 2, 1); }
+    // 데크 가운데 낚시 구멍(바다가 보이는 칸)
+    for (const [hx, hy] of [[150, 300], [410, 420], [140, 560], [420, 190]]) { pRect(g, hx - 22, hy - 12, 44, 24, '#2b1b24'); pRect(g, hx - 20, hy - 10, 40, 20, nt ? '#0c2a4a' : '#2f7fc0'); for (let k = 0; k < 6; k++) pRect(g, hx - 16 + k * 6, hy - 4 + (k % 2) * 6, 4, 1, nt ? '#3a6aa0' : '#9fd8ff'); W.solids.push({ x: hx, y: hy, r: 14 }); }
+  } else if (Z.theme === 'rock') {
+    // 갯바위: 거친 바위 바닥 + 물웅덩이
+    g.fillStyle = '#4a4a5c'; g.fillRect(0, 0, WORLD_W, WORLD_H);
+    for (let i = 0; i < 900; i++) { const x = R() * WORLD_W, y = R() * WORLD_H, r = 3 + R() * 9; pEll(g, x, y, r, r * 0.6, choice(['#55556a', '#3e3e50', '#5e5e74', '#46465a'])); }
+    for (let i = 0; i < 9; i++) { const x = rr(60, WORLD_W - 60), y = rr(140, WORLD_H - 120); if (Math.abs(x - cx) < 60) continue; pEll(g, x, y, 22, 11, '#2b1b24'); pEll(g, x, y, 20, 9, '#1c3a66'); pEll(g, x - 4, y - 2, 10, 3, '#3a6aa0'); }
   } else {
     g.fillStyle = '#6e6878'; g.fillRect(0, 0, WORLD_W, WORLD_H);
     for (let y = 0; y < WORLD_H; y += 7) { const off = (y / 7) % 2 ? 5 : 0; for (let x = -off; x < WORLD_W; x += 10) { const onPath = Math.abs(x + 5 - cx) < 26; g.fillStyle = onPath ? choice(['#b8b0bf', '#b0a8b8', '#bcb4c4']) : choice(['#958ea0', '#8c8598', '#9a93a6']); g.fillRect(x + 1, y + 1, 8, 5); g.fillStyle = onPath ? '#cfc8d6' : '#a8a2b4'; g.fillRect(x + 2, y + 1, 5, 1); } }
@@ -169,9 +211,18 @@ function buildWorld(zi) {
 
   // ---- hedge border ----
   const [h1, h2, h3] = th.hedge;
+  if (th.sea) {
+    // 바다 가장자리 + 난간
+    const sea = th.dark ? ['#0c2244', '#163460', '#2a4c80'] : ['#2f6fae', '#3f8ad0', '#9fd8ff'];
+    const band = (x, y, w, h) => { g.fillStyle = sea[0]; g.fillRect(x, y, w, h); for (let i = 0; i < w * h / 60; i++) { g.fillStyle = R() < 0.7 ? sea[1] : sea[2]; g.fillRect(Math.floor(x + R() * w), Math.floor(y + R() * h), 3, 1); } };
+    band(0, 0, 16, WORLD_H); band(WORLD_W - 16, 0, 16, WORLD_H); band(0, WORLD_H - 10, WORLD_W, 10); band(0, 0, cx - 34, 14); band(cx + 34, 0, WORLD_W - cx - 34, 14);
+    g.fillStyle = OK; g.fillRect(15, 0, 3, WORLD_H); g.fillRect(WORLD_W - 18, 0, 3, WORLD_H);
+    g.fillStyle = h2; for (let y = 0; y < WORLD_H; y += 12) { g.fillRect(14, y, 5, 3); g.fillRect(WORLD_W - 19, y, 5, 3); }
+  } else {
   const hedgeAt = (x, y) => { pCirc(g, x, y, 8, h3); pCirc(g, x, y - 1, 7, h1); pCirc(g, x - 2, y - 3, 3, h2); };
   for (let x = 0; x <= WORLD_W; x += 10) { if (Math.abs(x - cx) > 34) hedgeAt(x, 10); hedgeAt(x, WORLD_H - 3); }
   for (let y = 0; y <= WORLD_H; y += 10) { hedgeAt(4, y); hedgeAt(WORLD_W - 4, y); }
+  }
 
   // ---- decor ----
   const avoid = [{ x: cx, y: W.start.y, r: 46 }, { x: cx, y: W.gate.y, r: 52 }];
@@ -202,6 +253,22 @@ function buildWorld(zi) {
     const rock = dRock(); scatter(10, () => rock, 5, 12);
     const bush = dBush('#4f9a3f', '#7ccf5a'); scatter(14, () => bush, 0, 10);
     add(dJeep(), 120, 560, 12, 24); add(dJeep(), 440, 250, 12, 24);
+  } else if (Z.theme === 'lot') {
+    const cols = ['#e8414f', '#f7f3ea', '#3a78c0', '#2b2b34', '#b9c0cc', '#7ccf5a'];
+    for (const side of [-1, 1]) for (let y = 160; y < WORLD_H - 60; y += 46) { if (R() < 0.35) continue; const x = side < 0 ? rr(60, cx - 90) : rr(cx + 90, WORLD_W - 60); add(dCar(choice(cols)), x, y, 12, 18); }
+    const cone = dCone(); for (let y = 140; y < WORLD_H - 80; y += 70) { add(cone, cx - 30, y, 2, 6); add(cone, cx + 30, y + 35, 2, 6); }
+    add(dBaitShop(), 90, 110, 16, 30); add(dBaitShop(), WORLD_W - 90, 110, 16, 30);
+    const lamp = dLamp('#ffe68a'); for (let y = 200; y < WORLD_H - 70; y += 150) { add(lamp, 30, y, 2, 8, { glow: '#ffe68a' }); add(lamp, WORLD_W - 30, y, 2, 8, { glow: '#ffe68a' }); }
+  } else if (Z.theme === 'pier' || Z.theme === 'night') {
+    const nt = Z.theme === 'night';
+    const chair = dChair(), cooler = dCooler(), rod = dRod(), buoy = dBuoy();
+    for (let y = 130; y < WORLD_H - 70; y += 64) { add(rod, 30, y, 0, 8); add(chair, 46, y + 4, 4, 8); add(rod, WORLD_W - 30, y + 30, 0, 8); add(chair, WORLD_W - 46, y + 34, 4, 8); }
+    scatter(7, () => cooler, 5, 14); scatter(5, () => buoy, 0, 12);
+    if (!nt) { const p1 = dParasol('#e8414f'), p2 = dParasol('#3a78c0'); scatter(6, () => R() < 0.5 ? p1 : p2, 3, 22, { avoidBoss: true }); }
+    const lan = nt ? dLantern() : dLamp('#ffe68a'); for (let y = 150; y < WORLD_H - 70; y += nt ? 110 : 160) { add(lan, cx - 40, y, 2, 8, { glow: '#ffcf6a' }); add(lan, cx + 40, y + (nt ? 55 : 0), 2, 8, { glow: '#ffcf6a' }); }
+  } else if (Z.theme === 'rock') {
+    const r1 = dSeaRock(true), r2 = dSeaRock(false); scatter(18, () => R() < 0.5 ? r1 : r2, 10, 16, { avoidBoss: true });
+    const lan = dLantern(); for (let y = 160; y < WORLD_H - 70; y += 140) { add(lan, cx - 44, y, 2, 8, { glow: '#ffcf6a' }); add(lan, cx + 44, y + 70, 2, 8, { glow: '#ffcf6a' }); }
   } else {
     const houses = [['#ffe3c8', '#c0543c'], ['#d8ecff', '#4a6aa8'], ['#ffd6e6', '#8a4a6a'], ['#e8f6d8', '#6a8a3a'], ['#fff2c0', '#a8603a']];
     let hi = 0;

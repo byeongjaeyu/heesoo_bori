@@ -97,7 +97,7 @@ function pvpClick(e) {
   if (a === 'fight') { const f = PV.list[+b.dataset.i]; if (f) pvpFight(f); }
   else if (a === 'sync') { b.disabled = true; pvpUpload().then(() => { toast('최신 스펙으로 갱신했어요', 'sub'); pvpTab(PV.tab); }).catch(err => toast(pvErr(err), 'warn')).finally(() => b.disabled = false); }
   else if (a === 'nick') pvpNickBox(false);
-  else if (a === 'adv') { $('#pvp').hidden = true; G.pvp = null; fadeTo(() => startZone(G.pd.zone)); }
+  else if (a === 'adv') { $('#pvp').hidden = true; G.pvp = null; fadeTo(() => startZone(curZone(G.pd))); }
   else if (a === 'title') { $('#pvp').hidden = true; G.pvp = null; showTitle(); }
 }
 

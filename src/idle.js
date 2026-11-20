@@ -7,7 +7,7 @@ ICONS.chest = ['..KKKKKKK..', '.KDDDDDDDK.', 'KDdDDDDDdDK', 'KKKKKAKKKKK', 'KDDD
 const idleSec = pd => !pd || !pd.idleT ? 0 : Math.max(0, Math.min(IDLE_MAX, (Date.now() - pd.idleT) / 1000));
 /** 방치 보상 계산 (G.pd 를 건드리지 않음) */
 function idleCalc(pd, sec) {
-  const Z = ZONES[Math.min(pd.zone || 0, ZONES.length - 1)], L = loopEff(pd.cleared || 0);
+  const z = curZone(pd), Z = ZONES[z], L = zoneL(pd, z);
   let w = 0, xp = 0, gold = 0; for (const [id, nn] of Z.mons) { const m = MONS[id], n = Number(nn); w += n; xp += m.xp * n; gold += (m.gold[0] + m.gold[1]) / 2 * n; }
   const kills = Math.floor(sec / 3600 * IDLE_KPH), goldMul = 1 + 0.15 * ((pd.skills || {}).shop || 0);
   return { kills, xp: Math.round(kills * xp / w * (1 + 0.5 * L)), gold: Math.round(kills * gold / w * goldMul * (1 + 0.6 * L)), stones: Math.floor(kills * IDLE_STONE) };
