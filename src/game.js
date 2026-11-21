@@ -122,7 +122,7 @@ function isOnPhone() { const P = G.P; return !!P && G.state === 'play' && P.idle
 function collide(o, r) {
   const W = G.world;
   for (const s of W.solids) { const dx = o.x - s.x, dy = o.y - s.y, d = Math.hypot(dx, dy), m = s.r + r; if (d < m && d > 0.001) { o.x = s.x + dx / d * m; o.y = s.y + dy / d * m; } }
-  o.x = clamp(o.x, 20, W.W - 20); o.y = clamp(o.y, 34, W.H - 14);
+  o.x = clamp(o.x, 20, W.W - 20); o.y = clamp(o.y, W.top || 34, W.H - 14);
 }
 function moveToward(e, tx, ty, sp, dt) { const dx = tx - e.x, dy = ty - e.y, d = Math.hypot(dx, dy); if (d < 0.5) return; const s = Math.min(d, sp * dt); e.x += dx / d * s; e.y += dy / d * s; if (Math.abs(dx) > 1) e.face = dx > 0 ? 1 : -1; }
 function wander(e, sp, dt, ch) { e.wT -= dt; if (e.wT <= 0) { e.wT = rand(ch * 0.6, ch * 1.4); const a = rand(0, Math.PI * 2), go = Math.random() < 0.7; e.wx = go ? Math.cos(a) : 0; e.wy = go ? Math.sin(a) : 0; } e.x += e.wx * sp * dt; e.y += e.wy * sp * dt; if (e.wx) e.face = e.wx > 0 ? 1 : -1; }
@@ -303,7 +303,7 @@ function updateBori(dt) {
     if (!B.run && isOnPhone()) B.face = P.x > B.x ? 1 : -1;
   }
   if (Math.hypot(P.x - B.x, P.y - B.y) > 220) { B.x = P.x - 12; B.y = P.y + 3; }
-  B.x = clamp(B.x, 20, G.world.W - 20); B.y = clamp(B.y, 34, G.world.H - 14);
+  B.x = clamp(B.x, 20, G.world.W - 20); B.y = clamp(B.y, G.world.top || 34, G.world.H - 14);
 }
 
 // ---------- 회차 (NG+) ----------
@@ -401,7 +401,7 @@ const AI = {
     if (e.st === 'idle') { e.st = 'roam'; e.stT = 2.2; }
     if (e.st === 'roam') { moveToward(e, G.P.x, G.P.y, sp, dt); if (e.stT <= 0) { e.st = 'tele'; e.stT = 0.8; const a = Math.atan2(G.P.y - e.y, G.P.x - e.x); e.dx = Math.cos(a); e.dy = Math.sin(a); G.fx.push({ k: 'line', x: e.x, y: e.y - 8, a, len: 200, w: e.r * 1.6, t: 0, dur: 0.8 }); bubble(e, '빙글빙글~!', 1); } }
     else if (e.st === 'tele') { if (e.stT <= 0) { e.st = 'dash'; e.stT = 1.1; } }
-    else if (e.st === 'dash') { e.x += e.dx * 220 * dt; e.y += e.dy * 220 * dt; if (e.x < 30 || e.x > W.W - 30) e.dx *= -1; if (e.y < 50 || e.y > W.H - 30) e.dy *= -1; if (Math.random() < dt * 30) G.parts.push({ x: e.x + rand(-10, 10), y: e.y, vx: 0, vy: -10, life: 0.4, max: 0.4, col: '#ffd1e6', sz: 2, grav: 0 }); if (e.stT <= 0) { e.st = 'spin'; e.stT = 1.3; e.burst = 0; e.burstT = 0; } }
+    else if (e.st === 'dash') { e.x += e.dx * 220 * dt; e.y += e.dy * 220 * dt; if (e.x < 30 || e.x > W.W - 30) e.dx *= -1; if (e.y < (W.top || 34) + 16 || e.y > W.H - 30) e.dy *= -1; if (Math.random() < dt * 30) G.parts.push({ x: e.x + rand(-10, 10), y: e.y, vx: 0, vy: -10, life: 0.4, max: 0.4, col: '#ffd1e6', sz: 2, grav: 0 }); if (e.stT <= 0) { e.st = 'spin'; e.stT = 1.3; e.burst = 0; e.burstT = 0; } }
     else if (e.st === 'spin') { e.burstT -= dt; if (e.burstT <= 0 && e.burst < (enr ? 3 : 2)) { e.burst++; e.burstT = 0.42; const n = 12, off = e.burst * 0.26; for (let i = 0; i < n; i++) shootAt(e, 'tea', off + i / n * 6.283, 78); sfx('pop'); } if (e.stT <= 0) { e.st = 'roam'; e.stT = enr ? 1.5 : 2.3; } }
     e.face = (Math.floor(e.t * (e.st === 'dash' ? 12 : 4)) % 2) ? 1 : -1;
   },
@@ -443,7 +443,7 @@ const AI = {
 // ---------- 2장 보스 ----------
 /** 일직선 돌진 준비 (빨간 줄 예고) */
 function aimDash(e, len, w, say) { const a = Math.atan2(G.P.y - e.y, G.P.x - e.x); e.dx = Math.cos(a); e.dy = Math.sin(a); e.face = e.dx > 0 ? -1 : 1; G.fx.push({ k: 'line', x: e.x, y: e.y - 6, a, len, w, t: 0, dur: e.stT }); if (say) bubble(e, say, 1); }
-const dashStep = (e, spd, dt) => { const W = G.world; e.x += e.dx * spd * dt; e.y += e.dy * spd * dt; if (Math.random() < dt * 25) G.parts.push({ x: e.x + rand(-8, 8), y: e.y, vx: 0, vy: -8, life: 0.35, max: 0.35, col: '#e8e8f0', sz: 2, grav: 0 }); return e.x < 36 || e.x > W.W - 36 || e.y < 70 || e.y > W.H - 30; };
+const dashStep = (e, spd, dt) => { const W = G.world; e.x += e.dx * spd * dt; e.y += e.dy * spd * dt; if (Math.random() < dt * 25) G.parts.push({ x: e.x + rand(-8, 8), y: e.y, vx: 0, vy: -8, life: 0.35, max: 0.35, col: '#e8e8f0', sz: 2, grav: 0 }); return e.x < 36 || e.x > W.W - 36 || e.y < (W.top || 34) + 36 || e.y > W.H - 30; };
 Object.assign(AI, {
   // 주차 빌런 트럭: 빵빵 돌진 → 벽에 박으면 경적 충격파(근처 피해), 화나면 모기떼 소환
   truck(e, dt, sp, dP) {
@@ -561,7 +561,7 @@ function updateEnemy(e, dt) {
   else if (e.fear > 0) { e.fear -= dt; moveAway(e, sp * 1.2, dt); }
   else AI[e.m.ai](e, dt, sp, dP);
   if (e.stun <= 0 && e.confuse <= 0 && e.fear <= 0 && (e.hopY || 0) < 9 && dP < e.r + 6 && e.atkCd <= 0) { hurtPlayer(e.atk, e); e.atkCd = 1.0; }
-  if (!e.fly) collide(e, e.r * 0.7); else { e.x = clamp(e.x, 20, G.world.W - 20); e.y = clamp(e.y, 34, G.world.H - 14); }
+  if (!e.fly) collide(e, e.r * 0.7); else { e.x = clamp(e.x, 20, G.world.W - 20); e.y = clamp(e.y, G.world.top || 34, G.world.H - 14); }
 }
 function separateEnemies() {
   const L = G.enemies;
@@ -729,7 +729,7 @@ function spawnAround(type, minD, maxD) {
   const W = G.world, P = G.P;
   for (let k = 0; k < 12; k++) {
     const a = rand(0, 6.28), d = rand(minD || 120, maxD || 190), x = P.x + Math.cos(a) * d, y = P.y + Math.sin(a) * d;
-    if (x < 30 || x > W.W - 30 || y < 50 || y > W.H - 30) continue;
+    if (x < 30 || x > W.W - 30 || y < (W.top || 34) + 16 || y > W.H - 30) continue;
     if (W.solids.some(s => Math.hypot(x - s.x, y - s.y) < s.r + 8)) continue;
     return spawnEnemy(type, x, y);
   }
@@ -743,7 +743,7 @@ function updateQuest() {
 function spawnBoss() {
   const Z = ZONES[G.zone], W = G.world, P = G.P; G.bossSpawned = true;
   let x = W.W / 2, y = 290; if (Math.hypot(P.x - x, P.y - y) < 90) y = P.y > 400 ? P.y - 130 : P.y + 130;
-  y = clamp(y, 120, W.H - 80);
+  y = clamp(y, Math.max(120, (W.top || 34) + 70), W.H - 80);
   const b = spawnEnemy(Z.boss, x, y); b.spawnT = 1.3; G.boss = b;
   banner('BOSS', MONS[Z.boss].name + ' 출현!', 'boss'); sfx('boss'); playBgm('boss'); G.shake = 6;
   G.fx.push({ k: 'ring', x, y: y - 10, r: 50, col: '#ff4d6d', t: 0, dur: 0.9 });
@@ -804,7 +804,7 @@ function respawn() {
 // ---------- bori event ----------
 function boriEvent() {
   const P = G.P, W = G.world; G.state = 'event';
-  const sx = P.x + 64 < W.W - 30 ? P.x + 64 : P.x - 64, sy = clamp(P.y - 6, 50, W.H - 30);
+  const sx = P.x + 64 < W.W - 30 ? P.x + 64 : P.x - 64, sy = clamp(P.y - 6, (W.top || 34) + 16, W.H - 30);
   G.bori = newBori(sx, sy); G.bori.hidden = true;
   G.evt = { t: 0, sx, sy, popped: false, arrived: false, talked: false };
   P.fx = sx > P.x ? 1 : -1; P.fy = 0; P.dir = P.fx > 0 ? 'right' : 'left'; P.idleT = 0; INP.atk = false;

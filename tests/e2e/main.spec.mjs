@@ -398,6 +398,23 @@ test('재련·교환소: 장비 탭에서 재련, 배달앱에서 강화석 교�
   const s0 = await page.evaluate(() => loadGame().stones);
   await page.click('[data-m="xch"][data-v="10"]');
   expect(await page.evaluate(() => [loadGame().stones, loadGame().gold])).toEqual([s0 + 10, 10000000 - 1500000 - 30000]);
+  // 「살 수 있는 만큼」은 확인 창 → 아니요면 그대로, 예면 290개
+  await page.click('[data-m="xch"][data-v="max"]');
+  await expect(page.locator('#confirm')).toBeVisible(); await expect(page.locator('#confirmT')).toContainText('290개');
+  await page.click('#cfNo'); expect(await page.evaluate(() => loadGame().stones)).toBe(s0 + 10);
+  await page.click('[data-m="xch"][data-v="max"]'); await page.click('#cfYes');
+  expect(await page.evaluate(() => loadGame().stones)).toBe(s0 + 300);
+});
+
+test('3장 응원석: 난간 너머 그라운드로는 못 가고, 출구는 관중석 쪽', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 50, cleared: 5, chap: 3, ch2: { zone: 7, cleared: 1, intro: 1 }, ch3: { zone: 10, cleared: 0, intro: 1, seen: { 9: 1, 10: 1, 11: 1 } } });
+  await enterZone(page, 10);
+  const top = await page.evaluate(() => G.world.top);
+  expect(top).toBeGreaterThan(200);
+  expect(await page.evaluate(() => G.world.gate.y)).toBeGreaterThan(top);
+  await page.evaluate(() => { G.P.x = 200; G.P.y = 60; });
+  await page.waitForTimeout(300);
+  expect(await page.evaluate(() => G.P.y)).toBeGreaterThanOrEqual(top);
 });
 
 test('3장: 2장 클리어 전엔 버튼 없음 → 클리어+Lv50이면 프롤로그 후 STAGE 9', async ({ page }) => {

@@ -7,6 +7,8 @@ const xchToday = pd => pd.xch && pd.xch.day === todayKey() ? pd.xch.n : 0;
 /** 오늘 n0개 산 상태에서 k개 더 살 때 값 */
 function xchCost(n0, k) { let c = 0, n = n0; for (const [cnt, p] of XCH_TIERS) { const lo = XCH_TIERS.slice(0, XCH_TIERS.findIndex(t => t[1] === p)).reduce((a, t) => a + t[0], 0); while (k > 0 && n < lo + cnt) { c += p; n++; k--; } } return c; }
 const xchPriceNow = n0 => { let lo = 0; for (const [cnt, p] of XCH_TIERS) { if (n0 < lo + cnt) return p; lo += cnt; } return 0; };
+/** k개를 사려 할 때 실제로 살 수 있는 개수와 값 (한도·골드 반영) */
+function xchPlan(pd, k) { const n0 = xchToday(pd); let n = Math.max(0, Math.min(k, XCH_MAX - n0)); while (n > 0 && xchCost(n0, n) > pd.gold) n--; return { n, c: n ? xchCost(n0, n) : 0 }; }
 /** k개 사기 (k = Infinity 면 골드로 살 수 있는 만큼) */
 function xchBuy(k) {
   const pd = G.pd, n0 = xchToday(pd); let n = Math.min(k, XCH_MAX - n0);

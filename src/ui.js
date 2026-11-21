@@ -260,7 +260,10 @@ function menuClick(e) {
   const m = t.dataset.m, v = t.dataset.v, pd = G.pd;
   if (m === 'close') { closeMenu(); return; }
   if (m === 'tab') { MTAB = v; renderMenu(true); sfx('select'); return; }
-  if (m === 'xch') { xchBuy(v === 'max' ? Infinity : +v); renderMenu(); return; }
+  if (m === 'xch') {
+    if (v === 'max') { const { n, c } = xchPlan(pd, Infinity); if (n > 0) { confirmBox(`강화석 ${n}개를 ${c.toLocaleString()}G에 바꿀까요?\n(지금 ${pd.gold.toLocaleString()}G → ${(pd.gold - c).toLocaleString()}G)`, () => { xchBuy(n); renderMenu(); }); return; } }
+    xchBuy(v === 'max' ? Infinity : +v); renderMenu(); return;
+  }
   if (m === 'refine') { if (refine(v)) { const r = refOf(pd, v); const best = r.lines.filter(l => !l.lk).sort((a, b) => b.g - a.g)[0]; if (best && best.g >= 2) toast(`✨ ${REF_GRADE[best.g].n} 옵션! ${refLineTxt(best)}`, 'lvl'); } renderMenu(); return; }
   if (m === 'refLock') { const [id, i] = v.split(':'); refLock(id, +i); renderMenu(); return; }
   if (m === 'ttl') { if (v && !(pd.ach || {})[v]) return; pd.title = v || undefined; sfx('ding'); saveGame(); renderMenu(); if (typeof rankSync === 'function') rankSync(true); return; }

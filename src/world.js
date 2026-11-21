@@ -174,7 +174,7 @@ function dSeaGate(open) {
 function buildWorld(zi) {
   const Z = ZONES[zi], th = THEME[Z.theme]; const R = mulberry(911 + zi * 131);
   const rr = (a, b) => a + R() * (b - a);
-  const W = { W: WORLD_W, H: WORLD_H, decor: [], solids: [], start: { x: WORLD_W / 2, y: WORLD_H - 76 }, gate: { x: WORLD_W / 2, y: 62 }, theme: Z.theme, bg: th.bg, tint: th.tint, glowA: th.glow, fountain: null, rails: [], gateClosed: (th.sea ? dSeaGate : dGate)(false), gateOpen: (th.sea ? dSeaGate : dGate)(true), dark: !!th.dark, rain: !!th.rain, field: /** @type {any} */ (null) };
+  const W = { W: WORLD_W, H: WORLD_H, decor: [], solids: [], start: { x: WORLD_W / 2, y: WORLD_H - 76 }, gate: { x: WORLD_W / 2, y: 62 }, theme: Z.theme, bg: th.bg, tint: th.tint, glowA: th.glow, fountain: null, rails: [], gateClosed: (th.sea ? dSeaGate : dGate)(false), gateOpen: (th.sea ? dSeaGate : dGate)(true), dark: !!th.dark, rain: !!th.rain, field: /** @type {any} */ (null), top: 34 };
   const gc = mkCanvas(WORLD_W, WORLD_H), g = gc.getContext('2d');
   const cx = WORLD_W / 2;
   const pathX = y => Z.theme === 'grass' ? cx + Math.sin(y / 95) * 70 * clamp((WORLD_H - 60 - y) / 120, 0, 1) * clamp((y - 80) / 120, 0, 1) : cx;
@@ -226,6 +226,7 @@ function buildWorld(zi) {
     const FY = 196;
     for (let y = 0; y < FY; y += 12) { g.fillStyle = (y / 12) % 2 ? '#347040' : '#3a7a44'; g.fillRect(0, y, WORLD_W, 12); }
     W.field = bbGeo(170, FY - 22, 96, 100, 12); bbDiamond(g, W.field, '#3a7a44', false);
+    W.top = FY + 22; W.gate.y = FY + 74; // 그라운드는 못 들어감, 출구는 가운데 계단 맨 위 통로
     pRect(g, 0, FY - 10, WORLD_W, 10, '#9a6a44'); pRect(g, 0, FY, WORLD_W, 8, '#2a5a3e'); pRect(g, 0, FY, WORLD_W, 1, '#ffd84a'); pRect(g, 0, FY + 8, WORLD_W, 1, OK);
     pRect(g, 0, FY - 3, WORLD_W, 1, '#c0c6d0'); for (let x = 4; x < WORLD_W; x += 24) pRect(g, x, FY - 3, 1, 4, '#c0c6d0');
     const RP = 24, aisles = [[cx - 34, cx + 34], [92, 116], [WORLD_W - 116, WORLD_W - 92]];
