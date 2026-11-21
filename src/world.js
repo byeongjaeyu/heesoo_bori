@@ -174,7 +174,7 @@ function dSeaGate(open) {
 function buildWorld(zi) {
   const Z = ZONES[zi], th = THEME[Z.theme]; const R = mulberry(911 + zi * 131);
   const rr = (a, b) => a + R() * (b - a);
-  const W = { W: WORLD_W, H: WORLD_H, decor: [], solids: [], start: { x: WORLD_W / 2, y: WORLD_H - 76 }, gate: { x: WORLD_W / 2, y: 62 }, theme: Z.theme, bg: th.bg, tint: th.tint, glowA: th.glow, fountain: null, rails: [], gateClosed: (th.sea ? dSeaGate : dGate)(false), gateOpen: (th.sea ? dSeaGate : dGate)(true), dark: !!th.dark, rain: !!th.rain };
+  const W = { W: WORLD_W, H: WORLD_H, decor: [], solids: [], start: { x: WORLD_W / 2, y: WORLD_H - 76 }, gate: { x: WORLD_W / 2, y: 62 }, theme: Z.theme, bg: th.bg, tint: th.tint, glowA: th.glow, fountain: null, rails: [], gateClosed: (th.sea ? dSeaGate : dGate)(false), gateOpen: (th.sea ? dSeaGate : dGate)(true), dark: !!th.dark, rain: !!th.rain, field: /** @type {any} */ (null) };
   const gc = mkCanvas(WORLD_W, WORLD_H), g = gc.getContext('2d');
   const cx = WORLD_W / 2;
   const pathX = y => Z.theme === 'grass' ? cx + Math.sin(y / 95) * 70 * clamp((WORLD_H - 60 - y) / 120, 0, 1) * clamp((y - 80) / 120, 0, 1) : cx;
@@ -222,11 +222,17 @@ function buildWorld(zi) {
   } else if (Z.theme === 'stand') {
     // 응원석: 계단식 콘크리트 단 + 등받이 의자 + 앉아 있는 관중 (가운데·양옆은 계단 통로, 8줄마다 가로 통로)
     g.fillStyle = '#5a5f6c'; g.fillRect(0, 0, WORLD_W, WORLD_H);
+    // 위쪽은 경기장(잔디·내야) → 펜스·난간 → 아래로 관중석
+    const FY = 196;
+    for (let y = 0; y < FY; y += 12) { g.fillStyle = (y / 12) % 2 ? '#347040' : '#3a7a44'; g.fillRect(0, y, WORLD_W, 12); }
+    W.field = bbGeo(170, FY - 22, 96, 100, 12); bbDiamond(g, W.field, '#3a7a44', false);
+    pRect(g, 0, FY - 10, WORLD_W, 10, '#9a6a44'); pRect(g, 0, FY, WORLD_W, 8, '#2a5a3e'); pRect(g, 0, FY, WORLD_W, 1, '#ffd84a'); pRect(g, 0, FY + 8, WORLD_W, 1, OK);
+    pRect(g, 0, FY - 3, WORLD_W, 1, '#c0c6d0'); for (let x = 4; x < WORLD_W; x += 24) pRect(g, x, FY - 3, 1, 4, '#c0c6d0');
     const RP = 24, aisles = [[cx - 34, cx + 34], [92, 116], [WORLD_W - 116, WORLD_W - 92]];
     const inAisle = x => aisles.some(([a0, a1]) => x + 12 > a0 && x < a1);
     const secCol = x => (x < 92 || x > WORLD_W - 92) ? ['#3a5ab0', '#2a4288', '#5a7ad0'] : ['#e8414f', '#b02a3a', '#ff6a74'];
     const shirts = ['#ffffff', '#e8414f', '#3a5ab0', '#f0f0f0', '#2b2b3a', '#ffcf40', '#e8414f', '#c0c6d0'], hairs = ['#2b1b24', '#3a2a20', '#5a3a2a', '#1a1a22', '#8a5a3a'];
-    for (let r = 0, y = 30; y < WORLD_H; r++, y += RP) {
+    for (let r = 0, y = FY + 9; y < WORLD_H; r++, y += RP) {
       if (r % 8 === 7) { // 가로 통로 + 난간
         pRect(g, 0, y, WORLD_W, RP, '#8a8f9a'); for (let x = 0; x < WORLD_W; x += 20) pRect(g, x, y + 4, 10, 1, '#9aa0aa');
         pRect(g, 0, y + RP - 3, WORLD_W, 1, OK); pRect(g, 0, y - 1, WORLD_W, 2, '#c0c6d0'); pRect(g, 0, y + 1, WORLD_W, 1, OK);
@@ -250,9 +256,9 @@ function buildWorld(zi) {
       }
     }
     for (const [a0, a1] of aisles) { // 계단 통로
-      pRect(g, a0, 0, a1 - a0, WORLD_H, '#8a8f9a');
-      for (let y = 0; y < WORLD_H; y += 12) { pRect(g, a0, y, a1 - a0, 6, '#9aa0aa'); pRect(g, a0, y + 6, a1 - a0, 1, '#6a6f7c'); pRect(g, a0 + 2, y, a1 - a0 - 4, 1, '#f0d040'); }
-      pRect(g, a0 - 1, 0, 1, WORLD_H, OK); pRect(g, a1, 0, 1, WORLD_H, OK);
+      pRect(g, a0, FY + 9, a1 - a0, WORLD_H, '#8a8f9a');
+      for (let y = FY + 9; y < WORLD_H; y += 12) { pRect(g, a0, y, a1 - a0, 6, '#9aa0aa'); pRect(g, a0, y + 6, a1 - a0, 1, '#6a6f7c'); pRect(g, a0 + 2, y, a1 - a0 - 4, 1, '#f0d040'); }
+      pRect(g, a0 - 1, FY + 9, 1, WORLD_H, OK); pRect(g, a1, FY + 9, 1, WORLD_H, OK);
     }
   } else if (Z.theme === 'field') {
     // 9회말 그라운드: 잔디 줄무늬 + 내야 흙 + 베이스
@@ -350,7 +356,7 @@ function buildWorld(zi) {
     const cols = ['#e8414f', '#d9822b', '#3a78c0', '#7ccf5a']; for (let y = 120; y < WORLD_H - 80; y += 120) { add(dStall(choice(cols)), 60, y, 16, 30); add(dStall(choice(cols)), WORLD_W - 60, y + 60, 16, 30); }
     scatter(9, () => dTable(), 8, 12, { avoidBoss: true }); scatter(5, () => dBin(), 4, 10);
   } else if (Z.theme === 'stand') {
-    add(dScore(), cx, 60, 0, 0); const tw = dLightTower(); for (const [x, y] of [[40, 150], [WORLD_W - 40, 150], [40, WORLD_H - 150], [WORLD_W - 40, WORLD_H - 150]]) add(tw, x, y, 4, 8, { glow: '#fff6d0' });
+    add(dScore(), WORLD_W - 90, 70, 0, 0); const tw = dLightTower(); for (const [x, y] of [[40, 300], [WORLD_W - 40, 300], [40, WORLD_H - 150], [WORLD_W - 40, WORLD_H - 150]]) add(tw, x, y, 4, 8, { glow: '#fff6d0' });
   } else if (Z.theme === 'field') {
     const tw = dLightTower(); for (const [x, y] of [[40, 120], [WORLD_W - 40, 120], [40, WORLD_H - 120], [WORLD_W - 40, WORLD_H - 120]]) add(tw, x, y, 4, 8, { glow: '#fff6d0' });
     const b = dBase(), dy = WORLD_H * 0.55; for (const [x, y] of [[cx + 110, dy], [cx, dy - 110], [cx - 110, dy], [cx, dy + 110]]) add(b, x, y + 5, 0, 0);

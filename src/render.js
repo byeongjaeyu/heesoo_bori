@@ -97,6 +97,7 @@ function renderGame() {
   if (gw > 0 && gh > 0) ctx.drawImage(W.ground, gx, gy, gw, gh, gx, gy, gw, gh);
   const T = G.time;
   if (W.fountain) { const f = W.fountain; for (let i = 0; i < 8; i++) { const a = i / 8 * 6.28 + T * 0.7, r = 9 + ((T * 6 + i * 3) % 12); fr(f.x + Math.cos(a) * r, f.y + Math.sin(a) * r * 0.7, 1, 1, '#ffffff'); } const h = (T * 30) % 14; fr(f.x, f.y - 6 - h, 1, 2, '#d8f4ff'); fr(f.x - 2, f.y - 4 - (h * 0.6), 1, 1, '#d8f4ff'); fr(f.x + 2, f.y - 4 - (h * 0.7), 1, 1, '#d8f4ff'); }
+  if (W.field && cy < 220) bbPlay(W.field, T, { def: ['#ffffff', '#e8414f'], off: ['#3a5ab0', '#2a4288'], loop: true, ev: (T % 14) >= 9 ? { t0: T - (T % 14) + 9, kind: 'hr', tx: W.field.hx + 70, ty: -40 } : null });
   if (W.mainGate && W.mainGate.y - 60 < cy + VH) { const img = W.gateClosed; ctx.drawImage(img, W.mainGate.x - img.width / 2, W.mainGate.y - img.height); }
   // telegraphs
   for (const f of G.fx) {
