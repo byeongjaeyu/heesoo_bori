@@ -461,3 +461,7 @@ button{font-family:inherit;color:inherit;border:none;background:none;padding:0;c
 .twm{display:flex;gap:8px;align-items:center;padding:5px 8px;border:2px solid var(--ink);border-radius:10px;background:#f4f1ea;margin-bottom:5px;font-size:11px}.twm i{font-style:normal;font-weight:bold;background:#2a3a8a;color:#fff;border-radius:8px;padding:2px 6px;white-space:nowrap}
 .twtime{display:block;font-size:14px;font-weight:bold;margin-bottom:6px}
 .tside.tr.tight{gap:5px}.tside.tr.tight .tidle,.tside.tr.tight .tmini{padding:3px 3px 4px}.tside.tr.tight .tidle img,.tside.tr.tight .tmini img{width:22px;height:22px;margin:0}.tside.tr.tight em{font-size:8px}.tside.tr.tight b{font-size:10.5px}.tside.tr.tight small{font-size:9px}
+.twpanel{height:auto;max-height:min(88vh,760px)}
+#towerBody{padding:10px 12px 14px;display:flex;flex-direction:column;gap:8px}
+#towerBody h3{margin:4px 0 0;font-size:14px}#towerBody .rwcs{flex:none;justify-content:center}
+#towerBody .twm{margin:0}#towerBody .twgo{margin:2px 0 0}#towerBody .twtip{margin:0}

@@ -38,7 +38,7 @@ function towerRender() {
   const marks = [5, 10, 20, 30, 40, 50].filter(n => n > best).slice(0, 3);
   const next = marks.map(n => `<div class="twm"><i>${n}층</i><span>${rwLabel(towerReward(n))}${n === 10 ? ' · 칭호 ' + achTag('tw10') : n === 30 ? ' · 칭호 ' + achTag('tw30') : n === 50 ? ' · 칭호 ' + achTag('tw50') : ''}</span></div>`).join('');
   $('#towerBody').innerHTML = `<div class="twtop"><div class="twfl"><small>도전할 층</small><b>${f}<em>층</em></b><span>최고 기록 ${best}층</span></div>`
-    + `<div class="twboss"><img src="${raidBossURL(b)}" alt=""><b>${f % 10 === 0 ? '대장 · ' : ''}${esc(m.name)}</b><small>난이도 ${towerL(f) + 1}단계 · 제한 ${TOWER_TIME}초</small></div></div>`
+    + `<div class="twboss"><img src="${raidBossURL(b)}" alt=""><b>${f % 10 === 0 ? '대장 · ' : ''}${esc(m.name)}</b><small>난이도 ${Math.round(towerL(f)) + 1}단계 · 제한 ${TOWER_TIME}초</small></div></div>`
     + `<h3>${f}층 첫 돌파 보상</h3>${rewardCards(towerReward(f).filter(([k]) => k !== 'tr' && k !== 'hair').map(([kind, amount]) => ({ kind, amount })))}`
     + (towerReward(f).some(([k]) => k === 'tr' || k === 'hair') ? `<p class="twx">+ ${rwLabel(towerReward(f).filter(([k]) => k === 'tr' || k === 'hair'))}</p>` : '')
     + `<button class="btn pk twgo" data-tw="go">${f}층 도전하기</button>`
