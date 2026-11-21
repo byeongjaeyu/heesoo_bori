@@ -13,7 +13,10 @@ function drawSeaCut(SW, SH, mid, gy, T, mode) {
     const car = dCar('#3a78c0'); ctx.drawImage(car, Math.round(mid - 70 * CUTK - 15), gy - 14);
     const shop = dBaitShop(); ctx.drawImage(shop, Math.round(mid + 80 * CUTK - 20), gy - 30);
   } else if (mode === 'rocks') {
-    fr(0, gy - 4, SW, SH - gy + 4, '#3a3a48'); for (let i = 0; i < 40; i++) pc((i * 37) % SW, gy + 4 + (i * 13) % (SH - gy), 3 + (i % 4), i % 2 ? '#4a4a5c' : '#2e2e3a');
+    // 대물탕: 콘크리트 데크 + 앞쪽 수조 테두리
+    fr(0, gy - 4, SW, SH - gy + 4, '#5a606c'); for (let x = 0; x < SW; x += 30) fr(x, gy - 4, 1, SH - gy + 4, '#4a505c'); fr(0, gy + 14, SW, 1, '#4a505c');
+    fr(0, gy - 6, SW, 3, '#c0c6d0'); fr(0, gy - 3, SW, 1, '#2b1b24');
+    for (const lx of [mid - 90, mid + 95]) { ctx.globalCompositeOperation = 'lighter'; pc(lx, gy - 22, 14, 'rgba(255,200,90,0.25)'); ctx.globalCompositeOperation = 'source-over'; ctx.drawImage(dLantern(), lx - 4, gy - 26); }
   } else {
     fr(0, gy - 4, SW, SH - gy + 4, night ? '#4e3c28' : '#c49460'); for (let y = gy; y < SH; y += 6) fr(0, y, SW, 1, night ? '#2e2418' : '#8a6440');
     fr(0, gy - 10, SW, 2, '#2b1b24'); for (let x = 4; x < SW; x += 16) fr(x, gy - 10, 2, 8, '#2b1b24');

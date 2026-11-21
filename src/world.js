@@ -232,10 +232,19 @@ function buildWorld(zi) {
     g.strokeStyle = '#f0f0f0'; g.lineWidth = 2; g.beginPath(); g.moveTo(cx, dy + 150); g.lineTo(cx + 150, dy); g.lineTo(cx, dy - 150); g.lineTo(cx - 150, dy); g.closePath(); g.stroke();
     pEll(g, cx, dy, 14, 9, '#9a6a44');
   } else if (Z.theme === 'rock') {
-    // 갯바위: 거친 바위 바닥 + 물웅덩이
-    g.fillStyle = '#4a4a5c'; g.fillRect(0, 0, WORLD_W, WORLD_H);
-    for (let i = 0; i < 900; i++) { const x = R() * WORLD_W, y = R() * WORLD_H, r = 3 + R() * 9; pEll(g, x, y, r, r * 0.6, choice(['#55556a', '#3e3e50', '#5e5e74', '#46465a'])); }
-    for (let i = 0; i < 9; i++) { const x = rr(60, WORLD_W - 60), y = rr(140, WORLD_H - 120); if (Math.abs(x - cx) < 60) continue; pEll(g, x, y, 22, 11, '#2b1b24'); pEll(g, x, y, 20, 9, '#1c3a66'); pEll(g, x - 4, y - 2, 10, 3, '#3a6aa0'); }
+    // 대물탕: 콘크리트 바닥 + 사각 수조(탕) 4개
+    g.fillStyle = '#7a808c'; g.fillRect(0, 0, WORLD_W, WORLD_H);
+    for (let i = 0; i < 5000; i++) { g.fillStyle = R() < 0.5 ? '#727884' : '#848a96'; g.fillRect(Math.floor(R() * WORLD_W), Math.floor(R() * WORLD_H), 1, 1); }
+    g.fillStyle = '#6a707c'; for (let y = 0; y < WORLD_H; y += 40) g.fillRect(0, y, WORLD_W, 1); for (let x = 0; x < WORLD_W; x += 40) g.fillRect(x, 0, 1, WORLD_H);
+    const pw = 110, ph = 60;
+    for (const [px, py] of [[cx - 175, 210], [cx + 175, 250], [cx - 175, 480], [cx + 175, 520]]) {
+      pRect(g, px - pw / 2 - 5, py - ph / 2 - 5, pw + 10, ph + 10, '#2b1b24'); pRect(g, px - pw / 2 - 4, py - ph / 2 - 4, pw + 8, ph + 8, '#c0c6d0');
+      pRect(g, px - pw / 2, py - ph / 2, pw, ph, '#2b1b24'); pRect(g, px - pw / 2 + 1, py - ph / 2 + 1, pw - 2, ph - 2, '#1c4a7a');
+      pRect(g, px - pw / 2 + 1, py - ph / 2 + 1, pw - 2, 4, '#163a62');
+      for (let k = 0; k < 14; k++) pRect(g, px - pw / 2 + 6 + R() * (pw - 16), py - ph / 2 + 8 + R() * (ph - 14), 5, 1, '#4a8ac0');
+      for (let k = 0; k < 3; k++) { const fx = px - 30 + k * 28, fy = py - 6 + (k % 2) * 14; pEll(g, fx, fy, 6, 2, '#0e2e52'); }
+      for (let x = px - pw / 2 + 12; x <= px + pw / 2 - 12; x += 24) for (const yy of [py - 14, py + 14]) W.solids.push({ x, y: yy, r: 17 });
+    }
   } else {
     g.fillStyle = '#6e6878'; g.fillRect(0, 0, WORLD_W, WORLD_H);
     for (let y = 0; y < WORLD_H; y += 7) { const off = (y / 7) % 2 ? 5 : 0; for (let x = -off; x < WORLD_W; x += 10) { const onPath = Math.abs(x + 5 - cx) < 26; g.fillStyle = onPath ? choice(['#b8b0bf', '#b0a8b8', '#bcb4c4']) : choice(['#958ea0', '#8c8598', '#9a93a6']); g.fillRect(x + 1, y + 1, 8, 5); g.fillStyle = onPath ? '#cfc8d6' : '#a8a2b4'; g.fillRect(x + 2, y + 1, 5, 1); } }
@@ -265,7 +274,7 @@ function buildWorld(zi) {
   const avoid = [{ x: cx, y: W.start.y, r: 46 }, { x: cx, y: W.gate.y, r: 52 }];
   const free = (x, y, r) => { for (const a of avoid) if (Math.hypot(x - a.x, y - a.y) < a.r + r) return false; for (const d of W.decor) if (Math.hypot(x - d.x, (y - d.y) * 1.4) < r + (d.space || 10)) return false; return true; };
   const add = (img, x, y, r, space, extra) => { const d = Object.assign({ img, x: Math.round(x), y: Math.round(y), r, space: space || 12 }, extra || {}); W.decor.push(d); if (r) W.solids.push({ x: d.x, y: d.y - 2, r }); return d; };
-  const scatter = (n, mk, r, space, opt) => { opt = opt || {}; for (let i = 0; i < n; i++) { for (let k = 0; k < 40; k++) { const x = rr(28, WORLD_W - 28), y = rr(opt.ymin || 90, opt.ymax || WORLD_H - 40); if (Math.abs(x - pathX(y)) < (opt.pathGap || 42)) continue; if (W.fountain && Math.hypot(x - W.fountain.x, y - W.fountain.y) < 52) continue; if (opt.avoidBoss && Math.hypot(x - cx, y - 300) < 80) continue; if (!free(x, y, space)) continue; add(mk(), x, y, r, space); break; } } };
+  const scatter = (n, mk, r, space, opt) => { opt = opt || {}; for (let i = 0; i < n; i++) { for (let k = 0; k < 40; k++) { const x = rr(28, WORLD_W - 28), y = rr(opt.ymin || 90, opt.ymax || WORLD_H - 40); if (Math.abs(x - pathX(y)) < (opt.pathGap || 42)) continue; if (W.fountain && Math.hypot(x - W.fountain.x, y - W.fountain.y) < 52) continue; if (opt.avoidBoss && Math.hypot(x - cx, y - 300) < 80) continue; if (opt.noSolid && W.solids.some(q => Math.hypot(x - q.x, y - q.y) < q.r + 8)) continue; if (!free(x, y, space)) continue; add(mk(), x, y, r, space); break; } } };
 
   if (Z.theme === 'plaza') {
     const lamp = dLamp('#ffe68a');
@@ -316,7 +325,7 @@ function buildWorld(zi) {
     const tw = dLightTower(); for (const [x, y] of [[40, 120], [WORLD_W - 40, 120], [40, WORLD_H - 120], [WORLD_W - 40, WORLD_H - 120]]) add(tw, x, y, 4, 8, { glow: '#fff6d0' });
     const b = dBase(), dy = WORLD_H * 0.55; for (const [x, y] of [[cx + 110, dy], [cx, dy - 110], [cx - 110, dy], [cx, dy + 110]]) add(b, x, y + 5, 0, 0);
   } else if (Z.theme === 'rock') {
-    const r1 = dSeaRock(true), r2 = dSeaRock(false); scatter(18, () => R() < 0.5 ? r1 : r2, 10, 16, { avoidBoss: true });
+    scatter(5, () => dChair(), 3, 12, { avoidBoss: true, noSolid: true }); scatter(5, () => dCooler(), 4, 12, { avoidBoss: true, noSolid: true });
     const lan = dLantern(); for (let y = 160; y < WORLD_H - 70; y += 140) { add(lan, cx - 44, y, 2, 8, { glow: '#ffcf6a' }); add(lan, cx + 44, y + 70, 2, 8, { glow: '#ffcf6a' }); }
   } else {
     const houses = [['#ffe3c8', '#c0543c'], ['#d8ecff', '#4a6aa8'], ['#ffd6e6', '#8a4a6a'], ['#e8f6d8', '#6a8a3a'], ['#fff2c0', '#a8603a']];

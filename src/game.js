@@ -487,7 +487,7 @@ Object.assign(AI, {
       if (e.stT <= 0) { e.cyc++; const pat = ['suck', 'spray', 'suck', 'summon', 'spray'][e.cyc % 5]; e.st = pat; e.shT = 0; e.sa = rand(0, 6.28);
         e.stT = { suck: 2.2, spray: 3.0, summon: 0.9 }[pat];
         if (pat === 'suck') { G.fx.push({ k: 'circle', x: e.x, y: e.y, r: 64, t: 0, dur: 2.2 }); bubble(e, choice(['바닷물째 삼켜주마! 쓰읍~~!', '쓰으읍~~~!!', '이리 와라, 미끼야~']), 1.4); }
-        if (pat === 'summon') { spawnEnemy('rockfish', e.x - 34, e.y + 10); spawnEnemy('bass', e.x + 34, e.y + 10); if (enr) spawnEnemy('bream', e.x, e.y + 30); bubble(e, choice(['얘들아, 낚시꾼이 왔다!', '이 갯바위는 내 구역이다!', '감히 내 바다에 낚싯대를?!']), 1.4); } }
+        if (pat === 'summon') { spawnEnemy('rockfish', e.x - 34, e.y + 10); spawnEnemy('bass', e.x + 34, e.y + 10); if (enr) spawnEnemy('bream', e.x, e.y + 30); bubble(e, choice(['얘들아, 낚시꾼이 왔다!', '이 대물탕은 내 구역이다!', '감히 내 바다에 낚싯대를?!']), 1.4); } }
       return;
     }
     if (e.st === 'suck') { const d = Math.hypot(e.x - G.P.x, e.y - G.P.y) || 1; if (d > e.r) { const k = (enr ? 52 : 40) * dt; G.P.x += (e.x - G.P.x) / d * k; G.P.y += (e.y - G.P.y) / d * k; } if (Math.random() < dt * 30) G.parts.push({ x: e.x + rand(-60, 60), y: e.y + rand(-36, 36), vx: 0, vy: 0, life: 0.4, max: 0.4, col: '#9fd8ff', sz: 2, grav: 0 });

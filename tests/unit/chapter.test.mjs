@@ -12,6 +12,10 @@ describe('2장 (유료 바다낚시터)', () => {
     expect(g.zoneL(pd, 0)).toBe(7); expect(g.zoneL(pd, 4)).toBe(4);
     pd.ch2 = { zone: 4, cleared: 2 }; expect(g.zoneL(pd, 6)).toBe(6);
   });
+  test('2장 마지막 스테이지는 대물탕 (유료 낚시터에 갯바위 없음)', () => {
+    expect(g.ZONES[7].name).toBe('대물탕'); expect(g.ZONES[6].next).toBe('대물탕');
+    expect(g.ITEMS.rainboot.name).toBe('미끄럼방지 장화');
+  });
   test('챕터별 진행도: 2장 스테이지로 옮겨도 1장 위치는 그대로', () => {
     const pd = fresh({ lv: 30, cleared: 1, zone: 2 });
     g.setCurZone(pd, 6); expect([pd.zone, pd.ch2.zone, pd.chap, g.curZone(pd)]).toEqual([2, 6, 2, 6]);
