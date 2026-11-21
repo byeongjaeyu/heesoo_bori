@@ -440,3 +440,41 @@ test('3장 마지막 보스 → 엔딩 → 3장 클리어 기록', async ({ page
   await expect(page.locator('#endScr')).toContainText('3장');
   expect(await page.evaluate(() => loadGame().ch3.cleared)).toBe(1);
 });
+
+test('회차 보상: 로비 타일 → 한 번에 받기 → 강화석·자동사냥, 다시 못 받음', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 50, cleared: 5, stones: 0, ch2: { zone: 4, cleared: 5, intro: 1 } });
+  await expect(page.locator('#tGoal')).toContainText('총 10회차');
+  await page.click('#tGoal');
+  await expect(page.locator('#seasonModal')).toBeVisible();
+  await page.click('.msall');
+  const pd = await page.evaluate(() => loadGame());
+  expect(Object.keys(pd.ms).map(Number).sort((a, b) => a - b)).toEqual([3, 5, 10]);
+  expect(pd.stones).toBeGreaterThanOrEqual(550); expect(pd.autoBonus).toBe(3600);
+  expect(await page.evaluate(() => msReady(loadGame()).length)).toBe(0);
+});
+
+test('보스 타워: 1층 도전 → 보스 처치 → 돌파 기록·보상, 2층 시간 초과면 기록 그대로', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 50, cleared: 1, stones: 0 });
+  await page.click('#tTower');
+  await expect(page.locator('#towerBody')).toContainText('1층');
+  await page.click('[data-tw="go"]');
+  await page.waitForFunction(() => G.state === 'play' && G.tower && G.tower.f === 1 && G.boss, null, { timeout: 8000 });
+  expect(await page.evaluate(() => G.boss.type)).toBe('boss1');
+  await page.evaluate(() => killEnemy(G.boss));
+  await expect(page.locator('#towerRes')).toBeVisible();
+  await expect(page.locator('#towerResT')).toContainText('1층 돌파');
+  expect(await page.evaluate(() => [loadGame().tower.best, loadGame().stones])).toEqual([1, 14]);
+  await page.click('[data-tr="next"]');
+  await page.waitForFunction(() => G.state === 'play' && G.tower && G.tower.f === 2 && G.boss, null, { timeout: 8000 });
+  await page.evaluate(() => { G.tower.t = 0.01; });
+  await expect(page.locator('#towerResT')).toContainText('시간 초과');
+  expect(await page.evaluate(() => loadGame().tower.best)).toBe(1);
+  await page.click('[data-tr="title"]');
+  await expect(page.locator('#tTower')).toContainText('최고 1층');
+});
+
+test('보스 타워는 1장을 깨야 열림', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 10, cleared: 0 });
+  await page.click('#tTower');
+  await expect(page.locator('#tower')).toBeHidden();
+});

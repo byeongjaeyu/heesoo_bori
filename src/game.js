@@ -1,6 +1,6 @@
 // ===================== GAME CORE =====================
 const G = {
-  state: 'title', zone: 0, world: null, time: 0, pd: /** @type {SaveData|null} */ (null), raid: /** @type {any} */ (null), flashT: 0, buddy: /** @type {any} */ (null), st: null, P: null, bori: null,
+  state: 'title', zone: 0, world: null, time: 0, pd: /** @type {SaveData|null} */ (null), raid: /** @type {any} */ (null), tower: /** @type {any} */ (null), flashT: 0, buddy: /** @type {any} */ (null), st: null, P: null, bori: null,
   enemies: [], projs: [], fx: [], drops: [], parts: [], texts: [], bubbles: [],
   cam: { x: 0, y: 0 }, shake: 0, hitstop: 0, flash: 0,
   zoneKills: 0, bossSpawned: false, bossDefeated: false, boss: null, exitOpen: false, spawnT: 1, eid: 0,
@@ -76,6 +76,9 @@ function hairOk(pd, h) {
   if (h.need === 'enh25') return Object.values(pd.enh || {}).some(v => v >= 25);
   if (h.need === 'aw50') return (pd.aw || 0) >= 50;
   if (h.need === 'ch3') return !!(pd.ch3 && pd.ch3.cleared >= 1);
+  if (h.need === 'lp20') return msGot(pd, 20);
+  if (h.need === 'lp50') return msGot(pd, 50);
+  if (h.need === 'tw30') return towerBest(pd) >= 30;
   if (h.need === 'ch2') return !!(pd.ch2 && pd.ch2.cleared >= 1);
   if (h.need === 'pack') return !!(pd.pack && pd.pack.got);
   return false;
@@ -310,7 +313,7 @@ function updateBori(dt) {
 const LOOP_CAP = 10;
 /** 회차 → 난이도 단계. 11회차부터도 계속 오르되 증가폭은 절반 (예: 50회차 = 30단계) */
 const loopEff = cl => cl <= LOOP_CAP ? cl : LOOP_CAP + (cl - LOOP_CAP) * 0.5;
-function loopLv() { return G.pvp ? 0 : G.inf ? G.inf.loop : G.pd ? zoneL(G.pd, G.zone || 0) : 0; }
+function loopLv() { return G.pvp ? 0 : G.inf ? G.inf.loop : G.tower ? G.tower.L : G.pd ? zoneL(G.pd, G.zone || 0) : 0; }
 function loopMul() { const L = loopLv(); return { L, hp: 1 + 0.6 * L, atk: 1 + 0.35 * L, def: 3 * L, spd: Math.min(1.3, 1 + 0.05 * L), xp: 1 + 0.5 * L, gold: 1 + 0.6 * L, item: Math.min(1.6, 1 + 0.2 * L), cnt: Math.min(2, 1 + 0.25 * L), elite: Math.min(0.25, 0.07 * L), legend: Math.min(0.3, 0.08 * L) }; }
 const zoneQuota = Z => Math.round(Z.quota * loopMul().cnt);
 // 처치 1마리당 등급별 드롭 확률 (일반 몬스터 기준). 높은 등급부터 굴려서 하나만 떨어짐
@@ -750,6 +753,7 @@ function spawnBoss() {
   bubble(P, choice(['뭐야 저 거대한 건...!', '보스다! 정신 차리자', '저거 잡으면 나갈 수 있겠지?']), 1.8);
 }
 function onBossDefeated(e) {
+  if (G.tower) { G.boss = null; towerEnd(true); return; }
   G.bossDefeated = true; G.boss = null; G.exitOpen = true; guideEv('boss');
   for (const o of G.enemies) if (!o.dead && o !== e) { o.dead = true; o.deadT = 0.25; burst(o.x, o.y - o.h / 2, o.col, 6); }
   G.projs = G.projs.filter(p => !p.enemy);
@@ -770,7 +774,7 @@ function goNextZone() {
   fadeTo(() => { startZone(G.zone + 1); setTimeout(() => { if (G.state === 'play' || G.state === 'dialog') { toast(`스마트 푸드 센터 재고떨이! 유통기한 임박 김밥 ×${n} · 음료수 ×${n}`, 'item r2'); sfx('coin'); if (G.P) bubble(G.P, '공짜는 못 참지!', 1.4); } }, 2900); });
 }
 function startZone(i) {
-  G.pvp = null; G.inf = null; G.raid = null; G.husUsed = false;
+  G.pvp = null; G.inf = null; G.raid = null; G.tower = null; G.husUsed = false;
   G.zone = i; setCurZone(G.pd, i); G.world = buildWorld(i); const W = G.world; G.autoExitSaid = false;
   G.enemies = []; G.projs = []; G.fx = []; G.drops = []; G.parts = []; G.texts = []; G.bubbles = [];
   G.zoneKills = 0; G.bossSpawned = false; G.bossDefeated = false; G.boss = null; G.exitOpen = false; G.spawnT = 1.5; G.ult = null;
@@ -787,6 +791,7 @@ function playerDie() {
   if (!G.pvp && husbandSave()) return;
   if (G.pvp) { burst(G.P.x, G.P.y - 10, '#ffffff', 20); pvpEnd(false, '내 희수가 쓰러졌어요'); return; }
   if (G.raid) { burst(G.P.x, G.P.y - 10, '#ffffff', 20); raidEnd('희수가 쓰러졌어요'); return; }
+  if (G.tower) { burst(G.P.x, G.P.y - 10, '#ffffff', 20); towerEnd(false, '희수가 쓰러졌어요'); return; }
   G.state = 'dead'; G.pd.stats.deaths++; INP.atk = false;
   burst(G.P.x, G.P.y - 10, '#ffffff', 20);
   setTimeout(() => showDeath(), 700);
@@ -883,7 +888,7 @@ function update(dt) {
   if (!frozen) {
     updateBori(dt);
     for (const e of G.enemies) updateEnemy(e, dt);
-    separateEnemies(); updateProjs(dt); if (G.pvp) pvpUpdate(dt); else if (G.raid) raidUpdate(dt); else if (G.inf) infSpawner(dt); else updateSpawner(dt);
+    separateEnemies(); updateProjs(dt); if (G.pvp) pvpUpdate(dt); else if (G.raid) raidUpdate(dt); else if (G.tower) towerUpdate(dt); else if (G.inf) infSpawner(dt); else updateSpawner(dt);
   }
   G.enemies = G.enemies.filter(e => !e.gone);
   updateDrops(dt); updateFx(dt);

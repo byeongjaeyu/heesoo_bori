@@ -41,6 +41,12 @@ const ACH = [
   { id: 'c3r', t: '우천 극복', d: '3장 9회말 그라운드 도착', tier: 2, v: pd => pd.ch3 && (pd.ch3.cleared || pd.ch3.zone >= 11) ? 1 : 0, g: 1 },
   { id: 'c3', t: '9회말의 기적', d: '3장 클리어 (역전승)', tier: 3, v: pd => (pd.ch3 && pd.ch3.cleared) || 0, g: 1 },
   { id: 'c3x5', t: '사직 개근러', d: '3장 5번 클리어', tier: 4, v: pd => (pd.ch3 && pd.ch3.cleared) || 0, g: 5 },
+  { id: 'lp30', t: '회차 마라토너', d: '총 30회차 (1~3장 클리어 합계)', tier: 3, v: pd => loopsTotal(pd), g: 30 },
+  { id: 'lp50', t: '무한 회차', d: '총 50회차', tier: 4, v: pd => loopsTotal(pd), g: 50 },
+  { id: 'lp100', t: '백회차 전설', d: '총 100회차', tier: 4, v: pd => loopsTotal(pd), g: 100 },
+  { id: 'tw10', t: '타워 등반가', d: '보스 타워 10층 돌파', tier: 2, v: pd => towerBest(pd), g: 10 },
+  { id: 'tw30', t: '타워 정복자', d: '보스 타워 30층 돌파', tier: 3, v: pd => towerBest(pd), g: 30 },
+  { id: 'tw50', t: '하늘 위의 희수', d: '보스 타워 50층 돌파', tier: 4, v: pd => towerBest(pd), g: 50 },
   // 한정 칭호 (가진 사람만 목록에 보임, 업적 보상 없음)
   { id: 'beta', t: '베타 개척자', d: '베타 기간 뉴비 패키지', tier: 4, sp: 1, v: pd => pd.pack && pd.pack.got ? 1 : 0, g: 1 },
 ];

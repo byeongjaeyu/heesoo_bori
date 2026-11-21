@@ -229,7 +229,7 @@ function renderScreen() {
   if (G.P && G.P.hp < G.st.hp * 0.25 && G.state === 'play') { const pa = 0.25 + Math.sin(G.time * 6) * 0.12; const lg = ctx.createRadialGradient(cw / 2, ch / 2, Math.min(cw, ch) * 0.3, cw / 2, ch / 2, Math.max(cw, ch) * 0.7); lg.addColorStop(0, 'rgba(255,0,40,0)'); lg.addColorStop(1, `rgba(255,0,40,${pa})`); ctx.fillStyle = lg; ctx.fillRect(0, 0, cw, ch); }
   const U = S;
   // gate label
-  { const [x, y] = W2S(W.gate.x, W.gate.y - 49); if (y > -20 && y < ch + 20) txt(!isChLast(G.zone) ? '→ ' + ZONES[G.zone].next : '탈출구', x, y, U * 4.2, G.exitOpen ? '#7a3a1a' : '#9a8a8a', null, 'center'); }
+  if (!G.tower && !G.raid) { const [x, y] = W2S(W.gate.x, W.gate.y - 49); if (y > -20 && y < ch + 20) txt(!isChLast(G.zone) ? '→ ' + ZONES[G.zone].next : '탈출구', x, y, U * 4.2, G.exitOpen ? '#7a3a1a' : '#9a8a8a', null, 'center'); }
   if (W.mainGate) { const [x, y] = W2S(W.mainGate.x, W.mainGate.y - 49); if (y < ch + 20) txt('정문 (봉쇄됨)', x, y, U * 4, '#a03040'); }
   // texts
   for (const t of G.texts) {

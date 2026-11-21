@@ -225,5 +225,8 @@ const HAIRS = [
   { k: 'cheer', name: '응원 레드', H: '#a8222e', h: '#ff5a6a', need: 'ch3', cond: '3장 클리어' },
   { k: 'ocean', name: '바다 블루', H: '#1f4f9a', h: '#5a9ae8', need: 'ch2', cond: '2장 클리어' },
   { k: 'silver', name: '은발', H: '#9da2b0', h: '#dde0e8', need: 'aw50', cond: '각성 ★50' },
+  { k: 'wine', name: '체리 와인', H: '#5a1430', h: '#a8325e', need: 'lp20', cond: '회차 보상 총 20회차' },
+  { k: 'aurora', name: '오로라 민트', H: '#2a7a8a', h: '#b49cf0', need: 'lp50', cond: '회차 보상 총 50회차' },
+  { k: 'flame', name: '불꽃', H: '#b8320e', h: '#ffb020', need: 'tw30', cond: '보스 타워 30층' },
   { k: 'lavender', name: '베타 라벤더', H: '#6a4cb8', h: '#b49cf0', need: 'pack', cond: '뉴비 패키지 (베타 한정)', excl: 1 }
 ];

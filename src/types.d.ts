@@ -55,6 +55,11 @@ interface SaveData {
   idleT?: number;
   /** 뉴비 패키지: 처음 본 시각·받은 시각 */
   pack?: { seen?: number; got?: number };
+  /** 회차 보상: 받은 이정표(회차 → 받은 시각), 마지막으로 알린 총 회차 */
+  ms?: Record<string, number>;
+  msSeen?: number;
+  /** 보스 타워: 최고 돌파 층 */
+  tower?: { best?: number };
   /** 지금 고른 장 (1 에버랜드 · 2 바다낚시터) */
   chap?: number;
   /** 강화석 교환소: 오늘 산 개수 */
