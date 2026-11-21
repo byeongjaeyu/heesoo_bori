@@ -220,10 +220,40 @@ function buildWorld(zi) {
     for (let y = 0; y < WORLD_H; y += th2) { const off = gate && (y / th2) % 2 ? tw / 2 : 0; for (let x = -off; x < WORLD_W; x += tw) { g.fillStyle = choice(gate ? ['#b86a50', '#a85e46', '#c4765a'] : ['#e8d8b8', '#e0ceaa', '#efe2c6']); g.fillRect(x + 1, y + 1, tw - 1, th2 - 1); } }
     g.fillStyle = gate ? '#8a4a36' : '#c8b590'; for (let y = 0; y < WORLD_H; y += th2) g.fillRect(0, y, WORLD_W, 1);
   } else if (Z.theme === 'stand') {
-    // 응원석: 계단식 좌석 줄 (가운데는 통로)
-    g.fillStyle = '#6a6f7c'; g.fillRect(0, 0, WORLD_W, WORLD_H);
-    for (let y = 40; y < WORLD_H; y += 22) { g.fillStyle = '#585c68'; g.fillRect(0, y + 14, WORLD_W, 8); for (let x = 24; x < WORLD_W - 20; x += 14) { if (Math.abs(x - cx) < 40) continue; g.fillStyle = OK; g.fillRect(x, y + 2, 12, 12); g.fillStyle = (Math.floor(y / 22) % 3 === 0) ? '#3a5ab0' : (Math.floor(y / 22) % 3 === 1) ? '#e8414f' : '#c0c6d0'; g.fillRect(x + 1, y + 3, 10, 9); g.fillStyle = 'rgba(255,255,255,0.25)'; g.fillRect(x + 1, y + 3, 10, 2); } }
-    g.fillStyle = '#8a8f9a'; g.fillRect(cx - 34, 0, 68, WORLD_H); for (let y = 0; y < WORLD_H; y += 22) { g.fillStyle = '#9aa0aa'; g.fillRect(cx - 34, y, 68, 11); }
+    // 응원석: 계단식 콘크리트 단 + 등받이 의자 + 앉아 있는 관중 (가운데·양옆은 계단 통로, 8줄마다 가로 통로)
+    g.fillStyle = '#5a5f6c'; g.fillRect(0, 0, WORLD_W, WORLD_H);
+    const RP = 24, aisles = [[cx - 34, cx + 34], [92, 116], [WORLD_W - 116, WORLD_W - 92]];
+    const inAisle = x => aisles.some(([a0, a1]) => x + 12 > a0 && x < a1);
+    const secCol = x => (x < 92 || x > WORLD_W - 92) ? ['#3a5ab0', '#2a4288', '#5a7ad0'] : ['#e8414f', '#b02a3a', '#ff6a74'];
+    const shirts = ['#ffffff', '#e8414f', '#3a5ab0', '#f0f0f0', '#2b2b3a', '#ffcf40', '#e8414f', '#c0c6d0'], hairs = ['#2b1b24', '#3a2a20', '#5a3a2a', '#1a1a22', '#8a5a3a'];
+    for (let r = 0, y = 30; y < WORLD_H; r++, y += RP) {
+      if (r % 8 === 7) { // 가로 통로 + 난간
+        pRect(g, 0, y, WORLD_W, RP, '#8a8f9a'); for (let x = 0; x < WORLD_W; x += 20) pRect(g, x, y + 4, 10, 1, '#9aa0aa');
+        pRect(g, 0, y + RP - 3, WORLD_W, 1, OK); pRect(g, 0, y - 1, WORLD_W, 2, '#c0c6d0'); pRect(g, 0, y + 1, WORLD_W, 1, OK);
+        for (let x = 6; x < WORLD_W; x += 28) pRect(g, x, y - 1, 2, 5, '#c0c6d0');
+        continue;
+      }
+      pRect(g, 0, y, WORLD_W, 16, '#6e7380'); pRect(g, 0, y + 16, WORLD_W, RP - 16, '#4e525e'); pRect(g, 0, y + 16, WORLD_W, 1, '#3e424c'); pRect(g, 0, y, WORLD_W, 1, '#8a8f9a');
+      for (let x = 20; x < WORLD_W - 22; x += 14) {
+        if (inAisle(x)) continue;
+        const [c1, c2, c3] = secCol(x);
+        pRect(g, x, y + 1, 12, 9, OK); pRect(g, x + 1, y + 2, 10, 7, c1); pRect(g, x + 1, y + 2, 10, 2, c3);
+        pRect(g, x, y + 10, 12, 5, OK); pRect(g, x + 1, y + 10, 10, 4, c2); pRect(g, x + 1, y + 15, 10, 2, 'rgba(0,0,0,0.25)');
+        if (R() < 0.34) { // 관중
+          const sh = choice(shirts), hx = x + 6;
+          pRect(g, hx - 4, y + 7, 9, 8, OK); pRect(g, hx - 3, y + 8, 7, 6, sh);
+          pCirc(g, hx, y + 4, 3, OK); pCirc(g, hx, y + 4, 2, '#f6d2b4'); const hc = choice(hairs); pRect(g, hx - 3, y + 1, 7, 2, hc); pRect(g, hx - 3, y + 2, 1, 2, hc); pRect(g, hx + 3, y + 2, 1, 2, hc);
+          const k = R();
+          if (k < 0.18) { pRect(g, hx - 5, y - 3, 1, 9, '#f6d2b4'); pRect(g, hx + 5, y - 3, 1, 9, '#f6d2b4'); } // 만세
+          else if (k < 0.32) { const bc = R() < 0.5 ? '#ffcf40' : '#ff6a74'; pRect(g, hx - 6, y - 6, 2, 11, OK); pRect(g, hx - 6, y - 5, 2, 9, bc); pRect(g, hx + 5, y - 6, 2, 11, OK); pRect(g, hx + 5, y - 5, 2, 9, bc); } // 막대풍선
+        }
+      }
+    }
+    for (const [a0, a1] of aisles) { // 계단 통로
+      pRect(g, a0, 0, a1 - a0, WORLD_H, '#8a8f9a');
+      for (let y = 0; y < WORLD_H; y += 12) { pRect(g, a0, y, a1 - a0, 6, '#9aa0aa'); pRect(g, a0, y + 6, a1 - a0, 1, '#6a6f7c'); pRect(g, a0 + 2, y, a1 - a0 - 4, 1, '#f0d040'); }
+      pRect(g, a0 - 1, 0, 1, WORLD_H, OK); pRect(g, a1, 0, 1, WORLD_H, OK);
+    }
   } else if (Z.theme === 'field') {
     // 9회말 그라운드: 잔디 줄무늬 + 내야 흙 + 베이스
     for (let y = 0; y < WORLD_H; y += 24) { g.fillStyle = (y / 24) % 2 ? '#2f6a3a' : '#3a7a44'; g.fillRect(0, y, WORLD_W, 24); }
@@ -320,7 +350,7 @@ function buildWorld(zi) {
     const cols = ['#e8414f', '#d9822b', '#3a78c0', '#7ccf5a']; for (let y = 120; y < WORLD_H - 80; y += 120) { add(dStall(choice(cols)), 60, y, 16, 30); add(dStall(choice(cols)), WORLD_W - 60, y + 60, 16, 30); }
     scatter(9, () => dTable(), 8, 12, { avoidBoss: true }); scatter(5, () => dBin(), 4, 10);
   } else if (Z.theme === 'stand') {
-    add(dScore(), cx, 60, 0, 0); const lamp = dLamp('#fff6d0'); for (let y = 180; y < WORLD_H - 70; y += 170) { add(lamp, cx - 44, y, 2, 8, { glow: '#fff6d0' }); add(lamp, cx + 44, y + 85, 2, 8, { glow: '#fff6d0' }); }
+    add(dScore(), cx, 60, 0, 0); const tw = dLightTower(); for (const [x, y] of [[40, 150], [WORLD_W - 40, 150], [40, WORLD_H - 150], [WORLD_W - 40, WORLD_H - 150]]) add(tw, x, y, 4, 8, { glow: '#fff6d0' });
   } else if (Z.theme === 'field') {
     const tw = dLightTower(); for (const [x, y] of [[40, 120], [WORLD_W - 40, 120], [40, WORLD_H - 120], [WORLD_W - 40, WORLD_H - 120]]) add(tw, x, y, 4, 8, { glow: '#fff6d0' });
     const b = dBase(), dy = WORLD_H * 0.55; for (const [x, y] of [[cx + 110, dy], [cx, dy - 110], [cx - 110, dy], [cx, dy + 110]]) add(b, x, y + 5, 0, 0);

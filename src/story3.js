@@ -16,7 +16,10 @@ function drawParkCut(SW, SH, mid, gy, T, mode) {
     // 응원석/그라운드: 멀리 잔디 + 관중 + 전광판
     fr(0, gy - 40, SW, 18, night ? '#24502c' : '#3a7a44');
     for (let i = 0; i < 160; i++) { const x = (i * 23.7) % SW, y = gy - 22 + (i * 7) % 18; fr(x, y + (Math.floor(T * 3 + i) % 4 === 0 ? -1 : 0), 2, 2, ['#e8414f', '#3a5ab0', '#ffffff', '#ffd84a', '#f0bb9c'][i % 5]); }
-    fr(0, gy - 4, SW, SH - gy + 4, '#6a6f7c'); for (let y = gy + 4; y < SH; y += 10) for (let x = 2; x < SW; x += 10) fr(x, y, 8, 6, (Math.floor(y / 10) % 2) ? '#3a5ab0' : '#e8414f');
+    // 앞쪽 관중석: 난간 + 계단식 단 + 등받이 의자 (바깥 구역 파랑, 안쪽 빨강)
+    fr(0, gy - 4, SW, SH - gy + 4, '#5a5f6c');
+    for (let y = gy + 2, r = 0; y < SH; y += 12, r++) { fr(0, y, SW, 8, '#6e7380'); fr(0, y + 8, SW, 4, '#4e525e'); for (let x = 3 + (r % 2) * 5; x < SW - 8; x += 11) { const out = Math.abs(x - mid) > SW * 0.3, c = out ? ['#3a5ab0', '#2a4288', '#5a7ad0'] : ['#e8414f', '#b02a3a', '#ff6a74']; fr(x, y, 9, 6, '#2b1b24'); fr(x + 1, y + 1, 7, 4, c[0]); fr(x + 1, y + 1, 7, 1, c[2]); fr(x + 1, y + 5, 7, 2, c[1]); } }
+    fr(0, gy - 4, SW, 2, '#c0c6d0'); fr(0, gy - 2, SW, 1, '#2b1b24'); for (let x = 4; x < SW; x += 22) fr(x, gy - 4, 2, 6, '#c0c6d0');
     const sc = dScore(); ctx.drawImage(sc, Math.round(mid - 28), 12);
     if (night) for (const lx of [mid - 100, mid + 100]) { ctx.globalCompositeOperation = 'lighter'; pc(lx, 18, 16, 'rgba(255,250,210,0.3)'); ctx.globalCompositeOperation = 'source-over'; fr(lx - 8, 12, 16, 10, '#fff6d0'); }
     if (mode === 'prain') { ctx.strokeStyle = 'rgba(190,210,255,0.5)'; ctx.lineWidth = 1; ctx.beginPath(); for (let i = 0; i < 70; i++) { const x = ((i * 37.3 + T * 60) % (SW + 20)) - 10, y = ((i * 53.1 + T * 220) % (SH + 20)) - 10; ctx.moveTo(x, y); ctx.lineTo(x - 2, y + 6); } ctx.stroke(); }
