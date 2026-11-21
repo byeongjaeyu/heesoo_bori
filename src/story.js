@@ -117,8 +117,9 @@ function renderCut() {
   else if (CUT.scene === 'ep2home') drawHome(SW, SH, mid, gy, T, A);
   else if (CUT.scene === 'e2lake') e2DrawLake(SW, SH, mid, gy, T);
   else if (['lot', 'sea', 'seaS', 'seaN', 'rocks'].includes(CUT.scene)) drawSeaCut(SW, SH, mid, gy, T, CUT.scene);
+  else if (['pgate', 'pfood', 'pstand', 'prain', 'pwin'].includes(CUT.scene)) drawParkCut(SW, SH, mid, gy, T, CUT.scene);
   else drawStars(SW, SH, T);
-  drawActors(A, mid, gy, T); drawSeaActors(A, mid, gy, T);
+  drawActors(A, mid, gy, T); drawSeaActors(A, mid, gy, T); drawParkActors(A, mid, gy, T);
   if (A.b2 || A.cat || A.fish) e2DrawActors(A, mid, gy, T);
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   const cw = cv.width, ch = cv.height;

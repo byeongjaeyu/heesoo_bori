@@ -145,7 +145,7 @@ test('도감 탭: 보유 장비는 보이고 없는 건 ???', async ({ page }) =
   await withSave(page, URL_MAIN, { lv: 20, inv: { fist: 1, cap_grey: 1, fleece: 1, sneakers: 1, silverbag: 1, churros: 1 } });
   await enterZone(page, 1);
   await openTab(page, 'book');
-  await expect(page.locator('.bookhead')).toContainText('1 / 51');
+  await expect(page.locator('.bookhead')).toContainText('1 / 58');
   await expect(page.locator('.bcell:not(.no)')).toHaveCount(1);
   await expect(page.locator('.bcell:not(.no)')).toContainText('츄러스');
 });
@@ -393,7 +393,33 @@ test('재련·교환소: 장비 탭에서 재련, 배달앱에서 강화석 교�
   await page.evaluate(() => openMenu('equip'));
   await page.click('[data-m="refine"]');
   await expect(page.locator('.refc .refl:not(.none)')).toHaveCount(3);
+  await page.evaluate(() => { G.pd.ach = Object.fromEntries(ACH.map(a => [a.id, 1])); saveGame(); }); // 업적 보상이 끼어들지 않게
   await page.click('#tabs [data-v="shop"]');
+  const s0 = await page.evaluate(() => loadGame().stones);
   await page.click('[data-m="xch"][data-v="10"]');
-  expect(await page.evaluate(() => [loadGame().stones, loadGame().gold])).toEqual([10, 10000000 - 1500000 - 30000]);
+  expect(await page.evaluate(() => [loadGame().stones, loadGame().gold])).toEqual([s0 + 10, 10000000 - 1500000 - 30000]);
+});
+
+test('3장: 2장 클리어 전엔 버튼 없음 → 클리어+Lv50이면 프롤로그 후 STAGE 9', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 50, cleared: 5 });
+  await expect(page.locator('.tch[data-ch="3"]')).toHaveCount(0);
+  await page.evaluate(() => { const pd = loadGame(); pd.ch2 = { zone: 4, cleared: 1, intro: 1 }; localStorage.setItem(SAVEKEY, JSON.stringify(pd)); showTitle(); });
+  await page.click('.tch[data-ch="3"]');
+  await expect(page.locator('#tCont')).toContainText('사직 야구장 매표소');
+  await page.click('#tCont');
+  await page.waitForFunction(() => G.state === 'cut');
+  await page.evaluate(() => endCut());
+  await page.waitForFunction(() => G.state === 'play' && G.zone === 8, null, { timeout: 8000 });
+  expect(await page.evaluate(() => [loadGame().chap, loadGame().ch3.zone, loadGame().ch2.zone])).toEqual([3, 8, 4]);
+});
+
+test('3장 마지막 보스 → 엔딩 → 3장 클리어 기록', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 50, cleared: 5, chap: 3, ch2: { zone: 4, cleared: 1, intro: 1 }, ch3: { zone: 11, cleared: 0, intro: 1, seen: { 9: 1, 10: 1, 11: 1 } } });
+  await page.click('#tCont');
+  await page.waitForFunction(() => G.state === 'play' && G.zone === 11, null, { timeout: 8000 });
+  await page.evaluate(() => { onBossDefeated({}); G.P.x = G.world.gate.x; G.P.y = G.world.gate.y + 4; });
+  await page.waitForFunction(() => G.state === 'cut', null, { timeout: 10000 });
+  await page.evaluate(() => endCut());
+  await expect(page.locator('#endScr')).toContainText('3장');
+  expect(await page.evaluate(() => loadGame().ch3.cleared)).toBe(1);
 });

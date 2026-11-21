@@ -63,6 +63,8 @@ interface SaveData {
   ref?: Record<string, { lines: { k: string; v: number; g: number; lk?: number }[]; n: number }>;
   /** 2장 진행도 (zone 4~7) */
   ch2?: { zone: number; cleared: number; intro?: number; seen?: Record<string, number> };
+  /** 3장 진행도 (zone 8~11) */
+  ch3?: { zone: number; cleared: number; intro?: number; seen?: Record<string, number> };
 
   /** 각성 단계 (Lv50 이후) */
   aw?: number;
@@ -89,6 +91,8 @@ interface SaveData {
 interface ItemDef {
   /** 보스 확정 드롭 전용 (일반 드롭·상자 풀에서 제외) */
   bossOnly?: number;
+  /** 보스 드롭 장비의 장 (2 낚시, 3 응원) */
+  ch?: number;
   slot: EquipSlot;
   name: string;
   /** 0 일반 · 1 희귀 · 2 영웅 · 3 전설 · 4 신화 · 5 초월 */

@@ -175,6 +175,7 @@ function drawProj(p) {
   if (p.k === 'balloon') drawSpr(pspr('balloon'), p.x, p.y + 3);
   else if (p.k === 'note') drawSpr(pspr('note'), p.x, p.y + 3);
   else if (p.k === 'tea') drawSpr(pspr('tea'), p.x, p.y + 2);
+  else if (p.k === 'ticket') { const x = Math.round(p.x), y = Math.round(p.y); fr(x - 3, y - 2, 7, 5, '#2b1b24'); fr(x - 2, y - 1, 5, 3, '#ffffff'); fr(x - 2, y, 5, 1, '#e8414f'); }
   else if (p.k === 'water') { const x = Math.round(p.x), y = Math.round(p.y); fr(x - 2, y - 2, 4, 4, '#2b1b24'); fr(x - 1, y - 3, 2, 1, '#2b1b24'); fr(x - 1, y - 1, 2, 2, '#6fb8ff'); fr(x - 1, y - 2, 1, 1, '#d6f0ff'); }
   else if (p.k === 'card') { ctx.save(); ctx.translate(Math.round(p.x), Math.round(p.y)); ctx.rotate(p.rot); ctx.fillStyle = '#2b1b24'; ctx.fillRect(-4, -3, 8, 6); ctx.fillStyle = '#ffffff'; ctx.fillRect(-3, -2, 6, 4); ctx.fillStyle = '#6fb8ff'; ctx.fillRect(-3, 1, 6, 1); ctx.fillStyle = '#ffdcc2'; ctx.fillRect(-2, -1, 2, 2); ctx.restore(); }
   else if (p.k === 'churro') { ctx.save(); ctx.translate(Math.round(p.x), Math.round(p.y)); ctx.rotate(p.rot); ctx.fillStyle = '#2b1b24'; ctx.fillRect(-4, -2, 8, 4); ctx.fillStyle = '#c98a3a'; ctx.fillRect(-3, -1, 6, 2); ctx.restore(); }
@@ -218,6 +219,7 @@ function renderScreen() {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   const [r, g, b, a] = W.tint; ctx.fillStyle = `rgba(${r},${g},${b},${a})`; ctx.fillRect(0, 0, cw, ch);
   if (W.dark && G.P) drawDarkness(W, cw, ch);
+  if (W.rain) drawRain(cw, ch);
   ctx.globalCompositeOperation = 'lighter';
   for (const d of W.decor) { if (!d.glow) continue; const [x, y] = W2S(d.x, d.y - 24); if (x < -60 * S || x > cw + 60 * S || y < -60 * S || y > ch + 60 * S) continue; const rg = ctx.createRadialGradient(x, y, 0, x, y, 26 * S); rg.addColorStop(0, hexA(d.glow, W.glowA)); rg.addColorStop(1, hexA(d.glow, 0)); ctx.fillStyle = rg; ctx.fillRect(x - 26 * S, y - 26 * S, 52 * S, 52 * S); }
   if (G.exitOpen) { const [x, y] = W2S(W.gate.x, W.gate.y - 24); const rg = ctx.createRadialGradient(x, y, 0, x, y, 50 * S); rg.addColorStop(0, 'rgba(255,240,170,0.5)'); rg.addColorStop(1, 'rgba(255,240,170,0)'); ctx.fillStyle = rg; ctx.fillRect(x - 50 * S, y - 50 * S, 100 * S, 100 * S); }
@@ -367,4 +369,13 @@ function drawDarkness(W, cw, ch) {
   if (G.exitOpen) hole(W.gate.x, W.gate.y - 24, 56 * S);
   if (G.boss && !G.boss.dead) hole(G.boss.x, G.boss.y - 10, 34 * S);
   d.globalCompositeOperation = 'source-over'; ctx.drawImage(DARKC, 0, 0);
+}
+
+/** 9회말 그라운드: 화면 전체에 비 */
+function drawRain(cw, ch) {
+  ctx.strokeStyle = 'rgba(190,210,255,0.45)'; ctx.lineWidth = Math.max(1, S * 0.4); ctx.beginPath();
+  const t = G.time * 900, n = 90;
+  for (let i = 0; i < n; i++) { const x = ((i * 137.5 + t * 0.35) % (cw + 60)) - 30, y = ((i * 89.3 + t) % (ch + 80)) - 40; ctx.moveTo(x, y); ctx.lineTo(x - 4 * S, y + 12 * S); }
+  ctx.stroke();
+  if (G.flashT > 0) { ctx.fillStyle = `rgba(255,255,240,${Math.min(0.5, G.flashT)})`; ctx.fillRect(0, 0, cw, ch); }
 }

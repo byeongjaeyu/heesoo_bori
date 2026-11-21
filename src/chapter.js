@@ -1,55 +1,68 @@
-// ===================== 챕터 (1장 에버랜드 · 2장 유료 바다낚시터) =====================
-// ZONES 0~3 = 1장, 4~7 = 2장. 진행도: 1장 pd.zone/pd.cleared, 2장 pd.ch2 {zone, cleared, intro}. 지금 고른 장 pd.chap
-// 2장은 1장 5회차 수준(Lv30 기준) 난이도에서 시작해 2장 회차마다 오름
-const CH2_Z0 = 4, CH2_BASE_L = 4, CH1_N = 4, CH2_LV = 30;
-const zoneCh = z => z >= CH2_Z0 ? 2 : 1;
-const chLast = c => c === 2 ? CH2_Z0 + 3 : 3;
+// ===================== 챕터 (1장 에버랜드 · 2장 유료 바다낚시터 · 3장 사직 야구장) =====================
+// ZONES 0~3 = 1장, 4~7 = 2장, 8~11 = 3장. 진행도: 1장 pd.zone/pd.cleared, 2장 pd.ch2, 3장 pd.ch3 ({zone, cleared, intro, seen}). 지금 고른 장 pd.chap
+// 2장은 1장 5회차 수준(Lv30), 3장은 1장 9회차 수준(Lv50)에서 시작해 그 장 회차마다 오름
+const CH1_N = 4, CH2_Z0 = 4, CH3_Z0 = 8, CH2_BASE_L = 4, CH3_BASE_L = 8, CH2_LV = 30, CH3_LV = 50;
+const CH_Z0 = { 1: 0, 2: CH2_Z0, 3: CH3_Z0 }, CH_BASE_L = { 1: 0, 2: CH2_BASE_L, 3: CH3_BASE_L };
+const CH_NAME = { 1: '에버랜드', 2: '바다낚시터', 3: '사직 야구장' };
+const zoneCh = z => z >= CH3_Z0 ? 3 : z >= CH2_Z0 ? 2 : 1;
+const chLast = c => CH_Z0[c] + 3;
 const isChLast = z => z >= chLast(zoneCh(z));
 const ch2Open = pd => !!pd && (pd.cleared || 0) >= 1 && (pd.lv >= CH2_LV || (pd.aw || 0) > 0);
-const ch2Of = pd => pd.ch2 || (pd.ch2 = { zone: CH2_Z0, cleared: 0 });
-const chCleared = (pd, z) => zoneCh(z) === 2 ? ((pd.ch2 && pd.ch2.cleared) || 0) : (pd.cleared || 0);
+const ch3Open = pd => !!pd && !!(pd.ch2 && pd.ch2.cleared >= 1) && pd.lv >= CH3_LV;
+const chOpen = (pd, c) => c === 1 ? !!pd : c === 2 ? ch2Open(pd) : ch3Open(pd);
+/** 2·3장 진행도 (없으면 만듦) */
+const chOf = (pd, c) => { const k = c === 3 ? 'ch3' : 'ch2'; return pd[k] || (pd[k] = { zone: CH_Z0[c], cleared: 0 }); };
+const ch2Of = pd => chOf(pd, 2);
+const chCleared = (pd, z) => { const c = zoneCh(z); return c === 1 ? (pd.cleared || 0) : (((c === 3 ? pd.ch3 : pd.ch2) || {}).cleared || 0); };
 /** 그 스테이지의 난이도 단계 (몬스터 능력치·보상·드롭 등급) */
-const zoneL = (pd, z) => zoneCh(z) === 2 ? CH2_BASE_L + loopEff(chCleared(pd, z)) : loopEff(pd.cleared || 0);
+const zoneL = (pd, z) => CH_BASE_L[zoneCh(z)] + loopEff(chCleared(pd, z));
 /** 「모험 계속하기」로 갈 스테이지 */
-const curZone = pd => pd.chap === 2 && ch2Open(pd) ? ch2Of(pd).zone : (pd.zone || 0);
-function setCurZone(pd, z) { if (zoneCh(z) === 2) { ch2Of(pd).zone = z; pd.chap = 2; } else { pd.zone = z; pd.chap = 1; } }
+const curZone = pd => { const c = pd.chap || 1; return c > 1 && chOpen(pd, c) ? chOf(pd, c).zone : (pd.zone || 0); };
+function setCurZone(pd, z) { const c = zoneCh(z); if (c === 1) pd.zone = z; else chOf(pd, c).zone = z; pd.chap = c; }
 const zoneTitle = (pd, z) => { const c = chCleared(pd, z); return (c ? `${c + 1}회차 · ` : '') + ZONES[z].name; };
 
 /** 로비 챕터 고르기 */
 function chapterPickHtml(pd) {
   if (FORCE_EASY || !pd || !pd.cleared) return '';
-  const open = ch2Open(pd), c2 = pd.chap === 2 && open;
-  return `<div class="tchap"><button class="tch${c2 ? '' : ' on'}" data-ch="1"><b>1장</b> 에버랜드</button>`
-    + `<button class="tch${c2 ? ' on' : ''}${open ? '' : ' lock'}" data-ch="2"><b>2장</b> 바다낚시터${open ? (pd.ch2 ? '' : ' <em>NEW</em>') : ` <small>Lv${CH2_LV}</small>`}</button></div>`;
+  const cur = chOpen(pd, pd.chap || 1) ? (pd.chap || 1) : 1, show3 = !!(pd.ch2 && pd.ch2.cleared);
+  const btn = (c, label, need) => { const open = chOpen(pd, c), fresh = c > 1 && open && !(c === 3 ? pd.ch3 : pd.ch2); return `<button class="tch${cur === c ? ' on' : ''}${open ? '' : ' lock'}" data-ch="${c}"><b>${c}장</b> ${label}${fresh ? ' <em>NEW</em>' : ''}${open ? '' : ` <small>${need}</small>`}</button>`; };
+  return `<div class="tchap${show3 ? ' c3' : ''}">${btn(1, '에버랜드', '')}${btn(2, show3 ? '낚시터' : '바다낚시터', `Lv${CH2_LV}`)}${show3 ? btn(3, '야구장', `Lv${CH3_LV}`) : ''}</div>`;
 }
 function chapterPick(c) {
   const pd = loadGame(); if (!pd) return;
   if (c === 2 && !ch2Open(pd)) { toast(`2장은 Lv${CH2_LV}부터 열려요 (1장을 깬 뒤)`, 'sub'); return; }
+  if (c === 3 && !ch3Open(pd)) { toast(`3장은 Lv${CH3_LV}부터 열려요 (2장을 깬 뒤)`, 'sub'); return; }
   pd.chap = c; G.pd = pd; saveGame(); sfx('select'); showTitle();
 }
-/** 「모험 계속하기」: 2장 처음이면 프롤로그부터 */
+/** 「모험 계속하기」: 2·3장 처음이면 프롤로그부터 */
 function adventureGo(pd) {
-  G.pd = pd; const z = curZone(pd);
-  if (zoneCh(z) === 2 && !ch2Of(pd).intro) { pd.ch2.intro = 1; saveGame(); $('#title').hidden = true; playCut(CH2_PROLOGUE, () => fadeTo(() => startZone(CH2_Z0))); return; }
+  G.pd = pd; const z = curZone(pd), c = zoneCh(z);
+  if (c > 1 && !chOf(pd, c).intro) { chOf(pd, c).intro = 1; saveGame(); $('#title').hidden = true; playCut(c === 3 ? CH3_PROLOGUE : CH2_PROLOGUE, () => fadeTo(() => startZone(CH_Z0[c]))); return; }
   $('#title').hidden = true; fadeTo(() => startZone(z));
 }
-/** 2장 스테이지에 처음 들어갈 때 이야기 (첫 회차, 자동사냥 아닐 때만) */
-function ch2StageStory(z) {
-  const c2 = G.pd.ch2; if (!c2) return null;
-  c2.seen = c2.seen || {}; if (c2.seen[z]) return null; c2.seen[z] = 1;
-  return z === 5 ? CH2_DAY : z === 6 ? CH2_NIGHT : null;
+/** 2·3장 스테이지에 처음 들어갈 때 이야기 (스테이지별 한 번, 자동사냥이어도) */
+function chStageStory(z) {
+  const c = zoneCh(z); if (c === 1) return null; const P = c === 3 ? G.pd.ch3 : G.pd.ch2; if (!P) return null;
+  P.seen = P.seen || {}; const story = c === 2 ? (z === 5 ? CH2_DAY : z === 6 ? CH2_NIGHT : null) : (z === 9 ? CH3_FOOD : z === 10 ? CH3_STAND : z === 11 ? CH3_RAIN : null);
+  if (!story || P.seen[z]) return null; P.seen[z] = 1; return story;
 }
-/** 2장 마지막 보스를 잡고 출구로 */
-function ch2Finish() {
-  const c2 = ch2Of(G.pd), first = !c2.cleared; c2.cleared++; c2.zone = CH2_Z0; G.pd.chap = 2;
-  if (G.auto && !first) { saveGame(); fadeTo(() => { showHUD(false); playCut(CH2_ENDING, () => fadeTo(() => { G.auto = true; startZone(CH2_Z0); toast(`🎉 2장 ${c2.cleared}회차 클리어! 자동사냥으로 ${c2.cleared + 1}회차 시작`, 'lvl'); })); }); return; }
-  saveGame(); fadeTo(() => { showHUD(false); playCut(CH2_ENDING, () => showEnd2()); });
+const ch2StageStory = chStageStory;
+/** 2·3장 마지막 보스를 잡고 출구로 */
+function chFinish(c) {
+  const P = chOf(G.pd, c), first = !P.cleared, z0 = CH_Z0[c], END = c === 3 ? CH3_ENDING : CH2_ENDING; P.cleared++; P.zone = z0; G.pd.chap = c;
+  if (G.auto && !first) { saveGame(); fadeTo(() => { showHUD(false); playCut(END, () => fadeTo(() => { G.auto = true; startZone(z0); toast(`🎉 ${c}장 ${P.cleared}회차 클리어! 자동사냥으로 ${P.cleared + 1}회차 시작`, 'lvl'); })); }); return; }
+  saveGame(); fadeTo(() => { showHUD(false); playCut(END, () => showEndCh(c)); });
 }
-function showEnd2() {
-  G.state = 'end'; $('#endScr h2').textContent = '2장 · 유료 바다낚시터 대소동'; const s = G.pd.stats, c = G.pd.ch2.cleared; showHUD(false);
-  $('#endStats').innerHTML = `구출한 오빠 <b>1</b>명<br>최종 레벨 <b>Lv.${G.pd.lv}</b>${G.pd.aw ? ` ★${G.pd.aw}` : ''}<br>처치한 몬스터 <b>${s.kills.toLocaleString()}</b>마리<br><br><b>다음 데이트는 희수 마음대로!</b><br><small>3장에서 계속…</small>`;
-  $('#endBtns').innerHTML = `<button class="btn pk" id="eAgain">2장 ${c + 1}회차 시작<small>더 큰 대물이 기다려요</small></button><button class="btn wh" id="eTitle">로비로</button>`;
+const ch2Finish = () => chFinish(2);
+function showEndCh(c) {
+  const P = chOf(G.pd, c), z0 = CH_Z0[c]; G.state = 'end'; const s = G.pd.stats; showHUD(false);
+  $('#endScr h2').textContent = c === 3 ? '3장 · 사직 야구장 직관 대소동' : '2장 · 유료 바다낚시터 대소동';
+  const lv = `최종 레벨 <b>Lv.${G.pd.lv}</b>${G.pd.aw ? ` ★${G.pd.aw}` : ''}<br>처치한 몬스터 <b>${s.kills.toLocaleString()}</b>마리`;
+  $('#endStats').innerHTML = c === 3 ? `9회말 역전승 <b>1</b>번<br>${lv}<br><br><b>다음엔 보리랑 애견 운동장!</b><br><small>4장에서 계속…</small>`
+    : `구출한 오빠 <b>1</b>명<br>${lv}<br><br><b>다음 데이트는 희수 마음대로!</b><br><small>3장에서 계속…</small>`;
+  $('#endBtns').innerHTML = `<button class="btn pk" id="eAgain">${c}장 ${P.cleared + 1}회차 시작<small>${c === 3 ? '다음 경기가 기다려요' : '더 큰 대물이 기다려요'}</small></button><button class="btn wh" id="eTitle">로비로</button>`;
   $('#endScr').hidden = false;
-  $('#eAgain').onclick = () => { $('#endScr').hidden = true; setCurZone(G.pd, CH2_Z0); saveGame(); fadeTo(() => startZone(CH2_Z0)); };
-  $('#eTitle').onclick = () => { $('#endScr').hidden = true; setCurZone(G.pd, CH2_Z0); saveGame(); showTitle(); };
+  $('#eAgain').onclick = () => { $('#endScr').hidden = true; setCurZone(G.pd, z0); saveGame(); fadeTo(() => startZone(z0)); };
+  $('#eTitle').onclick = () => { $('#endScr').hidden = true; setCurZone(G.pd, z0); saveGame(); showTitle(); };
 }
+const showEnd2 = () => showEndCh(2);

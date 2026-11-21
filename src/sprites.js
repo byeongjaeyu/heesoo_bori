@@ -868,3 +868,29 @@ const ICONS = {
 ".K..KKK..K.",
 "..K.....K.."]
 };
+
+// ---------- 3장 몬스터 (사직 야구장) ----------
+// 사람 틀: H 머리·모자, S 피부, E 눈, C 윗옷, P 바지
+const PERSON_T = ['...KKKK...', '..KHHHHK..', '..KSSSSK..', '..KSESEK..', '..KSSSSK..', '...KSSK...', '.KKCCCCKK.', 'KSKCCCCKSK', 'KSKCCCCKSK', '..KCCCCK..', '..KPPPPK..', '..KPKKPK..', '..KPKKPK..', '..KK..KK..'];
+function personRows(o) {
+  const r = PERSON_T.map(s => s.split('').map(c => o[c] || c).join(''));
+  if (o.visor) r[1] = r[1].slice(0, 7) + 'KK' + r[1].slice(9);
+  if (o.shades) r[3] = '..KXXXXK..';
+  if (o.mega) { r[6] += 'KK'; r[7] += 'AK'; r[8] += 'AA'; for (let i = 0; i < r.length; i++) if (r[i].length < 12) r[i] += '..'; }
+  return r;
+}
+Object.assign(MONSPR, {
+  cutter: personRows({ H: 'u', C: 'U', P: 'P', visor: 1 }),
+  scalper: personRows({ H: 'H', C: 'Z', P: 'p', shades: 1 }),
+  leader: personRows({ H: 'N', C: 'u', P: 'e', mega: 1 }),
+  pigeon: ['...KKK.....', '..KGGEK....', '..KGGGKA...', '...KGGK....', '.KKGgGGKK..', 'KgGGgGGGgK.', '.KKKGGGKKK.', '....KAK....'],
+  chickbox: ['...KKKKKK...', '..KFfFFfFK..', '.KKKKKKKKKK.', 'KFKReReReRKF', 'FFKeReReReKF', 'KFKReReReRKF', '.KKeEeeEeKK.', '.KReReReReK.', '.KKKKKKKKKK.'],
+  tteok: ['.KKKKKKKK.', 'KRRrRRrRRK', 'KRmRRmRRRK', 'KKKKKKKKKK', '.KeEeeEeK.', '.KeeeeeeK.', '.KeeMMeeK.', '..KeeeeK..', '..KKKKKK..'],
+  soda: ['......KK..', '.....KRK..', '.KKKKKRKK.', 'KeeeeeReeK', 'KAAAAAAAAK', '.KAEAAEAK.', '.KAAAAAAK.', '.KAAMMAAK.', '..KAAAAK..', '..KKKKKK..'],
+  foul: ['..KKKK..', '.KeeReK.', 'KeReeReK', 'KeEeeEeK', 'KeeeReeK', 'KeReeReK', '.KeReeK.', '..KKKK..'],
+  stick: ['.KKKK.', 'KRRRRK', 'KReeRK', 'KRRRRK', 'KERREK', 'KRRRRK', 'KRMMRK', 'KRRRRK', 'KRRRRK', 'KRRRRK', '.KRRK.', '..KK..'],
+  flag: ['KK..........', 'KdKKKKKKKKK.', 'KdKNNNNNNNNK', 'KdKNENNNENNK', 'KdKNNNNNNNNK', 'KdKeeeeeeeeK', 'KdKNNMMNNNNK', 'KdKKKKKKKKK.', 'KdK.........', 'KdK.........', 'KdK.........', 'KdK.........', 'KKK.........'],
+  cloud: ['....KKKKK.......', '..KKjjjjjKKKK...', '.KjjJJjjjjjjjKK.', 'KjjJJjjjjjjjjjjK', 'KjjjjEjjjjEjjjjK', 'KjjjjjjMMjjjjjjK', '.KjjjjjjjjjjjjK.', '..KKKKKKKKKKKK..', '...U...U...U....', '..U...U...U.....']
+});
+ICONS.bat = ['..........KK', '.........KDK', '........KDDK', '.......KDDK.', '......KDDK..', '.....KDDK...', '....KDDK....', '...KDDK.....', '..KdK.......', '.KdK........', 'KKK.........'];
+ICONS.ball = ['..KKKKK..', '.KeeReeK.', 'KeReeeReK', 'KeReeeReK', 'KeeReReeK', 'KeReeeReK', 'KeReeeReK', '.KeeReeK.', '..KKKKK..'];

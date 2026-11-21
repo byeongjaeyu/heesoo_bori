@@ -29,3 +29,22 @@ describe('2장 (유료 바다낚시터)', () => {
     const drops = ['truck', 'breamking', 'bassgen', 'grouper'].flatMap(b => g.MONS[b].drops); expect(drops.sort()).toEqual([...sea].sort());
   });
 });
+
+describe('3장 (사직 야구장)', () => {
+  test('2장을 깨고 Lv50이면 열림', () => {
+    expect(g.ch3Open(fresh({ lv: 50, cleared: 5 }))).toBe(false);
+    const pd = fresh({ lv: 49, cleared: 5 }); pd.ch2 = { zone: 4, cleared: 1 }; expect(g.ch3Open(pd)).toBe(false);
+    pd.lv = 50; expect(g.ch3Open(pd)).toBe(true);
+  });
+  test('난이도: 3장 1회차 = 1장 9회차 수준(8단계), 장별 진행도 따로', () => {
+    const pd = fresh({ lv: 50, cleared: 20, zone: 1 }); pd.ch2 = { zone: 6, cleared: 3 };
+    expect(g.zoneL(pd, 8)).toBe(8);
+    g.setCurZone(pd, 10); expect([pd.zone, pd.ch2.zone, pd.ch3.zone, pd.chap, g.curZone(pd)]).toEqual([1, 6, 10, 3, 10]);
+    pd.ch3.cleared = 2; expect(g.zoneL(pd, 11)).toBe(10);
+  });
+  test('응원 장비 7종은 3장 보스 확정 드롭 전용, 도감 세트는 낚시와 따로', () => {
+    const park = g.bookIds(g.BOOK_SETS.find(s => s.k === 'park')), sea = g.bookIds(g.BOOK_SETS.find(s => s.k === 'sea'));
+    expect(park.length).toBe(7); expect(sea.length).toBe(7); expect(park.some(id => sea.includes(id))).toBe(false);
+    const drops = ['cutking', 'chickboss', 'cheerleader', 'raincloud'].flatMap(b => g.MONS[b].drops); expect(drops.sort()).toEqual([...park].sort());
+  });
+});

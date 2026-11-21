@@ -38,6 +38,9 @@ const ACH = [
   { id: 'c2n', t: '밤낚시 생존자', d: '2장 STAGE 7 밤낚시 통과', tier: 2, v: pd => pd.ch2 && (pd.ch2.cleared || pd.ch2.zone >= 7) ? 1 : 0, g: 1 },
   { id: 'c2', t: '월척 헌터', d: '2장 클리어 (오빠 구출)', tier: 3, v: pd => (pd.ch2 && pd.ch2.cleared) || 0, g: 1 },
   { id: 'c2x5', t: '바다의 주인', d: '2장 5번 클리어', tier: 4, v: pd => (pd.ch2 && pd.ch2.cleared) || 0, g: 5 },
+  { id: 'c3r', t: '우천 극복', d: '3장 9회말 그라운드 도착', tier: 2, v: pd => pd.ch3 && (pd.ch3.cleared || pd.ch3.zone >= 11) ? 1 : 0, g: 1 },
+  { id: 'c3', t: '9회말의 기적', d: '3장 클리어 (역전승)', tier: 3, v: pd => (pd.ch3 && pd.ch3.cleared) || 0, g: 1 },
+  { id: 'c3x5', t: '사직 개근러', d: '3장 5번 클리어', tier: 4, v: pd => (pd.ch3 && pd.ch3.cleared) || 0, g: 5 },
   // 한정 칭호 (가진 사람만 목록에 보임, 업적 보상 없음)
   { id: 'beta', t: '베타 개척자', d: '베타 기간 뉴비 패키지', tier: 4, sp: 1, v: pd => pd.pack && pd.pack.got ? 1 : 0, g: 1 },
 ];

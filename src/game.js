@@ -1,6 +1,6 @@
 // ===================== GAME CORE =====================
 const G = {
-  state: 'title', zone: 0, world: null, time: 0, pd: /** @type {SaveData|null} */ (null), raid: /** @type {any} */ (null), buddy: /** @type {any} */ (null), st: null, P: null, bori: null,
+  state: 'title', zone: 0, world: null, time: 0, pd: /** @type {SaveData|null} */ (null), raid: /** @type {any} */ (null), flashT: 0, buddy: /** @type {any} */ (null), st: null, P: null, bori: null,
   enemies: [], projs: [], fx: [], drops: [], parts: [], texts: [], bubbles: [],
   cam: { x: 0, y: 0 }, shake: 0, hitstop: 0, flash: 0,
   zoneKills: 0, bossSpawned: false, bossDefeated: false, boss: null, exitOpen: false, spawnT: 1, eid: 0,
@@ -75,6 +75,7 @@ function hairOk(pd, h) {
   if (h.need === 'loop5') return (pd.cleared || 0) >= 4;
   if (h.need === 'enh25') return Object.values(pd.enh || {}).some(v => v >= 25);
   if (h.need === 'aw50') return (pd.aw || 0) >= 50;
+  if (h.need === 'ch3') return !!(pd.ch3 && pd.ch3.cleared >= 1);
   if (h.need === 'ch2') return !!(pd.ch2 && pd.ch2.cleared >= 1);
   if (h.need === 'pack') return !!(pd.pack && pd.pack.got);
   return false;
@@ -98,7 +99,7 @@ function calcStats() {
   st.skillMul = 1 + AWK.skill.per * awkLv('skill');
   const bk = bookStats(pd); st.book = bk.n;
   st.hp += BOOK_PER_HP * bk.n + (bk.done.r0 ? 80 : 0); if (bk.done.r1) st.atk += 12; if (bk.done.r2) st.def += 12; if (bk.done.r3) st.crit += 0.03;
-  if (bk.done.sea) { st.atk *= 1.04; st.def *= 1.04; } if (bk.done.r4) st.atk *= 1.05; if (bk.done.r5) { st.atk *= 1.05; st.def *= 1.05; st.hp *= 1.05; } st.hp = Math.round(st.hp);
+  if (bk.done.sea) { st.atk *= 1.04; st.def *= 1.04; } if (bk.done.park) { st.atk *= 1.05; st.def *= 1.05; } if (bk.done.r4) st.atk *= 1.05; if (bk.done.r5) { st.atk *= 1.05; st.def *= 1.05; st.hp *= 1.05; } st.hp = Math.round(st.hp);
   if (G.P && G.P.buffs) { let ba = 0, bc = 0; for (const k in G.P.buffs) { ba += G.P.buffs[k].atk || 0; bc += G.P.buffs[k].crit || 0; } st.atk *= 1 + ba; st.crit += bc; }
   // 재련 추가 옵션
   { const R = refSum(pd); st.atk *= 1 + (R.atkP || 0) / 100; st.def *= 1 + (R.defP || 0) / 100; st.hp = Math.round(st.hp * (1 + (R.hpP || 0) / 100)); st.crit += (R.crit || 0) / 100; st.critMul += (R.critD || 0) / 100;
@@ -495,6 +496,52 @@ Object.assign(AI, {
     if (e.stT <= 0) { e.st = 'walk'; e.stT = enr ? 1.3 : 2.1; }
   }
 });
+// ---------- 3장 보스 (사직 야구장) ----------
+Object.assign(AI, {
+  // 새치기 대마왕: 희수 앞에 예고 원 → 순간이동해 끼어들며 밀치기, 화나면 새치기 아저씨 호출
+  cutking(e, dt, sp, dP) {
+    const enr = e.hp < e.maxHp * 0.5; e.stT -= dt;
+    if (e.st === 'idle') { e.st = 'roam'; e.stT = 1.6; }
+    if (e.st === 'roam') { moveToward(e, G.P.x, G.P.y, sp, dt); e.face = G.P.x > e.x ? -1 : 1; if (e.stT <= 0) { e.st = 'cut'; e.stT = enr ? 0.7 : 0.9; e.tx = G.P.x; e.ty = G.P.y; G.fx.push({ k: 'circle', x: e.tx, y: e.ty, r: 46, t: 0, dur: e.stT }); bubble(e, choice(['잠깐만~ 일행이 있어서~', '나 원래 여기 있었는데?', '줄이 왜 이렇게 길어!']), 1.2); } }
+    else if (e.st === 'cut') { if (e.stT <= 0) { burst(e.x, e.y, '#c0c6d0', 12, 70); e.x = e.tx; e.y = e.ty; burst(e.x, e.y, '#ffffff', 16, 90); G.shake = 6; sfx('slam'); G.fx.push({ k: 'ring', x: e.x, y: e.y - 4, r: 46, col: '#6fb8ff', t: 0, dur: 0.4 }); if (Math.hypot(G.P.x - e.x, G.P.y - e.y) < 50) hurtPlayer(e.atk * 1.3, e); e.cuts = (e.cuts || 0) + 1; if (enr || e.cuts % 3 === 0) { spawnEnemy('cutter', e.x - 30, e.y + 8); spawnEnemy('cutter', e.x + 30, e.y + 8); } e.st = 'rest'; e.stT = 0.7; } }
+    else if (e.st === 'rest') { if (e.stT <= 0) { e.st = 'roam'; e.stT = enr ? 1.3 : 2.0; } }
+  },
+  // 통닭 대장: 데굴데굴 돌진 → 닭다리 부채꼴 던지기, 치킨 박스 호출
+  chickboss(e, dt, sp, dP) {
+    const enr = e.hp < e.maxHp * 0.5; e.stT -= dt;
+    if (e.st === 'idle') { e.st = 'roam'; e.stT = 1.8; e.cyc = 0; }
+    if (e.st === 'roam') { moveToward(e, G.P.x, G.P.y, sp, dt); e.face = G.P.x > e.x ? -1 : 1; if (e.stT <= 0) { e.cyc++; if (e.cyc % 2) { e.st = 'tele'; e.stT = 0.75; aimDash(e, 280, e.r * 1.3, choice(['바삭바삭!!', '양념 반 후라이드 반!'])); } else { e.st = 'throw'; e.stT = 0.5; bubble(e, '치킨은 살 안 쪄!', 1.1); } } }
+    else if (e.st === 'tele') { if (e.stT <= 0) { e.st = 'dash'; e.stT = 1.2; } }
+    else if (e.st === 'dash') { e.hopY = Math.abs(Math.sin(e.t * 18)) * 4; if (dashStep(e, 240, dt) || e.stT <= 0) { e.hopY = 0; e.st = 'roam'; e.stT = enr ? 1.1 : 1.8; G.shake = 4; } }
+    else if (e.st === 'throw') { if (e.stT <= 0) { const a0 = Math.atan2(G.P.y - e.y, G.P.x - e.x), n = enr ? 9 : 7; for (let i = 0; i < n; i++) shootAt(e, 'churro', a0 + (i - (n - 1) / 2) * 0.2, 86); sfx('pop'); spawnEnemy('chickbox', e.x - 30, e.y); if (enr) spawnEnemy('chickbox', e.x + 30, e.y); e.st = 'roam'; e.stT = enr ? 1.2 : 2.0; } }
+  },
+  // 상대팀 응원단장: 확성기 고함(부채꼴 범위) · 응원가 음표 소용돌이 · 막대풍선 호출
+  cheerleader(e, dt, sp, dP) {
+    const enr = e.hp < e.maxHp * 0.5; e.stT -= dt;
+    if (e.st === 'idle') { e.st = 'roam'; e.stT = 1.6; e.cyc = 0; }
+    if (e.st === 'roam') { moveToward(e, G.P.x, G.P.y, sp * 0.9, dt); e.face = G.P.x > e.x ? -1 : 1;
+      if (e.stT <= 0) { e.cyc++; const pat = ['shout', 'song', 'shout', 'call'][e.cyc % 4]; e.st = pat; e.shT = 0; e.sa = rand(0, 6.28);
+        if (pat === 'shout') { e.stT = enr ? 0.7 : 0.9; e.sa = Math.atan2(G.P.y - e.y, G.P.x - e.x); G.fx.push({ k: 'line', x: e.x, y: e.y - 6, a: e.sa, len: 170, w: 70, t: 0, dur: e.stT }); bubble(e, choice(['소리 질러~!!', '원정 응원 간다!!']), 1.1); }
+        if (pat === 'song') { e.stT = 2.6; bubble(e, '우리 팀 이겨라~♪', 1.3); }
+        if (pat === 'call') { e.stT = 0.6; for (let i = 0; i < (enr ? 4 : 3); i++) spawnEnemy('stick', e.x + rand(-40, 40), e.y + rand(10, 30)); bubble(e, '막대풍선 부대, 출동!', 1.2); } } return; }
+    if (e.st === 'shout' && e.stT <= 0) { const d = Math.hypot(G.P.x - e.x, G.P.y - e.y), da = Math.abs(((Math.atan2(G.P.y - e.y, G.P.x - e.x) - e.sa + Math.PI * 3) % (Math.PI * 2)) - Math.PI); G.shake = 5; sfx('slam'); burst(e.x + Math.cos(e.sa) * 40, e.y + Math.sin(e.sa) * 40, '#ffd84a', 14, 110); if (d < 175 && da < 0.42) hurtPlayer(e.atk * 1.5, e); }
+    if (e.st === 'song') { e.shT -= dt; if (e.shT <= 0) { e.shT = enr ? 0.1 : 0.14; e.sa += 0.4; shootAt(e, 'note', e.sa, 66); } }
+    if (e.stT <= 0) { e.st = 'roam'; e.stT = enr ? 1.2 : 1.9; }
+  },
+  // 우천취소 먹구름: 둥둥 떠서 번개(예고 원 여러 개) · 소나기 탄막 · 파울볼 호출
+  raincloud(e, dt, sp, dP) {
+    const enr = e.hp < e.maxHp * 0.5; e.stT -= dt; e.hopY = 6 + Math.sin(e.t * 2) * 3;
+    if (e.st === 'idle') { e.st = 'float'; e.stT = 2; e.cyc = 0; }
+    if (e.st === 'float') { moveToward(e, G.P.x, G.P.y - 30, sp, dt);
+      if (e.stT <= 0) { e.cyc++; const pat = ['storm', 'pour', 'storm', 'call'][e.cyc % 4]; e.st = pat; e.shT = 0;
+        if (pat === 'storm') { e.stT = 1.1; e.bolts = []; const n = enr ? 6 : 4; for (let i = 0; i < n; i++) { const b = { x: G.P.x + (i ? rand(-70, 70) : 0), y: G.P.y + (i ? rand(-50, 50) : 0) }; e.bolts.push(b); G.fx.push({ k: 'circle', x: b.x, y: b.y, r: 26, t: 0, dur: 1.1 }); } bubble(e, choice(['우르르 쾅!!', '오늘 경기는 우천취소다~!']), 1.2); }
+        if (pat === 'pour') { e.stT = 2.6; bubble(e, '비 온다~ 집에 가라~', 1.2); }
+        if (pat === 'call') { e.stT = 0.6; spawnEnemy('foul', e.x - 30, e.y + 20); spawnEnemy('foul', e.x + 30, e.y + 20); if (enr) spawnEnemy('pigeon', e.x, e.y + 30); } } return; }
+    if (e.st === 'storm' && e.stT <= 0) { G.flashT = 0.35; G.shake = 7; sfx('slam'); for (const b of e.bolts || []) { G.fx.push({ k: 'ring', x: b.x, y: b.y, r: 28, col: '#fff6a0', t: 0, dur: 0.35 }); burst(b.x, b.y, '#fff6a0', 10, 80); if (Math.hypot(G.P.x - b.x, G.P.y - b.y) < 28) hurtPlayer(e.atk * 1.4, e); } }
+    if (e.st === 'pour') { e.shT -= dt; if (e.shT <= 0) { e.shT = enr ? 0.07 : 0.1; shootAt(e, 'water', Math.PI / 2 + rand(-1.1, 1.1), 80); } }
+    if (e.stT <= 0) { e.st = 'float'; e.stT = enr ? 1.2 : 1.9; }
+  }
+});
 function shootAt(e, kind, ang, spd) {
   const sy = e.y - e.h * 0.5 - (e.hopY || 0);
   const a = ang != null ? ang : Math.atan2(G.P.y - 8 - sy, G.P.x - e.x);
@@ -713,7 +760,7 @@ function onBossDefeated(e) {
 function goNextZone() {
   if (G.state !== 'play') return;
   G.state = 'trans'; sfx('open');
-  if (zoneCh(G.zone) === 2 && isChLast(G.zone)) { ch2Finish(); return; }
+  if (zoneCh(G.zone) > 1 && isChLast(G.zone)) { chFinish(zoneCh(G.zone)); return; }
   if (zoneCh(G.zone) === 1 && G.zone >= CH1_N - 1) {
     const first = !G.pd.cleared; G.pd.cleared = (G.pd.cleared || 0) + 1;
     // 자동사냥 중이면(첫 클리어 제외) 엔딩 컷신(대사 자동 넘김)을 보여주고 결과 화면 없이 바로 다음 회차 STAGE 1로
@@ -733,7 +780,7 @@ function startZone(i) {
   G.cam.x = clamp(G.P.x - VW / 2, 0, Math.max(0, W.W - VW)); G.cam.y = clamp(G.P.y - 12 - VH / 2, 0, Math.max(0, W.H - VH));
   G.state = 'play'; playBgm('field'); showHUD(true); saveGame();
   { const L = loopLv(), RL = chCleared(G.pd, i); banner(RL ? `${RL + 1}회차 · ${ZONES[i].sub}` : ZONES[i].sub, ZONES[i].name, 'stage'); if (L && i === 0) setTimeout(() => { if (G.state === 'play' && !G.pvp) loopIntro(L); }, 1700); }
-  { const st = zoneCh(i) === 2 && ch2StageStory(i); if (st) { saveGame(); playCut(st, () => { G.state = 'play'; showHUD(true); playBgm('field'); }); } }
+  { const st = zoneCh(i) > 1 && chStageStory(i); if (st) { saveGame(); playCut(st, () => { G.state = 'play'; showHUD(true); playBgm('field'); }); } }
   if (!G.pd.boriJoined) { if (G.pd.lv >= 3) G.pendingEvent = 'bori'; else setTimeout(() => { if (G.state === 'play' && !G.pd.boriJoined) bubble(G.P, '보리야... 어디 있어ㅠㅠ', 2.6); }, 1800); }
 }
 function playerDie() {
@@ -843,6 +890,7 @@ function update(dt) {
   if (G.state === 'play' && !G.pvp && !G.inf) updateQuest();
   updateCam(dt);
   if (G.shake > 0) G.shake = Math.max(0, G.shake - dt * 14);
+  if (G.flashT > 0) G.flashT -= dt;
   if (G.flash > 0) G.flash -= dt;
   G.saveT += dt; if (G.saveT > 15) { G.saveT = 0; saveGame(); }
   if (G.state === 'play' && !G.pvp) autoFeed(dt);

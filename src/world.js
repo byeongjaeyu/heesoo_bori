@@ -135,8 +135,22 @@ const THEME = {
   lot:   { bg: '#2f6fae', hedge: ['#3a3a42', '#55555f', '#2a2a30'], tint: [40, 30, 90, 0.10], glow: 0.16, sea: 1 },
   pier:  { bg: '#2f6fae', hedge: ['#8a6a44', '#b98a5a', '#5e4430'], tint: [20, 40, 90, 0.06], glow: 0.10, sea: 1 },
   night: { bg: '#0e1a33', hedge: ['#4a3a2a', '#6a5238', '#2e2418'], tint: [8, 12, 50, 0.30], glow: 0.55, sea: 1, dark: 1 },
-  rock:  { bg: '#182848', hedge: ['#3a3a48', '#55556a', '#262632'], tint: [30, 20, 80, 0.26], glow: 0.4, sea: 1 }
+  rock:  { bg: '#182848', hedge: ['#3a3a48', '#55556a', '#262632'], tint: [30, 20, 80, 0.26], glow: 0.4, sea: 1 },
+  // 3장 사직 야구장: 가장자리는 경기장 외벽(콘크리트)
+  gate:  { bg: '#9aa0aa', hedge: ['#8a8f9a', '#b0b5c0', '#6a6f7c'], tint: [60, 30, 80, 0.06], glow: 0.12, wall: 1 },
+  food:  { bg: '#9aa0aa', hedge: ['#8a8f9a', '#b0b5c0', '#6a6f7c'], tint: [80, 40, 40, 0.08], glow: 0.2, wall: 1 },
+  stand: { bg: '#2a3a5a', hedge: ['#8a8f9a', '#b0b5c0', '#6a6f7c'], tint: [20, 20, 70, 0.14], glow: 0.35, wall: 1 },
+  field: { bg: '#10182c', hedge: ['#3a3a48', '#55556a', '#262632'], tint: [10, 14, 40, 0.34], glow: 0.6, wall: 1, rain: 1 }
 };
+// ---------- 3장 소품 ----------
+function dBooth() { const c = mkCanvas(34, 34), g = c.getContext('2d'); pRect(g, 2, 10, 30, 24, OK); pRect(g, 3, 11, 28, 23, '#e8e8ee'); pRect(g, 0, 4, 34, 8, OK); for (let x = 1; x < 33; x++) pRect(g, x, 5, 1, 6, (Math.floor(x / 4) % 2) ? '#ffffff' : '#e8414f'); pRect(g, 7, 15, 20, 9, OK); pRect(g, 8, 16, 18, 7, '#9fe8ff'); pRect(g, 6, 26, 22, 3, OK); pRect(g, 7, 26, 20, 2, '#8a5a3a'); pRect(g, 9, 0, 16, 5, OK); pRect(g, 10, 1, 14, 3, '#ffd84a'); return c; }
+function dStanchion() { const c = mkCanvas(40, 14), g = c.getContext('2d'); for (const x of [2, 36]) { pRect(g, x, 2, 3, 11, OK); pRect(g, x + 1, 3, 1, 9, '#c0c6d0'); pRect(g, x - 1, 12, 5, 2, OK); } for (let x = 5; x < 36; x++) pRect(g, x, 4 + Math.round(Math.sin((x - 5) / 31 * Math.PI) * 3), 1, 2, '#e8414f'); return c; }
+function dStall(col) { const c = mkCanvas(40, 34), g = c.getContext('2d'); pRect(g, 2, 12, 36, 22, OK); pRect(g, 3, 13, 34, 21, '#fff6e0'); pRect(g, 0, 4, 40, 9, OK); for (let x = 1; x < 39; x++) pRect(g, x, 5, 1, 7, (Math.floor(x / 4) % 2) ? '#ffffff' : col); pRect(g, 4, 22, 32, 3, OK); pRect(g, 5, 22, 30, 2, '#c98a5a'); for (let i = 0; i < 4; i++) { pCirc(g, 9 + i * 7, 18, 2, i % 2 ? '#d9822b' : '#e8414f'); } return c; }
+function dTable() { const c = mkCanvas(22, 16), g = c.getContext('2d'); pRect(g, 1, 4, 20, 5, OK); pRect(g, 2, 5, 18, 3, '#e8e8ee'); pRect(g, 4, 9, 2, 7, OK); pRect(g, 16, 9, 2, 7, OK); pRect(g, 7, 1, 8, 4, OK); pRect(g, 8, 2, 6, 2, '#d9822b'); return c; }
+function dBin() { const c = mkCanvas(10, 14), g = c.getContext('2d'); pRect(g, 1, 2, 8, 12, OK); pRect(g, 2, 3, 6, 10, '#3a78c0'); pRect(g, 0, 0, 10, 3, OK); pRect(g, 1, 1, 8, 1, '#6fb8ff'); return c; }
+function dLightTower() { const c = mkCanvas(20, 46), g = c.getContext('2d'); pRect(g, 9, 12, 2, 34, OK); pRect(g, 7, 42, 6, 4, OK); pRect(g, 0, 0, 20, 13, OK); for (let y = 0; y < 3; y++) for (let x = 0; x < 4; x++) pRect(g, 2 + x * 4, 2 + y * 4, 3, 3, '#fff6d0'); return c; }
+function dBase() { const c = mkCanvas(10, 10), g = c.getContext('2d'); pRect(g, 1, 1, 8, 8, OK); pRect(g, 2, 2, 6, 6, '#ffffff'); return c; }
+function dScore() { const c = mkCanvas(56, 30), g = c.getContext('2d'); pRect(g, 0, 0, 56, 24, OK); pRect(g, 2, 2, 52, 20, '#1c2a1c'); for (let i = 0; i < 9; i++) { pRect(g, 5 + i * 5, 6, 3, 4, '#ffd84a'); pRect(g, 5 + i * 5, 13, 3, 4, i === 8 ? '#e8414f' : '#ffd84a'); } pRect(g, 25, 24, 6, 6, OK); return c; }
 // ---------- 2장 소품 ----------
 function dCar(col) { const c = mkCanvas(30, 18), g = c.getContext('2d'); pRect(g, 1, 6, 28, 9, OK); pRect(g, 2, 7, 26, 7, col); pRect(g, 7, 1, 16, 7, OK); pRect(g, 8, 2, 6, 5, '#9fe8ff'); pRect(g, 16, 2, 6, 5, '#9fe8ff'); pRect(g, 2, 10, 26, 1, shadeHex(col, -0.25)); pCirc(g, 7, 15, 3, OK); pCirc(g, 7, 15, 1, '#6a6f7c'); pCirc(g, 23, 15, 3, OK); pCirc(g, 23, 15, 1, '#6a6f7c'); pRect(g, 27, 8, 2, 2, '#ffd84a'); return c; }
 function dCone() { const c = mkCanvas(9, 12), g = c.getContext('2d'); for (let y = 1; y < 10; y++) { const hw = Math.round(y / 2.4); pRect(g, 4 - hw - 1, y, hw * 2 + 3, 1, OK); pRect(g, 4 - hw, y, hw * 2 + 1, 1, y % 4 === 2 ? '#ffffff' : '#ff7a2a'); } pRect(g, 0, 10, 9, 2, OK); pRect(g, 1, 10, 7, 1, '#ff7a2a'); return c; }
@@ -160,7 +174,7 @@ function dSeaGate(open) {
 function buildWorld(zi) {
   const Z = ZONES[zi], th = THEME[Z.theme]; const R = mulberry(911 + zi * 131);
   const rr = (a, b) => a + R() * (b - a);
-  const W = { W: WORLD_W, H: WORLD_H, decor: [], solids: [], start: { x: WORLD_W / 2, y: WORLD_H - 76 }, gate: { x: WORLD_W / 2, y: 62 }, theme: Z.theme, bg: th.bg, tint: th.tint, glowA: th.glow, fountain: null, rails: [], gateClosed: (th.sea ? dSeaGate : dGate)(false), gateOpen: (th.sea ? dSeaGate : dGate)(true), dark: !!th.dark };
+  const W = { W: WORLD_W, H: WORLD_H, decor: [], solids: [], start: { x: WORLD_W / 2, y: WORLD_H - 76 }, gate: { x: WORLD_W / 2, y: 62 }, theme: Z.theme, bg: th.bg, tint: th.tint, glowA: th.glow, fountain: null, rails: [], gateClosed: (th.sea ? dSeaGate : dGate)(false), gateOpen: (th.sea ? dSeaGate : dGate)(true), dark: !!th.dark, rain: !!th.rain };
   const gc = mkCanvas(WORLD_W, WORLD_H), g = gc.getContext('2d');
   const cx = WORLD_W / 2;
   const pathX = y => Z.theme === 'grass' ? cx + Math.sin(y / 95) * 70 * clamp((WORLD_H - 60 - y) / 120, 0, 1) * clamp((y - 80) / 120, 0, 1) : cx;
@@ -199,6 +213,24 @@ function buildWorld(zi) {
     for (let i = 0; i < 160; i++) { g.fillStyle = nt ? '#3a2c1e' : '#9a7048'; g.fillRect(Math.floor(R() * WORLD_W), Math.floor(R() * WORLD_H), 2, 1); }
     // 데크 가운데 낚시 구멍(바다가 보이는 칸)
     for (const [hx, hy] of [[150, 300], [410, 420], [140, 560], [420, 190]]) { pRect(g, hx - 22, hy - 12, 44, 24, '#2b1b24'); pRect(g, hx - 20, hy - 10, 40, 20, nt ? '#0c2a4a' : '#2f7fc0'); for (let k = 0; k < 6; k++) pRect(g, hx - 16 + k * 6, hy - 4 + (k % 2) * 6, 4, 1, nt ? '#3a6aa0' : '#9fd8ff'); W.solids.push({ x: hx, y: hy, r: 14 }); }
+  } else if (Z.theme === 'gate' || Z.theme === 'food') {
+    // 매표소 광장: 붉은 벽돌 / 먹거리 존: 베이지 타일
+    const gate = Z.theme === 'gate'; g.fillStyle = gate ? '#b86a50' : '#e8d8b8'; g.fillRect(0, 0, WORLD_W, WORLD_H);
+    const tw = gate ? 12 : 16, th2 = gate ? 6 : 16;
+    for (let y = 0; y < WORLD_H; y += th2) { const off = gate && (y / th2) % 2 ? tw / 2 : 0; for (let x = -off; x < WORLD_W; x += tw) { g.fillStyle = choice(gate ? ['#b86a50', '#a85e46', '#c4765a'] : ['#e8d8b8', '#e0ceaa', '#efe2c6']); g.fillRect(x + 1, y + 1, tw - 1, th2 - 1); } }
+    g.fillStyle = gate ? '#8a4a36' : '#c8b590'; for (let y = 0; y < WORLD_H; y += th2) g.fillRect(0, y, WORLD_W, 1);
+  } else if (Z.theme === 'stand') {
+    // 응원석: 계단식 좌석 줄 (가운데는 통로)
+    g.fillStyle = '#6a6f7c'; g.fillRect(0, 0, WORLD_W, WORLD_H);
+    for (let y = 40; y < WORLD_H; y += 22) { g.fillStyle = '#585c68'; g.fillRect(0, y + 14, WORLD_W, 8); for (let x = 24; x < WORLD_W - 20; x += 14) { if (Math.abs(x - cx) < 40) continue; g.fillStyle = OK; g.fillRect(x, y + 2, 12, 12); g.fillStyle = (Math.floor(y / 22) % 3 === 0) ? '#3a5ab0' : (Math.floor(y / 22) % 3 === 1) ? '#e8414f' : '#c0c6d0'; g.fillRect(x + 1, y + 3, 10, 9); g.fillStyle = 'rgba(255,255,255,0.25)'; g.fillRect(x + 1, y + 3, 10, 2); } }
+    g.fillStyle = '#8a8f9a'; g.fillRect(cx - 34, 0, 68, WORLD_H); for (let y = 0; y < WORLD_H; y += 22) { g.fillStyle = '#9aa0aa'; g.fillRect(cx - 34, y, 68, 11); }
+  } else if (Z.theme === 'field') {
+    // 9회말 그라운드: 잔디 줄무늬 + 내야 흙 + 베이스
+    for (let y = 0; y < WORLD_H; y += 24) { g.fillStyle = (y / 24) % 2 ? '#2f6a3a' : '#3a7a44'; g.fillRect(0, y, WORLD_W, 24); }
+    const dy = WORLD_H * 0.55; g.fillStyle = '#9a6a44'; g.beginPath(); g.moveTo(cx, dy - 150); g.lineTo(cx + 150, dy); g.lineTo(cx, dy + 150); g.lineTo(cx - 150, dy); g.closePath(); g.fill();
+    g.fillStyle = '#3a7a44'; g.beginPath(); g.moveTo(cx, dy - 110); g.lineTo(cx + 110, dy); g.lineTo(cx, dy + 110); g.lineTo(cx - 110, dy); g.closePath(); g.fill();
+    g.strokeStyle = '#f0f0f0'; g.lineWidth = 2; g.beginPath(); g.moveTo(cx, dy + 150); g.lineTo(cx + 150, dy); g.lineTo(cx, dy - 150); g.lineTo(cx - 150, dy); g.closePath(); g.stroke();
+    pEll(g, cx, dy, 14, 9, '#9a6a44');
   } else if (Z.theme === 'rock') {
     // 갯바위: 거친 바위 바닥 + 물웅덩이
     g.fillStyle = '#4a4a5c'; g.fillRect(0, 0, WORLD_W, WORLD_H);
@@ -218,6 +250,11 @@ function buildWorld(zi) {
     band(0, 0, 16, WORLD_H); band(WORLD_W - 16, 0, 16, WORLD_H); band(0, WORLD_H - 10, WORLD_W, 10); band(0, 0, cx - 34, 14); band(cx + 34, 0, WORLD_W - cx - 34, 14);
     g.fillStyle = OK; g.fillRect(15, 0, 3, WORLD_H); g.fillRect(WORLD_W - 18, 0, 3, WORLD_H);
     g.fillStyle = h2; for (let y = 0; y < WORLD_H; y += 12) { g.fillRect(14, y, 5, 3); g.fillRect(WORLD_W - 19, y, 5, 3); }
+  } else if (th.wall) {
+    // 경기장 외벽: 콘크리트 + 위쪽은 관중석 벽
+    g.fillStyle = h3; g.fillRect(0, 0, 12, WORLD_H); g.fillRect(WORLD_W - 12, 0, 12, WORLD_H); g.fillRect(0, WORLD_H - 8, WORLD_W, 8); g.fillRect(0, 0, cx - 34, 12); g.fillRect(cx + 34, 0, WORLD_W - cx - 34, 12);
+    g.fillStyle = h2; for (let y = 0; y < WORLD_H; y += 16) { g.fillRect(2, y + 2, 8, 12); g.fillRect(WORLD_W - 10, y + 2, 8, 12); }
+    g.fillStyle = OK; g.fillRect(11, 0, 2, WORLD_H); g.fillRect(WORLD_W - 13, 0, 2, WORLD_H);
   } else {
   const hedgeAt = (x, y) => { pCirc(g, x, y, 8, h3); pCirc(g, x, y - 1, 7, h1); pCirc(g, x - 2, y - 3, 3, h2); };
   for (let x = 0; x <= WORLD_W; x += 10) { if (Math.abs(x - cx) > 34) hedgeAt(x, 10); hedgeAt(x, WORLD_H - 3); }
@@ -266,6 +303,18 @@ function buildWorld(zi) {
     scatter(7, () => cooler, 5, 14); scatter(5, () => buoy, 0, 12);
     if (!nt) { const p1 = dParasol('#e8414f'), p2 = dParasol('#3a78c0'); scatter(6, () => R() < 0.5 ? p1 : p2, 3, 22, { avoidBoss: true }); }
     const lan = nt ? dLantern() : dLamp('#ffe68a'); for (let y = 150; y < WORLD_H - 70; y += nt ? 110 : 160) { add(lan, cx - 40, y, 2, 8, { glow: '#ffcf6a' }); add(lan, cx + 40, y + (nt ? 55 : 0), 2, 8, { glow: '#ffcf6a' }); }
+  } else if (Z.theme === 'gate') {
+    add(dBooth(), 90, 120, 16, 30); add(dBooth(), WORLD_W - 90, 120, 16, 30); add(dBooth(), 90, 300, 16, 30); add(dBooth(), WORLD_W - 90, 300, 16, 30);
+    const st = dStanchion(); for (let y = 180; y < WORLD_H - 80; y += 56) { add(st, cx - 70, y, 4, 4); add(st, cx + 70, y + 28, 4, 4); }
+    scatter(6, () => dBin(), 4, 10); const lamp = dLamp('#ffe68a'); for (let y = 200; y < WORLD_H - 70; y += 160) { add(lamp, 26, y, 2, 8, { glow: '#ffe68a' }); add(lamp, WORLD_W - 26, y, 2, 8, { glow: '#ffe68a' }); }
+  } else if (Z.theme === 'food') {
+    const cols = ['#e8414f', '#d9822b', '#3a78c0', '#7ccf5a']; for (let y = 120; y < WORLD_H - 80; y += 120) { add(dStall(choice(cols)), 60, y, 16, 30); add(dStall(choice(cols)), WORLD_W - 60, y + 60, 16, 30); }
+    scatter(9, () => dTable(), 8, 12, { avoidBoss: true }); scatter(5, () => dBin(), 4, 10);
+  } else if (Z.theme === 'stand') {
+    add(dScore(), cx, 60, 0, 0); const lamp = dLamp('#fff6d0'); for (let y = 180; y < WORLD_H - 70; y += 170) { add(lamp, cx - 44, y, 2, 8, { glow: '#fff6d0' }); add(lamp, cx + 44, y + 85, 2, 8, { glow: '#fff6d0' }); }
+  } else if (Z.theme === 'field') {
+    const tw = dLightTower(); for (const [x, y] of [[40, 120], [WORLD_W - 40, 120], [40, WORLD_H - 120], [WORLD_W - 40, WORLD_H - 120]]) add(tw, x, y, 4, 8, { glow: '#fff6d0' });
+    const b = dBase(), dy = WORLD_H * 0.55; for (const [x, y] of [[cx + 110, dy], [cx, dy - 110], [cx - 110, dy], [cx, dy + 110]]) add(b, x, y + 5, 0, 0);
   } else if (Z.theme === 'rock') {
     const r1 = dSeaRock(true), r2 = dSeaRock(false); scatter(18, () => R() < 0.5 ? r1 : r2, 10, 16, { avoidBoss: true });
     const lan = dLantern(); for (let y = 160; y < WORLD_H - 70; y += 140) { add(lan, cx - 44, y, 2, 8, { glow: '#ffcf6a' }); add(lan, cx + 44, y + 70, 2, 8, { glow: '#ffcf6a' }); }
