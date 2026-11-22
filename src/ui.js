@@ -110,10 +110,12 @@ function renderMenu(top) {
   const pd = G.pd;
   if (G.state === 'lobbyMenu' && MTAB === 'food') MTAB = 'equip';
   $('#tabs').innerHTML = TABS.filter(([k]) => !(G.state === 'lobbyMenu' && k === 'food')).map(([k, n]) => `<button class="tab ${k === MTAB ? 'on' : ''}" data-m="tab" data-v="${k}">${n}${k === 'skill' && pd.sp > 0 ? `<em>${pd.sp}</em>` : ''}${k === 'equip' && pd.newItem ? '<em>N</em>' : ''}${k === 'bori' && pd.newBori ? '<em>N</em>' : ''}${k === 'achv' && pd.achNew ? '<em>N</em>' : ''}${k === 'daily' && dailyClaimable(pd) ? `<em>${dailyClaimable(pd)}</em>` : ''}</button>`).join('');
-  const b = $('#mbody'), sc = b.scrollTop; b.innerHTML = MREN[MTAB](); b.scrollTop = top ? 0 : sc;
+  const b = $('#mbody'), sc = b.scrollTop; b.innerHTML = (MTAB === 'equip' || MTAB === 'bori' ? walletHtml(pd) : '') + MREN[MTAB](); b.scrollTop = top ? 0 : sc;
   if (MTAB === 'equip' && pd.newItem) { pd.newItem = false; }
   if (MTAB === 'bori' && pd.newBori) { pd.newBori = false; }
 }
+/** 장비·보리 탭 맨 위: 보유 골드·강화석 */
+const walletHtml = pd => `<div class="wallet"><span><img src="${iconURL('i_coin', ICONS.coin)}" alt="">보유 골드 <b>${pd.gold.toLocaleString()}G</b></span><span><img src="${iconURL('i_stone', ICONS.stone)}" alt="">강화석 <b>${(pd.stones || 0).toLocaleString()}개</b></span></div>`;
 const ilvTag = id => ilvOf(id) ? ` Lv.${ilvOf(id)}` : '';
 function ilvLine(id, eq) { const lv = ilvOf(id), x = (G.pd.iexp || {})[id] || 0; if (!lv && !x && !eq) return ''; return `<br><b class="ilv">장비 Lv.${lv}</b> · 재료 ${x}/${ILV_NEED}${lv ? ` · 기본 스탯 +${Math.round(ILV_BONUS * 100 * lv)}%` : ''}${eq ? ' <small>(같은 부위·등급 장비를 주우면 쌓여요)</small>' : ''}`; }
 function statStr(it) {
@@ -141,7 +143,17 @@ function enhCard(slots) {
   if (!it) return `<div class="card enh col">${chips}<div class="ds">${SLOTNAME[sl]}을(를) ${bori ? '보리에게 ' : ''}착용하면 강화할 수 있어요.</div></div>`;
   const en = (pd.enh || {})[id] || 0, cost = enhCost(en), max = en >= ENH_MAX, sc = enhStoneCost(en), stn = pd.stones || 0, o = max ? null : enhOdds(en, false), pct = x => Math.round(x * 100) + '%';
   const img = id === 'fist' ? iconURL('sk_fist', ICONS.fist) : itemURL(id);
+  if (max) return brkCardHtml(pd, sl, id, it, en, img, chips);
   return `<div class="card enh col">${chips}<div class="enhrow"><div class="ic"><img src="${img}"></div><div class="mid"><div class="nm">${SLOTNAME[sl]} 강화 <span class="r${it.rar}">${it.name}${en ? ' +' + en : ''}</span></div><div class="ds">현재 ${ENH_FX[sl].txt(en)}${max ? '' : `<br><b>+${en} → +${en + 1}</b> 성공 <b class="ok">${pct(o.p)}</b>${o.dn ? ` · 하락 ${pct(o.dn)}` : ''}${o.ds ? ` · <b class="bad">파괴 ${pct(o.ds)}</b> (→+${enhReset(en)})` : ''}`}</div><div class="nx">${max ? `MAX +${ENH_MAX} 강화 완료!` : `비용 ${cost.toLocaleString()}G · 보유 ${pd.gold.toLocaleString()}G · 강화석 ${stn}개`}</div></div>${max ? '<button class="btn pk" disabled>MAX</button>' : `<div class="enhbtns"><button class="btn pk" data-m="enhance" data-v="${sl}" ${pd.gold >= cost ? '' : 'disabled'}>강화</button><button class="btn stone" data-m="enhanceS" data-v="${sl}" ${pd.gold >= cost && stn >= sc ? '' : 'disabled'}>강화석 ${sc}개<small>+10%·파괴방지</small></button></div>`}</div></div>`;
+}
+/** +25 장비: 한계 돌파 카드 (+26~+30) */
+function brkCardHtml(pd, sl, id, it, en, img, chips) {
+  const done = en >= BRK_MAX, c = done ? null : brkCost(en), stn = pd.stones || 0, can = c && pd.gold >= c.gold && stn >= c.stones;
+  const bonus = Math.round(BRK_STEP * (en - ENH_MAX) * 100);
+  return `<div class="card enh col brk">${chips}<div class="enhrow"><div class="ic"><img src="${img}"></div><div class="mid"><div class="nm">${SLOTNAME[sl]} 한계 돌파 <span class="r${it.rar}">${it.name} +${en}</span></div>`
+    + `<div class="ds">현재 ${ENH_FX[sl].txt(en)}${bonus ? ` · <b class="ok">기본 능력치 +${bonus}%</b>` : ''}${done ? '' : `<br><b>+${en} → +${en + 1}</b> 성공 <b class="ok">${Math.round(c.p * 100)}%</b> · 실패해도 하락·파괴 없음 · 기본 능력치 +${Math.round(BRK_STEP * 100)}%`}</div>`
+    + `<div class="nx">${done ? `한계 돌파 완료! +${BRK_MAX}` : `비용 강화석 <b>${c.stones.toLocaleString()}개</b> · ${c.gold.toLocaleString()}G · 보유 강화석 ${stn.toLocaleString()}개`}</div></div>`
+    + (done ? '<button class="btn pk" disabled>MAX</button>' : `<button class="btn brkbtn" data-m="brk" data-v="${sl}" ${can ? '' : 'disabled'}>돌파<small>강화석 ${c.stones.toLocaleString()}</small></button>`) + '</div></div>';
 }
 function skillCard(id) {
   const s = SKILLS[id], lv = sk(id), pd = G.pd; const locked = s.who === 'b' && !pd.boriJoined; const reqOk = pd.lv >= s.req;
@@ -281,6 +293,12 @@ function menuClick(e) {
   if (m === 'buy') { const f = FOODS[v]; if (pd.gold < f.price) return; pd.gold -= f.price; pd.foods[v] = (pd.foods[v] || 0) + 1; sfx('coin'); renderMenu(); return; }
   if (m === 'buyItem') { const it = ITEMS[v]; if (pd.gold < it.price || pd.inv[v]) return; const isNewBook = !(pd.book || {})[v]; pd.gold -= it.price; pd.inv[v] = 1; sfx('ding'); if (isNewBook) bookNotify(v); if (it.bori) { pd.beq[it.slot] = v; calcStats(); toast(`${it.name} 구매! 보리가 바로 ${it.slot === 'btoy' ? '물었어요' : '입었어요'} (보리 탭)`, 'item r' + it.rar); if (G.bori) bubble(G.bori, '멍멍! (신남)', 1.4); } else toast(`${it.name} 구매! 장비 탭에서 장착하세요`, 'item r' + it.rar); renderMenu(); saveGame(); return; }
   if (m === 'enhSel') { const [g, s2] = v.split(':'); ENH_SEL[g] = s2; renderMenu(); return; }
+  if (m === 'brk') {
+    const toy = BSLOTS.includes(v), r = tryBreak(v || 'weapon'); if (!r) return; const nm = ITEMS[r.id].name, P = toy && G.bori ? G.bori : G.P;
+    if (r.res === 'up') { sfx('lvl'); G.shake = 6; toast(`한계 돌파 성공!! ${nm} +${r.to}`, 'lvl'); if (P) { G.fx.push({ k: 'lvl', x: P.x, y: P.y, t: 0, dur: 1.2 }); bubble(P, toy ? '멍멍멍!!! (흥분)' : choice(['한계를 넘었다!', '이게 진짜 힘...!']), 1.5); } }
+    else { sfx('warn'); toast(`돌파 실패... +${r.to} 유지 (하락·파괴 없음)`, 'sub'); if (P) bubble(P, toy ? '끼잉...' : choice(['한 번만 더...', '강화석 아깝다']), 1.2); }
+    renderMenu(); return;
+  }
   if (m === 'enhance' || m === 'enhanceS') {
     const toy = BSLOTS.includes(v), r = tryEnhance(m === 'enhanceS', v || 'weapon'); if (!r) return; const nm = ITEMS[r.id].name, P = toy && G.bori ? G.bori : G.P;
     if (r.res === 'up') { sfx('lvl'); toast(`강화 성공! ${nm} +${r.to}`, 'lvl'); if (P) { G.fx.push({ k: 'lvl', x: P.x, y: P.y, t: 0, dur: 1.0 }); bubble(P, toy ? choice(['멍멍! (신남)', '앙! (꼬옥)', '왈왈!!']) : choice(['더 세졌다!', '반짝반짝~', '이걸로 등짝을...']), 1.3); } }

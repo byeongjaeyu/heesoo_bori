@@ -4,20 +4,20 @@
 const loopsTotal = pd => (pd.cleared || 0) + ((pd.ch2 && pd.ch2.cleared) || 0) + ((pd.ch3 && pd.ch3.cleared) || 0);
 /** @type {{n:number, r:[string, any][], ttl?:string}[]} */
 const LOOP_MS = [
-  { n: 3, r: [['stones', 100]] },
-  { n: 5, r: [['stones', 150], ['auto', 3600]] },
-  { n: 10, r: [['stones', 300], ['tr', 1]] },
-  { n: 15, r: [['stones', 300], ['auto', 7200]] },
-  { n: 20, r: [['stones', 500], ['hair', 'wine']] },
-  { n: 30, r: [['stones', 700], ['tr', 1]], ttl: 'lp30' },
-  { n: 40, r: [['stones', 1000], ['auto', 10800]] },
-  { n: 50, r: [['stones', 1500], ['tr', 1], ['hair', 'aurora']], ttl: 'lp50' },
-  { n: 75, r: [['stones', 2000], ['tr', 1]] },
-  { n: 100, r: [['stones', 3000], ['tr', 1]], ttl: 'lp100' },
+  { n: 3, r: [['stones', 30]] },
+  { n: 5, r: [['stones', 50], ['auto', 3600]] },
+  { n: 10, r: [['stones', 100], ['tr', 1]] },
+  { n: 15, r: [['stones', 100], ['auto', 7200]] },
+  { n: 20, r: [['stones', 150], ['hair', 'wine']] },
+  { n: 30, r: [['stones', 200], ['tr', 1]], ttl: 'lp30' },
+  { n: 40, r: [['stones', 300], ['auto', 10800]] },
+  { n: 50, r: [['stones', 400], ['tr', 1], ['hair', 'aurora']], ttl: 'lp50' },
+  { n: 75, r: [['stones', 500], ['tr', 1]] },
+  { n: 100, r: [['stones', 600], ['tr', 1]], ttl: 'lp100' },
 ];
 const TR_DUP = 120; // 초월 장비를 다 가졌으면 대신 주는 강화석
-/** 100회차 이후는 25회차마다 강화석 2,000 + 초월 장비 */
-function msList(pd) { const L = LOOP_MS.slice(), t = loopsTotal(pd); for (let n = 125; n <= Math.max(125, t + 25); n += 25) L.push({ n, r: [['stones', 2000], ['tr', 1]] }); return L; }
+/** 100회차 이후는 25회차마다 강화석 500 + 초월 장비 */
+function msList(pd) { const L = LOOP_MS.slice(), t = loopsTotal(pd); for (let n = 125; n <= Math.max(125, t + 25); n += 25) L.push({ n, r: [['stones', 500], ['tr', 1]] }); return L; }
 const msGot = (pd, n) => !!(pd.ms && pd.ms[n]);
 const msReady = pd => msList(pd).filter(m => loopsTotal(pd) >= m.n && !msGot(pd, m.n));
 const msNext = pd => msList(pd).find(m => loopsTotal(pd) < m.n);

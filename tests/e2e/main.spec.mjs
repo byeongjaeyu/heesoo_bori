@@ -449,7 +449,7 @@ test('회차 보상: 로비 타일 → 한 번에 받기 → 강화석·자동�
   await page.click('.msall');
   const pd = await page.evaluate(() => loadGame());
   expect(Object.keys(pd.ms).map(Number).sort((a, b) => a - b)).toEqual([3, 5, 10]);
-  expect(pd.stones).toBeGreaterThanOrEqual(550); expect(pd.autoBonus).toBe(3600);
+  expect(pd.stones).toBeGreaterThanOrEqual(180); expect(pd.autoBonus).toBe(3600);
   expect(await page.evaluate(() => msReady(loadGame()).length)).toBe(0);
 });
 
@@ -571,4 +571,26 @@ test('광장 자동 분리: 1번 광장이 30명 이상이면 2번 광장으로,
   await page.waitForTimeout(900); await page.click('#tPlaza'); await page.waitForTimeout(800);
   expect(await page.evaluate(() => !!G.plaza)).toBe(false);
   await expect(page.locator('#toasts')).toContainText('광장을 이용할 수 없어요');
+});
+
+test('한계 돌파: +25 무기는 돌파 카드 → 성공하면 +26, 강화석 1,000 소모', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 50, gold: 1e7, stones: 1500, zone: 1, enh: { fist: 25 } });
+  await enterZone(page, 1);
+  await openTab(page, 'equip');
+  await expect(page.locator('.card.enh.brk')).toContainText('한계 돌파');
+  await page.evaluate(() => { Math.random = () => 0; });
+  await page.click('button[data-m=brk][data-v=weapon]');
+  expect(await page.evaluate(() => [G.pd.enh.fist, G.pd.stones])).toEqual([26, 500]);
+  await expect(page.locator('.card.enh.brk')).toContainText('+26');
+  await expect(page.locator('button[data-m=brk][data-v=weapon]')).toBeDisabled(); // 강화석 1,500개 필요한데 500개
+});
+
+test('장비·보리 탭 맨 위에 보유 골드·강화석', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 30, gold: 1234567, stones: 4321, boriJoined: true, zone: 1 });
+  await enterZone(page, 1);
+  await openTab(page, 'equip');
+  await expect(page.locator('#mbody .wallet')).toContainText('1,234,567G');
+  await expect(page.locator('#mbody .wallet')).toContainText('4,321개');
+  await openTab(page, 'bori');
+  await expect(page.locator('#mbody .wallet')).toContainText('1,234,567G');
 });

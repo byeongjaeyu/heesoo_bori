@@ -77,3 +77,22 @@ describe('광장 채팅', () => {
     expect(g.plazaWrap('가'.repeat(50), 12)[2].endsWith('…')).toBe(true);
   });
 });
+
+describe('한계 돌파 (+26~+30)', () => {
+  test('+25 장비만, 강화석 1,000~3,000·성공률 40%→20%, 실패해도 그대로, 기대 강화석 약 4만 개', () => {
+    let exp = 0; for (let en = 25; en < 30; en++) { const c = g.brkCost(en); exp += c.stones / c.p; }
+    expect(exp).toBeGreaterThan(35000); expect(exp).toBeLessThan(45000);
+    expect(g.BRK_STONE).toEqual([1000, 1500, 2000, 2500, 3000]);
+  });
+  test('성공하면 +1·기본 능력치 +3%, 실패하면 유지, +25 미만이면 불가', () => {
+    const pd = fresh({ lv: 50, stones: 10000, gold: 1e8 }); pd.enh = { [pd.eq.weapon]: 25 }; g.G.pd = pd;
+    const R = Math.random;
+    try {
+      Math.random = () => 0.99; let r = g.tryBreak('weapon'); expect(r.res).toBe('keep'); expect(pd.enh[pd.eq.weapon]).toBe(25); expect(pd.stones).toBe(9000);
+      Math.random = () => 0; r = g.tryBreak('weapon'); expect(r.res).toBe('up'); expect(pd.enh[pd.eq.weapon]).toBe(26); expect(pd.stones).toBe(8000);
+      expect(g.brkMul(pd.eq.weapon)).toBeCloseTo(1.03);
+      pd.enh[pd.eq.weapon] = 30; expect(g.tryBreak('weapon')).toBe(null);
+      pd.enh[pd.eq.weapon] = 24; expect(g.tryBreak('weapon')).toBe(null);
+    } finally { Math.random = R; }
+  });
+});
