@@ -139,8 +139,27 @@ function drawGate() {
     ctx.drawImage(img, x0, y0);
   } else { const img = W.gateClosed; ctx.drawImage(img, Math.round(gx - img.width / 2), Math.round(gy - img.height)); }
 }
+/** 강화 오라: 가장 높은 장비 강화 단계 — +20 파랑, +25 금색, 돌파(+26~) 무지개. 발밑 빛 + 올라가는 반짝이 */
+function enhAura(x, y, lv, t) {
+  if (!(lv >= 20)) return; const brk = lv > 25, gold = lv >= 25;
+  const col = brk ? ['#ff6a74', '#ffd84a', '#7ee0c8', '#7ec8ff', '#c08af0'] : gold ? ['#ffd84a', '#ffb020', '#fff6d0'] : ['#5aa8ff', '#9a7aff', '#b4dcff'];
+  const pulse = 0.5 + 0.5 * Math.sin(t * 4), r = 12 + (brk ? 3 : gold ? 2 : 0) + pulse * 2;
+  ctx.save();
+  // 발밑 빛 고리
+  ctx.globalAlpha = 0.35 + pulse * 0.25; ctx.strokeStyle = brk ? col[Math.floor(t * 6) % col.length] : col[0]; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.ellipse(x, y - 1, r, r * 0.38, 0, 0, Math.PI * 2); ctx.stroke();
+  ctx.globalAlpha = 0.18 + pulse * 0.12; ctx.fillStyle = col[0]; ctx.fill();
+  // 돌파: 위로 솟는 빛기둥
+  if (brk) { const g = ctx.createLinearGradient(0, y - 34, 0, y); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(1, col[Math.floor(t * 3) % col.length]); ctx.globalAlpha = 0.22 + pulse * 0.15; ctx.fillStyle = g; ctx.fillRect(x - 9, y - 34, 18, 34); }
+  // 올라가는 반짝이
+  const n = brk ? 10 : gold ? 7 : 5;
+  for (let i = 0; i < n; i++) { const k = (t * 0.8 + i / n) % 1, a = i * 2.4 + t * 0.5; ctx.globalAlpha = Math.min(1, (1 - k) * 1.4); const c = col[i % col.length], px = x + Math.cos(a) * (7 + (i % 3) * 3), py = y - 2 - k * 28;
+    fr(px, py, 2, 2, c); if (k < 0.3) { fr(px - 1, py + 0.5, 4, 1, c); fr(px + 0.5, py - 1, 1, 4, c); } }
+  ctx.restore();
+}
+const topEnh = pd => { let m = 0; for (const sl of SLOTS) m = Math.max(m, (pd.enh || {})[pd.eq[sl]] || 0); return m; };
 function drawPlayer() {
-  const P = G.P; shadow(P.x, P.y, 12);
+  const P = G.P; shadow(P.x, P.y, 12); if (G.pd && G.state !== 'dead') enhAura(P.x, P.y, topEnh(G.pd), G.time);
   const phone = isOnPhone() || G.state === 'menu';
   const pose = phone ? 'phone' : (P.moving ? 'walk' : (P.atkAnim > 0 ? 'atk' : 'idle'));
   const blink = P.inv > 0 && P.flash <= 0 && Math.floor(G.time * 20) % 2 === 0;

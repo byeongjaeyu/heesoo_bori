@@ -200,7 +200,7 @@ function drawRival(e) {
   let eq = e.snap.vis || e.snap.eq; if (!eq || !ITEMS[eq.hat] || !ITEMS[eq.armor] || !ITEMS[eq.shoes] || !ITEMS[eq.bag]) eq = newPD().eq;
   const set = heeSetFor(eq, e.snap.hair); const d = dirOf(Math.cos(e.ang), Math.sin(e.ang)); const arr = set[d === 'left' ? 'right' : d];
   let s = arr[0]; if (e.mv > 8 && !e.cast) { const fi = Math.floor(e.t * 8) % 4; s = arr[[1, 0, 2, 0][fi]]; }
-  shadow(e.x, e.y, 12);
+  shadow(e.x, e.y, 12); if (e.snap && !e.dead) enhAura(e.x, e.y, Math.max(e.snap.enh || 0, e.snap.tenh || 0), e.t || G.time);
   if (e.spawnT > 0) { const p = 1 - e.spawnT / 1.3; drawSpr(s, e.x, e.y - (1 - p) * 30, { alpha: p, white: Math.floor(G.time * 12) % 2 === 0, flip: d === 'left' }); return; }
   drawSpr(s, e.x, e.y, { flip: d === 'left', white: e.flash > 0 || e.dead, alpha: e.dead ? e.deadT / 0.25 : 1 });
   if (e.stun > 0 && !e.dead) for (let i = 0; i < 3; i++) { const a = G.time * 6 + i * 2.1; fr(e.x + Math.cos(a) * 6, e.y - 24 + Math.sin(a) * 2, 1, 1, '#ffd84a'); }

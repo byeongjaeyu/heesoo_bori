@@ -144,13 +144,19 @@ function enhCard(slots) {
   const en = (pd.enh || {})[id] || 0, cost = enhCost(en), max = en >= ENH_MAX, sc = enhStoneCost(en), stn = pd.stones || 0, o = max ? null : enhOdds(en, false), pct = x => Math.round(x * 100) + '%';
   const img = id === 'fist' ? iconURL('sk_fist', ICONS.fist) : itemURL(id);
   if (max) return brkCardHtml(pd, sl, id, it, en, img, chips);
-  return `<div class="card enh col">${chips}<div class="enhrow"><div class="ic"><img src="${img}"></div><div class="mid"><div class="nm">${SLOTNAME[sl]} 강화 <span class="r${it.rar}">${it.name}${en ? ' +' + en : ''}</span></div><div class="ds">현재 ${ENH_FX[sl].txt(en)}${max ? '' : `<br><b>+${en} → +${en + 1}</b> 성공 <b class="ok">${pct(o.p)}</b>${o.dn ? ` · 하락 ${pct(o.dn)}` : ''}${o.ds ? ` · <b class="bad">파괴 ${pct(o.ds)}</b> (→+${enhReset(en)})` : ''}`}</div><div class="nx">${max ? `MAX +${ENH_MAX} 강화 완료!` : `비용 ${cost.toLocaleString()}G · 보유 ${pd.gold.toLocaleString()}G · 강화석 ${stn}개`}</div></div>${max ? '<button class="btn pk" disabled>MAX</button>' : `<div class="enhbtns"><button class="btn pk" data-m="enhance" data-v="${sl}" ${pd.gold >= cost ? '' : 'disabled'}>강화</button><button class="btn stone" data-m="enhanceS" data-v="${sl}" ${pd.gold >= cost && stn >= sc ? '' : 'disabled'}>강화석 ${sc}개<small>+10%·파괴방지</small></button></div>`}</div></div>`;
+  return `<div class="card enh col">${chips}<div class="enhrow"><div class="ic${en >= 20 ? ' glow20' : ''}"><img src="${img}"></div><div class="mid"><div class="nm">${SLOTNAME[sl]} 강화 <span class="r${it.rar}">${it.name}${en ? ' +' + en : ''}</span></div><div class="ds">현재 ${ENH_FX[sl].txt(en)}${max ? '' : `<br><b>+${en} → +${en + 1}</b> 성공 <b class="ok">${pct(o.p)}</b>${o.dn ? ` · 하락 ${pct(o.dn)}` : ''}${o.ds ? ` · <b class="bad">파괴 ${pct(o.ds)}</b> (→+${enhReset(en)})` : ''}`}</div><div class="nx">${max ? `MAX +${ENH_MAX} 강화 완료!` : `비용 ${cost.toLocaleString()}G · 보유 ${pd.gold.toLocaleString()}G · 강화석 ${stn}개`}</div></div>${max ? '<button class="btn pk" disabled>MAX</button>' : `<div class="enhbtns"><button class="btn pk" data-m="enhance" data-v="${sl}" ${pd.gold >= cost ? '' : 'disabled'}>강화</button><button class="btn stone" data-m="enhanceS" data-v="${sl}" ${pd.gold >= cost && stn >= sc ? '' : 'disabled'}>강화석 ${sc}개<small>+10%·파괴방지</small></button></div>`}</div></div>`;
+}
+/** +20 이상 강화·한계 돌파 성공 연출 (메뉴 위 화면 전체) */
+function enhFx(kind, big, sub) {
+  const el = document.createElement('div'); el.className = 'enhfx ' + kind;
+  el.innerHTML = `<i class="rays"></i><i class="ring"></i>${Array.from({ length: kind === 'brk' ? 18 : 12 }, (_, i) => `<i class="sp" style="--a:${i * (360 / (kind === 'brk' ? 18 : 12))}deg;--d:${0.6 + (i % 3) * 0.15}s"></i>`).join('')}<b>${esc(big)}</b><small>${esc(sub || '')}</small>`;
+  document.body.appendChild(el); setTimeout(() => el.remove(), kind === 'brk' ? 2200 : 1700);
 }
 /** +25 장비: 한계 돌파 카드 (+26~+30) */
 function brkCardHtml(pd, sl, id, it, en, img, chips) {
   const done = en >= BRK_MAX, c = done ? null : brkCost(en), stn = pd.stones || 0, can = c && pd.gold >= c.gold && stn >= c.stones;
   const bonus = Math.round(BRK_STEP * (en - ENH_MAX) * 100);
-  return `<div class="card enh col brk">${chips}<div class="enhrow"><div class="ic"><img src="${img}"></div><div class="mid"><div class="nm">${SLOTNAME[sl]} 한계 돌파 <span class="r${it.rar}">${it.name} +${en}</span></div>`
+  return `<div class="card enh col brk">${chips}<div class="enhrow"><div class="ic ${en > 25 ? 'glowB' : 'glow25'}"><img src="${img}"></div><div class="mid"><div class="nm">${SLOTNAME[sl]} 한계 돌파 <span class="r${it.rar}">${it.name} +${en}</span></div>`
     + `<div class="ds">현재 ${ENH_FX[sl].txt(en)}${bonus ? ` · <b class="ok">기본 능력치 +${bonus}%</b>` : ''}${done ? '' : `<br><b>+${en} → +${en + 1}</b> 성공 <b class="ok">${Math.round(c.p * 100)}%</b> · 실패해도 하락·파괴 없음 · 기본 능력치 +${Math.round(BRK_STEP * 100)}%`}</div>`
     + `<div class="nx">${done ? `한계 돌파 완료! +${BRK_MAX}` : `비용 강화석 <b>${c.stones.toLocaleString()}개</b> · ${c.gold.toLocaleString()}G · 보유 강화석 ${stn.toLocaleString()}개`}</div></div>`
     + (done ? '<button class="btn pk" disabled>MAX</button>' : `<button class="btn brkbtn" data-m="brk" data-v="${sl}" ${can ? '' : 'disabled'}>돌파<small>강화석 ${c.stones.toLocaleString()}</small></button>`) + '</div></div>';
@@ -295,13 +301,13 @@ function menuClick(e) {
   if (m === 'enhSel') { const [g, s2] = v.split(':'); ENH_SEL[g] = s2; renderMenu(); return; }
   if (m === 'brk') {
     const toy = BSLOTS.includes(v), r = tryBreak(v || 'weapon'); if (!r) return; const nm = ITEMS[r.id].name, P = toy && G.bori ? G.bori : G.P;
-    if (r.res === 'up') { sfx('lvl'); G.shake = 6; toast(`한계 돌파 성공!! ${nm} +${r.to}`, 'lvl'); if (P) { G.fx.push({ k: 'lvl', x: P.x, y: P.y, t: 0, dur: 1.2 }); bubble(P, toy ? '멍멍멍!!! (흥분)' : choice(['한계를 넘었다!', '이게 진짜 힘...!']), 1.5); } }
+    if (r.res === 'up') { sfx('lvl'); G.shake = 6; enhFx('brk', `한계 돌파 +${r.to}`, nm); toast(`한계 돌파 성공!! ${nm} +${r.to}`, 'lvl'); if (P) { G.fx.push({ k: 'lvl', x: P.x, y: P.y, t: 0, dur: 1.2 }); bubble(P, toy ? '멍멍멍!!! (흥분)' : choice(['한계를 넘었다!', '이게 진짜 힘...!']), 1.5); } }
     else { sfx('warn'); toast(`돌파 실패... +${r.to} 유지 (하락·파괴 없음)`, 'sub'); if (P) bubble(P, toy ? '끼잉...' : choice(['한 번만 더...', '강화석 아깝다']), 1.2); }
     renderMenu(); return;
   }
   if (m === 'enhance' || m === 'enhanceS') {
     const toy = BSLOTS.includes(v), r = tryEnhance(m === 'enhanceS', v || 'weapon'); if (!r) return; const nm = ITEMS[r.id].name, P = toy && G.bori ? G.bori : G.P;
-    if (r.res === 'up') { sfx('lvl'); toast(`강화 성공! ${nm} +${r.to}`, 'lvl'); if (P) { G.fx.push({ k: 'lvl', x: P.x, y: P.y, t: 0, dur: 1.0 }); bubble(P, toy ? choice(['멍멍! (신남)', '앙! (꼬옥)', '왈왈!!']) : choice(['더 세졌다!', '반짝반짝~', '이걸로 등짝을...']), 1.3); } }
+    if (r.res === 'up') { sfx('lvl'); if (r.to >= 20) enhFx(r.to >= 25 ? 'e25' : 'e20', `+${r.to} 강화 성공!`, nm); toast(`강화 성공! ${nm} +${r.to}`, 'lvl'); if (P) { G.fx.push({ k: 'lvl', x: P.x, y: P.y, t: 0, dur: 1.0 }); bubble(P, toy ? choice(['멍멍! (신남)', '앙! (꼬옥)', '왈왈!!']) : choice(['더 세졌다!', '반짝반짝~', '이걸로 등짝을...']), 1.3); } }
     else if (r.res === 'keep') { sfx('warn'); toast(`강화 실패... +${r.to} 유지`, 'sub'); if (P) bubble(P, toy ? '끼잉...' : choice(['아깝다...', '한 번만 더!']), 1.2); }
     else if (r.res === 'down') { sfx('hurt'); toast(`강화 실패! +${r.from} → +${r.to} 하락`, 'warn'); if (P) bubble(P, toy ? '끼잉... (시무룩)' : '흐엉...', 1.2); }
     else if (r.res === 'saved') { sfx('hurt'); toast(`파괴될 뻔! 강화석이 막아줬어요 (+${r.from} → +${r.to})`, 'item r2'); if (P) bubble(P, toy ? '멍! (휴...)' : '휴... 강화석 최고', 1.3); }

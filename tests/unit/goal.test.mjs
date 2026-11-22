@@ -79,9 +79,9 @@ describe('광장 채팅', () => {
 });
 
 describe('한계 돌파 (+26~+30)', () => {
-  test('+25 장비만, 강화석 1,000~3,000·성공률 40%→20%, 실패해도 그대로, 기대 강화석 약 4만 개', () => {
+  test('+25 장비만, 강화석 1,000~3,000·성공률 10% 미만(9→3%), 실패해도 그대로', () => {
     let exp = 0; for (let en = 25; en < 30; en++) { const c = g.brkCost(en); exp += c.stones / c.p; }
-    expect(exp).toBeGreaterThan(35000); expect(exp).toBeLessThan(45000);
+    expect(exp).toBeGreaterThan(200000); expect(Math.max(...g.BRK_P)).toBeLessThan(0.1);
     expect(g.BRK_STONE).toEqual([1000, 1500, 2000, 2500, 3000]);
   });
   test('성공하면 +1·기본 능력치 +3%, 실패하면 유지, +25 미만이면 불가', () => {

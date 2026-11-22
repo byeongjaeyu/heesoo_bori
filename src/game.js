@@ -669,7 +669,7 @@ function tryEnhance(useStone, slot) {
   calcStats(); saveGame(); return { res, from: en, to: pd.enh[wid], id: wid };
 }
 // ---------- 한계 돌파 (+26~+30): +25 장비만. 강화석이 많이 들고 성공률 낮음, 실패해도 하락·파괴 없음. 단계마다 장비 기본 능력치 +3% ----------
-const BRK_MAX = 30, BRK_STONE = [1000, 1500, 2000, 2500, 3000], BRK_P = [0.4, 0.35, 0.3, 0.25, 0.2], BRK_STEP = 0.03;
+const BRK_MAX = 30, BRK_STONE = [1000, 1500, 2000, 2500, 3000], BRK_P = [0.09, 0.07, 0.05, 0.04, 0.03], BRK_STEP = 0.03;
 const brkCost = en => ({ stones: BRK_STONE[en - ENH_MAX] || 0, gold: enhCost(en), p: BRK_P[en - ENH_MAX] || 0 });
 const brkMul = id => 1 + BRK_STEP * Math.max(0, ((G.pd.enh || {})[id] || 0) - ENH_MAX);
 function tryBreak(slot) {

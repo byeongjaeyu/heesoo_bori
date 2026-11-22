@@ -501,3 +501,27 @@ body.inPlaza #ctrl,body.inPlaza #guide,body.inPlaza #bossBar,body.inPlaza #keyHi
 .card.enh.brk{background:linear-gradient(135deg,#fff6d0,#ffe0f0)}.card.enh.brk .nm{color:#a8224c}
 .btn.brkbtn{background:linear-gradient(160deg,#ffd84a,#ff6a74);color:#2b1b24;display:flex;flex-direction:column;align-items:center;line-height:1.1;min-width:76px}.btn.brkbtn small{font-size:10px}
 .wallet{position:sticky;top:0;z-index:3;display:flex;gap:6px;justify-content:space-between;flex-wrap:wrap;background:#2b1b24;color:#fff;border-radius:10px;padding:6px 10px;margin-bottom:8px;font-size:12px}.wallet span{display:flex;align-items:center;gap:4px}.wallet img{width:16px;height:16px;image-rendering:pixelated}.wallet b{color:#ffd84a}
+
+/* 강화 +20 이상·한계 돌파 연출 */
+.ic.glow20{box-shadow:0 0 0 2px #7ec8ff,0 0 12px 3px rgba(126,200,255,.8);animation:glowP 1.6s ease-in-out infinite}
+.ic.glow25{box-shadow:0 0 0 2px #ffd84a,0 0 14px 4px rgba(255,216,74,.85);animation:glowP 1.4s ease-in-out infinite}
+.ic.glowB{box-shadow:0 0 0 2px #fff,0 0 16px 5px rgba(255,106,116,.8);animation:glowR 2.4s linear infinite}
+@keyframes glowP{50%{filter:brightness(1.25)}}
+@keyframes glowR{0%{box-shadow:0 0 0 2px #fff,0 0 16px 5px rgba(255,106,116,.85)}25%{box-shadow:0 0 0 2px #fff,0 0 16px 5px rgba(255,216,74,.85)}50%{box-shadow:0 0 0 2px #fff,0 0 16px 5px rgba(126,224,200,.85)}75%{box-shadow:0 0 0 2px #fff,0 0 16px 5px rgba(192,138,240,.85)}100%{box-shadow:0 0 0 2px #fff,0 0 16px 5px rgba(255,106,116,.85)}}
+.enhfx{position:fixed;inset:0;z-index:200;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;animation:fxBg 1.7s ease-out forwards}
+.enhfx.e20{--c1:#7ec8ff;--c2:#c08af0}.enhfx.e25{--c1:#ffd84a;--c2:#ffb020}.enhfx.brk{--c1:#ff6a74;--c2:#ffd84a;animation-duration:2.2s}
+@keyframes fxBg{0%{background:rgba(255,255,255,.85)}12%{background:rgba(43,27,36,.45)}80%{background:rgba(43,27,36,.35)}100%{background:rgba(43,27,36,0)}}
+.enhfx .rays{position:absolute;width:140vmax;height:140vmax;background:repeating-conic-gradient(from 0deg,var(--c1) 0 6deg,transparent 6deg 18deg);opacity:.35;animation:fxSpin 2.2s linear forwards;mask:radial-gradient(circle,#000 0 20%,transparent 55%);-webkit-mask:radial-gradient(circle,#000 0 20%,transparent 55%)}
+.enhfx.brk .rays{background:repeating-conic-gradient(from 0deg,#ff6a74 0 6deg,transparent 6deg 12deg,#ffd84a 12deg 18deg,transparent 18deg 24deg,#7ee0c8 24deg 30deg,transparent 30deg 36deg,#c08af0 36deg 42deg,transparent 42deg 48deg);opacity:.5}
+@keyframes fxSpin{from{transform:rotate(0) scale(.6)}to{transform:rotate(90deg) scale(1.1);opacity:0}}
+.enhfx .ring{position:absolute;width:40px;height:40px;border:6px solid var(--c1);border-radius:50%;animation:fxRing .9s ease-out forwards}
+@keyframes fxRing{from{transform:scale(.2);opacity:1}to{transform:scale(9);opacity:0}}
+.enhfx .sp{position:absolute;width:10px;height:10px;background:var(--c2);transform:rotate(var(--a)) translateY(0);animation:fxSp var(--d) ease-out forwards;box-shadow:0 0 6px var(--c1)}
+.enhfx.brk .sp:nth-child(3n){background:#7ee0c8}.enhfx.brk .sp:nth-child(3n+1){background:#c08af0}
+@keyframes fxSp{to{transform:rotate(var(--a)) translateY(-38vmin) scale(.3);opacity:0}}
+.enhfx b{position:relative;font-size:clamp(30px,9vw,64px);color:#fff;-webkit-text-stroke:3px #2b1b24;paint-order:stroke fill;text-shadow:0 0 18px var(--c1),0 4px 0 #2b1b24;animation:fxTxt 1.7s ease-out forwards;white-space:nowrap}
+.enhfx.brk b{color:#fff;animation:fxTxt 2.2s ease-out forwards,fxGlow .8s linear infinite}
+@keyframes fxGlow{0%{text-shadow:0 0 22px #ff6a74,0 4px 0 #2b1b24}25%{text-shadow:0 0 22px #ffd84a,0 4px 0 #2b1b24}50%{text-shadow:0 0 22px #7ee0c8,0 4px 0 #2b1b24}75%{text-shadow:0 0 22px #c08af0,0 4px 0 #2b1b24}100%{text-shadow:0 0 22px #ff6a74,0 4px 0 #2b1b24}}
+.enhfx small{position:relative;margin-top:6px;font-size:16px;color:#fff;text-shadow:0 2px 0 #2b1b24;animation:fxTxt 1.7s ease-out forwards}
+@keyframes fxTxt{0%{transform:scale(2.6);opacity:0}15%{transform:scale(.92);opacity:1}25%{transform:scale(1.05)}35%{transform:scale(1)}80%{opacity:1}100%{opacity:0;transform:scale(1.04)}}
+@keyframes fxRain{to{background-position:200% 0}}
