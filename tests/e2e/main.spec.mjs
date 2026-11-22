@@ -478,3 +478,24 @@ test('보스 타워는 1장을 깨야 열림', async ({ page }) => {
   await page.click('#tTower');
   await expect(page.locator('#tower')).toBeHidden();
 });
+
+test('월드 보스: 이번 주 이미 처치됐으면 「처치 완료 · 피해량 경쟁」 표시, 도전 중 체력 0이 되면 처치 연출', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 30 });
+  await page.evaluate(MOCK_SB);
+  await page.evaluate(() => { __rows.push({ user_id: 'u-me', nickname: '나', snap: { lv: 30 }, power: 1500, rating: 1000, wins: 0, losses: 0 }); });
+  // 1) 남은 체력이 적을 때 내가 쓰러뜨림
+  await page.evaluate(() => { window.__raid = undefined; });
+  await page.click('#tRaid'); await page.evaluate(() => { __raid.hp = 3000; });
+  await page.click('[data-rd=go]');
+  await page.waitForFunction(() => G.state === 'play' && G.raid);
+  await page.evaluate(() => { G.boss.hp = 3000; for (let i = 0; i < 5; i++) dealDamage(G.boss, 5000, {}); });
+  expect(await page.evaluate(() => [!!G.boss.dead, !!G.boss.raidDone, G.boss.hp === G.boss.maxHp])).toEqual([false, true, true]);
+  await expect(page.locator('#bossBar')).toHaveClass(/done/);
+  await expect(page.locator('#bossName')).toContainText('처치 완료');
+  // 2) 이미 처치된 주에 들어가면 처음부터 피해량 경쟁
+  await page.evaluate(() => { G.raid.t = 0.05; }); await expect(page.locator('#raidRes')).toBeVisible();
+  await page.evaluate(() => { __raid.hp = 0; __raid.killed_at = new Date().toISOString(); startRaidArena(__raid); });
+  expect(await page.evaluate(() => !!G.boss.raidDone)).toBe(true);
+  await page.evaluate(() => dealDamage(G.boss, 9999, {}));
+  expect(await page.evaluate(() => [!!G.boss.dead, G.raid.dmg > 0])).toEqual([false, true]);
+});

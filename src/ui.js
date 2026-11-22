@@ -69,6 +69,7 @@ function updateHUD() {
   hset('quest', v => HE.quest.textContent = v, G.pvp ? `VS ${G.pvp.opp.nickname} · 남은 시간 ${Math.ceil(G.pvp.t)}초` : G.raid ? `남은 시간 ${Math.ceil(G.raid.t)}초 · 내 피해 ${Math.round(G.raid.dmg).toLocaleString()}` : G.tower ? `남은 시간 ${Math.ceil(G.tower.t)}초 · 보스를 쓰러뜨려라!` : G.inf ? (G.boss && !G.boss.dead ? `할로윈 보스 등장! · 처치 ${G.inf.kills}` : `처치 ${G.inf.kills} · 다음 웨이브 ${G.inf.waveKills}/${INF_WAVE_KILLS}`) : q);
   const b = G.boss && !G.boss.dead ? G.boss : null;
   hset('bossOn', v => HE.bossBar.hidden = !v, !!b);
+  hset('bossDone', v => HE.bossBar.classList.toggle('done', v), !!(b && b.raidDone));
   if (b) { hset('bossName', v => HE.bossName.textContent = v, b.m.name); hset('bossF', v => HE.bossF.style.width = v + '%', Math.round(Math.max(0, b.hp) / b.maxHp * 1000) / 10); }
   hset('badge', v => { HE.badge.hidden = !v; HE.badge.textContent = v; }, pd.sp > 0 ? String(pd.sp) : (pd.newItem || pd.newBori ? 'N' : ''));
   hset('bori', v => HE.boriHud.hidden = !v, !!pd.boriJoined && !G.pvp);

@@ -467,3 +467,4 @@ button{font-family:inherit;color:inherit;border:none;background:none;padding:0;c
 #towerBody .twm{margin:0}#towerBody .twgo{margin:2px 0 0}#towerBody .twtip{margin:0}
 #towerResT{margin:0}#towerResS{display:flex;flex-direction:column;align-items:center;gap:8px;margin:2px 0 14px}#towerResS .twtime{margin:0}#towerResS .smsub{margin:0}
 #towerRes .tbtns{gap:10px}
+#bossBar.done #bossF{background:linear-gradient(90deg,#ffd84a,#ffb020)}#bossBar.done #bossName{color:#ffd84a}

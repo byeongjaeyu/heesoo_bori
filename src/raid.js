@@ -61,12 +61,21 @@ function startRaidArena(I) {
   e.raid = true; e.sc *= 1.6; e.w *= 1.6; e.h *= 1.6; e.r = Math.round(e.r * 1.4); e.def = 0; e.elite = false;
   e.atk = G.st.hp * 0.035 * (60 + G.st.def) / 60; e.m = Object.assign({}, m0, { name: `월드 보스 · ${m0.name}`, drops: [], xp: 0, gold: [0, 0] });
   e.maxHp = Math.max(1, Number(I.max_hp) || 1); e.hp = Math.max(1, Number(I.hp) || 1); G.boss = e;
+  const done = !!I.killed_at || Number(I.hp) <= 0; if (done) raidDone(e, false);
   G.cam.x = clamp(G.P.x - VW / 2, 0, Math.max(0, W.W - VW)); G.cam.y = clamp(G.P.y - 60 - VH / 2, 0, Math.max(0, W.H - VH));
-  G.state = 'play'; showHUD(true); playBgm('boss'); banner('월드 보스', m0.name, 'boss'); sfx('boss');
-  bubble(G.P, choice(['다 같이 잡자!', '내 몫은 확실히!', '희수 출격!']), 1.8);
+  G.state = 'play'; showHUD(true); playBgm('boss'); banner('월드 보스', done ? '이번 주 보스는 이미 쓰러졌어요 · 월요일까지 피해량 경쟁!' : m0.name, 'boss'); sfx('boss');
+  bubble(G.P, done ? choice(['피해량 1등 가자!', '기록 갱신 간다!']) : choice(['다 같이 잡자!', '내 몫은 확실히!', '희수 출격!']), 1.8);
 }
 /** dealDamage 에서 호출: 레이드 보스는 죽지 않고 피해만 쌓임 */
-function raidHit(e, dmg) { if (!G.raid || G.raid.over) return; G.raid.dmg += dmg; if (e.hp < 1) e.hp = 1; }
+function raidHit(e, dmg) {
+  if (!G.raid || G.raid.over) return; G.raid.dmg += dmg;
+  if (e.raidDone) e.hp = e.maxHp; else if (e.hp < 1) raidDone(e, true);
+}
+/** 이번 주 보스 체력이 0 → 쓰러진 상태(피해량 경쟁). now=true 면 내 도전 중에 쓰러뜨린 순간 */
+function raidDone(e, now) {
+  e.raidDone = true; e.hp = e.maxHp; e.m.name = `${e.m.name} · 처치 완료! 피해량 경쟁`;
+  if (now) { G.shake = 9; sfx('lvl'); burst(e.x, e.y - e.h / 2, '#ffd84a', 40); banner('월드 보스 처치!', '다 같이 쓰러뜨렸어요 · 남은 시간은 피해량 경쟁', 'boss'); bubble(G.P, '쓰러뜨렸다!!', 1.8); }
+}
 function raidUpdate(dt) {
   const V = G.raid; if (!V || V.over || G.state !== 'play') return;
   V.t -= dt; if (V.t <= 0) { V.t = 0; raidEnd('시간 종료!'); }
