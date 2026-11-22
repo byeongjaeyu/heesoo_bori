@@ -46,7 +46,13 @@ export const MOCK_SB = `(() => {
     async send(msg) { __sent.push(msg); return 'ok'; }, presenceState() { return ch.pres; },
     emit(type, ev, payload) { for (const h of hs) if (h.type === type && h.ev === ev) h.cb(type === 'broadcast' ? { payload } : (payload || {})); } };
     return ch; };
-  const mk = () => ({ from: q, rpc, channel, removeChannel() { } });
+  // 가짜 로그인: __user 로 연결 상태, 연결·로그인 요청은 __oauth 에 기록
+  const auth = { async getUser() { return { data: { user: window.__user || { id: 'u-me', is_anonymous: true, identities: [] } } }; },
+    async getSession() { return { data: { session: { access_token: 'a', refresh_token: 'r' } } }; },
+    async linkIdentity(o) { window.__oauth = ['link', o.provider]; return { data: {}, error: null }; }, async signInWithOAuth(o) { window.__oauth = ['login', o.provider]; return { data: {}, error: null }; },
+    async setSession() { return { error: null }; }, async signOut() { return { error: null }; } };
+  accFetchProv = async () => window.__prov || ['google', 'kakao'];
+  const mk = () => ({ from: q, rpc, channel, removeChannel() { }, auth });
   SB = mk(); PV.uid = 'u-me';
   sbInit = async () => { SB = mk(); PV.uid = 'u-me'; };
 })()`;

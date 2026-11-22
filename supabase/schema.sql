@@ -211,3 +211,19 @@ create policy hb_plaza_read on realtime.messages for select to authenticated usi
 create policy hb_plaza_write on realtime.messages for insert to authenticated with check (realtime.topic() like 'plaza-%' and public.hb_plaza_ok());
 -- 2026-11-22 광장 자동 정지: hb_plaza_bans.until 추가, hb_plaza_ok()는 until 지난 정지 무시, hb_plaza_status(), hb_plaza_report()에서 24시간 내 신고자 3명 이상이면 24시간 정지 (마이그레이션 hb_plaza_autoban)
 -- 2026-11-22 한계 돌파(+26~+30): hb_submit_fighter 범위 검사 enh·tenh 상한 25 → 30 (마이그레이션 hb_submit_fighter_enh30)
+
+-- ===== 계정 연결 (src/account.js) =====
+-- 대시보드: Auth → Providers 에서 Google·Kakao 켜기, Auth 설정 "Allow manual linking" 켜기, URL Configuration 의 Redirect URLs 에 게임 주소.
+-- 「로그인해서 불러오기」를 했는데 그 계정에 희수가 없을 때: 방금 생긴 빈 계정을 지워서 나중에 원래 희수에 연결할 수 있게 함
+create or replace function public.hb_acc_release()
+returns boolean language plpgsql security definer set search_path = public, auth as $$
+declare u uuid := auth.uid();
+begin
+  if u is null then return false; end if;
+  if exists (select 1 from public.hb_saves where user_id = u) or exists (select 1 from public.hb_fighters where user_id = u) then return false; end if;
+  if not exists (select 1 from auth.users where id = u and coalesce(is_anonymous, false) = false and created_at > now() - interval '30 minutes') then return false; end if;
+  delete from auth.users where id = u;
+  return true;
+end $$;
+revoke all on function public.hb_acc_release() from public, anon;
+grant execute on function public.hb_acc_release() to authenticated;

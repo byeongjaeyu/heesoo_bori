@@ -77,6 +77,8 @@
 ## Supabase (project ref `ujxuzduomfssguibnjux`)
 - `hb_fighters`(랭킹·PvP 등록, 익명 로그인 user_id), `hb_battles`, `hb_grants`(운영자 선물함), `hb_saves`(클라우드 세이브), `hb_transfer_codes`(기기 옮기기). 스키마: `supabase/schema.sql`.
 - 클라우드 세이브(`src/cloud.js`): `saveGame`/`e2SaveNow` 때 1분에 한 번 업로드. 기기 옮기기 = 옛 기기 코드 발급 → 새 기기 `hb_use_transfer_code` (세이브·닉네임·전투기록·미수령 선물 이동) → localStorage 덮어쓰고 새로고침.
+- **계정 연결**(`src/account.js`, 기기 옮기기 창 맨 위 「계정 연결」): 익명 계정에 `SB.auth.linkIdentity`로 구글·카카오 연결(같은 user_id 유지 → 세이브·랭킹·선물 그대로). 다른 기기는 「로그인해서 불러오기」= `signInWithOAuth` → 돌아오면 `accBoot`가 `hb_saves`를 localStorage에 쓰고 새로고침(`accApply`). 그 계정에 희수가 없으면 `hb_acc_release()`로 빈 계정 삭제 후 원래 익명 세션 복구(`hb_acc_prev`). 로그인한 계정은 시작할 때(타이틀) 서버 세이브 `svT`가 이 기기보다 최근이면 자동으로 받아옴(`saveGame`이 `svT` 기록). 켜진 로그인 방법은 공개 `/auth/v1/settings`(`accFetchProv`)로 확인 — 없으면 「곧 열려요」. e2e 가짜 SB에 `auth`(`__user`·`__oauth`)와 `accFetchProv`(`__prov`) 있음.
+  - 대시보드 설정(운영자): Auth → Providers 에서 Google·Kakao 켜기(각 개발자 콘솔 키), "Allow manual linking" 켜기, URL Configuration → Redirect URLs 에 `https://byeongjaeyu.github.io/heesoo_bori/**`.
 - 서버 함수는 운영 DB에서 `do $$ ... raise exception 'RESULT: %' ... $$` 로 감싸 실행하면 롤백되므로 안전하게 검증 가능.
 - 클라이언트는 공개(anon) 키로 RLS 범위만 접근. 테스트는 Supabase·CDN 요청을 차단하고 가짜 SB로 돔 — 운영 DB를 건드리지 말 것.
 - **랭킹 등록·갱신은 `hb_submit_fighter(snap, nick)` RPC로만** (직접 쓰기 권한 없음). 서버가 `hb_power(snap)`로 전투력을 계산하고 범위 밖 값은 거절.

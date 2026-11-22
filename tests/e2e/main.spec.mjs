@@ -621,3 +621,46 @@ test('개별 장비: 같은 맥북프로 두 개(+0·+20)를 따로 갖고 골�
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem(SAVEKEY)).keepDup)).toBe(5);
   await expect(page.locator('#menu .kdup .btn.on')).toHaveText('초월만 보관');
 });
+
+test('계정 연결: 익명 희수에 구글 연결 → 돌아오면 완료 안내', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 12 });
+  await page.evaluate(MOCK_SB);
+  await page.click('#tCloud');
+  await expect(page.locator('#accBtns .acc-google', { hasText: '구글 계정 연결' })).toBeVisible();
+  await expect(page.locator('#accBtns .acc-kakao', { hasText: '카카오로 로그인해서 불러오기' })).toBeVisible();
+  await page.locator('#accBtns .acc-google', { hasText: '구글 계정 연결' }).click();
+  await page.waitForFunction(() => window.__oauth);
+  expect(await page.evaluate(() => [__oauth, JSON.parse(localStorage.getItem(ACC_KEY)).op])).toEqual([['link', 'google'], 'link']);
+  // 구글에서 돌아옴
+  await page.evaluate(async () => { __user = { id: 'u-me', email: 'a@b.c', identities: [{ provider: 'google' }] }; await accBoot(); });
+  await expect(page.locator('.toast', { hasText: '계정 연결 완료' })).toBeVisible();
+  await page.evaluate(() => accRender()); await expect(page.locator('#accMsg')).toContainText('구글 계정과 연결돼 있어요 (a@b.c)');
+});
+
+test('계정 로그인: 다른 기기에서 로그인하면 서버 세이브로 바뀜 / 로그인 계정은 서버가 더 최근이면 받아옴', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 3, svT: 1000 });
+  await page.evaluate(MOCK_SB);
+  await page.evaluate(async () => {
+    __user = { id: 'u-me', identities: [{ provider: 'kakao' }] };
+    __db.hb_saves.push({ user_id: 'u-me', data: Object.assign(newPD(), { lv: 42, guide: 99, svT: 5000 }), ep2: null });
+    localStorage.setItem(ACC_KEY, JSON.stringify({ op: 'login', p: 'kakao' })); await accBoot();
+  });
+  await page.waitForLoadState('load'); await page.waitForTimeout(300);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem(SAVEKEY)).lv)).toBe(42);
+  // 같은 계정 다른 기기에서 더 진행 → 이 기기 시작할 때 받아옴
+  await page.evaluate(MOCK_SB);
+  await page.evaluate(async () => {
+    __user = { id: 'u-me', identities: [{ provider: 'kakao' }] }; G.state = 'title';
+    __db.hb_saves.push({ user_id: 'u-me', data: Object.assign(newPD(), { lv: 45, guide: 99, svT: Date.now() + 60000 }), ep2: null }); await accBoot();
+  });
+  await page.waitForLoadState('load'); await page.waitForTimeout(300);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem(SAVEKEY)).lv)).toBe(45);
+});
+
+test('계정 로그인: 연결된 희수가 없는 계정이면 원래 희수 유지', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 7 });
+  await page.evaluate(MOCK_SB);
+  await page.evaluate(async () => { __user = { id: 'u-me', identities: [{ provider: 'google' }] }; localStorage.setItem(ACC_KEY, JSON.stringify({ op: 'login', p: 'google' })); await accBoot(); });
+  await expect(page.locator('.toast', { hasText: '연결된 희수가 없어요' })).toBeVisible();
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem(SAVEKEY)).lv)).toBe(7);
+});

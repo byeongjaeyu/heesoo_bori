@@ -33,7 +33,7 @@ function init() {
   requestAnimationFrame(frame);
 }
 init();
-cloudBoot();
+cloudBoot(); accBoot();
 dailyBoot();
 guideBoot();
 shareBoot();
