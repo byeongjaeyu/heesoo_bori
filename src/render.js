@@ -32,8 +32,8 @@ const PSPR = {
 const pspr = k => spr('p_' + k, PSPR[k]);
 const ispr = k => spr('i_' + k, ICONS[k]);
 function itemPal(it) { const c = it.color; if (!c) return null; if (it.icon === 'hat') return { C: c, c: shadeHex(c, -0.22) }; if (it.icon === 'jacket') return { W: c, w: shadeHex(c, -0.15) }; if (['shoes', 'sandal', 'boots', 'fishshoe'].includes(it.icon)) return { O: c, o: shadeHex(c, -0.18) }; if (it.icon === 'handbag') return { Q: c, q: shadeHex(c, -0.2) }; if (it.icon === 'bag') return { G: c, g: shadeHex(c, -0.25) }; if (it.slot === 'bcloth') return { Y: c, y: shadeHex(c, -0.2) }; return null; }
-const itemSpr = id => { const it = ITEMS[id]; return spr('it_' + id, ICONS[it.icon], itemPal(it)); };
-const itemURL = id => { const it = ITEMS[id]; return iconURL('it_' + id, ICONS[it.icon], itemPal(it)); };
+const itemSpr = id => { const it = ITEMS[id]; return spr('it_' + defOf(id), ICONS[it.icon], itemPal(it)); };
+const itemURL = id => { const it = ITEMS[id]; return iconURL('it_' + defOf(id), ICONS[it.icon], itemPal(it)); };
 
 function heePal() {
   const pd = G.pd || (G.state === 'title' ? TITLE_PD : null);

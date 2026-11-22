@@ -67,6 +67,8 @@ interface SaveData {
   /** 강화석 교환소: 오늘 산 개수 */
   xch?: { day: string; n: number };
   /** 장비 재련 추가 옵션 (item id → 옵션 줄) */
+  /** 같은 장비가 또 나오면 이 등급 이상은 가방에 따로 보관 (없으면 강화석) */
+  keepDup?: number;
   ref?: Record<string, { lines: { k: string; v: number; g: number; lk?: number }[]; n: number }>;
   /** 2장 진행도 (zone 4~7) */
   ch2?: { zone: number; cleared: number; intro?: number; seen?: Record<string, number> };

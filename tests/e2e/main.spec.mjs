@@ -606,3 +606,18 @@ test('장비·보리 탭 맨 위에 보유 골드·강화석', async ({ page }) 
   await openTab(page, 'bori');
   await expect(page.locator('#mbody .wallet')).toContainText('1,234,567G');
 });
+
+test('개별 장비: 같은 맥북프로 두 개(+0·+20)를 따로 갖고 골라 착용, 중복 보관 설정', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 30, inv: { fist: 1, cap_grey: 1, fleece: 1, sneakers: 1, silverbag: 1, starstick: 1, 'starstick#ab12': 1 }, enh: { 'starstick#ab12': 20 }, eq: { weapon: 'starstick', hat: 'cap_grey', armor: 'fleece', shoes: 'sneakers', bag: 'silverbag' } });
+  await enterZone(page, 0);
+  await openTab(page, 'equip');
+  const cards = page.locator('#menu .card:not(.col)', { hasText: '단단한 맥북프로' });
+  await expect(cards).toHaveCount(2);
+  const atk0 = await page.evaluate(() => G.st.atk);
+  await page.locator('#menu .card:not(.col)', { hasText: '단단한 맥북프로 +20' }).locator('[data-m="equip"]').click();
+  expect(await page.evaluate(() => [G.pd.eq.weapon, G.st.enh])).toEqual(['starstick#ab12', 20]);
+  expect(await page.evaluate(() => G.st.atk)).toBeGreaterThan(atk0);
+  await page.click('#menu [data-m="keepDup"][data-v="5"]');
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem(SAVEKEY)).keepDup)).toBe(5);
+  await expect(page.locator('#menu .kdup .btn.on')).toHaveText('초월만 보관');
+});

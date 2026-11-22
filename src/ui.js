@@ -117,6 +117,12 @@ function renderMenu(top) {
 /** 장비·보리 탭 맨 위: 보유 골드·강화석 */
 const walletHtml = pd => `<div class="wallet"><span><img src="${iconURL('i_coin', ICONS.coin)}" alt="">보유 골드 <b>${pd.gold.toLocaleString()}G</b></span><span><img src="${iconURL('i_stone', ICONS.stone)}" alt="">강화석 <b>${(pd.stones || 0).toLocaleString()}개</b></span></div>`;
 const ilvTag = id => ilvOf(id) ? ` Lv.${ilvOf(id)}` : '';
+/** 같은 장비가 또 나오면: 강화석(기본) / 등급 이상 가방에 보관 */
+function keepDupHtml(/** @type {SaveData} */ pd) {
+  const cur = pd.keepDup == null ? -1 : pd.keepDup, n = Object.keys(pd.inv).length;
+  const opt = [[-1, '강화석'], [3, '전설↑ 보관'], [4, '신화↑ 보관'], [5, '초월만 보관']];
+  return `<div class="gbar kdup"><span>같은 장비 또 나오면 <small>가방 ${n}/${BAG_MAX}</small></span><span class="disb">${opt.map(([v, t]) => `<button class="btn sm${cur === v ? ' on' : ''}" data-m="keepDup" data-v="${v}">${t}</button>`).join('')}</span></div>`;
+}
 function ilvLine(id, eq) { const lv = ilvOf(id), x = (G.pd.iexp || {})[id] || 0; if (!lv && !x && !eq) return ''; return `<br><b class="ilv">장비 Lv.${lv}</b> · 재료 ${x}/${ILV_NEED}${lv ? ` · 기본 스탯 +${Math.round(ILV_BONUS * 100 * lv)}%` : ''}${eq ? ' <small>(같은 부위·등급 장비를 주우면 쌓여요)</small>' : ''}`; }
 function statStr(it) {
   const a = [];
@@ -210,6 +216,7 @@ const MREN = {
     h += `<div class="slots">${SLOTS.map(sl => { const it = ITEMS[pd.eq[sl]]; return `<div class="slot"><img src="${itemURL(pd.eq[sl])}">${SLOTNAME[sl]}<br><b class="r${it.rar}">${it.name}${ilvTag(pd.eq[sl])}${(pd.enh || {})[pd.eq[sl]] ? ' +' + pd.enh[pd.eq[sl]] : ''}</b></div>`; }).join('')}</div>`;
     h += `<div class="gbar" style="margin-top:8px"><span>보리 옷·장난감은 '보리' 탭에 있어요</span><button class="btn" data-m="tab" data-v="bori" style="padding:3px 9px;font-size:12px">보리 탭</button></div>`;
     h += `<h3 style="margin-top:16px">희수 장비 목록</h3>` + `<div class="gbar dis"><span>강화석 <b>${pd.stones || 0}</b>개</span><span class="disb">일괄 분해 <button class="btn sm" data-m="bulk" data-v="0">일반</button><button class="btn sm" data-m="bulk" data-v="1">희귀↓</button><button class="btn sm" data-m="bulk" data-v="2">영웅↓</button></span></div>`;
+    h += keepDupHtml(pd);
     for (const sl of SLOTS) {
       const ids = Object.keys(pd.inv).filter(id => ITEMS[id] && ITEMS[id].slot === sl).sort((a, b) => (ITEMS[a].rar - ITEMS[b].rar) || ((ITEMS[a].tier || 0) - (ITEMS[b].tier || 0)));
       h += `<h3>${SLOTNAME[sl]} <small>${ids.length}개 보유</small></h3>`;
@@ -244,10 +251,10 @@ const MREN = {
     const pd = G.pd;
     let h = `<div class="shophead"><b>희수의 배달앱</b><div>폰으로 주문하면 보리가 받아와요. 배달비 무료!</div></div><div class="gbar"><span>보유 골드</span><span>${pd.gold.toLocaleString()}G</span></div>` + xchCardHtml(pd) + `<h3>음식</h3>`;
     h += FOOD_ORDER.filter(id => !FOODS[id].noShop).map(id => { const f = FOODS[id]; return `<div class="card"><div class="ic"><img src="${iconURL('f_' + id, ICONS[f.icon])}"></div><div class="mid"><div class="nm"><span class="${f.rar ? 'r' + f.rar : ''}">${f.name}</span>${f.rar === 3 ? '<span class="tag ult">최고급</span>' : ''}<span class="tag">보유 ${pd.foods[id] || 0}</span></div><div class="ds">${f.desc}</div></div><button class="btn" data-m="buy" data-v="${id}" ${pd.gold >= f.price ? '' : 'disabled'}>${f.price}G</button></div>`; }).join('');
-    const bitems = Object.keys(ITEMS).filter(id => ITEMS[id].bori && ITEMS[id].price && (ITEMS[id].tier || 0) <= G.zone + 1 && !pd.inv[id]).sort((a, b) => ITEMS[a].price - ITEMS[b].price);
+    const bitems = Object.keys(ITEMS).filter(id => ITEMS[id].bori && ITEMS[id].price && (ITEMS[id].tier || 0) <= G.zone + 1 && !ownsDef(pd, id)).sort((a, b) => ITEMS[a].price - ITEMS[b].price);
     h += `<h3>보리 용품 <small>${pd.boriJoined ? '보리 공격력이 올라가요' : '보리를 찾으면 살 수 있어요'}</small></h3>`;
     h += bitems.length ? bitems.map(id => { const it = ITEMS[id]; return `<div class="card ${pd.boriJoined ? '' : 'dim'}"><div class="ic"><img src="${itemURL(id)}"></div><div class="mid"><div class="nm"><span class="r${it.rar}">${it.name}</span><span class="tag">${SLOTNAME[it.slot]}</span></div><div class="ds">보리 공격 +${Math.round(it.bdmg * 100)}% · ${it.desc}</div></div><button class="btn" data-m="buyItem" data-v="${id}" ${pd.boriJoined && pd.gold >= it.price ? '' : 'disabled'}>${it.price.toLocaleString()}G</button></div>`; }).join('') : '<p class="ds" style="margin:4px">지금 살 수 있는 보리 용품을 다 샀어요!</p>';
-    const items = Object.keys(ITEMS).filter(id => !ITEMS[id].bori && ITEMS[id].price && (ITEMS[id].tier || 0) <= G.zone + 1 && !pd.inv[id]).sort((a, b) => ITEMS[a].price - ITEMS[b].price);
+    const items = Object.keys(ITEMS).filter(id => !ITEMS[id].bori && ITEMS[id].price && (ITEMS[id].tier || 0) <= G.zone + 1 && !ownsDef(pd, id)).sort((a, b) => ITEMS[a].price - ITEMS[b].price);
     h += `<h3>장비 <small>새 구역에 가면 더 좋은 장비가 들어와요</small></h3>`;
     h += items.length ? items.map(id => { const it = ITEMS[id]; return `<div class="card"><div class="ic"><img src="${itemURL(id)}"></div><div class="mid"><div class="nm"><span class="r${it.rar}">${it.name}</span><span class="tag">${SLOTNAME[it.slot]}</span></div><div class="ds">${statStr(it)}</div></div><button class="btn" data-m="buyItem" data-v="${id}" ${pd.gold >= it.price ? '' : 'disabled'}>${it.price.toLocaleString()}G</button></div>`; }).join('') : '<p class="ds" style="margin:4px">지금 살 수 있는 장비를 다 샀어요!</p>';
     return h;
@@ -293,11 +300,12 @@ function menuClick(e) {
   if (m === 'awkReset') { confirmBox('각성 포인트를 전부 돌려받고 다시 찍을까요?', () => { const n = Object.values(pd.awp || {}).reduce((a, b) => a + b, 0); pd.ap = (pd.ap || 0) + n; pd.awp = {}; calcStats(); renderMenu(); sfx('select'); saveGame(); }); return; }
   if (m === 'reset') { confirmBox('스킬 포인트를 전부 돌려받고 다시 찍을까요?', () => { const used = Object.values(pd.skills).reduce((a, b) => a + b, 0); pd.sp += used; pd.skills = {}; if (G.P) G.P.cds = {}; calcStats(); renderMenu(); sfx('select'); saveGame(); }); return; }
   if (m === 'equip') { const it = ITEMS[v]; if (it.bori) { pd.beq[it.slot] = v; if (G.bori) bubble(G.bori, it.slot === 'btoy' ? '앙! (꼬옥)' : '멍멍! (신남)', 1.4); } else pd.eq[it.slot] = v; calcStats(); sfx('ding'); renderMenu(); saveGame(); return; }
-  if (m === 'sell') { const it = ITEMS[v]; confirmBox(`${it.name}을(를) ${sellPrice(v)}G에 팔까요?`, () => { delete pd.inv[v]; pd.gold += sellPrice(v); sfx('coin'); renderMenu(); saveGame(); }); return; }
+  if (m === 'keepDup') { const n = +v; if (n < 0) delete pd.keepDup; else pd.keepDup = n; sfx('select'); renderMenu(); saveGame(); return; }
+  if (m === 'sell') { const it = ITEMS[v]; confirmBox(`${it.name}을(를) ${sellPrice(v)}G에 팔까요?`, () => { const g = sellPrice(v); dropItem(pd, v); pd.gold += g; sfx('coin'); renderMenu(); saveGame(); }); return; }
   if (m === 'eat' && !G.P) return;
   if (m === 'eat') { G.P.eatCd = 0; eatFood(v); G.P.eatCd = 0; renderMenu(); return; }
   if (m === 'buy') { const f = FOODS[v]; if (pd.gold < f.price) return; pd.gold -= f.price; pd.foods[v] = (pd.foods[v] || 0) + 1; sfx('coin'); renderMenu(); return; }
-  if (m === 'buyItem') { const it = ITEMS[v]; if (pd.gold < it.price || pd.inv[v]) return; const isNewBook = !(pd.book || {})[v]; pd.gold -= it.price; pd.inv[v] = 1; sfx('ding'); if (isNewBook) bookNotify(v); if (it.bori) { pd.beq[it.slot] = v; calcStats(); toast(`${it.name} 구매! 보리가 바로 ${it.slot === 'btoy' ? '물었어요' : '입었어요'} (보리 탭)`, 'item r' + it.rar); if (G.bori) bubble(G.bori, '멍멍! (신남)', 1.4); } else toast(`${it.name} 구매! 장비 탭에서 장착하세요`, 'item r' + it.rar); renderMenu(); saveGame(); return; }
+  if (m === 'buyItem') { const it = ITEMS[v]; if (pd.gold < it.price || ownsDef(pd, v)) return; const isNewBook = !(pd.book || {})[v]; pd.gold -= it.price; const k = addItem(pd, v); sfx('ding'); if (isNewBook) bookNotify(v); if (it.bori) { pd.beq[it.slot] = k; calcStats(); toast(`${it.name} 구매! 보리가 바로 ${it.slot === 'btoy' ? '물었어요' : '입었어요'} (보리 탭)`, 'item r' + it.rar); if (G.bori) bubble(G.bori, '멍멍! (신남)', 1.4); } else toast(`${it.name} 구매! 장비 탭에서 장착하세요`, 'item r' + it.rar); renderMenu(); saveGame(); return; }
   if (m === 'enhSel') { const [g, s2] = v.split(':'); ENH_SEL[g] = s2; renderMenu(); return; }
   if (m === 'brk') {
     const toy = BSLOTS.includes(v), r = tryBreak(v || 'weapon'); if (!r) return; const nm = ITEMS[r.id].name, P = toy && G.bori ? G.bori : G.P;

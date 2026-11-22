@@ -24,10 +24,10 @@ const msNext = pd => msList(pd).find(m => loopsTotal(pd) < m.n);
 
 /** 초월 장비 하나 지급 (안 가진 것 중에서). 다 있으면 강화석. 돌려주는 값: 받은 장비 id 또는 null */
 function giveTr(pd) {
-  const pool = Object.keys(ITEMS).filter(id => { const it = ITEMS[id]; return it.rar === 5 && !it.bossOnly && !pd.inv[id] && (!it.bori || pd.boriJoined); });
+  const pool = Object.keys(ITEMS).filter(id => { const it = ITEMS[id]; return it.rar === 5 && !it.bossOnly && !ownsDef(pd, id) && (!it.bori || pd.boriJoined); });
   if (!pool.length) { pd.stones = (pd.stones || 0) + TR_DUP; return null; }
-  const id = choice(pool), it = ITEMS[id]; pd.inv[id] = 1; pd.book = pd.book || {}; pd.book[id] = 1;
-  if (it.bori) { if (!pd.beq[it.slot]) pd.beq[it.slot] = id; else pd.newBori = true; } else pd.newItem = true;
+  const id = choice(pool), it = ITEMS[id], k = addItem(pd, id);
+  if (it.bori) { if (!pd.beq[it.slot]) pd.beq[it.slot] = k; else pd.newBori = true; } else pd.newItem = true;
   return id;
 }
 /** 보상 목록을 세이브에 반영하고, 화면에 보여줄 카드 목록을 돌려줌 */

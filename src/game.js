@@ -47,6 +47,22 @@ const sk = id => (G.pd && G.pd.skills[id]) || 0;
 
 // 장비 레벨: 착용 장비와 같은 부위·같은 등급 장비를 ILV_NEED개 주우면 Lv+1, 레벨당 기본 스탯 +5%
 const ILV_NEED = 5, ILV_BONUS = 0.05;
+// ---------- 개별 장비 ----------
+// pd.inv·enh·ilv·iexp·ref·eq·beq 는 '장비 키' 기준. 같은 장비 첫 개는 키 = 장비 이름(예전 세이브 그대로),
+// 둘째부터 '이름#xxxx'. ITEMS[키]는 원래 장비 정의를 돌려줌(data.js Proxy). 세이브 밖으로 나갈 땐 defOf로 이름만.
+const BAG_MAX = 300;
+const keysOf = (/** @type {SaveData} */ pd, id) => Object.keys(pd.inv || {}).filter(k => defOf(k) === id);
+const ownsDef = (/** @type {SaveData} */ pd, id) => keysOf(pd, id).length > 0;
+function newItemKey(/** @type {SaveData} */ pd, id) { if (!pd.inv[id]) return id; let k; do k = id + '#' + Math.random().toString(36).slice(2, 6); while (pd.inv[k]); return k; }
+/** 장비 1개 추가 → 키. 도감도 등록 */
+function addItem(/** @type {SaveData} */ pd, id, enh) {
+  const k = newItemKey(pd, id); pd.inv[k] = 1; pd.book = pd.book || {}; pd.book[id] = 1;
+  if (enh) { pd.enh = pd.enh || {}; pd.enh[k] = enh; } return k;
+}
+/** 장비 1개 없애기 (강화·레벨·재련 기록도 같이) */
+function dropItem(/** @type {SaveData} */ pd, k) { delete pd.inv[k]; for (const m of [pd.enh, pd.ilv, pd.iexp, pd.ref]) if (m) delete m[k]; }
+/** 같은 장비가 또 나오면 보관할지 (pd.keepDup = 이 등급 이상 보관, 없으면 강화석) */
+const keepDupOf = (/** @type {SaveData} */ pd, it) => pd.keepDup != null && it.rar >= pd.keepDup && Object.keys(pd.inv).length < BAG_MAX;
 const ilvOf = id => ((G.pd && G.pd.ilv) || {})[id] || 0;
 const ilvMul = id => 1 + ILV_BONUS * ilvOf(id);
 function feedEquip(it) {
@@ -60,9 +76,11 @@ function feedEquip(it) {
   } else { pd.iexp[cur] = n; toast(`${it.name} → ${ci.name} 경험치 ${n}/${ILV_NEED}`, 'sub'); sfx('coin'); }
   return true;
 }
+/** 실제 착용 장비 이름 (개별 키 → 장비 이름) */
+function visEqRaw(/** @type {SaveData} */ pd) { const e = /** @type {Record<HeroSlot, ItemId>} */ ({}); for (const sl of SLOTS) e[sl] = defOf(pd.eq[sl]); return e; }
 /** 화면에 보이는 장비 (꾸미기로 바꾼 겉모습 반영. 도감에 있고 색이 있는 장비만) */
 function visEq(pd) {
-  const e = Object.assign({}, pd.eq), L = pd.look || {}, b = pd.book || {};
+  const e = visEqRaw(pd), L = pd.look || {}, b = pd.book || {};
   for (const sl of LOOK_SLOTS) { const id = L[sl], it = id && ITEMS[id]; if (it && it.slot === sl && !it.bori && it.color && b[id]) e[sl] = id; }
   return e;
 }
@@ -86,7 +104,7 @@ function hairOk(pd, h) {
 /** 도감 상태 (보유·착용 중인 장비는 자동 등록) */
 function bookStats(pd) {
   const b = pd.book = pd.book || {};
-  for (const id in pd.inv) if (ITEMS[id] && !ITEMS[id].start) b[id] = 1;
+  for (const k in pd.inv) if (ITEMS[k] && !ITEMS[k].start) b[defOf(k)] = 1;
   const n = BOOK_ALL.filter(id => b[id]).length, done = {};
   for (const s of BOOK_SETS) done[s.k] = bookIds(s).every(id => b[id]);
   return { n, done };
@@ -614,11 +632,12 @@ function pickup(d) {
   if (d.kind === 'gold') { pd.gold += d.amt; addText(P.x, P.y - 28, '+' + d.amt + 'G', 'gold'); sfx('coin'); }
   else if (d.kind === 'food') { pd.foods[d.id] = (pd.foods[d.id] || 0) + 1; addText(P.x, P.y - 30, '+' + FOODS[d.id].name, 'food'); sfx('ding'); if (PREMIUM.includes(d.id)) toast(`${FOODS[d.id].name} 획득! 최고급 보양식`, 'lvl'); }
   else if (d.kind === 'item') {
-    const it = ITEMS[d.id];
-    const fed = feedEquip(it), isNewBook = !(pd.book || {})[d.id];
-    if (pd.inv[d.id]) { if (fed) return; const s = dupStones(d.id); pd.stones = (pd.stones || 0) + s; toast(s ? `${it.name} (중복) → 강화석 ${s}개` : `${it.name} (중복) → 강화석은 꽝...`, 'sub'); if (s) sfx('coin'); }
-    else if (it.bori) { pd.inv[d.id] = 1; if (!pd.beq[it.slot]) { pd.beq[it.slot] = d.id; calcStats(); toast(`${it.name} 획득! 보리가 바로 ${it.slot === 'btoy' ? '물었어요' : '입었어요'}`, 'item r' + it.rar); if (G.bori) bubble(G.bori, '멍멍! (신남)', 1.4); } else { pd.newBori = true; toast(`보리 장비 획득: ${it.name}! (메뉴 → 보리)`, 'item r' + it.rar); } sfx('ding'); }
-    else { pd.inv[d.id] = 1; pd.newItem = true; toast(`새 장비 획득: ${it.name}! (메뉴 → 장비)`, 'item r' + it.rar); sfx('ding'); }
+    const it = ITEMS[d.id], own = ownsDef(pd, d.id), keep = own && keepDupOf(pd, it);
+    const fed = !keep && feedEquip(it), isNewBook = !(pd.book || {})[d.id];
+    if (keep) { addItem(pd, d.id); if (it.bori) pd.newBori = true; else pd.newItem = true; toast(`${it.name} (중복) → 가방에 보관 (메뉴 → ${it.bori ? '보리' : '장비'})`, 'item r' + it.rar); sfx('ding'); }
+    else if (own) { if (fed) return; const s = dupStones(d.id); pd.stones = (pd.stones || 0) + s; toast(s ? `${it.name} (중복) → 강화석 ${s}개` : `${it.name} (중복) → 강화석은 꽝...`, 'sub'); if (s) sfx('coin'); }
+    else if (it.bori) { const k = addItem(pd, d.id); if (!pd.beq[it.slot]) { pd.beq[it.slot] = k; calcStats(); toast(`${it.name} 획득! 보리가 바로 ${it.slot === 'btoy' ? '물었어요' : '입었어요'}`, 'item r' + it.rar); if (G.bori) bubble(G.bori, '멍멍! (신남)', 1.4); } else { pd.newBori = true; toast(`보리 장비 획득: ${it.name}! (메뉴 → 보리)`, 'item r' + it.rar); } sfx('ding'); }
+    else { addItem(pd, d.id); pd.newItem = true; toast(`새 장비 획득: ${it.name}! (메뉴 → 장비)`, 'item r' + it.rar); sfx('ding'); }
     if (isNewBook) bookNotify(d.id);
   }
 }
@@ -656,7 +675,7 @@ const DUP_YIELD = [0.5, 1.5, 4, 10, 25, 60];
 const dupStones = id => { const v = DUP_YIELD[ITEMS[id].rar] || 1, w = Math.floor(v); return w + (Math.random() < v - w ? 1 : 0); };
 const stoneYield = id => STONE_YIELD[ITEMS[id].rar] || 1;
 function canDismantle(id) { const it = ITEMS[id], pd = G.pd; return !!(it && !it.start && pd.inv[id] && pd.eq[it.slot] !== id && (pd.beq || {})[it.slot] !== id && !((pd.enh || {})[id] > 0) && !ilvOf(id) && !((pd.iexp || {})[id] > 0)); }
-function dismantle(ids) { let s = 0, n = 0; for (const id of ids) { if (!canDismantle(id)) continue; s += stoneYield(id); n++; delete G.pd.inv[id]; } G.pd.stones = (G.pd.stones || 0) + s; return { n, s }; }
+function dismantle(ids) { let s = 0, n = 0; for (const id of ids) { if (!canDismantle(id)) continue; s += stoneYield(id); n++; dropItem(G.pd, id); } G.pd.stones = (G.pd.stones || 0) + s; return { n, s }; }
 function enhOdds(lv, useStone) { let p = ENH_P[lv], dn = ENH_DOWN[lv], ds = ENH_DEST[lv]; if (useStone) { const add = Math.min(0.1, 1 - p); p += add; const take = Math.min(add, dn); dn -= take; } return { p, dn, ds, protect: !!useStone }; }
 const enhTarget = slot => BSLOTS.includes(slot) ? (G.pd.beq || {})[slot] : G.pd.eq[slot || 'weapon'];
 function tryEnhance(useStone, slot) {

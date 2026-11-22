@@ -19,8 +19,10 @@ const RARITY = ['일반', '희귀', '영웅', '전설', '신화', '초월'];
 const SLOTS = ['weapon', 'hat', 'armor', 'shoes', 'bag'];
 const BSLOTS = ['bcloth', 'btoy'];
 const SLOTNAME = { weapon: '무기', hat: '모자', armor: '옷', shoes: '신발', bag: '가방', bcloth: '보리 옷', btoy: '장난감' };
+/** 개별 장비 키 → 장비 이름. 같은 장비 첫 개는 이름 그대로('starstick'), 둘째부터 'starstick#a1b2' */
+const defOf = (/** @type {any} */ k) => k ? String(k).split('#')[0] : k;
 /** @type {Record<ItemId, ItemDef>} */
-const ITEMS = {
+const ITEM_DEFS = {
   fist:       { slot: 'weapon', name: '맨주먹',       rar: 0, atk: 0,  icon: 'fist',       start: 1, w: { reach: 15, arc: 110, mul: 1, rate: 3.0, kb: 40, style: 'punch' }, desc: '작고 소중한 희수의 주먹' },
   churros:    { slot: 'weapon', name: '츄러스',       rar: 0, atk: 5,  icon: 'churros',    tier: 1, price: 160,  w: { reach: 20, arc: 120, mul: 1, rate: 2.7, kb: 50, style: 'swing' }, desc: '설탕 듬뿍 츄러스. 먹으면 안 됨' },
   selfie:     { slot: 'weapon', name: '셀카봉',       rar: 1, atk: 10, icon: 'selfie',     tier: 2, price: 520,  w: { reach: 28, arc: 60,  mul: 1, rate: 2.5, kb: 50, style: 'poke' }, desc: '길어서 멀리 찌른다' },
@@ -99,6 +101,11 @@ const ITEMS = {
   b_cheer:  { slot: 'bcloth', bori: 1, name: '보리 응원 조끼', rar: 4, bdmg: 0.75, color: '#3a5ab0', pat: 'pad', icon: 'bpad', tier: 6, bossOnly: 1, ch: 3, desc: '보리도 오늘은 열혈 팬' },
   toy_ball: { slot: 'btoy', bori: 1, name: '보리 야구공 장난감', rar: 4, bdmg: 0.85, icon: 'ball', tier: 6, bossOnly: 1, ch: 3, desc: '끝내기 홈런볼(이라고 오빠가 우김)' }
 };
+/** 장비 정의표. 개별 키('starstick#a1b2')로 찾아도 원래 장비 정의가 나옴 → 착용·강화·재련 코드는 키 그대로 씀 */
+const ITEMS = /** @type {Record<ItemId, ItemDef>} */ (new Proxy(ITEM_DEFS, {
+  get: (t, k) => typeof k === 'string' && !(k in t) && k.includes('#') ? t[defOf(k)] : t[/** @type {any} */ (k)],
+  has: (t, k) => typeof k === 'string' && (k in t || (k.includes('#') && defOf(k) in t)),
+}));
 
 const SKILLS = {
   fist:    { who: 'h', name: '주먹 단련',   icon: 'fist',      type: 'passive', max: 5, req: 1, desc: l => `기본 공격 피해 +${10 * l}%, 공격 속도 +${3 * l}%` },

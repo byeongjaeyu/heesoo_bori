@@ -64,11 +64,10 @@ function pack2Open() {
 }
 function pack2Claim() {
   const pd = loadGame(); if (!pd || pack2Left(pd) <= 0) { $('#pack').hidden = true; showTitle(); return; }
-  const id = PACK2.weapon, it = ITEMS[id]; pd.inv[id] = 1; pd.book = pd.book || {}; pd.book[id] = 1; pd.enh = pd.enh || {};
-  pd.enh[id] = Math.max(pd.enh[id] || 0, PACK2.enh);
-  const cur = ITEMS[pd.eq.weapon]; if (!cur || (cur.atk || 0) < it.atk) pd.eq.weapon = id; else pd.newItem = true;
+  const id = PACK2.weapon, it = ITEMS[id], k = addItem(pd, id, PACK2.enh); // 이미 있어도 +10 하나 더 (개별 장비)
+  const cur = ITEMS[pd.eq.weapon]; if (!cur || (cur.atk || 0) < it.atk) pd.eq.weapon = k; else pd.newItem = true;
   pd.stones = (pd.stones || 0) + PACK2.stones; pd.gold += PACK2.gold;
   pd.pack2 = Object.assign({}, pd.pack2, { got: Date.now() });
   G.pd = pd; saveGame(); sfx('lvl');
-  $('#packBody').innerHTML = `<div class="sgot"><div class="sbig">${PXI('gift')}</div><h2>성장 패키지<br><em>받았어요!</em></h2>${pack2ItemsHtml()}<p class="smsub">${pd.eq.weapon === id ? '무기는 바로 착용했어요!' : '무기는 메뉴 「장비」에 있어요'}</p></div>`;
+  $('#packBody').innerHTML = `<div class="sgot"><div class="sbig">${PXI('gift')}</div><h2>성장 패키지<br><em>받았어요!</em></h2>${pack2ItemsHtml()}<p class="smsub">${defOf(pd.eq.weapon) === id ? '무기는 바로 착용했어요!' : '무기는 메뉴 「장비」에 있어요'}</p></div>`;
 }

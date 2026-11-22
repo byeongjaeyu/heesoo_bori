@@ -92,9 +92,9 @@ function giftItems(pd, r) {
   const ids = Object.keys(ITEMS).filter(id => { const it = ITEMS[id]; return it.rar === r && it.tier && !it.bossOnly; });
   pd.book = pd.book || {}; pd.beq = pd.beq || { bcloth: null, btoy: null };
   for (const id of ids) {
-    const it = ITEMS[id]; pd.inv[id] = Math.max(1, pd.inv[id] || 0); pd.book[id] = 1;
+    const it = ITEMS[id], k = keysOf(pd, id)[0] || addItem(pd, id); pd.book[id] = 1;
     const cur = ITEMS[it.bori ? pd.beq[it.slot] : pd.eq[it.slot]];
-    if (!cur || (cur.rar || 0) < r) { if (it.bori) pd.beq[it.slot] = id; else pd.eq[it.slot] = id; }
+    if (!cur || (cur.rar || 0) < r) { if (it.bori) pd.beq[it.slot] = k; else pd.eq[it.slot] = k; }
   }
   return ids;
 }
