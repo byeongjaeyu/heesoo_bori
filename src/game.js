@@ -1,6 +1,6 @@
 // ===================== GAME CORE =====================
 const G = {
-  state: 'title', zone: 0, world: null, time: 0, pd: /** @type {SaveData|null} */ (null), raid: /** @type {any} */ (null), tower: /** @type {any} */ (null), flashT: 0, buddy: /** @type {any} */ (null), st: null, P: null, bori: null,
+  state: 'title', zone: 0, world: null, time: 0, pd: /** @type {SaveData|null} */ (null), raid: /** @type {any} */ (null), tower: /** @type {any} */ (null), plaza: /** @type {any} */ (null), flashT: 0, buddy: /** @type {any} */ (null), st: null, P: null, bori: null,
   enemies: [], projs: [], fx: [], drops: [], parts: [], texts: [], bubbles: [],
   cam: { x: 0, y: 0 }, shake: 0, hitstop: 0, flash: 0,
   zoneKills: 0, bossSpawned: false, bossDefeated: false, boss: null, exitOpen: false, spawnT: 1, eid: 0,
@@ -893,7 +893,7 @@ function update(dt) {
   if (!frozen) {
     updateBori(dt);
     for (const e of G.enemies) updateEnemy(e, dt);
-    separateEnemies(); updateProjs(dt); if (G.pvp) pvpUpdate(dt); else if (G.raid) raidUpdate(dt); else if (G.tower) towerUpdate(dt); else if (G.inf) infSpawner(dt); else updateSpawner(dt);
+    separateEnemies(); updateProjs(dt); if (G.pvp) pvpUpdate(dt); else if (G.raid) raidUpdate(dt); else if (G.tower) towerUpdate(dt); else if (G.plaza) plazaUpdate(dt); else if (G.inf) infSpawner(dt); else updateSpawner(dt);
   }
   G.enemies = G.enemies.filter(e => !e.gone);
   updateDrops(dt); updateFx(dt);

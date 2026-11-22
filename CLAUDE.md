@@ -82,6 +82,11 @@
 - 주간 PvP 시즌 (보상표는 DB hb_season_rollover 와 src/rank.js SEASON_REWARDS 를 같이 바꿀 것): 월요일 0시(KST) `hb_season_rollover()` 정산 (pg_cron + 랭킹/PvP 열 때 `hb_season_info()`가 필요 시 정산). 보상은 선물함(note에 '시즌' → 🏆 문구). 지난 기록 `hb_season_results`.
 - 월드 보스 레이드(`src/raid.js`, 보상표는 DB `hb_raid_settle` 와 `RAID_REWARDS` 를 같이): 주간 보스 HP를 모두가 깎음, 60초 도전 하루 3회(`hb_raid_start` 입장 시 차감), 피해는 `dealDamage`→`raidHit` 집계 후 `hb_raid_report`(상한 전투력×250+5만). 보스는 전투 중 안 죽음, 처치 후에도 피해량 경쟁 계속. 보스 공격은 내 최대 HP 약 3.5%/타.
 - 친구 희수 데려가기(`src/buddy.js`): HUD 「동료」 → `hb_fighters` played 목록에서 고르면 `hb_borrow_friend(p_friend)` RPC (하루 1번 KST, `hb_borrows`). 동료는 친구 snap 공격의 50%로 15분(플레이 중에만 차감) 같이 싸우고 죽지 않음. 스테이지·할로윈·레이드 OK, PvP 제외. 세이브 `pd.buddy`. 빌려준 사람은 선물함으로 강화석 3 (하루 10번까지, note '데려갔어요' → 🤝 알림).
+- **온라인 광장**(`src/plaza.js`): 로비 「모험 계속하기」 왼쪽 `#tPlaza` → `plazaOpen`(랭킹에 닉네임 등록된 희수만) → 1장 정문 광장 맵(`buildWorld(0)`, 몬스터·출구 없음, `G.plaza`, body `.inPlaza`로 전투 버튼 숨김). Supabase Realtime 비공개 채널 `plaza-1`(`private: true`): Presence = 닉네임·Lv·★·칭호·꾸미기·위치(20초마다 다시 track), Broadcast `mv`(움직일 때 0.33초마다) · `chat`. 다른 희수는 `drawRival`로 그림·보간 이동.
+  - 서버 권한: `realtime.messages` 정책 `hb_plaza_read`/`hb_plaza_write` → `hb_plaza_ok()`(hb_fighters에 있고 hidden 아님 + `hb_plaza_bans`에 없음). **광장에서 내보내기**: `insert into hb_plaza_bans(user_id, reason) select user_id, '사유' from hb_fighters where nickname = '닉네임';` · 신고 보기: `select * from hb_plaza_reports order by at desc;`
+  - 채팅: 자유 채팅 60자, `plazaClean` 욕설 필터(글자 사이 기호·띄어쓰기도), 1.2초 간격·같은 말 반복 막기, 말풍선 6초(12자씩 3줄), 채팅 기록 최근 30줄. 접속자 목록에서 차단(내 기기 localStorage `hb_plaza_block`)·신고(`hb_plaza_report` RPC, 1시간 10건).
+  - 무료 플랜 Realtime 한도: 동시 접속 200·초당 메시지 100·월 200만 → 사람이 많아지면 채널을 `plaza-2`… 로 나눌 것.
+  - e2e 가짜 SB에 `channel()`이 있음(`__chan.emit('presence'|'broadcast', event, payload)`, 보낸 메시지 `__sent`).
 - **선물 주기** (유저가 다음 접속 때 자동 수령):
   ```sql
   insert into public.hb_grants (user_id, kind, amount, note)

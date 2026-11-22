@@ -37,8 +37,18 @@ export const MOCK_SB = `(() => {
       top: [{ rank: 1, nickname: '원조희수', rating: 1100, wins: 5, losses: 1 }, { rank: 2, nickname: '보리언니', rating: 1050, wins: 3, losses: 2 }], mine: { rank: 2, rating: 1050, reward: '강화석 100 · 200만G · 자동사냥 2시간' } }, error: null };
     if (name === 'hb_make_transfer_code') return { data: [{ code: 'ABCD2345', expires_at: new Date(Date.now() + 600000).toISOString() }], error: null };
     return { data: null, error: null }; };
-  SB = { from: q, rpc }; PV.uid = 'u-me';
-  sbInit = async () => { SB = { from: q, rpc }; PV.uid = 'u-me'; };
+  // 가짜 Realtime 채널: 테스트가 __chan.emit('broadcast'|'presence', event, payload) 로 다른 희수를 흉내냄
+  window.__sent = [];
+  const channel = (name) => { const hs = []; const ch = window.__chan = {
+    name, pres: {}, on(type, filt, cb) { hs.push({ type, ev: filt.event, cb }); return ch; },
+    subscribe(cb) { setTimeout(() => cb('SUBSCRIBED'), 10); return ch; },
+    async track(m) { ch.pres['u-me'] = [m]; ch.emit('presence', 'sync'); return 'ok'; }, async untrack() { return 'ok'; },
+    async send(msg) { __sent.push(msg); return 'ok'; }, presenceState() { return ch.pres; },
+    emit(type, ev, payload) { for (const h of hs) if (h.type === type && h.ev === ev) h.cb(type === 'broadcast' ? { payload } : (payload || {})); } };
+    return ch; };
+  const mk = () => ({ from: q, rpc, channel, removeChannel() { } });
+  SB = mk(); PV.uid = 'u-me';
+  sbInit = async () => { SB = mk(); PV.uid = 'u-me'; };
 })()`;
 
 export const test = base.extend({

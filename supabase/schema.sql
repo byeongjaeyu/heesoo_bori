@@ -188,3 +188,24 @@ revoke all on public.hb_transfer_codes, public.hb_transfer_tries from anon, auth
 -- hb_borrows(day text KST, user_id, friend_id, at) pk(day,user_id), RLS on, 직접 접근 없음
 -- hb_borrow_friend(p_friend uuid) security definer: 등록자만, 자기/숨김/미플레이 불가, 하루 1번,
 --   빌려준 사람에게 hb_grants stones 3 '○○님이 내 희수를 데려갔어요' (하루 10번까지). 반환 {ok, nickname, snap, power}
+
+-- ===== 온라인 광장 (2026-11-22) =====
+-- 비공개 Realtime 채널 'plaza-*' (클라이언트 src/plaza.js). 운영자 차단: insert into hb_plaza_bans(user_id, reason) ...
+create table if not exists public.hb_plaza_bans (user_id uuid primary key, reason text, at timestamptz not null default now());
+alter table public.hb_plaza_bans enable row level security;
+create table if not exists public.hb_plaza_reports (id bigserial primary key, reporter uuid not null, target uuid, target_nick text, msgs text, at timestamptz not null default now());
+alter table public.hb_plaza_reports enable row level security;
+create or replace function public.hb_plaza_ok() returns boolean language sql stable security definer set search_path = public as $$
+  select exists (select 1 from hb_fighters f where f.user_id = auth.uid() and not f.hidden)
+     and not exists (select 1 from hb_plaza_bans b where b.user_id = auth.uid()); $$;
+grant execute on function public.hb_plaza_ok() to authenticated;
+create or replace function public.hb_plaza_report(p_target uuid, p_nick text, p_msgs text) returns boolean language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then return false; end if;
+  if (select count(*) from hb_plaza_reports where reporter = auth.uid() and at > now() - interval '1 hour') >= 10 then return false; end if;
+  insert into hb_plaza_reports(reporter, target, target_nick, msgs) values (auth.uid(), p_target, left(p_nick, 40), left(p_msgs, 2000));
+  return true;
+end $$;
+grant execute on function public.hb_plaza_report(uuid, text, text) to authenticated;
+create policy hb_plaza_read on realtime.messages for select to authenticated using (realtime.topic() like 'plaza-%' and public.hb_plaza_ok());
+create policy hb_plaza_write on realtime.messages for insert to authenticated with check (realtime.topic() like 'plaza-%' and public.hb_plaza_ok());

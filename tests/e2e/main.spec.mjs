@@ -511,3 +511,48 @@ test('성장 패키지: 1장 클리어 후 로비 타일 → 무료로 받기 �
   await page.click('#packX');
   await expect(page.locator('#tPack2')).toHaveCount(0);
 });
+
+test('광장: 등록된 희수만 입장 → 다른 희수 접속·이동·채팅 보임, 욕설 필터, 차단하면 안 보임, 나가면 로비', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 20, cleared: 2 });
+  await page.evaluate(MOCK_SB);
+  // 1) 닉네임 등록 전엔 못 들어감
+  await page.click('#tPlaza');
+  await page.waitForTimeout(1000); expect(await page.evaluate(() => !!G.plaza)).toBe(false);
+  // 2) 등록 후 입장
+  await page.evaluate(() => { __rows.push({ user_id: 'u-me', nickname: '나', snap: { lv: 20 }, power: 900, rating: 1000, wins: 0, losses: 0 }); PV.me = null; });
+  await page.click('#tPlaza');
+  await page.waitForFunction(() => G.plaza && G.plaza.ok && G.state === 'play', null, { timeout: 8000 });
+  await expect(page.locator('#plazaUI')).toBeVisible();
+  await expect(page.locator('#ctrl')).toBeHidden();
+  // 다른 희수 접속
+  await page.evaluate(() => { __chan.pres['u-a'] = [{ u: 'u-a', n: '친구희수', lv: 33, aw: 0, ttl: null, vis: newPD().eq, hair: null, b: true, x: 300, y: 500 }]; __chan.emit('presence', 'sync'); });
+  expect(await page.evaluate(() => plazaList().map(o => o.nick))).toEqual(['친구희수']);
+  await expect(page.locator('#plazaPeople')).toHaveText('접속 2');
+  // 이동
+  await page.evaluate(() => __chan.emit('broadcast', 'mv', { u: 'u-a', x: 320, y: 480, a: 0 }));
+  await page.waitForTimeout(800);
+  expect(await page.evaluate(() => { const o = G.plaza.others['u-a']; return Math.round(o.x) === 320 && Math.round(o.y) === 480; })).toBe(true);
+  // 채팅 받기 (욕설 필터)
+  await page.evaluate(() => __chan.emit('broadcast', 'chat', { u: 'u-a', n: '친구희수', t: '안녕 씨 발' }));
+  await expect(page.locator('#plazaLog')).toContainText('친구희수');
+  await expect(page.locator('#plazaLog')).not.toContainText('씨 발');
+  // 채팅 보내기
+  await page.fill('#plazaIn', '반가워요!'); await page.click('#plazaSend');
+  expect(await page.evaluate(() => __sent.filter(m => m.event === 'chat').map(m => m.payload.t))).toEqual(['반가워요!']);
+  await expect(page.locator('#plazaLog')).toContainText('반가워요!');
+  // 도배 방지: 바로 또 보내면 막힘
+  await page.fill('#plazaIn', '또'); await page.click('#plazaSend');
+  expect(await page.evaluate(() => __sent.filter(m => m.event === 'chat').length)).toBe(1);
+  // 차단
+  await page.click('#plazaPeople'); await page.click('[data-pz="blk"][data-u="u-a"]');
+  expect(await page.evaluate(() => plazaList().length)).toBe(0);
+  await page.click('#plazaListX');
+  // 이동 중이면 위치를 보냄
+  await page.evaluate(() => { G.P.x += 40; }); await page.waitForTimeout(500);
+  expect(await page.evaluate(() => __sent.some(m => m.event === 'mv'))).toBe(true);
+  // 나가기
+  await page.click('#plazaExit');
+  await expect(page.locator('#tCont')).toBeVisible();
+  expect(await page.evaluate(() => [!!G.plaza, document.body.classList.contains('inPlaza')])).toEqual([false, false]);
+  await page.evaluate(() => localStorage.removeItem('hb_plaza_block'));
+});

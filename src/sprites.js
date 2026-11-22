@@ -893,6 +893,7 @@ Object.assign(MONSPR, {
   flag: ['KK..........', 'KdKKKKKKKKK.', 'KdKNNNNNNNNK', 'KdKNENNNENNK', 'KdKNNNNNNNNK', 'KdKeeeeeeeeK', 'KdKNNMMNNNNK', 'KdKKKKKKKKK.', 'KdK.........', 'KdK.........', 'KdK.........', 'KdK.........', 'KKK.........'],
   cloud: ['....KKKKK.......', '..KKjjjjjKKKK...', '.KjjJJjjjjjjjKK.', 'KjjJJjjjjjjjjjjK', 'KjjjjEjjjjEjjjjK', 'KjjjjjjMMjjjjjjK', '.KjjjjjjjjjjjjK.', '..KKKKKKKKKKKK..', '...U...U...U....', '..U...U...U.....']
 });
+ICONS.chat = ['.KKKKKKKKK..', 'KLLLLLLLLLK.', 'KLKLLKLLKLK.', 'KLLLLLLLLLK.', 'KLLLLLLLLLK.', '.KKKLLKKKKK.', '...KLK......', '...KK.......'];
 ICONS.tower = ['....KRRR...', '....KRR....', '....K......', '.KKKKKKKKK.', '.KCKCKCKCK.', '.KCCCCCCCK.', '.KCcCCCcCK.', '.KCCCCCCCK.', '.KCCKKKCCK.', '.KCKAAAKCK.', '.KcKAAAKcK.', 'KKKKKKKKKKK'];
 ICONS.bat = ['..........KK', '.........KDK', '........KDDK', '.......KDDK.', '......KDDK..', '.....KDDK...', '....KDDK....', '...KDDK.....', '..KdK.......', '.KdK........', 'KKK.........'];
 ICONS.ball = ['..KKKKK..', '.KeeReeK.', 'KeReeeReK', 'KeReeeReK', 'KeeReReeK', 'KeReeeReK', 'KeReeeReK', '.KeeReeK.', '..KKKKK..'];

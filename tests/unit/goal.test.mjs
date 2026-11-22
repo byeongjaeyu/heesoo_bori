@@ -63,3 +63,17 @@ describe('성장 속도 · 성장 패키지', () => {
     const p2 = fresh({ lv: 12, cleared: 0, pack: { seen: Date.now() } }); expect(g.pack2Left(p2)).toBe(0); // 첫 패키지 진행 중
   });
 });
+
+describe('광장 채팅', () => {
+  test('욕설 필터: 글자 사이 띄어쓰기·기호도 걸림, 60자 제한', () => {
+    expect(g.plazaClean('안녕 씨발')).toBe('안녕 ♡♡');
+    expect(g.plazaClean('ㅅ ㅂ 진짜')).not.toContain('ㅅ ㅂ');
+    expect(g.plazaClean('시.발')).toBe('♡♡♡');
+    expect(g.plazaClean('반가워요')).toBe('반가워요');
+    expect([...g.plazaClean('가'.repeat(100))].length).toBe(60);
+  });
+  test('말풍선 줄바꿈: 12자씩 최대 3줄', () => {
+    expect(g.plazaWrap('가'.repeat(30), 12)).toHaveLength(3);
+    expect(g.plazaWrap('가'.repeat(50), 12)[2].endsWith('…')).toBe(true);
+  });
+});
