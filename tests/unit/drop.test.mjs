@@ -37,4 +37,11 @@ describe('강화석 수입', () => {
     expect(at(10)[0]).toBe(10); expect(at(11)[0]).toBe(10.75); expect(at(50)[0]).toBe(40);
     expect(at(50)[1].hp).toBeGreaterThan(at(20)[1].hp); expect(at(50)[1].item).toBe(at(10)[1].item);
   });
+  test('고회차 가속: 30단계까지는 그대로, 넘으면 체력 ×1.05·공격 ×1.03·골드 ×1.02씩 더 (풀강도 약 60회차에서 막힘)', () => {
+    const at = cl => { g.G.zone = 0; fresh({ cleared: cl }); return g.loopMul(); };
+    const a = at(36); expect(a.L).toBe(29.5); expect(a.hp).toBeCloseTo(1 + 1.3 * 29.5); expect(a.atk).toBeCloseTo(30.5);
+    const b = at(50); expect(b.L).toBe(40);
+    expect(b.hp).toBeCloseTo((1 + 1.3 * 40) * Math.pow(1.05, 10)); expect(b.atk).toBeCloseTo(41 * Math.pow(1.03, 10));
+    expect(b.gold).toBeCloseTo((1 + 0.4 * 40) * Math.pow(1.02, 10)); expect(b.xp).toBeCloseTo(1 + 0.2 * 40);
+  });
 });

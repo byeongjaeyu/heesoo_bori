@@ -317,7 +317,10 @@ const LOOP_AFTER = 0.75;
 function loopLv() { return G.pvp ? 0 : G.inf ? G.inf.loop : G.tower ? G.tower.L : G.pd ? zoneL(G.pd, G.zone || 0) : 0; }
 const FIRST_BOSS = { hp: 0.7, atk: 0.75 };
 const LM_HP = 1.3, LM_ATK = 1.0, LM_XP = 0.2, LM_GOLD = 0.4;
-function loopMul() { const L = loopLv(); return { L, hp: 1 + LM_HP * L, atk: 1 + LM_ATK * L, def: 3 * L, spd: Math.min(1.3, 1 + 0.05 * L), xp: 1 + LM_XP * L, gold: 1 + LM_GOLD * L, item: Math.min(1.6, 1 + 0.2 * L), cnt: Math.min(2, 1 + 0.25 * L), elite: Math.min(0.25, 0.07 * L), legend: Math.min(0.3, 0.08 * L) }; }
+/** 고회차 가속: 30단계(1장 약 37회차)부터 단계마다 체력 ×1.05·공격 ×1.03·골드 ×1.02씩 더 → 풀강 유저도 회차를 올리다 막힘 */
+const LM_FAST = 30, LM_FAST_HP = 0.05, LM_FAST_ATK = 0.03, LM_FAST_GOLD = 0.02;
+const lmFast = (L, r) => L > LM_FAST ? Math.pow(1 + r, L - LM_FAST) : 1;
+function loopMul() { const L = loopLv(); return { L, hp: (1 + LM_HP * L) * lmFast(L, LM_FAST_HP), atk: (1 + LM_ATK * L) * lmFast(L, LM_FAST_ATK), def: 3 * L, spd: Math.min(1.3, 1 + 0.05 * L), xp: 1 + LM_XP * L, gold: (1 + LM_GOLD * L) * lmFast(L, LM_FAST_GOLD), item: Math.min(1.6, 1 + 0.2 * L), cnt: Math.min(2, 1 + 0.25 * L), elite: Math.min(0.25, 0.07 * L), legend: Math.min(0.3, 0.08 * L) }; }
 const zoneQuota = Z => Math.round(Z.quota * loopMul().cnt);
 // 처치 1마리당 등급별 드롭 확률 (일반 몬스터 기준). 높은 등급부터 굴려서 하나만 떨어짐
 const DROP_RATE = [1 / 80, 1 / 250, 1 / 800, 1 / 2000, 1 / 5000, 1 / 12000];
