@@ -97,7 +97,7 @@
   insert into public.hb_grants (user_id, kind, amount, note)
   select user_id, 'gold', 1000000, '운영자 선물' from public.hb_fighters where nickname = '닉네임';
   ```
-  kind: `auto`(자동사냥 초) · `gold` · `stones`(강화석) · `stage`(누적 스테이지 번호, 회차당 4: 50회차 STAGE1 = 197) · `awaken`(목표 각성 단계).
+  kind: `auto`(자동사냥 초) · `gold` · `stones`(강화석) · `stage`(누적 스테이지 번호, 회차당 4: 50회차 STAGE1 = 197) · `awaken`(목표 각성 단계) · `level`(목표 레벨, 오른 만큼 스킬 포인트) · `items`(등급, 5 = 초월 장비 전 부위·보스 전용 제외, 더 높은 등급이면 자동 착용). level·items는 서버가 같은 종류를 합산하니 한 번에 1줄만 넣을 것.
   새 kind를 추가할 땐 `rank.js claimGifts`와 `p_kinds` 목록을 먼저 배포한 뒤 지급할 것 (구버전은 `auto`,`gold`만 수령).
 
 ## 하지 말 것

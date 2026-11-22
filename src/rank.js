@@ -87,10 +87,21 @@ async function entryRegister() {
   } catch (e) { }
 }
 
+/** 운영자 선물 'items': 해당 등급 장비 전 부위를 주고, 더 높은 등급이면 착용 */
+function giftItems(pd, r) {
+  const ids = Object.keys(ITEMS).filter(id => { const it = ITEMS[id]; return it.rar === r && it.tier && !it.bossOnly; });
+  pd.book = pd.book || {}; pd.beq = pd.beq || { bcloth: null, btoy: null };
+  for (const id of ids) {
+    const it = ITEMS[id]; pd.inv[id] = Math.max(1, pd.inv[id] || 0); pd.book[id] = 1;
+    const cur = ITEMS[it.bori ? pd.beq[it.slot] : pd.eq[it.slot]];
+    if (!cur || (cur.rar || 0) < r) { if (it.bori) pd.beq[it.slot] = id; else pd.eq[it.slot] = id; }
+  }
+  return ids;
+}
 // 운영자 선물(hb_grants) 받기: 서버에서 받은 표시를 남기고 세이브에 더함
 async function claimGifts(pd) {
   if (FORCE_EASY || !pd || !SB) return;
-  const { data, error } = await SB.rpc('hb_claim_grants', { p_kinds: ['auto', 'gold', 'stage', 'awaken', 'stones'] }); if (error || !data || !data.length) return;
+  const { data, error } = await SB.rpc('hb_claim_grants', { p_kinds: ['auto', 'gold', 'stage', 'awaken', 'stones', 'level', 'items'] }); if (error || !data || !data.length) return;
   const tgt = G.pd || pd; // 그 사이 게임을 시작했으면 실제 플레이 중인 세이브에 넣음
   const season = { rank: 0, items: /** @type {any[]} */ ([]) }, raid = { rank: 0, killed: false, items: /** @type {any[]} */ ([]) };
   for (const g of data) {
@@ -117,6 +128,14 @@ async function claimGifts(pd) {
       // amount = 목표 각성 단계. 올라간 만큼 각성 포인트도 지급
       const to = Number(g.amount) || 0, from = tgt.aw || 0;
       if (to > from) { tgt.aw = to; tgt.ap = (tgt.ap || 0) + (to - from); if ((tgt.lv || 1) < MAX_LV) { tgt.sp = (tgt.sp || 0) + (MAX_LV - tgt.lv); tgt.lv = MAX_LV; tgt.xp = 0; } toast(`${lead} 각성 ★${to} · 각성 포인트 +${to - from}`, 'lvl'); sfx('lvl'); }
+    } else if (g.kind === 'level') {
+      // amount = 목표 레벨 (최대 MAX_LV). 올라간 만큼 스킬 포인트도 지급
+      const to = Math.min(MAX_LV, Number(g.amount) || 0), from = tgt.lv || 1;
+      if (to > from) { tgt.lv = to; tgt.xp = 0; tgt.sp = (tgt.sp || 0) + (to - from); toast(`${lead} Lv${to} 달성 · 스킬 포인트 +${to - from}`, 'lvl'); sfx('lvl'); }
+    } else if (g.kind === 'items') {
+      // amount = 등급(5 = 초월). 그 등급 장비(보스 전용 제외) 전 부위 지급, 지금 것보다 높은 등급이면 착용
+      const r = Math.min(5, Number(g.amount) || 0), ids = giftItems(tgt, r);
+      if (ids.length) { toast(`${lead} ${RARITY[r]} 장비 ${ids.length}종 · 자동 착용`, 'lvl'); sfx('lvl'); }
     } else if (g.kind === 'stones') {
       const n = Number(g.amount) || 0; if (!n) continue;
       tgt.stones = (tgt.stones || 0) + n; toast(`${lead} 강화석 ${n}개`, 'lvl'); sfx('ding');

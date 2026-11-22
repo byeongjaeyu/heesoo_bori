@@ -56,6 +56,18 @@ test('선물함: 자동사냥·골드·회차·각성 수령', async ({ page }) 
   expect([d.autoBonus, d.gold, d.cleared, d.zone, d.aw, d.ap]).toEqual([3600, 1010, 2, 0, 5, 4]);
 });
 
+test('선물함: 목표 레벨·초월 장비 전 부위(자동 착용)', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 16, sp: 0, boriJoined: true });
+  await page.evaluate(MOCK_SB);
+  await page.evaluate(() => { __rows.push({ user_id: 'u-me', nickname: '나', snap: {}, power: 1 }); PV.notReg = false; PV.me = null;
+    __grants = [{ kind: 'level', amount: 50 }, { kind: 'items', amount: 5 }]; });
+  await page.evaluate(() => rankSync(true));
+  const d = await page.evaluate(() => JSON.parse(localStorage.getItem(SAVEKEY)));
+  expect([d.lv, d.sp, d.xp]).toEqual([50, 34, 0]);
+  expect(d.eq).toEqual({ weapon: 'starstick', hat: 'cap_tiara', armor: 'aurorapad', shoes: 'wingshoes', bag: 'aurorabag' });
+  expect(d.beq).toEqual({ bcloth: 'b_royal', btoy: 'toy_carp' }); expect(d.inv.starstick).toBe(1);
+});
+
 test('원터치 에디션: 큰 글씨 모드로 열림', async ({ page }) => {
   await page.goto(URL_ONETOUCH);
   await expect(page.locator('#title')).toBeVisible();
