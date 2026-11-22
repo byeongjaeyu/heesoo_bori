@@ -12,7 +12,7 @@ function packSeen(saved) {
   try { localStorage.setItem(SAVEKEY, JSON.stringify(saved)); } catch (e) { }
   if (G.pd && G.pd !== saved && G.pd.sid === saved.sid) G.pd.pack = Object.assign({}, saved.pack);
 }
-function packTileHtml(pd) { const ms = packLeft(pd); return ms > 0 ? `<button class="ticon tpack" id="tPack">${`<img src="${iconURL('px_gift', ICONS.gift)}" alt="">`}<small>뉴비 패키지</small><b class="tpt">${packLeftTxt(ms)}</b><em class="dot"></em></button>` : ''; }
+function packTileHtml(pd) { const ms = packLeft(pd); if (ms <= 0) return pack2TileHtml(pd); return ms > 0 ? `<button class="ticon tpack" id="tPack">${`<img src="${iconURL('px_gift', ICONS.gift)}" alt="">`}<small>뉴비 패키지</small><b class="tpt">${packLeftTxt(ms)}</b><em class="dot"></em></button>` : ''; }
 function packItemsHtml() {
   const hr = HAIRS.find(h => h.k === PACK.hair);
   return rewardCards([{ kind: 'auto', amount: PACK.auto }, { kind: 'stones', amount: PACK.stones }], true)
@@ -37,4 +37,38 @@ function packBoot() {
   if (FORCE_EASY) return;
   $('#packX').onclick = () => { $('#pack').hidden = true; showTitle(); };
   setInterval(() => { try { const b = $('#tPack'); if (b && G.state === 'title' && TITLE_PD) { const ms = packLeft(TITLE_PD); if (ms <= 0) b.remove(); else b.querySelector('.tpt').textContent = packLeftTxt(ms); } } catch (e) { } }, 30000);
+}
+
+// ===================== 성장 패키지 (뉴비 세트 2, 베타 기간 무료) =====================
+// 1장을 깨거나 Lv10이 되면(첫 패키지가 끝난 뒤) 48시간. 첫 벽(1장 4회차 보스 근처)을 넘게 도와주는 영웅 무기 +10 · 강화석 · 골드
+const PACK2_MS = 48 * 3600 * 1000, PACK2 = { weapon: 'lightstick', enh: 10, stones: 500, gold: 300000, price: '₩3,300' };
+const pack2Open_ = pd => !!pd && (pd.lv >= 10 || (pd.cleared || 0) >= 1) && packLeft(pd) <= 0;
+const pack2Left = pd => { if (FORCE_EASY || !pack2Open_(pd)) return 0; const p = pd.pack2 || {}; if (p.got) return 0; if (!p.seen) return PACK2_MS; return Math.max(0, p.seen + PACK2_MS - Date.now()); };
+function pack2Seen(saved) {
+  if (FORCE_EASY || !pack2Open_(saved) || (saved.pack2 && saved.pack2.seen)) return;
+  saved.pack2 = Object.assign({}, saved.pack2, { seen: Date.now() });
+  try { localStorage.setItem(SAVEKEY, JSON.stringify(saved)); } catch (e) { }
+  if (G.pd && G.pd !== saved && G.pd.sid === saved.sid) G.pd.pack2 = Object.assign({}, saved.pack2);
+}
+function pack2TileHtml(pd) { const ms = pack2Left(pd); return ms > 0 ? `<button class="ticon tpack" id="tPack2"><img src="${iconURL('px_gift', ICONS.gift)}" alt=""><small>성장 패키지</small><b class="tpt">${packLeftTxt(ms)}</b><em class="dot"></em></button>` : ''; }
+function pack2ItemsHtml() {
+  const it = ITEMS[PACK2.weapon];
+  return `<div class="rwcs big pkx"><div class="rwc"><img src="${itemURL(PACK2.weapon)}" alt=""><b class="r${it.rar}">${it.name} +${PACK2.enh}</b><small>영웅 무기</small></div></div>`
+    + rewardCards([{ kind: 'stones', amount: PACK2.stones }, { kind: 'gold', amount: PACK2.gold }], true);
+}
+function pack2Open() {
+  const pd = loadGame(), ms = pack2Left(pd); if (!pd || ms <= 0) { showTitle(); return; }
+  $('#packBody').innerHTML = `<div class="sgot"><div class="sbig">${PXI('gift')}</div><h2>성장 패키지 <em>BETA</em></h2><p class="smsub">막히기 시작할 때 힘이 되는 48시간 한정 패키지<br>남은 시간 <b>${packLeftTxt(ms)}</b></p>${pack2ItemsHtml()}`
+    + `<div class="pkprice"><s>${PACK2.price}</s><b>베타 기간 무료!</b></div><button class="btn pk" id="packGo">무료로 받기</button></div>`;
+  $('#packGo').onclick = pack2Claim; $('#pack').hidden = false; sfx('select');
+}
+function pack2Claim() {
+  const pd = loadGame(); if (!pd || pack2Left(pd) <= 0) { $('#pack').hidden = true; showTitle(); return; }
+  const id = PACK2.weapon, it = ITEMS[id]; pd.inv[id] = 1; pd.book = pd.book || {}; pd.book[id] = 1; pd.enh = pd.enh || {};
+  pd.enh[id] = Math.max(pd.enh[id] || 0, PACK2.enh);
+  const cur = ITEMS[pd.eq.weapon]; if (!cur || (cur.atk || 0) < it.atk) pd.eq.weapon = id; else pd.newItem = true;
+  pd.stones = (pd.stones || 0) + PACK2.stones; pd.gold += PACK2.gold;
+  pd.pack2 = Object.assign({}, pd.pack2, { got: Date.now() });
+  G.pd = pd; saveGame(); sfx('lvl');
+  $('#packBody').innerHTML = `<div class="sgot"><div class="sbig">${PXI('gift')}</div><h2>성장 패키지<br><em>받았어요!</em></h2>${pack2ItemsHtml()}<p class="smsub">${pd.eq.weapon === id ? '무기는 바로 착용했어요!' : '무기는 메뉴 「장비」에 있어요'}</p></div>`;
 }

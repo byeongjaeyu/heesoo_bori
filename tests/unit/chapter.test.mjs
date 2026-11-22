@@ -7,10 +7,10 @@ describe('2장 (유료 바다낚시터)', () => {
     expect(g.ch2Open(fresh({ lv: 29, cleared: 3 }))).toBe(false);
     expect(g.ch2Open(fresh({ lv: 30, cleared: 1 }))).toBe(true);
   });
-  test('난이도: 2장 1회차 = 1장 5회차 수준(4단계)에서 시작해 2장 회차마다 오름, 1장은 그대로', () => {
+  test('난이도: 2장 1회차 = 1장 10회차 수준(9단계)에서 시작해 2장 회차마다 오름, 1장은 그대로', () => {
     const pd = fresh({ lv: 30, cleared: 7 });
-    expect(g.zoneL(pd, 0)).toBe(7); expect(g.zoneL(pd, 4)).toBe(4);
-    pd.ch2 = { zone: 4, cleared: 2 }; expect(g.zoneL(pd, 6)).toBe(6);
+    expect(g.zoneL(pd, 0)).toBe(7); expect(g.zoneL(pd, 4)).toBe(9);
+    pd.ch2 = { zone: 4, cleared: 2 }; expect(g.zoneL(pd, 6)).toBe(11);
   });
   test('2장 마지막 스테이지는 대물탕 (유료 낚시터에 갯바위 없음)', () => {
     expect(g.ZONES[7].name).toBe('대물탕'); expect(g.ZONES[6].next).toBe('대물탕');
@@ -40,11 +40,11 @@ describe('3장 (사직 야구장)', () => {
     const pd = fresh({ lv: 49, cleared: 5 }); pd.ch2 = { zone: 4, cleared: 1 }; expect(g.ch3Open(pd)).toBe(false);
     pd.lv = 50; expect(g.ch3Open(pd)).toBe(true);
   });
-  test('난이도: 3장 1회차 = 1장 9회차 수준(8단계), 장별 진행도 따로', () => {
+  test('난이도: 3장 1회차 = 20단계(1장 약 15회차), 장별 진행도 따로', () => {
     const pd = fresh({ lv: 50, cleared: 20, zone: 1 }); pd.ch2 = { zone: 6, cleared: 3 };
-    expect(g.zoneL(pd, 8)).toBe(8);
+    expect(g.zoneL(pd, 8)).toBe(20);
     g.setCurZone(pd, 10); expect([pd.zone, pd.ch2.zone, pd.ch3.zone, pd.chap, g.curZone(pd)]).toEqual([1, 6, 10, 3, 10]);
-    pd.ch3.cleared = 2; expect(g.zoneL(pd, 11)).toBe(10);
+    pd.ch3.cleared = 2; expect(g.zoneL(pd, 11)).toBe(22);
   });
   test('응원 장비 7종은 3장 보스 확정 드롭 전용, 도감 세트는 낚시와 따로', () => {
     const park = g.bookIds(g.BOOK_SETS.find(s => s.k === 'park')), sea = g.bookIds(g.BOOK_SETS.find(s => s.k === 'sea'));

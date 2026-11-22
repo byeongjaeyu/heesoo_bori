@@ -312,9 +312,12 @@ function updateBori(dt) {
 // ---------- 회차 (NG+) ----------
 const LOOP_CAP = 10;
 /** 회차 → 난이도 단계. 11회차부터도 계속 오르되 증가폭은 절반 (예: 50회차 = 30단계) */
-const loopEff = cl => cl <= LOOP_CAP ? cl : LOOP_CAP + (cl - LOOP_CAP) * 0.5;
+const loopEff = cl => cl <= LOOP_CAP ? cl : LOOP_CAP + (cl - LOOP_CAP) * LOOP_AFTER;
+const LOOP_AFTER = 0.75;
 function loopLv() { return G.pvp ? 0 : G.inf ? G.inf.loop : G.tower ? G.tower.L : G.pd ? zoneL(G.pd, G.zone || 0) : 0; }
-function loopMul() { const L = loopLv(); return { L, hp: 1 + 0.6 * L, atk: 1 + 0.35 * L, def: 3 * L, spd: Math.min(1.3, 1 + 0.05 * L), xp: 1 + 0.5 * L, gold: 1 + 0.6 * L, item: Math.min(1.6, 1 + 0.2 * L), cnt: Math.min(2, 1 + 0.25 * L), elite: Math.min(0.25, 0.07 * L), legend: Math.min(0.3, 0.08 * L) }; }
+const FIRST_BOSS = { hp: 0.7, atk: 0.75 };
+const LM_HP = 1.3, LM_ATK = 1.0, LM_XP = 0.2, LM_GOLD = 0.4;
+function loopMul() { const L = loopLv(); return { L, hp: 1 + LM_HP * L, atk: 1 + LM_ATK * L, def: 3 * L, spd: Math.min(1.3, 1 + 0.05 * L), xp: 1 + LM_XP * L, gold: 1 + LM_GOLD * L, item: Math.min(1.6, 1 + 0.2 * L), cnt: Math.min(2, 1 + 0.25 * L), elite: Math.min(0.25, 0.07 * L), legend: Math.min(0.3, 0.08 * L) }; }
 const zoneQuota = Z => Math.round(Z.quota * loopMul().cnt);
 // 처치 1마리당 등급별 드롭 확률 (일반 몬스터 기준). 높은 등급부터 굴려서 하나만 떨어짐
 const DROP_RATE = [1 / 80, 1 / 250, 1 / 800, 1 / 2000, 1 / 5000, 1 / 12000];
@@ -748,6 +751,8 @@ function spawnBoss() {
   let x = W.W / 2, y = 290; if (Math.hypot(P.x - x, P.y - y) < 90) y = P.y > 400 ? P.y - 130 : P.y + 130;
   y = clamp(y, Math.max(120, (W.top || 34) + 70), W.H - 80);
   const b = spawnEnemy(Z.boss, x, y); b.spawnT = 1.3; G.boss = b;
+  // 처음 1장을 깨는 중(첫 회차)엔 보스를 조금 약하게 — 처음 시작한 사람이 첫 보스에서 오래 막히지 않게
+  if (!G.inf && zoneCh(G.zone) === 1 && !(G.pd.cleared > 0)) { b.maxHp = Math.round(b.maxHp * FIRST_BOSS.hp); b.hp = b.maxHp; b.atk *= FIRST_BOSS.atk; }
   banner('BOSS', MONS[Z.boss].name + ' 출현!', 'boss'); sfx('boss'); playBgm('boss'); G.shake = 6;
   G.fx.push({ k: 'ring', x, y: y - 10, r: 50, col: '#ff4d6d', t: 0, dur: 0.9 });
   bubble(P, choice(['뭐야 저 거대한 건...!', '보스다! 정신 차리자', '저거 잡으면 나갈 수 있겠지?']), 1.8);

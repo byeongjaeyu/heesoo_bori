@@ -326,7 +326,7 @@ function showTitle() {
     $('#tSnd').onclick = () => { audioInit(); setSound(!SND.on); showTitle(); };
     playBgm('story'); return;
   }
-  if (saved) packSeen(saved);
+  if (saved) { packSeen(saved); pack2Seen(saved); }
   TITLE_PD = saved; const I = (k, ic) => `<img src="${iconURL('i_' + k, ICONS[ic || k])}" alt="">`;
   // 상단: 내 희수 정보 + 소리
   let prof = '';
@@ -354,6 +354,7 @@ function showTitle() {
       : `<button class="btn pk tstart" id="tNew"><span>▶ 모험 시작</span><small>에버랜드 대탈출 · 도트 액션 RPG</small></button>`);
   $('#tEp2').onclick = () => { audioInit(); e2Open(); };
   if ($('#tPack')) $('#tPack').onclick = () => { audioInit(); packOpen(); };
+  if ($('#tPack2')) $('#tPack2').onclick = () => { audioInit(); pack2Open(); };
   if ($('#tIdle')) $('#tIdle').onclick = () => { audioInit(); idleClaim(); };
   if ($('#tGoal')) $('#tGoal').onclick = () => { audioInit(); sfx('select'); msOpen(); };
   if ($('#tTower')) $('#tTower').onclick = () => { audioInit(); towerOpen(); };

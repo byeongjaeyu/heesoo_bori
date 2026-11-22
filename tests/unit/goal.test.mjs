@@ -47,3 +47,19 @@ describe('보스 타워', () => {
     expect(g.hairOk(pd, g.HAIRS.find(h => h.k === 'flame'))).toBe(true);
   });
 });
+
+describe('성장 속도 · 성장 패키지', () => {
+  test('레벨·각성 곡선이 느려짐 (Lv1→50 합계, 각성 단계당 비용)', () => {
+    let tot = 0; for (let l = 1; l < 50; l++) tot += g.xpNeed(l);
+    expect(tot).toBeGreaterThan(3e6);
+    expect(g.awkNeed(100)).toBe(Math.round(g.AWK_BASE * (1 + 0.25 * 100)));
+  });
+  test('성장 패키지: 1장 클리어(또는 Lv10) + 첫 패키지가 끝난 뒤에만, 48시간', () => {
+    const pd = fresh({ lv: 5, cleared: 0, pack: { seen: Date.now(), got: Date.now() } });
+    expect(g.pack2Left(pd)).toBe(0);
+    pd.cleared = 1; expect(g.pack2Left(pd)).toBe(48 * 3600 * 1000);
+    pd.pack2 = { seen: Date.now() - 47 * 3600 * 1000 }; expect(g.pack2Left(pd)).toBeGreaterThan(0);
+    pd.pack2 = { seen: Date.now() - 49 * 3600 * 1000 }; expect(g.pack2Left(pd)).toBe(0);
+    const p2 = fresh({ lv: 12, cleared: 0, pack: { seen: Date.now() } }); expect(g.pack2Left(p2)).toBe(0); // 첫 패키지 진행 중
+  });
+});

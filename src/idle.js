@@ -10,7 +10,7 @@ function idleCalc(pd, sec) {
   const z = curZone(pd), Z = ZONES[z], L = zoneL(pd, z);
   let w = 0, xp = 0, gold = 0; for (const [id, nn] of Z.mons) { const m = MONS[id], n = Number(nn); w += n; xp += m.xp * n; gold += (m.gold[0] + m.gold[1]) / 2 * n; }
   const kills = Math.floor(sec / 3600 * IDLE_KPH), goldMul = 1 + 0.15 * ((pd.skills || {}).shop || 0);
-  return { kills, xp: Math.round(kills * xp / w * (1 + 0.5 * L)), gold: Math.round(kills * gold / w * goldMul * (1 + 0.6 * L)), stones: Math.floor(kills * IDLE_STONE) };
+  return { kills, xp: Math.round(kills * xp / w * (1 + LM_XP * L)), gold: Math.round(kills * gold / w * goldMul * (1 + LM_GOLD * L)), stones: Math.floor(kills * IDLE_STONE) };
 }
 /** 경험치를 세이브에 반영 (전투 연출 없이). 오른 레벨·각성 수 반환 */
 function idleXp(pd, x) {

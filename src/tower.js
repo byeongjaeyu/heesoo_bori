@@ -61,7 +61,7 @@ function startTower(f) {
   G.bori = G.pd.boriJoined ? newBori(W.start.x + 14, W.start.y + 3) : null; buddySpawn();
   const m0 = MONS[towerBoss(f)], e = spawnEnemy(towerBoss(f), W.start.x, W.start.y - 150);
   const LM = loopMul(), k = towerK(f); e.maxHp = Math.round(TOWER_REF.hp * k * (1 + 0.6 * towerHpL(f)) * towerHpMul(f)); e.hp = e.maxHp;
-  e.atk = TOWER_REF.atk * Math.min(1, 0.6 + f * 0.03) * LM.atk; e.def = Math.round(TOWER_REF.def * k + LM.def); e.spawnT = 1.3; e.elite = false;
+  e.atk = TOWER_REF.atk * Math.min(1, 0.6 + f * 0.03) * (1 + 0.35 * LM.L); e.def = Math.round(TOWER_REF.def * k + LM.def); e.spawnT = 1.3; e.elite = false;
   if (f % 10 === 0) { e.sc *= 1.2; e.w *= 1.2; e.h *= 1.2; e.r = Math.round(e.r * 1.15); }
   e.m = Object.assign({}, m0, { name: `${f}층 · ${f % 10 === 0 ? '대장 ' : ''}${m0.name}`, drops: [] }); G.boss = e;
   G.cam.x = clamp(G.P.x - VW / 2, 0, Math.max(0, W.W - VW)); G.cam.y = clamp(G.P.y - 60 - VH / 2, 0, Math.max(0, W.H - VH));

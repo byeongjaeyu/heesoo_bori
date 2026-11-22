@@ -499,3 +499,15 @@ test('월드 보스: 이번 주 이미 처치됐으면 「처치 완료 · 피�
   await page.evaluate(() => dealDamage(G.boss, 9999, {}));
   expect(await page.evaluate(() => [!!G.boss.dead, G.raid.dmg > 0])).toEqual([false, true]);
 });
+
+test('성장 패키지: 1장 클리어 후 로비 타일 → 무료로 받기 → 영웅 무기 +10 착용·강화석·골드', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 12, cleared: 1, stones: 0, gold: 1000, pack: { seen: 1, got: 1 } });
+  await expect(page.locator('#tPack2')).toBeVisible();
+  await page.click('#tPack2');
+  await expect(page.locator('#packBody')).toContainText('성장 패키지');
+  await page.click('#packGo');
+  const pd = await page.evaluate(() => loadGame());
+  expect([pd.inv.lightstick, pd.enh.lightstick, pd.eq.weapon, pd.stones, pd.gold, !!pd.pack2.got]).toEqual([1, 10, 'lightstick', 500, 301000, true]);
+  await page.click('#packX');
+  await expect(page.locator('#tPack2')).toHaveCount(0);
+});

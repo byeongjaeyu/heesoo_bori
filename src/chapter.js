@@ -1,7 +1,7 @@
 // ===================== 챕터 (1장 에버랜드 · 2장 유료 바다낚시터 · 3장 사직 야구장) =====================
 // ZONES 0~3 = 1장, 4~7 = 2장, 8~11 = 3장. 진행도: 1장 pd.zone/pd.cleared, 2장 pd.ch2, 3장 pd.ch3 ({zone, cleared, intro, seen}). 지금 고른 장 pd.chap
 // 2장은 1장 5회차 수준(Lv30), 3장은 1장 9회차 수준(Lv50)에서 시작해 그 장 회차마다 오름
-const CH1_N = 4, CH2_Z0 = 4, CH3_Z0 = 8, CH2_BASE_L = 4, CH3_BASE_L = 8, CH2_LV = 30, CH3_LV = 50;
+const CH1_N = 4, CH2_Z0 = 4, CH3_Z0 = 8, CH2_BASE_L = 9, CH3_BASE_L = 20, CH2_LV = 30, CH3_LV = 50;
 const CH_Z0 = { 1: 0, 2: CH2_Z0, 3: CH3_Z0 }, CH_BASE_L = { 1: 0, 2: CH2_BASE_L, 3: CH3_BASE_L };
 const CH_NAME = { 1: '에버랜드', 2: '바다낚시터', 3: '사직 야구장' };
 const zoneCh = z => z >= CH3_Z0 ? 3 : z >= CH2_Z0 ? 2 : 1;

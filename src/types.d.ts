@@ -55,6 +55,8 @@ interface SaveData {
   idleT?: number;
   /** 뉴비 패키지: 처음 본 시각·받은 시각 */
   pack?: { seen?: number; got?: number };
+  /** 성장 패키지(뉴비 세트 2) */
+  pack2?: { seen?: number; got?: number };
   /** 회차 보상: 받은 이정표(회차 → 받은 시각), 마지막으로 알린 총 회차 */
   ms?: Record<string, number>;
   msSeen?: number;

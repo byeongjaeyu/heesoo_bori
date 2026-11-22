@@ -179,7 +179,8 @@ const NAG_WORDS = ['방 치워!', '밥 먹었어?', '양말!!', '또 게임해?'
 const MENHERA_LINES = ['나 사랑해? 얼마나?', '왜 답장 안 해?', '읽씹했지?', '아까 그 여자 누구야?', '됐어. 아무것도 아니야.', '나 화난 거 몰라?', '오늘 나 뭐 달라진 거 없어?', '나만 봐.', '낚시가 좋아, 내가 좋아?', '나 살찐 것 같지?', '우리 처음 만난 날 기억해?', '내가 왜 화났는지 맞혀봐', '너 변했어...', '알아서 해 그럼.', '지금 한숨 쉰 거야?', '나 없이도 잘 지내지?'];
 const PHONE_WORDS = ['ㅋㅋㅋ', '♥', '좋아요', 'DM', '♪', 'ㅎㅎ', '인스타', '쇼핑중'];
 
-function xpNeed(lv) { return Math.round(30 * Math.pow(lv, 2.1)); }
+function xpNeed(lv) { return Math.round(20 * Math.pow(lv, XP_EXP)); }
+const XP_EXP = 2.5;
 
 // ===== 각성 (Lv50 이후): 경험치가 계속 쌓여 각성 포인트 → 능력치·스킬 강화 =====
 const AWK = {
@@ -191,7 +192,8 @@ const AWK = {
   skill: { name: '스킬 위력', icon: 'bubble', per: 0.02,  fmt: v => `+${Math.round(v * 100)}%`, desc: '등짝 스매싱·잔소리·집에 갈래·멘헤라 피해' },
   bori:  { name: '보리 공격', icon: 'paw',   per: 0.02,  bori: 1, fmt: v => `+${Math.round(v * 100)}%`, desc: '보리 물기·멍멍·우다다 피해' }
 };
-const awkNeed = aw => Math.round(34300 * (1 + 0.1 * aw));
+const awkNeed = aw => Math.round(AWK_BASE * (1 + AWK_STEP * aw));
+const AWK_BASE = 60000, AWK_STEP = 0.25;
 
 // ===== 장비 도감: 처음 얻은 장비 기록. 1칸당 최대 HP +5, 세트(등급별·보리 용품) 완성 보너스 =====
 const BOOK_PER_HP = 5;
