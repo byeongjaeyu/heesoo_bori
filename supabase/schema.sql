@@ -227,3 +227,59 @@ begin
 end $$;
 revoke all on function public.hb_acc_release() from public, anon;
 grant execute on function public.hb_acc_release() to authenticated;
+
+-- ===== 서버 세이브 원본화: hb_save_push (src/cloud.js) =====
+-- 클라이언트는 hb_saves 에 직접 못 씀. 서버가 지난 세이브와 비교해서 지난 시간(최대 24시간)·받은 선물로
+-- 설명 안 되는 증가(골드·강화석·각성·회차·자동사냥 시간)나 범위 밖 값(Lv>50, 강화>30)이면 거절하고
+-- 마지막 정상 세이브를 돌려줌 → 클라이언트가 그걸로 되돌림. 거절은 hb_flags 'save_reject'.
+create or replace function public.hb_save_num(d jsonb, k text) returns numeric language sql immutable as $$
+  select case when jsonb_typeof(d -> k) = 'number' then (d ->> k)::numeric else 0 end $$;
+create or replace function public.hb_save_loops(d jsonb) returns numeric language sql immutable as $$
+  select public.hb_save_num(d, 'cleared') + coalesce(public.hb_save_num(d -> 'ch2', 'cleared'), 0) + coalesce(public.hb_save_num(d -> 'ch3', 'cleared'), 0) $$;
+create or replace function public.hb_save_push(p_data jsonb, p_ep2 jsonb)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare u uuid := auth.uid(); prev public.hb_saves; h numeric; g record; why text := null; maxenh numeric := 0;
+  gG numeric := 0; gS numeric := 0; gA numeric := 0; gW numeric := 0; gL numeric := 0;
+begin
+  if u is null then raise exception 'hb:auth'; end if;
+  if p_data is null and p_ep2 is null then return jsonb_build_object('ok', false, 'reason', 'empty'); end if;
+  if p_data is not null then
+    -- 범위 검사 (언제나)
+    select coalesce(max(case when jsonb_typeof(value) = 'number' then value::text::numeric else 0 end), 0) into maxenh from jsonb_each(coalesce(p_data -> 'enh', '{}'::jsonb));
+    if public.hb_save_num(p_data, 'lv') > 50 then why := 'lv';
+    elsif maxenh > 30 then why := 'enh';
+    elsif public.hb_save_num(p_data, 'gold') < 0 or public.hb_save_num(p_data, 'stones') < 0 then why := 'neg';
+    end if;
+    select * into prev from public.hb_saves where user_id = u;
+    if why is null and prev.data is not null then
+      h := least(24, greatest(0, extract(epoch from (now() - prev.updated_at)) / 3600));
+      -- 지난 저장 이후 받은 선물 (받은 뒤 저장까지 시간차 고려해 5분 여유)
+      for g in select kind, sum(amount) s, max(amount) m from public.hb_grants where user_id = u and claimed_at > prev.updated_at - interval '5 minutes' group by kind loop
+        if g.kind = 'gold' then gG := g.s; elsif g.kind = 'stones' then gS := g.s; elsif g.kind = 'auto' then gA := g.s;
+        elsif g.kind = 'awaken' then gW := g.m; elsif g.kind = 'stage' then gL := ceil(g.m / 4.0); end if;
+      end loop;
+      if public.hb_save_num(p_data, 'gold') - public.hb_save_num(prev.data, 'gold') > 5e7 + 3e7 * h + gG then why := 'gold';
+      elsif public.hb_save_num(p_data, 'stones') - public.hb_save_num(prev.data, 'stones') > 5000 + 1500 * h + gS then why := 'stones';
+      elsif public.hb_save_num(p_data, 'aw') - greatest(public.hb_save_num(prev.data, 'aw'), gW) > 30 + 15 * h then why := 'aw';
+      elsif public.hb_save_loops(p_data) - public.hb_save_loops(prev.data) > 5 + 15 * h + gL then why := 'loops';
+      elsif public.hb_save_num(p_data, 'autoBonus') - public.hb_save_num(prev.data, 'autoBonus') > 43200 + 7200 * h + gA then why := 'auto';
+      end if;
+    elsif why is null then
+      -- 서버에 처음 올리는 세이브: 큰 값만 막음
+      if public.hb_save_num(p_data, 'gold') > 1e9 or public.hb_save_num(p_data, 'stones') > 1e5 or public.hb_save_num(p_data, 'aw') > 3000 then why := 'first'; end if;
+    end if;
+    if why is not null then
+      insert into public.hb_flags (user_id, kind, detail) values (u, 'save_reject', jsonb_build_object('why', why, 'h', round(coalesce(h, -1), 2),
+        'gold', jsonb_build_array(public.hb_save_num(prev.data, 'gold'), public.hb_save_num(p_data, 'gold')), 'stones', jsonb_build_array(public.hb_save_num(prev.data, 'stones'), public.hb_save_num(p_data, 'stones')),
+        'aw', jsonb_build_array(public.hb_save_num(prev.data, 'aw'), public.hb_save_num(p_data, 'aw')), 'lv', public.hb_save_num(p_data, 'lv'), 'enh', maxenh));
+      return jsonb_build_object('ok', false, 'reason', why, 'data', prev.data, 'ep2', prev.ep2);
+    end if;
+  end if;
+  insert into public.hb_saves (user_id, data, ep2, updated_at) values (u, p_data, p_ep2, now())
+  on conflict (user_id) do update set data = coalesce(excluded.data, public.hb_saves.data), ep2 = coalesce(excluded.ep2, public.hb_saves.ep2), updated_at = now();
+  return jsonb_build_object('ok', true);
+end $$;
+revoke all on function public.hb_save_push(jsonb, jsonb) from public, anon;
+grant execute on function public.hb_save_push(jsonb, jsonb) to authenticated;
+-- 이제 세이브는 hb_save_push 로만 (읽기는 그대로)
+revoke insert, update on public.hb_saves from authenticated;

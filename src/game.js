@@ -24,7 +24,9 @@ function newPD() {
     stats: { kills: 0, ults: 0, deaths: 0, time: 0, eaten: 0 }
   };
 }
-function saveGame() { if (!G.pd) return; if (G.state !== 'title' && G.state !== 'lobbyMenu') G.pd.idleT = Date.now(); G.pd.svT = Date.now(); try { localStorage.setItem(SAVEKEY, JSON.stringify(G.pd)); } catch (e) { } if (G.state === 'play' && !G.pvp && typeof rankSync === 'function') rankSync(); if (typeof cloudSync === 'function') cloudSync(); }
+/** 서버 세이브로 되돌리는 중엔 저장 막음 (cloudRevert) */
+let SAVE_LOCK = false;
+function saveGame() { if (!G.pd || SAVE_LOCK) return; if (G.state !== 'title' && G.state !== 'lobbyMenu') G.pd.idleT = Date.now(); G.pd.svT = Date.now(); try { localStorage.setItem(SAVEKEY, JSON.stringify(G.pd)); } catch (e) { } if (G.state === 'play' && !G.pvp && typeof rankSync === 'function') rankSync(); if (typeof cloudSync === 'function') cloudSync(); }
 /** @returns {SaveData|null} */
 function loadGame() {
   try {

@@ -14,11 +14,20 @@ async function cloudPushNow() {
   const { data, ep2 } = cloudPayload(); if (!data && !ep2) return false;
   const body = JSON.stringify({ data, ep2 }); if (body === CLOUD.last) return true; // 바뀐 게 없으면 안 보냄
   await sbInit();
-  if (CLOUD.has === null) { const r = await SB.from('hb_saves').select('user_id').eq('user_id', PV.uid).maybeSingle(); if (r.error) throw r.error; CLOUD.has = !!r.data; }
-  const r = CLOUD.has ? await SB.from('hb_saves').update({ data, ep2, updated_at: new Date().toISOString() }).eq('user_id', PV.uid)
-    : await SB.from('hb_saves').insert({ data, ep2 });
-  if (r.error) { CLOUD.has = null; throw r.error; }
+  // 서버가 지난 세이브와 비교해서 검사 (hb_save_push). 설명 안 되는 증가면 거절 + 마지막 정상 세이브를 돌려줌
+  const { data: r, error } = await SB.rpc('hb_save_push', { p_data: data, p_ep2: ep2 }); if (error) throw error;
+  if (r && r.ok === false) { if (r.data) cloudRevert(r); return false; }
   CLOUD.has = true; CLOUD.last = body; return true;
+}
+const CLOUD_REVERT_FLAG = 'heesu_bori_cloud_revert';
+/** 서버가 거절한 세이브 → 마지막 정상 세이브로 되돌리고 새로고침 */
+function cloudRevert(r) {
+  SAVE_LOCK = true; // 새로고침 전에 지금 값이 다시 저장되지 않게
+  try {
+    localStorage.setItem(SAVEKEY, JSON.stringify(r.data)); if (r.ep2) localStorage.setItem(E2KEY, JSON.stringify(r.ep2));
+    sessionStorage.setItem(CLOUD_REVERT_FLAG, '1');
+  } catch (e) { }
+  location.reload();
 }
 /** 백업 (1분에 한 번으로 제한, force 면 바로) */
 function cloudSync(force) {
@@ -74,6 +83,8 @@ async function cloudUseCode() {
 function cloudBoot() {
   if (FORCE_EASY) return;
   let nick = null; try { nick = sessionStorage.getItem(CLOUD_LOADED_FLAG); sessionStorage.removeItem(CLOUD_LOADED_FLAG); } catch (e) { }
+  let rv = null; try { rv = sessionStorage.getItem(CLOUD_REVERT_FLAG); sessionStorage.removeItem(CLOUD_REVERT_FLAG); } catch (e) { }
+  if (rv) setTimeout(() => toast('서버 기록과 맞지 않는 값이 있어서 마지막 정상 기록으로 되돌렸어요', 'warn'), 300);
   if (nick) setTimeout(() => toast(nick === '1' ? '다른 기기의 희수를 불러왔어요!' : `${nick} 희수를 불러왔어요! 어서 와요`, 'lvl'), 300);
   $('#pvpNickCloud').onclick = () => { $('#pvpNick').hidden = true; cloudOpen('entry'); };
   $('#cloudMk').onclick = cloudMakeCode; $('#cloudUse').onclick = cloudUseCode; $('#cloudX').onclick = cloudClose;

@@ -106,9 +106,12 @@ async function accBoot() {
   }
   // 로그인한 계정: 서버 세이브가 이 기기보다 최근이면 받아옴 (타이틀에서만)
   try {
-    const here = loadGame(); if (!here || !(await accState())) return;
-    const r = await SB.from('hb_saves').select('data,ep2,updated_at').eq('user_id', PV.uid).maybeSingle();
-    const d = r.data && r.data.data; if (!d) return;
-    if ((d.svT || 0) > (here.svT || 0) + 5000 && G.state === 'title') accApply(r.data, null, 'sync');
+    const here = loadGame(); if (!here) return;
+    if (await accState()) {
+      const r = await SB.from('hb_saves').select('data,ep2,updated_at').eq('user_id', PV.uid).maybeSingle();
+      const d = r.data && r.data.data;
+      if (d && (d.svT || 0) > (here.svT || 0) + 5000 && G.state === 'title') { accApply(r.data, null, 'sync'); return; }
+    }
+    cloudSync(true); // 시작할 때 서버 검사 한 번 (기기에서 고친 값이면 여기서 되돌아감)
   } catch (e) { }
 }

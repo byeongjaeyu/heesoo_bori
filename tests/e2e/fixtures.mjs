@@ -35,6 +35,8 @@ export const MOCK_SB = `(() => {
     }
     if (name === 'hb_season_info') return { data: { season: '2026-11-16', ends_at: new Date(Date.now() + 2 * 86400000 + 5.5 * 3600000).toISOString(), prev: '2026-11-09',
       top: [{ rank: 1, nickname: '원조희수', rating: 1100, wins: 5, losses: 1 }, { rank: 2, nickname: '보리언니', rating: 1050, wins: 3, losses: 2 }], mine: { rank: 2, rating: 1050, reward: '강화석 100 · 200만G · 자동사냥 2시간' } }, error: null };
+    if (name === 'hb_save_push') { const T = __db.hb_saves, row = T.find(r => r.user_id === 'u-me');
+      if (row) Object.assign(row, { data: args.p_data || row.data, ep2: args.p_ep2 || row.ep2 }); else T.push({ user_id: 'u-me', data: args.p_data, ep2: args.p_ep2 }); return { data: { ok: true }, error: null }; }
     if (name === 'hb_make_transfer_code') return { data: [{ code: 'ABCD2345', expires_at: new Date(Date.now() + 600000).toISOString() }], error: null };
     return { data: null, error: null }; };
   // 가짜 Realtime 채널: 테스트가 __chan.emit('broadcast'|'presence', event, payload) 로 다른 희수를 흉내냄

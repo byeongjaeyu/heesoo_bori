@@ -51,3 +51,13 @@ test('닉네임 창에서 "다른 기기에서 하던 희수 불러오기"', asy
   await page.click('#cloudX');
   await expect(page.locator('#pvpNick')).toBeVisible(); // 닫으면 닉네임 창으로 돌아감
 });
+
+test('서버 세이브 검사: 거절되면 마지막 정상 기록으로 되돌리고 안내', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 5, gold: 999999999 });
+  await page.evaluate(MOCK_SB);
+  await page.evaluate(() => { __rpc.hb_save_push = () => ({ ok: false, reason: 'gold', data: Object.assign(newPD(), { lv: 5, gold: 100, guide: 99 }), ep2: null }); });
+  await Promise.all([page.waitForEvent('load'), page.evaluate(() => cloudSync(true))]);
+  await page.waitForTimeout(500);
+  expect(await page.evaluate(() => loadGame().gold)).toBe(100);
+  await expect(page.locator('#toasts')).toContainText('마지막 정상 기록으로 되돌렸어요');
+});
