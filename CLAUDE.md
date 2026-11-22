@@ -19,6 +19,7 @@
 - 정적 파일(og 이미지, `.nojekyll`)은 `public/` → `dist/`로 그대로 복사.
 - 주요 파일: `data.js`(장비·몬스터·스킬·각성 표), `game.js`(전투·드롭·강화·세이브), `ui.js`(메뉴·HUD), `render.js`/`sprites*.js`(도트), `pvp.js`/`rank.js`/`cloud.js`(Supabase), `inf.js`(할로윈파티), `auto.js`(자동사냥), `daily.js`(출석·미션), `guide.js`(첫 걸음 가이드), `share.js`(카드 공유), `raid.js`(월드 보스), `ep2*.js`(2탄).
 - 타입: `src/types.d.ts`(SaveData, ItemDef), `src/globals.d.ts`. JS 파일도 `checkJs`로 검사됨.
+- PC(마우스·900px 이상): `#hud`·`#ctrl`을 CSS `zoom` 1.3(1600×1000 이상 1.5)으로 키우고 버튼에 단축키 배지(`data-key`), 키보드 안내 `#keyHint`(대화창 뜨면 숨김).
 
 ## 세이브 호환성 (유저 데이터 날리지 말 것)
 - localStorage 키: 1탄 `heesu_bori_save_v1`, 2탄 `heesu_bori_ep2_v1` / 원터치 `heesu_bori_ep2_onetouch_v1`.
@@ -85,7 +86,9 @@
 - **온라인 광장**(`src/plaza.js`): 로비 「모험 계속하기」 왼쪽 `#tPlaza` → `plazaOpen`(랭킹에 닉네임 등록된 희수만) → 1장 정문 광장 맵(`buildWorld(0)`, 몬스터·출구 없음, `G.plaza`, body `.inPlaza`로 전투 버튼 숨김). Supabase Realtime 비공개 채널 `plaza-1`(`private: true`): Presence = 닉네임·Lv·★·칭호·꾸미기·위치(20초마다 다시 track), Broadcast `mv`(움직일 때 0.33초마다) · `chat`. 다른 희수는 `drawRival`로 그림·보간 이동.
   - 서버 권한: `realtime.messages` 정책 `hb_plaza_read`/`hb_plaza_write` → `hb_plaza_ok()`(hb_fighters에 있고 hidden 아님 + `hb_plaza_bans`에 없음). **광장에서 내보내기**: `insert into hb_plaza_bans(user_id, reason) select user_id, '사유' from hb_fighters where nickname = '닉네임';` · 신고 보기: `select * from hb_plaza_reports order by at desc;`
   - 채팅: 자유 채팅 60자, `plazaClean` 욕설 필터(글자 사이 기호·띄어쓰기도), 1.2초 간격·같은 말 반복 막기, 말풍선 6초(12자씩 3줄), 채팅 기록 최근 30줄. 접속자 목록에서 차단(내 기기 localStorage `hb_plaza_block`)·신고(`hb_plaza_report` RPC, 1시간 10건).
-  - 무료 플랜 Realtime 한도: 동시 접속 200·초당 메시지 100·월 200만 → 사람이 많아지면 채널을 `plaza-2`… 로 나눌 것.
+  - **자동 분리**: `plazaJoin(no)` — 처음 받은 접속자가 `PLAZA_CAP`(30)명 이상이면 다음 번호(`plaza-2`…, 최대 `PLAZA_MAX_CH` 20)로. HUD에 「희수 광장 N」. 무료 플랜 Realtime 한도: 동시 접속 200·초당 메시지 100·월 200만.
+  - **자동 이용 정지**: `hb_plaza_report`가 서로 다른 희수 3명이 24시간 안에 신고하면 `hb_plaza_bans`에 24시간(`until`) 정지. 운영자 차단은 `until` 비움(영구). 신고는 광장 이용 가능한 희수만, 자기 자신 불가. 입장 전 `hb_plaza_status()`로 정지 안내.
+  - PC: Enter=채팅 입력, Esc=빠져나오기.
   - e2e 가짜 SB에 `channel()`이 있음(`__chan.emit('presence'|'broadcast', event, payload)`, 보낸 메시지 `__sent`).
 - **선물 주기** (유저가 다음 접속 때 자동 수령):
   ```sql

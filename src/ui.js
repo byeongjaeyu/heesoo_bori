@@ -63,7 +63,7 @@ function updateHUD() {
   hset('mpT', v => HE.mpT.textContent = v, Math.floor(P.mp) + '/' + st.mp);
   hset('xpF', v => HE.xpF.style.width = v + '%', Math.round(Math.min(1, pd.xp / (pd.lv >= MAX_LV ? awkNeed(pd.aw || 0) : xpNeed(pd.lv))) * 1000) / 10);
   hset('gold', v => HE.gold.textContent = v, pd.gold.toLocaleString());
-  hset('zone', v => HE.zone.textContent = v, G.pvp ? 'PvP 아레나' : G.plaza ? '희수 광장' : G.raid ? '월드 보스 레이드' : G.tower ? `보스 타워 ${G.tower.f}층` : G.inf ? `할로윈파티 · WAVE ${G.inf.wave}` : ZONES[G.zone].name + (chCleared(G.pd, G.zone) ? ` · ${chCleared(G.pd, G.zone) + 1}회차` : ''));
+  hset('zone', v => HE.zone.textContent = v, G.pvp ? 'PvP 아레나' : G.plaza ? `희수 광장 ${G.plaza.no}` : G.raid ? '월드 보스 레이드' : G.tower ? `보스 타워 ${G.tower.f}층` : G.inf ? `할로윈파티 · WAVE ${G.inf.wave}` : ZONES[G.zone].name + (chCleared(G.pd, G.zone) ? ` · ${chCleared(G.pd, G.zone) + 1}회차` : ''));
   const Z = ZONES[G.zone];
   const zq = zoneQuota(Z); const q = !G.bossSpawned ? `몬스터 처치 ${Math.min(G.zoneKills, zq)}/${zq}` : (G.boss ? '보스를 쓰러뜨려라!' : (!isChLast(G.zone) ? '↑ 출구로 이동!' : '↑ 탈출구로 탈출!'));
   hset('quest', v => HE.quest.textContent = v, G.pvp ? `VS ${G.pvp.opp.nickname} · 남은 시간 ${Math.ceil(G.pvp.t)}초` : G.plaza ? (G.plaza.ok ? `${Object.keys(G.plaza.others).length + 1}명 접속 중 · 자유롭게 돌아다녀요` : '광장 서버에 연결하는 중...') : G.raid ? `남은 시간 ${Math.ceil(G.raid.t)}초 · 내 피해 ${Math.round(G.raid.dmg).toLocaleString()}` : G.tower ? `남은 시간 ${Math.ceil(G.tower.t)}초 · 보스를 쓰러뜨려라!` : G.inf ? (G.boss && !G.boss.dead ? `할로윈 보스 등장! · 처치 ${G.inf.kills}` : `처치 ${G.inf.kills} · 다음 웨이브 ${G.inf.waveKills}/${INF_WAVE_KILLS}`) : q);

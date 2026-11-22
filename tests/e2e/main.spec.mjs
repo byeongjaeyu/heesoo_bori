@@ -556,3 +556,19 @@ test('광장: 등록된 희수만 입장 → 다른 희수 접속·이동·채�
   expect(await page.evaluate(() => [!!G.plaza, document.body.classList.contains('inPlaza')])).toEqual([false, false]);
   await page.evaluate(() => localStorage.removeItem('hb_plaza_block'));
 });
+
+test('광장 자동 분리: 1번 광장이 30명 이상이면 2번 광장으로, 이용 정지면 못 들어감', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 20, cleared: 2 });
+  await page.evaluate(MOCK_SB);
+  await page.evaluate(() => { __rows.push({ user_id: 'u-me', nickname: '나', snap: { lv: 20 }, power: 900, rating: 1000, wins: 0, losses: 0 }); window.__prefill = { 'plaza-1': 30 }; });
+  await page.click('#tPlaza');
+  await page.waitForFunction(() => G.plaza && G.plaza.ok, null, { timeout: 8000 });
+  expect(await page.evaluate(() => [G.plaza.no, __chan.name])).toEqual([2, 'plaza-2']);
+  await expect(page.locator('#zoneT')).toContainText('희수 광장 2');
+  await page.click('#plazaExit'); await expect(page.locator('#tCont')).toBeVisible();
+  // 신고 누적으로 정지된 희수
+  await page.evaluate(() => { __rpc.hb_plaza_status = () => ({ ok: false, banned: true, until: new Date(Date.now() + 3600e3).toISOString() }); });
+  await page.waitForTimeout(900); await page.click('#tPlaza'); await page.waitForTimeout(800);
+  expect(await page.evaluate(() => !!G.plaza)).toBe(false);
+  await expect(page.locator('#toasts')).toContainText('광장을 이용할 수 없어요');
+});

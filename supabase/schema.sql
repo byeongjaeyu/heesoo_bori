@@ -209,3 +209,4 @@ end $$;
 grant execute on function public.hb_plaza_report(uuid, text, text) to authenticated;
 create policy hb_plaza_read on realtime.messages for select to authenticated using (realtime.topic() like 'plaza-%' and public.hb_plaza_ok());
 create policy hb_plaza_write on realtime.messages for insert to authenticated with check (realtime.topic() like 'plaza-%' and public.hb_plaza_ok());
+-- 2026-11-22 광장 자동 정지: hb_plaza_bans.until 추가, hb_plaza_ok()는 until 지난 정지 무시, hb_plaza_status(), hb_plaza_report()에서 24시간 내 신고자 3명 이상이면 24시간 정지 (마이그레이션 hb_plaza_autoban)

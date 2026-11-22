@@ -1,7 +1,7 @@
 // ===================== 온라인 광장 (Supabase Realtime: Presence + Broadcast) =====================
 // 비공개 채널 'plaza-1': 서버 정책(hb_plaza_ok)이 랭킹에 등록된·숨김/차단 아닌 희수만 들여보냄.
 // 접속 표시(Presence) = 닉네임·꾸미기·칭호·처음 위치 / 이동(Broadcast 'mv', 움직일 때 초당 약 3번) / 채팅(Broadcast 'chat')
-const PLAZA_CH = 'plaza-1', PLAZA_SEND = 0.33, PLAZA_CHAT_MAX = 60, PLAZA_CHAT_GAP = 1.2, PLAZA_BUBBLE = 6, PLAZA_LOG = 60;
+const PLAZA_CAP = 30, PLAZA_MAX_CH = 20, PLAZA_SEND = 0.33, PLAZA_CHAT_MAX = 60, PLAZA_CHAT_GAP = 1.2, PLAZA_BUBBLE = 6, PLAZA_LOG = 60;
 const PZ = { busy: false, block: /** @type {Record<string, string>} */ ({}) };
 
 // ---------- 욕설 필터 (글자 사이에 띄어쓰기·숫자·기호를 넣어도 걸림) ----------
@@ -26,6 +26,7 @@ async function plazaOpen() {
     await sbInit(); if (!PV.me) await pvpLoadMe();
     if (!PV.me) { toast('랭킹에 닉네임을 등록해야 광장에 들어갈 수 있어요', 'warn'); return; }
     if (PV.me.hidden) { toast('지금은 광장에 들어갈 수 없어요', 'warn'); return; }
+    try { const { data } = await SB.rpc('hb_plaza_status'); if (data && data.banned) { toast(data.until ? `신고가 쌓여서 ${new Date(data.until).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit' })}까지 광장을 이용할 수 없어요` : '광장 이용이 제한된 희수예요', 'warn'); return; } } catch (e) { }
     plazaBlockLoad(); fadeTo(() => startPlaza(saved), '희수 광장');
   } catch (e) { toast('광장 연결 실패: ' + pvErr(e), 'warn'); }
   finally { setTimeout(() => { PZ.busy = false; }, 800); }
@@ -39,20 +40,31 @@ function startPlaza(saved) {
   G.P = newPlayer(sx, sy); G.P.fy = -1; G.P.dir = 'up';
   G.bori = G.pd.boriJoined ? newBori(sx + 14, sy + 3) : null; G.buddy = null;
   G.cam.x = clamp(G.P.x - VW / 2, 0, Math.max(0, W.W - VW)); G.cam.y = clamp(G.P.y - 60 - VH / 2, 0, Math.max(0, W.H - VH));
-  G.plaza = { others: /** @type {Record<string, any>} */ ({}), log: [], sendT: 0, last: null, chatT: 0, lastTxt: '', rep: 0, me: null, ok: false, ch: null };
+  G.plaza = { others: /** @type {Record<string, any>} */ ({}), log: [], sendT: 0, last: null, chatT: 0, lastTxt: '', rep: 0, me: null, ok: false, ch: null, no: 1 };
   $('#title').hidden = true; G.state = 'play'; showHUD(true); document.body.classList.add('inPlaza'); $('#plazaUI').hidden = false; $('#plazaLog').innerHTML = ''; $('#plazaIn').value = '';
   playBgm('home'); banner('희수 광장', '다른 희수들과 만나요', 'lvl');
   plazaSys('광장에 들어왔어요. 매너 채팅 부탁해요!');
-  const ch = SB.channel(PLAZA_CH, { config: { private: true, presence: { key: PV.uid }, broadcast: { self: false } } });
-  G.plaza.ch = ch;
-  ch.on('presence', { event: 'sync' }, () => plazaSync())
+  plazaJoin(1);
+}
+/** n번 광장에 들어감. 처음 받은 접속자 수가 PLAZA_CAP 이상이면 다음 번호 광장으로 (자동 분리) */
+function plazaJoin(no) {
+  const Z = G.plaza; if (!Z) return; Z.no = no; Z.ok = false; Z.others = {}; Z.first = true;
+  const ch = SB.channel('plaza-' + no, { config: { private: true, presence: { key: PV.uid }, broadcast: { self: false } } });
+  Z.ch = ch;
+  const enter = async () => {
+    if (!G.plaza || G.plaza.ch !== ch || !Z.first) return; Z.first = false;
+    const n = Object.keys(ch.presenceState()).filter(k => k !== PV.uid).length;
+    if (n >= PLAZA_CAP && no < PLAZA_MAX_CH) { try { SB.removeChannel(ch); } catch (e) { } plazaJoin(no + 1); return; }
+    Z.ok = true; try { await ch.track(plazaMeta()); } catch (e) { } plazaPeopleBtn(); if (no > 1) plazaSys(`사람이 많아서 ${no}번 광장으로 왔어요`);
+  };
+  ch.on('presence', { event: 'sync' }, () => { if (Z.first && G.plaza && G.plaza.ch === ch) { enter(); return; } plazaSync(); })
     .on('presence', { event: 'join' }, ({ key, newPresences }) => { const m = newPresences && newPresences[0]; if (m && key !== PV.uid && G.plaza && G.plaza.ok) plazaSys(`${m.n} 님이 들어왔어요`); })
     .on('presence', { event: 'leave' }, ({ key, leftPresences }) => { const m = leftPresences && leftPresences[0]; if (m && key !== PV.uid && G.plaza) plazaSys(`${m.n} 님이 나갔어요`); })
     .on('broadcast', { event: 'mv' }, ({ payload }) => plazaMove(payload))
     .on('broadcast', { event: 'chat' }, ({ payload }) => plazaRecv(payload))
     .subscribe(async (status) => {
       if (!G.plaza || G.plaza.ch !== ch) return;
-      if (status === 'SUBSCRIBED') { G.plaza.ok = true; try { await ch.track(plazaMeta()); } catch (e) { } plazaPeopleBtn(); }
+      if (status === 'SUBSCRIBED') setTimeout(enter, 1200); // 접속자 목록(sync)이 안 오면 그냥 들어감
       else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') { G.plaza.ok = false; plazaSys('광장 서버에 연결하지 못했어요. 잠시 뒤 다시 들어와 주세요'); }
     });
 }
@@ -173,4 +185,10 @@ function plazaBoot() {
   $('#plazaListX').onclick = () => { $('#plazaList').hidden = true; };
   $('#plazaList').addEventListener('click', e => { const b = /** @type {HTMLElement} */ (e.target).closest('[data-pz]'); if (b) plazaAct(b.getAttribute('data-pz'), b.getAttribute('data-u')); });
   window.addEventListener('pagehide', () => { if (G.plaza) plazaLeave(true); });
+  // PC: Enter 로 채팅 입력, Esc 로 빠져나오기
+  window.addEventListener('keydown', e => {
+    if (!G.plaza || G.state !== 'play') return; const inp = /** @type {HTMLInputElement} */ ($('#plazaIn'));
+    if (e.key === 'Enter' && document.activeElement !== inp) { e.preventDefault(); inp.focus(); }
+    else if (e.key === 'Escape' && document.activeElement === inp) { inp.blur(); }
+  });
 }

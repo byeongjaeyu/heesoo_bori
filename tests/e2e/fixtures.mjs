@@ -41,7 +41,7 @@ export const MOCK_SB = `(() => {
   window.__sent = [];
   const channel = (name) => { const hs = []; const ch = window.__chan = {
     name, pres: {}, on(type, filt, cb) { hs.push({ type, ev: filt.event, cb }); return ch; },
-    subscribe(cb) { setTimeout(() => cb('SUBSCRIBED'), 10); return ch; },
+    subscribe(cb) { setTimeout(() => { cb('SUBSCRIBED'); const pre = window.__prefill && window.__prefill[name]; if (pre) { for (let i = 0; i < pre; i++) ch.pres['u-x' + i] = [{ u: 'u-x' + i, n: '희수' + i, x: 280, y: 600 }]; ch.emit('presence', 'sync'); } }, 10); return ch; },
     async track(m) { ch.pres['u-me'] = [m]; ch.emit('presence', 'sync'); return 'ok'; }, async untrack() { return 'ok'; },
     async send(msg) { __sent.push(msg); return 'ok'; }, presenceState() { return ch.pres; },
     emit(type, ev, payload) { for (const h of hs) if (h.type === type && h.ev === ev) h.cb(type === 'broadcast' ? { payload } : (payload || {})); } };
