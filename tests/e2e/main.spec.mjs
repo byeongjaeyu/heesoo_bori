@@ -664,3 +664,14 @@ test('계정 로그인: 연결된 희수가 없는 계정이면 원래 희수 �
   await expect(page.locator('.toast', { hasText: '연결된 희수가 없어요' })).toBeVisible();
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem(SAVEKEY)).lv)).toBe(7);
 });
+
+test('토스트는 로비·팝업 위에 보임 (계정 연결 완료 안내 등)', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 12 });
+  await page.click('#tCloud');
+  await page.evaluate(() => toast('카카오 계정 연결 완료!', 'lvl'));
+  const t = page.locator('.toast', { hasText: '연결 완료' });
+  await expect(t).toBeVisible();
+  // 토스트는 클릭이 통과(pointer-events:none)하므로 쌓임 순서로 확인
+  const z = await page.evaluate(() => ['#toasts', '#title', '#cloud', '#menu', '#confirm'].map(s => +getComputedStyle(document.querySelector(s)).zIndex || 0));
+  expect(Math.max(...z.slice(1))).toBeLessThan(z[0]);
+});
