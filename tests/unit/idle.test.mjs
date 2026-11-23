@@ -3,8 +3,13 @@ import { g, fresh } from './helpers.mjs';
 
 describe('방치 보상', () => {
   test('최대 12시간까지만 쌓이고, 시계를 뒤로 돌리면 0', () => {
-    const pd = fresh(); pd.idleT = Date.now() - 30 * 3600e3; expect(g.idleSec(pd)).toBe(g.IDLE_MAX);
+    const pd = fresh({ guide: 99 }); pd.idleT = Date.now() - 30 * 3600e3; expect(g.idleSec(pd)).toBe(g.IDLE_MAX);
     pd.idleT = Date.now() + 3600e3; expect(g.idleSec(pd)).toBe(0);
+  });
+  test('첫 걸음 가이드 전(Lv1 새 세이브)엔 오래 방치해도 0 — 끝내면 쌓임', () => {
+    const pd = fresh(); pd.idleT = Date.now() - 30 * 3600e3; expect(pd.guide).toBe(0); expect(g.idleSec(pd)).toBe(0);
+    pd.guide = 6; expect(g.idleSec(pd)).toBe(0);
+    pd.guide = 7; expect(g.idleSec(pd)).toBe(g.IDLE_MAX);
   });
   test('플레이 중 저장하면 다시 0부터, 타이틀에서 저장하면 그대로', () => {
     const pd = fresh(); pd.idleT = 1; g.G.state = 'title'; g.saveGame(); expect(pd.idleT).toBe(1);

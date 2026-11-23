@@ -342,6 +342,14 @@ test('방치 보상: 로비에서 받기 → 골드·강화석 증가, 다시 0�
   await expect(page.locator('#tIdle')).toContainText('모으는 중');
 });
 
+test('방치 보상: 첫 걸음 가이드 전 세이브는 며칠 지나도 잠김', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 1, guide: 0, idleT: Date.now() - 3 * 864e5 });
+  await expect(page.locator('#tIdle')).toContainText('잠김');
+  await page.click('#tIdle');
+  await expect(page.locator('#toasts')).toContainText('첫 걸음 가이드를 끝내면');
+  expect(await page.evaluate(() => loadGame().lv)).toBe(1);
+});
+
 test('뉴비 패키지: 로비에서 무료로 받기 → 자동사냥·강화석·칭호, 타일 사라짐', async ({ page }) => {
   await withSave(page, URL_MAIN, { lv: 5, stones: 0 });
   await expect(page.locator('#tPack')).toContainText('24:00');

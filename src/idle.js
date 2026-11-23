@@ -3,8 +3,11 @@
 // 기준: 지금 스테이지·회차 몬스터를 시간당 IDLE_KPH 마리 (엔드급 자동사냥 약 4,000마리의 7~8%)
 const IDLE_MAX = 12 * 3600, IDLE_MIN = 600, IDLE_KPH = 300, IDLE_STONE = 0.03;
 ICONS.chest = ['..KKKKKKK..', '.KDDDDDDDK.', 'KDdDDDDDdDK', 'KKKKKAKKKKK', 'KDDDKAKDDDK', 'KDdDKKKDdDK', 'KDDDDDDDDDK', 'KDdDDDDDdDK', 'KKKKKKKKKKK'];
+/** 첫 걸음 가이드를 끝내야 쌓임 (Lv1로 만들어 두고 며칠 뒤 열면 12시간치를 받아 초반을 건너뛰던 문제, 11/23).
+ * 가이드는 플레이 중에 끝나고 플레이 중엔 saveGame이 idleT를 계속 지금으로 갱신 → 끝낸 순간부터 쌓임 */
+const idleOn = pd => !!pd && (pd.guide || 0) >= GUIDE_DONE;
 /** 쌓인 방치 시간(초). 시계를 뒤로 돌리면 0 */
-const idleSec = pd => !pd || !pd.idleT ? 0 : Math.max(0, Math.min(IDLE_MAX, (Date.now() - pd.idleT) / 1000));
+const idleSec = pd => !idleOn(pd) || !pd.idleT ? 0 : Math.max(0, Math.min(IDLE_MAX, (Date.now() - pd.idleT) / 1000));
 /** 방치 보상 계산 (G.pd 를 건드리지 않음) */
 function idleCalc(pd, sec) {
   const z = curZone(pd), Z = ZONES[z], L = zoneL(pd, z);
@@ -21,11 +24,12 @@ function idleXp(pd, x) {
 }
 const idleLabel = s => s >= IDLE_MAX ? '가득 참!' : `${Math.floor(s / 3600)}시간 ${Math.floor(s % 3600 / 60)}분`;
 function idleTileHtml(pd) {
-  const s = idleSec(pd), ok = s >= IDLE_MIN;
-  return `<button class="tidle${ok ? ' ready' : ''}${s >= IDLE_MAX ? ' full' : ''}" id="tIdle"><em>방치 보상</em><img src="${iconURL('px_chest', ICONS.chest)}" alt=""><b>${ok ? idleLabel(s) : '모으는 중'}</b><small>${ok ? '받기!' : '10분부터'}</small>${ok ? '<em class="dot"></em>' : ''}</button>`;
+  const s = idleSec(pd), ok = s >= IDLE_MIN, on = idleOn(pd);
+  return `<button class="tidle${ok ? ' ready' : ''}${s >= IDLE_MAX ? ' full' : ''}" id="tIdle"><em>방치 보상</em><img src="${iconURL('px_chest', ICONS.chest)}" alt=""><b>${ok ? idleLabel(s) : on ? '모으는 중' : '잠김'}</b><small>${ok ? '받기!' : on ? '10분부터' : '첫 걸음 후'}</small>${ok ? '<em class="dot"></em>' : ''}</button>`;
 }
 function idleClaim() {
   const pd = loadGame(); if (!pd || G.state !== 'title') return;
+  if (!idleOn(pd)) { toast('방치 보상은 첫 걸음 가이드를 끝내면 쌓이기 시작해요', 'sub'); return; }
   const s = idleSec(pd); if (s < IDLE_MIN) { toast(`방치 보상은 게임을 쉬는 동안 쌓여요 (10분부터, 최대 12시간)`, 'sub'); return; }
   const r = idleCalc(pd, s); pd.gold += r.gold; pd.stones = (pd.stones || 0) + r.stones; pd.stats.kills += r.kills; const up = idleXp(pd, r.xp); pd.idleT = Date.now();
   G.pd = pd; saveGame(); sfx('lvl');
