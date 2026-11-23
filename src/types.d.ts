@@ -69,6 +69,8 @@ interface SaveData {
   /** 장비 재련 추가 옵션 (item id → 옵션 줄) */
   /** 같은 장비가 또 나오면 이 등급 이상은 가방에 따로 보관 (없으면 강화석) */
   keepDup?: number;
+  /** 거래로 서버에 맡겨 넘긴 장비 키 (다시 쓰면 서버가 거절) */
+  tkeys?: string[];
   /** 마지막 저장 시각 (로그인 계정: 서버 세이브가 더 최근이면 받아옴) */
   svT?: number;
   ref?: Record<string, { lines: { k: string; v: number; g: number; lk?: number }[]; n: number }>;

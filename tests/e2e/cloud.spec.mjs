@@ -61,3 +61,20 @@ test('서버 세이브 검사: 거절되면 마지막 정상 기록으로 되돌
   expect(await page.evaluate(() => loadGame().gold)).toBe(100);
   await expect(page.locator('#toasts')).toContainText('마지막 정상 기록으로 되돌렸어요');
 });
+
+test('거래 기반: 돈·장비 맡기기 → 취소하면 돌아옴, 착용·낮은 등급은 못 맡김', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 30, gold: 1000, inv: { fist: 1, cap_grey: 1, fleece: 1, sneakers: 1, silverbag: 1, umbrella: 1, starstick: 1, 'starstick#ab12': 1 }, enh: { 'starstick#ab12': 9 }, eq: { weapon: 'starstick', hat: 'cap_grey', armor: 'fleece', shoes: 'sneakers', bag: 'silverbag' } });
+  await page.evaluate(MOCK_SB);
+  await enterZone(page, 0);
+  const r = await page.evaluate(async () => [
+    (await tradePut('item', 'starstick')).reason, (await tradePut('item', 'umbrella')).reason, (await tradePut('gold', 5000)).reason,
+    (await tradePut('gold', 300)).ok, (await tradePut('item', 'starstick#ab12')).ok]);
+  expect(r).toEqual(['equipped', 'unregistered', 'balance', true, true]);
+  expect(await page.evaluate(() => [G.pd.gold, !!G.pd.inv['starstick#ab12'], G.pd.enh['starstick#ab12'], G.pd.tkeys, __escrow.length, __db.hb_saves.length])).toEqual([700, false, undefined, ['starstick#ab12'], 2, 1]);
+  // 취소: 돈은 선물함 → 바로 받음, 장비는 받을 장비로 → 새 키로 들어옴
+  await page.evaluate(async () => { await tradeCancel('e1'); await tradeCancel('e2'); });
+  expect(await page.evaluate(async () => [G.pd.gold, G.pd.inv['starstick#tback1'], (await tradeMine()).length])).toEqual([1000, 1, 0]);
+  await expect(page.locator('#toasts')).toContainText('받은 장비: 단단한 맥북프로');
+  // 여러 번 받아도 한 번만
+  await page.evaluate(() => tradeClaim()); expect(await page.evaluate(() => Object.keys(G.pd.inv).filter(k => k.startsWith('starstick')).length)).toBe(2);
+});

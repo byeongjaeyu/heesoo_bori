@@ -55,7 +55,8 @@ const ILV_NEED = 5, ILV_BONUS = 0.05;
 const BAG_MAX = 300;
 const keysOf = (/** @type {SaveData} */ pd, id) => Object.keys(pd.inv || {}).filter(k => defOf(k) === id);
 const ownsDef = (/** @type {SaveData} */ pd, id) => keysOf(pd, id).length > 0;
-function newItemKey(/** @type {SaveData} */ pd, id) { if (!pd.inv[id]) return id; let k; do k = id + '#' + Math.random().toString(36).slice(2, 6); while (pd.inv[k]); return k; }
+/** 새 장비 키. 거래로 넘긴 키(pd.tkeys)는 서버가 묘비로 기억하니 다시 쓰지 않음 */
+function newItemKey(/** @type {SaveData} */ pd, id) { const gone = pd.tkeys || []; if (!pd.inv[id] && !gone.includes(id)) return id; let k; do k = id + '#' + Math.random().toString(36).slice(2, 6); while (pd.inv[k] || gone.includes(k)); return k; }
 /** 장비 1개 추가 → 키. 도감도 등록 */
 function addItem(/** @type {SaveData} */ pd, id, enh) {
   const k = newItemKey(pd, id); pd.inv[k] = 1; pd.book = pd.book || {}; pd.book[id] = 1;

@@ -66,6 +66,7 @@ async function rankSyncNow() {
   const keep = G.pd; G.pd = pd;
   try { await pvpUpload(); } finally { if (keep !== pd) { G.pd = keep; if (keep) calcStats(); } }
   await claimGifts(pd).catch(() => { });
+  await tradeClaim().catch(() => 0);
   return true;
 }
 function rankSync(force) {

@@ -37,6 +37,13 @@ export const MOCK_SB = `(() => {
       top: [{ rank: 1, nickname: '원조희수', rating: 1100, wins: 5, losses: 1 }, { rank: 2, nickname: '보리언니', rating: 1050, wins: 3, losses: 2 }], mine: { rank: 2, rating: 1050, reward: '강화석 100 · 200만G · 자동사냥 2시간' } }, error: null };
     if (name === 'hb_save_push') { const T = __db.hb_saves, row = T.find(r => r.user_id === 'u-me');
       if (row) Object.assign(row, { data: args.p_data || row.data, ep2: args.p_ep2 || row.ep2 }); else T.push({ user_id: 'u-me', data: args.p_data, ep2: args.p_ep2 }); return { data: { ok: true }, error: null }; }
+    // 거래 기반 (가짜): 맡기기·취소·받을 장비
+    if (name === 'hb_escrow_put') { const E = window.__escrow = window.__escrow || []; const id = 'e' + (E.length + 1); E.push(Object.assign({ id }, args)); return { data: { ok: true, id }, error: null }; }
+    if (name === 'hb_escrow_cancel') { const E = window.__escrow || [], e = E.find(x => x.id === args.p_id); if (!e) return { data: { ok: false, reason: 'not_found' }, error: null };
+      E.splice(E.indexOf(e), 1); if (e.p_kind === 'item') (window.__deliver = window.__deliver || []).push({ def: e.p_key.split('#')[0], key: e.p_key.split('#')[0] + '#tback1', enh: 0 });
+      else __grants.push({ kind: e.p_kind, amount: e.p_amount, note: '거래 취소 반환' }); return { data: { ok: true }, error: null }; }
+    if (name === 'hb_escrow_mine') return { data: (window.__escrow || []).map(e => ({ id: e.id, kind: e.p_kind, amount: e.p_amount })), error: null };
+    if (name === 'hb_claim_items') return { data: window.__deliver || [], error: null };
     if (name === 'hb_make_transfer_code') return { data: [{ code: 'ABCD2345', expires_at: new Date(Date.now() + 600000).toISOString() }], error: null };
     return { data: null, error: null }; };
   // 가짜 Realtime 채널: 테스트가 __chan.emit('broadcast'|'presence', event, payload) 로 다른 희수를 흉내냄
