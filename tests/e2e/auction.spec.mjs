@@ -13,6 +13,9 @@ test('경매장: 둘러보기 입찰·즉시 구매, 판매하기로 올리기, 
   });
   await page.click('#tAuc');
   await expect(page.locator('#auc')).toBeVisible();
+  // 모달 여백: 헤더 아래 첫 줄(탭)과 본문 좌우가 테두리에 붙지 않게
+  const gap = await page.evaluate(() => { const h = document.querySelector('#auc .mhead').getBoundingClientRect(), t = document.querySelector('#auc .auctabs .btn').getBoundingClientRect(), p = document.querySelector('#auc .panel').getBoundingClientRect(); return [t.top - h.bottom, t.left - p.left]; });
+  expect(gap[0]).toBeGreaterThanOrEqual(8); expect(gap[1]).toBeGreaterThanOrEqual(10);
   const c1 = page.locator('#aucBody .aucc', { hasText: '단단한 맥북프로 +15' });
   await expect(c1).toContainText('원조희수'); await expect(c1).toContainText('공격'); await expect(c1).toContainText('시작가 100,000G');
   // 입찰: 최소액보다 낮으면 서버가 거절, 맞으면 골드 빠짐

@@ -532,8 +532,8 @@ body.inPlaza #ctrl,body.inPlaza #guide,body.inPlaza #bossBar,body.inPlaza #keyHi
 /* 경매장 */
 .aucpanel{height:auto;max-height:min(90vh,820px)}
 .aucgold{display:flex;align-items:center;gap:3px;font-size:13px;font-weight:bold;color:#a8701a;margin-right:6px}.aucgold img{width:14px;height:14px;image-rendering:pixelated}
-.auctabs{display:flex;gap:6px;padding:0 10px 6px}.auctabs .btn{flex:1}.auctabs .btn.on,.aucf .btn.on{background:#ff6fa8;color:#fff;border-color:#c93d78}
-#aucBody{padding:4px 10px 14px;display:flex;flex-direction:column;gap:6px;overflow:auto}
+.auctabs{display:flex;gap:6px;padding:12px 12px 8px}.auctabs .btn{flex:1}.auctabs .btn.on,.aucf .btn.on{background:#ff6fa8;color:#fff;border-color:#c93d78}
+#aucBody{padding:4px 12px 16px;display:flex;flex-direction:column;gap:6px;overflow:auto}
 #aucBody h4{margin:8px 0 2px;font-size:13px;color:#8a2f5c}
 .aucf{display:flex;flex-wrap:wrap;gap:4px;align-items:center}.aucf .sp{flex:1}
 .aucmsg{font-size:12px;color:#7a5a6a;margin:4px 2px;line-height:1.5}.aucmsg.warn{color:#c0304a}
@@ -547,3 +547,11 @@ body.inPlaza #ctrl,body.inPlaza #guide,body.inPlaza #bossBar,body.inPlaza #keyHi
 #auc{z-index:82;background:rgba(20,8,30,.6)}
 .card.aucc{align-items:flex-start;row-gap:6px}.card.aucc .aucact{flex-basis:100%;margin-left:0}.card.aucc .mid .nm{white-space:normal}
 .aucf .btn.sm{padding:3px 9px;font-size:12px}
+/* 경매장 필터: 탭(큰 버튼)과 구분되는 작은 칩 + 묶음마다 이름표·여백 */
+.aucfil{display:flex;flex-direction:column;gap:8px;background:#fff3f8;border:2px solid #f3d3e2;border-radius:12px;padding:10px;margin:2px 0 6px}
+.aucf{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.aucf .lb{width:30px;flex:none;font-size:11px;font-weight:bold;color:#8a2f5c}
+.aucchip{font:inherit;font-size:12px;padding:4px 10px;border-radius:999px;border:2px solid #ecc9da;background:#fff;color:#5a3a4a;cursor:pointer}
+.aucchip.on{background:#ff6fa8;border-color:#c93d78;color:#fff;font-weight:bold}
+.aucform .aucf{margin-top:2px}.aucform .aucgo{margin-top:6px;gap:8px}
+.aucf .cs{flex:1;display:flex;flex-wrap:wrap;gap:5px;min-width:0}.aucf{align-items:flex-start}.aucf .lb{padding-top:6px}

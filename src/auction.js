@@ -40,7 +40,8 @@ function aucHead() {
   const pd = aucPd(); $('#aucGold').innerHTML = pd ? `<img src="${iconURL('i_coin', ICONS.coin)}" alt="">${aucG(pd.gold)}` : '';
   document.querySelectorAll('#auc [data-auc-tab]').forEach(b => b.classList.toggle('on', b.getAttribute('data-auc-tab') === AUC.tab));
 }
-const aucChip = (grp, v, t, on) => `<button class="btn sm${on ? ' on' : ''}" data-auc="${grp}" data-v="${v}">${t}</button>`;
+const aucRow = (lb, chips) => `<div class="aucf"><span class="lb">${lb}</span><div class="cs">${chips}</div></div>`;
+const aucChip = (grp, v, t, on) => `<button class="aucchip${on ? ' on' : ''}" data-auc="${grp}" data-v="${v}">${t}</button>`;
 function aucItemHtml(def, rar, enh, ilv, ref, extra) {
   const it = ITEMS[def]; if (!it) return '';
   return `<div class="ic"><img src="${itemURL(def)}" alt=""></div><div class="mid"><div class="nm"><span class="r${rar}">${it.name}${enh ? ' +' + enh : ''}</span>${ilv ? ` <small class="ilv">Lv.${ilv}</small>` : ''}</div><div class="ds">${RARITY[rar]} · ${SLOTNAME[it.slot] || ''}${aucRefTxt(ref)}${extra || ''}</div></div>`;
@@ -48,8 +49,9 @@ function aucItemHtml(def, rar, enh, ilv, ref, extra) {
 function aucRender() {
   aucHead(); const b = $('#aucBody'); let h = AUC.err ? `<p class="aucmsg warn">${esc(AUC.err)}</p>` : '';
   if (AUC.tab === 'browse') {
-    h += `<div class="aucf">${AUC_SLOTS.map(([v, t]) => aucChip('slot', v, t, AUC.slot === v)).join('')}</div>`
-      + `<div class="aucf">${AUC_RARS.map(([v, t]) => aucChip('rar', v, t, AUC.rar === v)).join('')}<span class="sp"></span>${AUC_SORTS.map(([v, t]) => aucChip('sort', v, t, AUC.sort === v)).join('')}</div>`;
+    h += `<div class="aucfil">${aucRow('부위', AUC_SLOTS.map(([v, t]) => aucChip('slot', v, t, AUC.slot === v)).join(''))}`
+      + aucRow('등급', AUC_RARS.map(([v, t]) => aucChip('rar', v, t, AUC.rar === v)).join(''))
+      + aucRow('정렬', AUC_SORTS.map(([v, t]) => aucChip('sort', v, t, AUC.sort === v)).join('')) + '</div>';
     if (!AUC.list.length && !AUC.err) h += '<p class="aucmsg">올라온 물건이 없어요. 「판매하기」에서 첫 물건을 올려보세요!</p>';
     for (const a of AUC.list) {
       const now = a.bid ? `현재가 <b>${aucG(a.bid)}</b> · 입찰 ${a.bids}건` : `시작가 <b>${aucG(a.start)}</b>`;
@@ -71,8 +73,8 @@ function aucRender() {
       let act = `<button class="btn pk sm" data-auc="sel" data-v="${k}">올리기</button>`;
       if (AUC.sel === k) act = `<div class="aucform"><label>시작가<input type="number" inputmode="numeric" id="aucStart" min="1000" step="1000" value="${aucSuggest(it.rar)}"></label>`
         + `<label>즉시 구매가 <small>(비워두면 없음)</small><input type="number" inputmode="numeric" id="aucBuy" min="1000" step="1000" placeholder="없음"></label>`
-        + `<div class="aucf">${AUC_HOURS.map(hr => aucChip('hours', hr, hr + '시간', AUC.hours === hr)).join('')}</div>`
-        + `<div class="aucf"><button class="btn pk" data-auc="sellGo" data-v="${k}">경매에 올리기</button><button class="btn wh" data-auc="selX">취소</button></div></div>`;
+        + aucRow('기간', AUC_HOURS.map(hr => aucChip('hours', hr, hr + '시간', AUC.hours === hr)).join(''))
+        + `<div class="aucf aucgo"><button class="btn pk" data-auc="sellGo" data-v="${k}">경매에 올리기</button><button class="btn wh" data-auc="selX">취소</button></div></div>`;
       h += `<div class="card aucc${AUC.sel === k ? ' open' : ''}">${aucItemHtml(defOf(k), it.rar, en, ilv, ref)}<div class="aucact">${act}</div></div>`;
     }
   } else {
