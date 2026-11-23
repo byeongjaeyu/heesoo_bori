@@ -528,3 +528,22 @@ body.inPlaza #ctrl,body.inPlaza #guide,body.inPlaza #bossBar,body.inPlaza #keyHi
 @keyframes fxRain{to{background-position:200% 0}}
 #accSec .accb{display:flex;flex-direction:column;gap:6px;margin-top:6px}#accSec .accb small{margin-top:4px;color:#8a6a7a;font-size:11px}
 #accSec .acc-google{background:#fff;color:#333;border-color:#ccc}#accSec .acc-kakao{background:#fee500;color:#3a1d1d;border-color:#d8c200}
+.refmini{font-size:10px;color:#7a5a6a}.refmini b{font-weight:normal}.refmini .g1{color:#2f7fd0}.refmini .g2{color:#c58a10}.refmini .g3{color:#c93d78;font-weight:bold}
+/* 경매장 */
+.aucpanel{height:auto;max-height:min(90vh,820px)}
+.aucgold{display:flex;align-items:center;gap:3px;font-size:13px;font-weight:bold;color:#a8701a;margin-right:6px}.aucgold img{width:14px;height:14px;image-rendering:pixelated}
+.auctabs{display:flex;gap:6px;padding:0 10px 6px}.auctabs .btn{flex:1}.auctabs .btn.on,.aucf .btn.on{background:#ff6fa8;color:#fff;border-color:#c93d78}
+#aucBody{padding:4px 10px 14px;display:flex;flex-direction:column;gap:6px;overflow:auto}
+#aucBody h4{margin:8px 0 2px;font-size:13px;color:#8a2f5c}
+.aucf{display:flex;flex-wrap:wrap;gap:4px;align-items:center}.aucf .sp{flex:1}
+.aucmsg{font-size:12px;color:#7a5a6a;margin:4px 2px;line-height:1.5}.aucmsg.warn{color:#c0304a}
+.card.aucc{flex-wrap:wrap}.card.aucc .mid{flex:1;min-width:0}.aucp{font-size:12px}.aucp b{color:#a8701a}
+.aucact{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;align-items:center;margin-left:auto}
+.aucact .btn.buy{background:#ffd84a;border-color:#a8701a}
+.auctag{font-style:normal;font-size:11px;padding:3px 8px;border-radius:8px;background:#eee4ea;color:#7a5a6a}.auctag.top{background:#dff3d6;color:#2f7a2a}
+.aucbid{display:flex;gap:4px;align-items:center}.aucbid input{width:110px}
+.aucform{display:flex;flex-direction:column;gap:6px;width:100%;margin-top:6px}.aucform label{display:flex;flex-direction:column;font-size:12px;gap:2px}.aucform input,.aucbid input{padding:6px 8px;border:2px solid #ecc9da;border-radius:8px;font:inherit;font-size:14px}
+.card.aucc.open{background:#fff8fb}.card.aucc.done{opacity:.8}
+#auc{z-index:82;background:rgba(20,8,30,.6)}
+.card.aucc{align-items:flex-start;row-gap:6px}.card.aucc .aucact{flex-basis:100%;margin-left:0}.card.aucc .mid .nm{white-space:normal}
+.aucf .btn.sm{padding:3px 9px;font-size:12px}

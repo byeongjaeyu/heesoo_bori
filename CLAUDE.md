@@ -37,7 +37,7 @@
   - 중복 드롭: 기본은 예전처럼 강화석/장비 레벨 재료. 장비 탭 「같은 장비 또 나오면」(`pd.keepDup` = 전설↑3·신화↑4·초월 5)이면 그 등급 이상은 가방에 따로 보관(가방 `BAG_MAX` 300개 넘으면 강화석).
 - 장비 도감(`BOOK_SETS`, data.js / `bookStats`, game.js): 시작 장비 제외 44종. 보유하면 자동 등록(분해해도 기록 유지), 1칸 최대 HP +5, 등급별·보리 용품 세트 완성 보너스. 새 장비 획득 경로를 추가하면 `bookNotify(id)` 호출.
 - 꾸미기(`LOOK_SLOTS`/`HAIRS`, data.js / `visEq`·`hairOk`, game.js): 능력치 없음. 모자·옷·신발·가방은 **도감에 있는** 장비 모습으로, 헤어(기본 3색 + 도감·회차·+25·각성·2장 클리어 조건색 + 한정색). 그리기는 `heePal()`이 visEq+헤어 사용, 스냅샷 `vis`/`hair`로 랭킹·PvP 반영.
-- 타이틀 = 게임 로비(`showTitle`, ui.js): 상단 내 희수(얼굴·닉·Lv·전투력)+소리, 왼쪽 아이콘(출석·랭킹·카드 공유·기기 이동), 오른쪽 방치 보상·미니게임(보리 주세요), 하단 모드 타일(할로윈·PvP·월드 보스)+「모험 계속하기」. 「장비·스킬」(tBag)·프로필 탭 → `lobbyMenu()`: state `lobbyMenu`로 메뉴를 열고(음식 탭 제외, G.P 없음) 닫으면 로비로. 버튼 id(tCont/tNew/tEp2/tInf/tPvp/tRaid/tRank/tDaily/tShare/tCloud/tSnd/tBag)는 e2e가 씀. 타이틀 희수는 `TITLE_PD`(세이브) 꾸미기로 그림. 양옆 버튼 줄 위치는 `titleLayout()`이 프로필·로고 아래로 계산(글꼴 로드·화면 크기 변경 때 다시) — CSS 고정 top 쓰지 말 것.
+- 타이틀 = 게임 로비(`showTitle`, ui.js): 상단 내 희수(얼굴·닉·Lv·전투력)+소리, 왼쪽 아이콘(장비·스킬·출석·랭킹·카드 공유·경매장·기기 이동), 오른쪽 방치 보상·미니게임(보리 주세요), 하단 모드 타일(할로윈·PvP·월드 보스)+「모험 계속하기」. 「장비·스킬」(tBag)·프로필 탭 → `lobbyMenu()`: state `lobbyMenu`로 메뉴를 열고(음식 탭 제외, G.P 없음) 닫으면 로비로. 버튼 id(tCont/tNew/tEp2/tInf/tPvp/tRaid/tRank/tDaily/tShare/tCloud/tSnd/tBag)는 e2e가 씀. 타이틀 희수는 `TITLE_PD`(세이브) 꾸미기로 그림. 양옆 버튼 줄 위치는 `titleLayout()`이 프로필·로고 아래로 계산(글꼴 로드·화면 크기 변경 때 다시) — CSS 고정 top 쓰지 말 것.
 - 「보리 주세요」(ep2*)는 본편과 별개인 **미니게임** 취급(화면 문구에 '2탄' 쓰지 않음). 데이터·세이브 키는 그대로.
 - 업적·칭호(`src/achv.js`): `ACH` 표(40개 넘음, 티어 1~4 → 강화석 5·15·40·100). 1초마다 `achvCheck`가 조건 검사 → `pd.ach[id]` 등록·보상(예전 기록도 소급 달성). 메뉴 「칭호」 탭에서 장착(`pd.title`) → snap `ttl`(달성한 것만)·`achN`. 표시는 `achTag(id)`(모르는 id는 빈 문자열) — 랭킹·PvP·동료 목록·로비·카드·이름표. 통계 `stats.boss`·`pvpW`·`raidBest` 추가. 업적 id는 바꾸지 말 것(세이브·랭킹에 저장됨).
 - 방치 보상(`src/idle.js`): `pd.idleT`부터 쌓임(최대 12시간, 10분부터 받기). 플레이 중 `saveGame`이 idleT를 지금으로 갱신(타이틀·로비 메뉴에선 안 함). 지금 스테이지·회차 몬스터 시간당 300마리 기준 골드·경험치(Lv50 이후 각성)·강화석(처치당 0.03, 12시간 ≈ 108개). 로비 오른쪽 상자 타일 `#tIdle` → `idleClaim`.
@@ -86,6 +86,12 @@
   - 보관(에스크로) `hb_escrow`: `hb_escrow_put(kind, amount, key, ref)`(돈 gold·stones 또는 장비 키, 서버 세이브에서 바로 빼고 보관, 착용 중·미등록·50개 초과 거절) → `hb_escrow_settle(id, to, reason)`(**서버 전용**: 거래 방식 함수가 부를 것. 돈은 받는 사람 `hb_grants`, 장비는 `hb_items` state 'deliver' + 새 키 `이름#t…`) / `hb_escrow_cancel(id)`(맡긴 사람에게 같은 방식으로 반환) / `hb_escrow_mine()` / `hb_claim_items()`(받을 장비 목록, 읽기만 — 세이브에 넣고 올리면 own 확정). 기록 `hb_ledger`. 보관한 돈은 `hb_save_push` 증가 한도에서 빼서 되살리기 막음.
   - 클라: `tradePut(kind, v, ref)`(먼저 `cloudSync`, 성공하면 세이브에서 빼고 장비 키는 `pd.tkeys`에 — `newItemKey`가 다시 안 씀), `tradeCancel(id)`, `tradeMine()`, `tradeClaim()`(rankSyncNow에서 선물 받은 뒤 자동). e2e 가짜 SB에 `__escrow`·`__deliver`.
   - 기기 옮기기(`hb_use_transfer_code`)는 등록부·묘비·보관 중인 것도 같이 옮김.
+- **경매장**(`src/auction.js`, 서버 `supabase/auction.sql`): 로비 왼쪽 「경매장」 `#tAuc` → `#auc`(z-index 82, 로비 위). 랭킹 닉네임 등록(숨김 아님) 희수만(`hb_auc_ok`).
+  - 올리기 `hb_auc_list(key, 시작가≥1,000, 즉시구매가|null, 12/24/48시간)`: 전설↑·안 낀 장비를 보관(`hb_escrow_put`)하고 `hb_auctions`에 강화·레벨·재련 그대로 기록. 한 사람 동시 10개.
+  - 입찰 `hb_auc_bid(id, 금액)`: 최소 = 시작가, 이후 현재가 +5%(`hb_auc_min`). 입찰 골드는 보관, 밀린 사람은 바로 선물함 반환. 즉시 구매가 이상이면 즉시 구매 → 바로 마감. 마감 1분 전 입찰이면 1분 연장. 자기 물건·이미 최고 입찰이면 거절.
+  - 마감 `hb_auc_close`(서버 전용): 낙찰자에게 장비(받을 장비), 판매자에게 골드 - 수수료 5%(선물함, 수수료는 사라짐 = 골드 소모처, `hb_ledger` 'auction_fee'). 입찰 없으면 유찰 → 판매자에게 장비 반환. pg_cron `hb_auc_close_due` 5분마다 + 둘러보기·입찰·내 경매 열 때도.
+  - 취소 `hb_auc_cancel`(입찰 없을 때만), 목록 `hb_auc_browse(부위|'bori'|'', 최소 등급, end/low/high/new)`·`hb_auc_mine()`(판매 중·입찰 중·7일 결과).
+  - 클라: 열 때마다 `claimGifts`+`tradeClaim`으로 반환·대금·장비부터 받음. 입찰·올리기 전 `cloudSync(true)`, 성공하면 로컬 골드 차감/장비 제거(`pd.tkeys`). e2e 가짜 SB `__auc`·`__aucCalls`.
 - 서버 함수는 운영 DB에서 `do $$ ... raise exception 'RESULT: %' ... $$` 로 감싸 실행하면 롤백되므로 안전하게 검증 가능.
 - 클라이언트는 공개(anon) 키로 RLS 범위만 접근. 테스트는 Supabase·CDN 요청을 차단하고 가짜 SB로 돔 — 운영 DB를 건드리지 말 것.
 - **랭킹 등록·갱신은 `hb_submit_fighter(snap, nick)` RPC로만** (직접 쓰기 권한 없음). 서버가 `hb_power(snap)`로 전투력을 계산하고 범위 밖 값은 거절.

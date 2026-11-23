@@ -123,6 +123,8 @@ function keepDupHtml(/** @type {SaveData} */ pd) {
   const opt = [[-1, '강화석'], [3, '전설↑ 보관'], [4, '신화↑ 보관'], [5, '초월만 보관']];
   return `<div class="gbar kdup"><span>같은 장비 또 나오면 <small>가방 ${n}/${BAG_MAX}</small></span><span class="disb">${opt.map(([v, t]) => `<button class="btn sm${cur === v ? ' on' : ''}" data-m="keepDup" data-v="${v}">${t}</button>`).join('')}</span></div>`;
 }
+/** 이 장비에 붙은 추가 옵션 (재련은 장비마다 — 벗거나 넘기면 옵션도 같이 감) */
+function refLine(id) { const r = refOf(G.pd, id); if (!r || !r.lines.length) return ''; return `<br><span class="refmini">옵션 ${r.lines.map(l => `<b class="g${l.g}">${refLineTxt(l)}</b>`).join(' · ')}</span>`; }
 function ilvLine(id, eq) { const lv = ilvOf(id), x = (G.pd.iexp || {})[id] || 0; if (!lv && !x && !eq) return ''; return `<br><b class="ilv">장비 Lv.${lv}</b> · 재료 ${x}/${ILV_NEED}${lv ? ` · 기본 스탯 +${Math.round(ILV_BONUS * 100 * lv)}%` : ''}${eq ? ' <small>(같은 부위·등급 장비를 주우면 쌓여요)</small>' : ''}`; }
 function statStr(it) {
   const a = [];
@@ -222,7 +224,7 @@ const MREN = {
       h += `<h3>${SLOTNAME[sl]} <small>${ids.length}개 보유</small></h3>`;
       for (const id of ids) {
         const it = ITEMS[id], eq = pd.eq[sl] === id;
-        h += `<div class="card"><div class="ic"><img src="${itemURL(id)}"></div><div class="mid"><div class="nm"><span class="r${it.rar}">${it.name}${ilvTag(id)}${(pd.enh || {})[id] ? ' +' + pd.enh[id] : ''}</span><span class="tag">${RARITY[it.rar]}</span></div><div class="ds">${statStr(it)}${ilvLine(id, eq)}${it.desc ? `<br><small>${it.desc}</small>` : ''}</div></div>${eq ? '<span class="badge-eq">장착중</span>' : `<div style="display:flex;flex-direction:column;gap:4px"><button class="btn gr" data-m="equip" data-v="${id}">장착</button>${it.start ? '' : `<button class="btn wh" data-m="sell" data-v="${id}">판매 ${sellPrice(id)}G</button>`}${canDismantle(id) ? `<button class="btn sm stone" data-m="dis" data-v="${id}">분해 +${stoneYield(id)}</button>` : ''}</div>`}</div>`;
+        h += `<div class="card"><div class="ic"><img src="${itemURL(id)}"></div><div class="mid"><div class="nm"><span class="r${it.rar}">${it.name}${ilvTag(id)}${(pd.enh || {})[id] ? ' +' + pd.enh[id] : ''}</span><span class="tag">${RARITY[it.rar]}</span></div><div class="ds">${statStr(it)}${ilvLine(id, eq)}${refLine(id)}${it.desc ? `<br><small>${it.desc}</small>` : ''}</div></div>${eq ? '<span class="badge-eq">장착중</span>' : `<div style="display:flex;flex-direction:column;gap:4px"><button class="btn gr" data-m="equip" data-v="${id}">장착</button>${it.start ? '' : `<button class="btn wh" data-m="sell" data-v="${id}">판매 ${sellPrice(id)}G</button>`}${canDismantle(id) ? `<button class="btn sm stone" data-m="dis" data-v="${id}">분해 +${stoneYield(id)}</button>` : ''}</div>`}</div>`;
       }
     }
     return h;
@@ -238,7 +240,7 @@ const MREN = {
         const ids = Object.keys(pd.inv).filter(id => ITEMS[id] && ITEMS[id].slot === sl).sort((a, b) => ITEMS[a].rar - ITEMS[b].rar);
         h += `<h3>${SLOTNAME[sl]} <small>${ids.length}개 보유${sl === 'btoy' ? ' · 항상 입에 물고 다녀요' : ''}</small></h3>`;
         if (!ids.length) h += `<p class="ds" style="margin:4px;font-size:11px;color:#8a6a7a">보스를 잡거나 배달앱에서 구할 수 있어요.</p>`;
-        for (const id of ids) { const it = ITEMS[id], eq = pd.beq[sl] === id, ten = (pd.enh || {})[id] || 0; h += `<div class="card"><div class="ic"><img src="${itemURL(id)}"></div><div class="mid"><div class="nm"><span class="r${it.rar}">${it.name}${ilvTag(id)}${ten ? ' +' + ten : ''}</span><span class="tag">${RARITY[it.rar]}</span></div><div class="ds">보리 공격 +${Math.round(it.bdmg * 100)}%${ten ? ` (강화 +${3 * ten}%)` : ''}${ilvLine(id, eq)}<br><small>${it.desc}</small></div></div>${eq ? '<span class="badge-eq">장착중</span>' : `<div style="display:flex;flex-direction:column;gap:4px"><button class="btn gr" data-m="equip" data-v="${id}">장착</button><button class="btn wh" data-m="sell" data-v="${id}">판매 ${sellPrice(id)}G</button>${canDismantle(id) ? `<button class="btn sm stone" data-m="dis" data-v="${id}">분해 +${stoneYield(id)}</button>` : ''}</div>`}</div>`; }
+        for (const id of ids) { const it = ITEMS[id], eq = pd.beq[sl] === id, ten = (pd.enh || {})[id] || 0; h += `<div class="card"><div class="ic"><img src="${itemURL(id)}"></div><div class="mid"><div class="nm"><span class="r${it.rar}">${it.name}${ilvTag(id)}${ten ? ' +' + ten : ''}</span><span class="tag">${RARITY[it.rar]}</span></div><div class="ds">보리 공격 +${Math.round(it.bdmg * 100)}%${ten ? ` (강화 +${3 * ten}%)` : ''}${ilvLine(id, eq)}${refLine(id)}<br><small>${it.desc}</small></div></div>${eq ? '<span class="badge-eq">장착중</span>' : `<div style="display:flex;flex-direction:column;gap:4px"><button class="btn gr" data-m="equip" data-v="${id}">장착</button><button class="btn wh" data-m="sell" data-v="${id}">판매 ${sellPrice(id)}G</button>${canDismantle(id) ? `<button class="btn sm stone" data-m="dis" data-v="${id}">분해 +${stoneYield(id)}</button>` : ''}</div>`}</div>`; }
       }
     }
     return h;
@@ -372,6 +374,7 @@ function showTitle() {
   $('#tsideL').innerHTML = (saved ? `<button class="ticon tbag" id="tBag">${I('bag')}<small>장비·스킬</small>${bagDot ? '<em class="dot"></em>' : ''}</button>` : '') + (saved ? `<button class="ticon" id="tDaily">${I('cal')}<small>출석·미션</small>${dailyClaimable(saved) ? '<em class="dot"></em>' : ''}</button>` : '')
     + `<button class="ticon" id="tRank">${I('trophy')}<small>랭킹</small></button>`
     + (saved ? `<button class="ticon" id="tShare">${I('camera')}<small>카드 공유</small></button>` : '')
+    + (saved ? `<button class="ticon" id="tAuc">${I('auc')}<small>경매장</small></button>` : '')
     + `<button class="ticon" id="tCloud">${I('phone')}<small>기기 이동</small></button>`;
   // 오른쪽: 미니게임
   let boriImg = ''; try { const c = mkCanvas(20, 20), g = c.getContext('2d'); g.drawImage(b2Spr('sit').n, 3, 4); const o = mkCanvas(80, 80), og = o.getContext('2d'); og.imageSmoothingEnabled = false; og.drawImage(c, 0, 0, 80, 80); boriImg = o.toDataURL(); } catch (e) { }
@@ -399,6 +402,7 @@ function showTitle() {
     for (const b of document.querySelectorAll('.tch')) /** @type {HTMLElement} */ (b).onclick = () => { audioInit(); chapterPick(+b.getAttribute('data-ch')); }; }
   $('#tRank').onclick = () => { audioInit(); rankOpen('title'); };
   $('#tCloud').onclick = () => { audioInit(); cloudOpen('title'); };
+  if ($('#tAuc')) $('#tAuc').onclick = () => { audioInit(); aucOpen(); };
   if ($('#tDaily')) $('#tDaily').onclick = () => { audioInit(); dailyOpen(); };
   if ($('#tPlaza')) $('#tPlaza').onclick = () => { audioInit(); sfx('select'); plazaOpen(); };
   if ($('#tNew')) $('#tNew').onclick = () => { audioInit(); newGame(); };

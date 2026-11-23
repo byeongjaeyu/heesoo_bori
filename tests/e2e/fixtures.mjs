@@ -44,6 +44,15 @@ export const MOCK_SB = `(() => {
       else __grants.push({ kind: e.p_kind, amount: e.p_amount, note: '거래 취소 반환' }); return { data: { ok: true }, error: null }; }
     if (name === 'hb_escrow_mine') return { data: (window.__escrow || []).map(e => ({ id: e.id, kind: e.p_kind, amount: e.p_amount })), error: null };
     if (name === 'hb_claim_items') return { data: window.__deliver || [], error: null };
+    // 경매장 (가짜): __auc 목록, 입찰·등록 기록 __aucCalls
+    if (name.startsWith('hb_auc_')) { const A = window.__auc = window.__auc || [], C = window.__aucCalls = window.__aucCalls || []; C.push([name, args]);
+      if (name === 'hb_auc_browse') return { data: A.filter(a => a.state !== 'sold'), error: null };
+      if (name === 'hb_auc_mine') return { data: { selling: A.filter(a => a.mine), bidding: A.filter(a => a.top), done: [] }, error: null };
+      if (name === 'hb_auc_list') { A.push({ id: 'a' + (A.length + 1), def: args.p_key.split('#')[0], rar: 5, slot: 'weapon', enh: 0, start: args.p_start, buyout: args.p_buyout, bid: null, bids: 0, min: args.p_start, ends: new Date(Date.now() + args.p_hours * 3600e3).toISOString(), seller: '나', mine: true }); return { data: { ok: true, id: 'a' + A.length }, error: null }; }
+      if (name === 'hb_auc_bid') { const a = A.find(x => x.id === args.p_id); if (args.p_amount < a.min) return { data: { ok: false, reason: 'low', min: a.min }, error: null };
+        const buy = a.buyout && args.p_amount >= a.buyout, amt = buy ? a.buyout : args.p_amount; Object.assign(a, { bid: amt, bids: a.bids + 1, top: true, min: Math.ceil(amt * 1.05) }); if (buy) { a.state = 'sold'; (window.__deliver = window.__deliver || []).push({ def: a.def, key: a.def + '#tauc01', enh: a.enh }); }
+        return { data: { ok: true, bought: !!buy, bid: amt }, error: null }; }
+      if (name === 'hb_auc_cancel') { const a = A.find(x => x.id === args.p_id); A.splice(A.indexOf(a), 1); return { data: { ok: true }, error: null }; } }
     if (name === 'hb_make_transfer_code') return { data: [{ code: 'ABCD2345', expires_at: new Date(Date.now() + 600000).toISOString() }], error: null };
     return { data: null, error: null }; };
   // 가짜 Realtime 채널: 테스트가 __chan.emit('broadcast'|'presence', event, payload) 로 다른 희수를 흉내냄

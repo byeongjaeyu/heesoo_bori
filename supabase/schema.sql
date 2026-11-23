@@ -287,3 +287,4 @@ revoke insert, update on public.hb_saves from authenticated;
 -- ===== 거래 기반: supabase/trade.sql (테이블·함수 전체), 장비표 데이터: supabase/item_defs.sql (자동 생성) =====
 -- 2026-11-23 적용. hb_save_push 는 trade.sql 버전이 최신(장비 등록부 동기화·보관 돈 한도 차감, 보관 조회는 created_at >= prev.updated_at).
 -- hb_use_transfer_code 도 hb_items·hb_item_gone·hb_escrow 를 새 계정으로 옮기도록 바뀜.
+-- ===== 경매장: supabase/auction.sql (hb_auctions, hb_auc_list/bid/cancel/browse/mine, 서버 전용 hb_auc_close/close_due, pg_cron 'hb_auc_close_due' 5분마다) — 2026-11-23 적용 =====

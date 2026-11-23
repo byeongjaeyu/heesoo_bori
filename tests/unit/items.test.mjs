@@ -52,3 +52,14 @@ describe('개별 장비 (같은 장비 여러 개)', () => {
     expect(snap.eq.weapon).toBe('starstick'); expect(snap.w.id).toBe('starstick'); expect(snap.vis.weapon).toBe('starstick'); expect(snap.beq.btoy).toBe('toy_carp');
   });
 });
+
+describe('재련 옵션은 장비에 붙음 (슬롯이 아님)', () => {
+  test('같은 장비 두 개 중 재련한 장비를 착용했을 때만 옵션이 붙고, 넘기면(지우면) 옵션도 같이 사라짐', () => {
+    const pd = fresh({ gold: 1e9 }); const a = g.addItem(pd, 'starstick'), b = g.addItem(pd, 'starstick');
+    pd.ref = { [b]: { lines: [{ k: 'atkP', v: 20, g: 3 }], n: 1 } };
+    pd.eq.weapon = a; g.calcStats(); const atkA = g.G.st.atk;
+    pd.eq.weapon = b; g.calcStats(); expect(g.G.st.atk).toBeCloseTo(atkA * 1.2, 0);
+    pd.eq.weapon = a; g.calcStats(); expect(g.G.st.atk).toBeCloseTo(atkA, 5); // 벗으면 옵션도 빠짐
+    g.dropItem(pd, b); expect(pd.ref[b]).toBeUndefined();
+  });
+});
