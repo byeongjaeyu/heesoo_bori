@@ -154,7 +154,7 @@ function moveAway(e, sp, dt) { const a = Math.atan2(e.y - G.P.y, e.x - G.P.x); e
 function nearestEnemy(x, y, maxD) { let best = null, bd = maxD; for (const e of G.enemies) { if (e.dead || e.spawnT > 0) continue; const d = Math.hypot(e.x - x, e.y - y) - e.r; if (d < bd) { bd = d; best = e; } } return best; }
 
 // ---------- text / fx helpers ----------
-function addText(x, y, txt, kind) { G.texts.push({ x: x + rand(-3, 3), y, txt: String(txt), kind: kind || 'dmg', t: 0, dur: kind === 'crit' ? 0.9 : 0.75 }); if (G.texts.length > 60) G.texts.shift(); }
+function addText(x, y, txt, kind) { G.texts.push({ x: x + rand(-3, 3), y, txt: fmtNumText(txt), kind: kind || 'dmg', t: 0, dur: kind === 'crit' ? 0.9 : 0.75 }); if (G.texts.length > 60) G.texts.shift(); }
 function bubble(ent, txt, dur) { G.bubbles = G.bubbles.filter(b => b.ent !== ent); G.bubbles.push({ ent, txt, t: 0, dur: dur || 1.6 }); }
 function burst(x, y, col, n, spd) { for (let i = 0; i < n; i++) { const a = rand(0, Math.PI * 2), s = rand(20, spd || 70); G.parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 20, life: rand(0.3, 0.6), max: 0.6, col, sz: Math.random() < 0.3 ? 2 : 1, grav: 120 }); } }
 function word(x, y, txt, col, size) { G.fx.push({ k: 'word', x, y, txt, col: col || '#fff', size: size || 1.6, t: 0, dur: 0.7 }); }

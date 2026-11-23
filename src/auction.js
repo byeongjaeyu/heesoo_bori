@@ -13,6 +13,8 @@ const aucG = n => Number(n || 0).toLocaleString() + 'G';
 function aucLeft(iso) { const s = Math.max(0, Math.round((new Date(iso).getTime() - Date.now()) / 1000)); if (s <= 0) return '마감'; const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); return h ? `${h}시간 ${m}분` : m ? `${m}분` : `${s}초`; }
 const aucRefTxt = ref => ref && ref.lines && ref.lines.length ? `<br><span class="refmini">옵션 ${ref.lines.map(l => `<b class="g${l.g}">${refLineTxt(l)}</b>`).join(' · ')}</span>` : '';
 const aucPd = () => G.pd || loadGame();
+/** 쉼표 들어간 입력칸 값 → 숫자 (비었으면 NaN) */
+const numVal = (/** @type {string} */ sel) => { const v = String((/** @type {HTMLInputElement} */ ($(sel)) || { value: '' }).value).replace(/[^\d]/g, ''); return v ? Number(v) : NaN; };
 /** 시작가 추천 (등급별) */
 const aucSuggest = rar => [0, 0, 0, 10000, 50000, 200000][rar] || 10000;
 
@@ -59,7 +61,7 @@ function aucRender() {
       let act;
       if (a.mine) act = '<em class="auctag">내 물건</em>';
       else if (a.top) act = '<em class="auctag top">최고 입찰 중</em>';
-      else if (AUC.bidFor === a.id) act = `<div class="aucbid"><input type="number" inputmode="numeric" id="aucAmt" min="${a.min}" step="1000" value="${a.min}"><button class="btn pk sm" data-auc="bidGo" data-v="${a.id}">입찰</button><button class="btn wh sm" data-auc="bidX">취소</button></div>`;
+      else if (AUC.bidFor === a.id) act = `<div class="aucbid"><input type="text" inputmode="numeric" class="numin" id="aucAmt" value="${numF(a.min)}"><button class="btn pk sm" data-auc="bidGo" data-v="${a.id}">입찰</button><button class="btn wh sm" data-auc="bidX">취소</button></div>`;
       else act = `<button class="btn pk sm" data-auc="bid" data-v="${a.id}">입찰 ${aucG(a.min)}~</button>${a.buyout ? `<button class="btn sm buy" data-auc="buy" data-v="${a.id}">즉시 구매</button>` : ''}`;
       h += `<div class="card aucc">${aucItemHtml(a.def, a.rar, a.enh, a.ilv, a.ref, info)}<div class="aucact">${act}</div></div>`;
     }
@@ -71,8 +73,8 @@ function aucRender() {
     for (const k of keys) {
       const it = ITEMS[k], en = (pd.enh || {})[k] || 0, ilv = (pd.ilv || {})[k] || 0, ref = (pd.ref || {})[k];
       let act = `<button class="btn pk sm" data-auc="sel" data-v="${k}">올리기</button>`;
-      if (AUC.sel === k) act = `<div class="aucform"><label>시작가<input type="number" inputmode="numeric" id="aucStart" min="1000" step="1000" value="${aucSuggest(it.rar)}"></label>`
-        + `<label>즉시 구매가 <small>(비워두면 없음)</small><input type="number" inputmode="numeric" id="aucBuy" min="1000" step="1000" placeholder="없음"></label>`
+      if (AUC.sel === k) act = `<div class="aucform"><label>시작가<input type="text" inputmode="numeric" class="numin" id="aucStart" value="${numF(aucSuggest(it.rar))}"></label>`
+        + `<label>즉시 구매가 <small>(비워두면 없음)</small><input type="text" inputmode="numeric" class="numin" id="aucBuy" placeholder="없음"></label>`
         + aucRow('기간', AUC_HOURS.map(hr => aucChip('hours', hr, hr + '시간', AUC.hours === hr)).join(''))
         + `<div class="aucf aucgo"><button class="btn pk" data-auc="sellGo" data-v="${k}">경매에 올리기</button><button class="btn wh" data-auc="selX">취소</button></div></div>`;
       h += `<div class="card aucc${AUC.sel === k ? ' open' : ''}">${aucItemHtml(defOf(k), it.rar, en, ilv, ref)}<div class="aucact">${act}</div></div>`;
@@ -105,7 +107,7 @@ async function aucBid(id, amt, isBuy) {
 }
 async function aucSell(k) {
   if (AUC.busy) return; const pd = aucPd(), it = ITEMS[k];
-  const start = Math.floor(Number(/** @type {HTMLInputElement} */ ($('#aucStart')).value)), bv = /** @type {HTMLInputElement} */ ($('#aucBuy')).value.trim(), buy = bv ? Math.floor(Number(bv)) : null;
+  const start = numVal('#aucStart'), bv = numVal('#aucBuy'), buy = Number.isNaN(bv) ? null : bv;
   if (!(start >= 1000) || (buy !== null && !(buy >= start))) { toast(AUC_ERR.price, 'warn'); return; }
   if (!pd.inv[k] || Object.values(pd.eq).includes(k) || Object.values(pd.beq || {}).includes(k)) { toast(TRADE_ERR.equipped, 'warn'); return; }
   AUC.busy = true;
@@ -126,6 +128,8 @@ async function aucCancel(id) {
 }
 function aucBoot() {
   if (FORCE_EASY) return;
+  // 숫자 입력칸: 치는 동안 쉼표 넣기
+  $('#auc').addEventListener('input', e => { const i = /** @type {HTMLInputElement} */ (e.target); if (!i.classList || !i.classList.contains('numin')) return; const d = i.value.replace(/[^\d]/g, '').slice(0, 10); i.value = d ? numF(+d) : ''; });
   $('#auc').addEventListener('click', e => {
     const t = /** @type {HTMLElement} */ (e.target), tb = t.closest('[data-auc-tab]');
     if (tb) { AUC.tab = /** @type {string} */ (tb.getAttribute('data-auc-tab')); AUC.sel = null; AUC.bidFor = null; sfx('select'); if (AUC.tab === 'sell') aucRender(); else aucLoad(); return; }
@@ -137,7 +141,7 @@ function aucBoot() {
     if (m === 'hours') { AUC.hours = +v; document.querySelectorAll('#auc [data-auc="hours"]').forEach(x => x.classList.toggle('on', x === b)); return; }
     if (m === 'bid') { AUC.bidFor = v; aucRender(); const i = /** @type {HTMLInputElement} */ ($('#aucAmt')); if (i) i.focus(); return; }
     if (m === 'bidX') { AUC.bidFor = null; return aucRender(); }
-    if (m === 'bidGo') { const a = AUC.list.find(x => x.id === v), amt = Number(/** @type {HTMLInputElement} */ ($('#aucAmt')).value); if (a && a.buyout && amt >= a.buyout) { confirmBox(`즉시 구매가(${aucG(a.buyout)}) 이상이라 바로 구매돼요. 계속할까요?`, () => aucBid(v, a.buyout, true)); return; } return aucBid(v, amt, false); }
+    if (m === 'bidGo') { const a = AUC.list.find(x => x.id === v), amt = numVal('#aucAmt'); if (a && a.buyout && amt >= a.buyout) { confirmBox(`즉시 구매가(${aucG(a.buyout)}) 이상이라 바로 구매돼요. 계속할까요?`, () => aucBid(v, a.buyout, true)); return; } return aucBid(v, amt, false); }
     if (m === 'buy') { const a = AUC.list.find(x => x.id === v); if (!a) return; confirmBox(`${ITEMS[a.def].name}${a.enh ? ' +' + a.enh : ''}\n즉시 구매 ${aucG(a.buyout)}에 살까요?`, () => aucBid(v, a.buyout, true)); return; }
     if (m === 'sel') { AUC.sel = v; return aucRender(); }
     if (m === 'selX') { AUC.sel = null; return aucRender(); }

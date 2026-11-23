@@ -20,7 +20,9 @@ test('경매장: 둘러보기 입찰·즉시 구매, 판매하기로 올리기, 
   await expect(c1).toContainText('원조희수'); await expect(c1).toContainText('공격'); await expect(c1).toContainText('시작가 100,000G');
   // 입찰: 최소액보다 낮으면 서버가 거절, 맞으면 골드 빠짐
   await c1.locator('[data-auc="bid"]').click();
-  await page.fill('#aucAmt', '120000'); await page.click('[data-auc="bidGo"]');
+  await page.locator('#aucAmt').fill(''); await page.locator('#aucAmt').pressSequentially('120000');
+  await expect(page.locator('#aucAmt')).toHaveValue('120,000'); // 치는 동안 쉼표
+  await page.click('[data-auc="bidGo"]');
   await expect(page.locator('#toasts')).toContainText('120,000G에 입찰했어요');
   expect(await page.evaluate(() => loadGame().gold)).toBe(880000);
   await expect(page.locator('#aucBody .aucc', { hasText: '단단한 맥북프로 +15' })).toContainText('최고 입찰 중');
@@ -35,7 +37,7 @@ test('경매장: 둘러보기 입찰·즉시 구매, 판매하기로 올리기, 
   await expect(sel.filter({ hasText: '티아라' })).toHaveCount(1); await expect(sel.filter({ hasText: '+7' })).toHaveCount(1);
   await expect(sel.filter({ hasText: '우산' })).toHaveCount(0); // 전설 미만은 못 올림
   await sel.filter({ hasText: '+7' }).locator('[data-auc="sel"]').click();
-  await page.fill('#aucStart', '30000'); await page.fill('#aucBuy', '90000'); await page.click('[data-auc="hours"][data-v="48"]');
+  await page.fill('#aucStart', '30,000'); await page.fill('#aucBuy', '90000'); await page.click('[data-auc="hours"][data-v="48"]');
   await page.click('[data-auc="sellGo"]'); await page.click('#cfYes');
   await expect(page.locator('#toasts')).toContainText('경매에 올렸어요 (48시간)');
   expect(await page.evaluate(() => [!!loadGame().inv['cap_tiara#ab12'], loadGame().tkeys, __aucCalls.find(c => c[0] === 'hb_auc_list')[1]]))
@@ -51,4 +53,15 @@ test('경매장: 닉네임 없으면 못 들어감', async ({ page }) => {
   await page.click('#tAuc');
   await expect(page.locator('#toasts')).toContainText('랭킹에 닉네임을 등록한 희수만');
   await expect(page.locator('#auc')).toBeHidden();
+});
+
+test('화면 숫자는 쉼표 (로비 골드·메뉴·토스트), 옮기기 코드는 그대로', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 40, gold: 12345678, stones: 23456 });
+  await page.evaluate(() => toast('강화석 12345개 받음', 'lvl'));
+  await expect(page.locator('#toasts')).toContainText('강화석 12,345개 받음');
+  await page.click('#tBag'); await page.evaluate(() => { MTAB = 'equip'; renderMenu(true); });
+  await expect(page.locator('#menu')).toContainText('12,345,678');
+  await expect(page.locator('#menu')).toContainText('23,456');
+  await page.evaluate(() => { const el = document.querySelector('#cloudCodeV'); el.textContent = 'ABCD 2345'; });
+  await expect(page.locator('#cloudCodeV')).toHaveText('ABCD 2345');
 });

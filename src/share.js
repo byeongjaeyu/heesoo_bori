@@ -56,7 +56,7 @@ async function shareCardMake(info) {
     const x = 60 + (i % 2) * 490, y = 1020 + Math.floor(i / 2) * 150;
     rr(g, x, y, 470, 130, 22); g.fillStyle = 'rgba(255,255,255,.95)'; g.fill(); g.lineWidth = 6; g.strokeStyle = ink; g.stroke();
     g.textAlign = 'left'; g.fillStyle = '#888'; g.font = F(28); g.fillText(t, x + 28, y + 44);
-    g.fillStyle = i === 0 ? '#ff5fa2' : ink; g.font = F(52, true); g.fillText(v, x + 28, y + 104);
+    g.fillStyle = i === 0 ? '#ff5fa2' : ink; g.font = F(52, true); g.fillText(fmtNumText(v), x + 28, y + 104);
     g.textAlign = 'right'; g.fillStyle = '#7a5cff'; g.font = F(24); g.fillText(sub, x + 446, y + 44); g.textAlign = 'center';
   });
   // 하단 링크

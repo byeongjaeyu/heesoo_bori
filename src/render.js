@@ -1,6 +1,7 @@
 // ===================== RENDER =====================
 const FONT = '"HB", "Galmuri11", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif';
 function txt(s, x, y, size, fill, stroke, align, bold) {
+  s = fmtNumText(s);
   ctx.font = `${bold === false ? '' : 'bold '}${Math.round(size)}px ${FONT}`; ctx.textAlign = align || 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
   if (stroke) { ctx.lineWidth = Math.max(2, size * 0.24); ctx.strokeStyle = stroke; ctx.strokeText(s, x, y); }
   ctx.fillStyle = fill; ctx.fillText(s, x, y);

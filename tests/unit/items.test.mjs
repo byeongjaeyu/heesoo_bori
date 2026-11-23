@@ -63,3 +63,14 @@ describe('재련 옵션은 장비에 붙음 (슬롯이 아님)', () => {
     g.dropItem(pd, b); expect(pd.ref[b]).toBeUndefined();
   });
 });
+
+describe('숫자 쉼표', () => {
+  test('4자리 이상 숫자는 쉼표, 닉네임·날짜·코드·소수는 그대로', () => {
+    const f = g.fmtNumText;
+    expect(f('강화석 12345개')).toBe('강화석 12,345개'); expect(f('+123456G')).toBe('+123,456G'); expect(f('1000')).toBe('1,000'); expect(f('999')).toBe('999');
+    expect(f('전투력 7524 · 2위')).toBe('전투력 7,524 · 2위'); expect(f('판매 95000 → 90250 받음')).toBe('판매 95,000 → 90,250 받음');
+    expect(f('희수1234')).toBe('희수1234'); expect(f('2026-11-23')).toBe('2026-11-23'); expect(f('2026년 11월')).toBe('2026년 11월');
+    expect(f('starstick#ab12')).toBe('starstick#ab12'); expect(f('1,234,567G')).toBe('1,234,567G'); expect(f('12:00')).toBe('12:00'); expect(f('1234.5')).toBe('1234.5');
+    expect(g.numF(2000000)).toBe('2,000,000');
+  });
+});
