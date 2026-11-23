@@ -65,3 +65,49 @@ test('화면 숫자는 쉼표 (로비 골드·메뉴·토스트), 옮기기 코�
   await page.evaluate(() => { const el = document.querySelector('#cloudCodeV'); el.textContent = 'ABCD 2345'; });
   await expect(page.locator('#cloudCodeV')).toHaveText('ABCD 2345');
 });
+
+test('1:1 교환: 받은 제안 수락, 새 제안 보내기, 자격 안내', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await withSave(page, URL_MAIN, { lv: 40, gold: 300000, inv: { fist: 1, cap_grey: 1, fleece: 1, sneakers: 1, silverbag: 1, cap_tiara: 1, 'cap_tiara#ab12': 1, wingshoes: 1 }, enh: { 'cap_tiara#ab12': 7 },
+    eq: { weapon: 'fist', hat: 'cap_tiara', armor: 'fleece', shoes: 'sneakers', bag: 'silverbag' } });
+  await page.evaluate(MOCK_SB);
+  await page.evaluate(() => {
+    PV.me = { nickname: '나' };
+    const exp = new Date(Date.now() + 5 * 3600e3).toISOString();
+    window.__xc = { why: null, list: [
+      { id: 'in1', dir: 'in', state: 'open', who: '원조희수', msg: '신발 주세요', give: [{ def: 'starstick', rar: 5, enh: 12, ilv: 0, ref: null }], gold: 20000, want: [{ id: 'w1', key: 'wingshoes', def: 'wingshoes', rar: 5, enh: 0 }], want_gold: 50000, expires: exp }],
+      partner: { nick: '안녀엉', lv: 45, items: [{ id: 'p1', def: 'starstick', rar: 5, enh: 3, ilv: 0, ref: null }] } };
+  });
+  await page.click('#tAuc');
+  await page.click('[data-auc-tab="xchg"]');
+  const card = page.locator('#aucBody .xccard', { hasText: '원조희수' });
+  await expect(card).toContainText('단단한 맥북프로 +12'); await expect(card).toContainText('20,000G'); await expect(card).toContainText('50,000G');
+  await expect(card).toContainText('받는 쪽 19,000G');
+  // 여백: 본문 좌우가 테두리에 붙지 않게
+  const pad = await page.evaluate(() => { const c = document.querySelector('#aucBody .xccard').getBoundingClientRect(), p = document.querySelector('#auc .panel').getBoundingClientRect(); return [c.left - p.left, p.right - c.right]; });
+  expect(pad[0]).toBeGreaterThanOrEqual(10); expect(pad[1]).toBeGreaterThanOrEqual(10);
+  await page.screenshot({ path: 'test-results/xchg-390.png', fullPage: false });
+  // 수락: 내 날개 신발·골드 50,000 빠지고, 맥북·골드 19,000(선물) 받음
+  await card.locator('[data-auc="xcAccept"]').click(); await page.click('#cfYes');
+  await expect(page.locator('#toasts')).toContainText('교환 완료');
+  await expect.poll(() => page.evaluate(() => { const s = loadGame(); return [!!s.inv.wingshoes, !!s.inv['starstick#txc001'], s.gold]; })).toEqual([false, true, 269000]);
+  // 새 제안: 상대 찾기 → 상대 장비 고르고, 내 예비 티아라 + 골드
+  await page.fill('#xcNick', '안녀엉'); await page.click('[data-auc="xcFind"]');
+  await page.click('[data-auc="xcWant"][data-v="p1"]');
+  await expect(page.locator('[data-auc="xcGive"][data-v="cap_tiara"]')).toHaveCount(0); // 착용 중인 티아라는 안 보임
+  await expect(page.locator('[data-auc="xcGive"][data-v="starstick#txc001"]')).toHaveCount(1); // 방금 받은 장비는 다시 줄 수 있음
+  await page.click('[data-auc="xcGive"][data-v="cap_tiara#ab12"]');
+  await page.locator('#xcGold').pressSequentially('10000'); await expect(page.locator('#xcGold')).toHaveValue('10,000');
+  await page.locator('#aucBody .xcnew').scrollIntoViewIfNeeded(); await page.screenshot({ path: 'test-results/xchg-new-390.png' });
+  await page.click('[data-auc="xcSend"]'); await page.click('#cfYes');
+  await expect(page.locator('#toasts')).toContainText('안녀엉님에게 교환을 제안했어요');
+  expect(await page.evaluate(() => { const s = loadGame(); return [!!s.inv['cap_tiara#ab12'], s.gold, __xcCalls.find(c => c[0] === 'hb_xchg_propose')[1]]; }))
+    .toEqual([false, 259000, { p_nick: '안녀엉', p_give: ['cap_tiara#ab12'], p_gold: 10000, p_want: ['p1'], p_want_gold: 0, p_msg: null }]);
+  await expect(page.locator('#aucBody')).toContainText('보낸 제안 1/10');
+  await page.locator('#aucBody [data-auc="xcCancel"]').click();
+  await expect(page.locator('#toasts')).toContainText('제안을 취소했어요');
+  // 자격 안내 (계정 연결 안 함)
+  await page.evaluate(() => { __xc.why = 'link'; }); await page.click('[data-auc-tab="mine"]'); await page.click('[data-auc-tab="xchg"]');
+  await expect(page.locator('#aucBody .xcwarn')).toContainText('구글·카카오 계정을 연결한');
+  await expect(page.locator('[data-auc="xcLink"]')).toBeVisible();
+});

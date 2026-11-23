@@ -53,6 +53,13 @@ export const MOCK_SB = `(() => {
         const buy = a.buyout && args.p_amount >= a.buyout, amt = buy ? a.buyout : args.p_amount; Object.assign(a, { bid: amt, bids: a.bids + 1, top: true, min: Math.ceil(amt * 1.05) }); if (buy) { a.state = 'sold'; (window.__deliver = window.__deliver || []).push({ def: a.def, key: a.def + '#tauc01', enh: a.enh }); }
         return { data: { ok: true, bought: !!buy, bid: amt }, error: null }; }
       if (name === 'hb_auc_cancel') { const a = A.find(x => x.id === args.p_id); A.splice(A.indexOf(a), 1); return { data: { ok: true }, error: null }; } }
+    // 1:1 교환 (가짜): __xc = { why, list, partner }, 호출 기록 __xcCalls
+    if (name.startsWith('hb_xchg_')) { const X = window.__xc = window.__xc || { why: null, list: [] }, C = window.__xcCalls = window.__xcCalls || []; C.push([name, args]);
+      if (name === 'hb_xchg_mine') return { data: { why: X.why, list: X.list }, error: null };
+      if (name === 'hb_xchg_find') return { data: X.partner && args.p_nick === X.partner.nick ? Object.assign({ ok: true }, X.partner) : { ok: false, reason: 'no_user' }, error: null };
+      if (name === 'hb_xchg_propose') { X.list.unshift({ id: 't' + (X.list.length + 1), dir: 'out', state: 'open', who: args.p_nick, give: [], gold: args.p_gold, want: [], want_gold: args.p_want_gold, expires: new Date(Date.now() + 864e5).toISOString() }); return { data: { ok: true, id: 't' + X.list.length }, error: null }; }
+      if (name === 'hb_xchg_accept') { const t = X.list.find(x => x.id === args.p_id); t.state = 'done'; for (const it of t.give) (window.__deliver = window.__deliver || []).push({ def: it.def, key: it.def + '#txc001', enh: it.enh }); if (t.gold) __grants.push({ kind: 'gold', amount: Math.floor(t.gold * 0.95), note: '1:1 교환 (수수료 5% 제외)' }); return { data: { ok: true }, error: null }; }
+      if (name === 'hb_xchg_cancel') { const t = X.list.find(x => x.id === args.p_id); t.state = t.dir === 'out' ? 'cancelled' : 'declined'; return { data: { ok: true }, error: null }; } }
     if (name === 'hb_make_transfer_code') return { data: [{ code: 'ABCD2345', expires_at: new Date(Date.now() + 600000).toISOString() }], error: null };
     return { data: null, error: null }; };
   // 가짜 Realtime 채널: 테스트가 __chan.emit('broadcast'|'presence', event, payload) 로 다른 희수를 흉내냄

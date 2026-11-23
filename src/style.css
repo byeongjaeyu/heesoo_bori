@@ -555,3 +555,17 @@ body.inPlaza #ctrl,body.inPlaza #guide,body.inPlaza #bossBar,body.inPlaza #keyHi
 .aucchip.on{background:#ff6fa8;border-color:#c93d78;color:#fff;font-weight:bold}
 .aucform .aucf{margin-top:2px}.aucform .aucgo{margin-top:6px;gap:8px}
 .aucf .cs{flex:1;display:flex;flex-wrap:wrap;gap:5px;min-width:0}.aucf{align-items:flex-start}.aucf .lb{padding-top:6px}
+/* 1:1 교환 */
+.auctabs .btn{padding-left:4px;padding-right:4px}
+.xcwarn{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;background:#fff0f3;border:2px solid #f3b3c4;border-radius:12px;padding:10px 12px;font-size:12px;color:#c0304a}
+.xccard{background:#fff;border:3px solid var(--ink);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}.xccard.done{opacity:.75;padding:8px 12px}
+.xchd{font-size:13px}.xchd small{float:right;color:#8a6a7a;font-size:11px}.xcmsg{font-size:12px;color:#7a5a6a}
+.xccols{display:grid;grid-template-columns:1fr 1fr;gap:8px}.xccols>div{background:#fff6fa;border:2px solid #f3d3e2;border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.xccols em{font-style:normal;font-size:11px;font-weight:bold;color:#8a2f5c;margin-bottom:2px}
+.xcl{display:flex;align-items:center;gap:4px;font-size:12px;flex-wrap:wrap}.xcl img{width:20px;height:20px;image-rendering:pixelated}.xcl.gold b{color:#a8701a}.xcl small{font-size:10px;color:#8a6a7a}.xcl.none{color:#aa8a9a}
+.xcnew{display:flex;flex-direction:column;gap:10px;background:#fff3f8;border:2px solid #f3d3e2;border-radius:12px;padding:10px 12px}
+.xcrow{display:flex;align-items:center;gap:6px}.xcrow .lb{width:40px;flex:none;font-size:11px;font-weight:bold;color:#8a2f5c}.xcrow input{flex:1;min-width:0;padding:6px 8px;border:2px solid #ecc9da;border-radius:8px;font:inherit;font-size:14px}.xcrow .unit{font-size:12px;color:#7a5a6a}
+.xcsec{display:flex;flex-direction:column;gap:6px;border-top:2px dashed #f3d3e2;padding-top:10px}.xcst{font-size:12px;font-weight:bold;color:#5a3a4a}.xcst small{font-weight:normal;color:#8a6a7a}
+.xcitems{display:flex;flex-wrap:wrap;gap:6px}
+.xcitem{display:flex;align-items:center;gap:4px;font:inherit;font-size:12px;padding:4px 8px 4px 4px;border:2px solid #ecc9da;border-radius:10px;background:#fff;cursor:pointer;max-width:100%}
+.xcitem img{width:22px;height:22px;image-rendering:pixelated}.xcitem small{font-size:10px;color:#8a6a7a}.xcitem.on{border-color:#c93d78;background:#ffe3ef;box-shadow:0 0 0 2px #ff6fa8 inset}

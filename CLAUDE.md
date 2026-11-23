@@ -92,6 +92,11 @@
   - 마감 `hb_auc_close`(서버 전용): 낙찰자에게 장비(받을 장비), 판매자에게 골드 - 수수료 5%(선물함, 수수료는 사라짐 = 골드 소모처, `hb_ledger` 'auction_fee'). 입찰 없으면 유찰 → 판매자에게 장비 반환. pg_cron `hb_auc_close_due` 5분마다 + 둘러보기·입찰·내 경매 열 때도.
   - 취소 `hb_auc_cancel`(입찰 없을 때만), 목록 `hb_auc_browse(부위|'bori'|'', 최소 등급, end/low/high/new)`·`hb_auc_mine()`(판매 중·입찰 중·7일 결과).
   - 클라: 열 때마다 `claimGifts`+`tradeClaim`으로 반환·대금·장비부터 받음. 입찰·올리기 전 `cloudSync(true)`, 성공하면 로컬 골드 차감/장비 제거(`pd.tkeys`). e2e 가짜 SB `__auc`·`__aucCalls`.
+- **1:1 교환**(`src/xchg.js`, 서버 `supabase/xchg.sql`, 경매장 창 4번째 탭 「1:1 교환」): 제안 → 수락. 상대가 접속해 있지 않아도 됨. **하루 한도 없음**(사용자 요청).
+  - 자격 `hb_xchg_ok`: 랭킹 닉네임(숨김 아님) + 서버 세이브 Lv30 이상 + 구글·카카오 연결 계정(`auth.identities`). 안 되면 'nick'/'lv'/'link' → 탭 위 안내(계정 연결 버튼).
+  - `hb_xchg_find(닉네임)`: 상대의 전설↑·착용 안 한 장비 목록(hb_items id). `hb_xchg_propose(닉네임, 내 장비 키[], 골드, 상대 장비 id[], 원하는 골드, 한마디 40자)`: 한쪽 장비 5개까지, 골드 0 또는 100G 이상, 양쪽 다 뭔가 줘야 하고 장비가 최소 1개(골드끼리 교환 불가), 강화석 불가, 보낸 제안 10개까지. 내 것은 바로 보관(`hb_escrow_put`).
+  - `hb_xchg_accept(id)`: 받는 사람(B)의 장비·골드를 보관한 뒤 한 번에 맞바꿈(`hb_xchg_pay`: 장비 → `hb_escrow_settle` 받을 장비, 골드 → 받는 쪽에 **수수료 5%** 뗀 금액 선물함, 수수료 `hb_ledger` 'trade_fee' = 골드 소모처). `hb_xchg_cancel(id)`: 보낸 사람 = 취소, 받은 사람 = 거절 → 보낸 사람에게 반환. 24시간 지나면 `hb_xchg_expire_due`(pg_cron 10분마다 + mine·accept 때)가 반환. `hb_xchg_mine()` = {why, list(in/out, 받는 쪽에만 내 장비 key)}.
+  - 클라: 제안·수락 전 `cloudSync(true)`, 성공하면 로컬에서 장비 제거(`pd.tkeys`)·골드 차감, 수락하면 `claimGifts`+`tradeClaim`. 표 `hb_trades`. e2e 가짜 SB `__xc`(why·list·partner)·`__xcCalls`.
 - 서버 함수는 운영 DB에서 `do $$ ... raise exception 'RESULT: %' ... $$` 로 감싸 실행하면 롤백되므로 안전하게 검증 가능.
 - 클라이언트는 공개(anon) 키로 RLS 범위만 접근. 테스트는 Supabase·CDN 요청을 차단하고 가짜 SB로 돔 — 운영 DB를 건드리지 말 것.
 - **랭킹 등록·갱신은 `hb_submit_fighter(snap, nick)` RPC로만** (직접 쓰기 권한 없음). 서버가 `hb_power(snap)`로 전투력을 계산하고 범위 밖 값은 거절.

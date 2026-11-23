@@ -34,6 +34,7 @@ async function aucLoad() {
     await claimGifts(aucPd()).catch(() => { }); await tradeClaim().catch(() => 0);
     if (AUC.tab === 'browse') { const { data, error } = await SB.rpc('hb_auc_browse', { p_slot: AUC.slot, p_rar: AUC.rar, p_sort: AUC.sort }); if (error) throw error; AUC.list = data || []; }
     else if (AUC.tab === 'mine') { const { data, error } = await SB.rpc('hb_auc_mine'); if (error) throw error; AUC.mine = data || {}; }
+    else if (AUC.tab === 'xchg') await xcLoad();
     AUC.err = '';
   } catch (e) { AUC.err = '서버에 연결할 수 없어요: ' + pvErr(e); }
   aucRender();
@@ -79,6 +80,8 @@ function aucRender() {
         + `<div class="aucf aucgo"><button class="btn pk" data-auc="sellGo" data-v="${k}">경매에 올리기</button><button class="btn wh" data-auc="selX">취소</button></div></div>`;
       h += `<div class="card aucc${AUC.sel === k ? ' open' : ''}">${aucItemHtml(defOf(k), it.rar, en, ilv, ref)}<div class="aucact">${act}</div></div>`;
     }
+  } else if (AUC.tab === 'xchg') {
+    h += xcHtml();
   } else {
     const M = AUC.mine || {}, sell = M.selling || [], bid = M.bidding || [], done = M.done || [];
     h += `<h4>판매 중 ${sell.length}/10</h4>` + (sell.length ? '' : '<p class="aucmsg">올린 물건이 없어요</p>');
@@ -130,11 +133,13 @@ function aucBoot() {
   if (FORCE_EASY) return;
   // 숫자 입력칸: 치는 동안 쉼표 넣기
   $('#auc').addEventListener('input', e => { const i = /** @type {HTMLInputElement} */ (e.target); if (!i.classList || !i.classList.contains('numin')) return; const d = i.value.replace(/[^\d]/g, '').slice(0, 10); i.value = d ? numF(+d) : ''; });
+  $('#auc').addEventListener('input', e => xcInput(/** @type {HTMLInputElement} */ (e.target)));
   $('#auc').addEventListener('click', e => {
     const t = /** @type {HTMLElement} */ (e.target), tb = t.closest('[data-auc-tab]');
     if (tb) { AUC.tab = /** @type {string} */ (tb.getAttribute('data-auc-tab')); AUC.sel = null; AUC.bidFor = null; sfx('select'); if (AUC.tab === 'sell') aucRender(); else aucLoad(); return; }
     const b = t.closest('[data-auc]'); if (!b) return; const m = b.getAttribute('data-auc'), v = b.getAttribute('data-v') || '';
     if (m === 'close') return aucClose();
+    if (xcClick(m, v)) return;
     if (m === 'slot') { AUC.slot = v; return aucLoad(); }
     if (m === 'rar') { AUC.rar = +v; return aucLoad(); }
     if (m === 'sort') { AUC.sort = v; return aucLoad(); }
