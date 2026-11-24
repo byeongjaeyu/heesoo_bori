@@ -189,6 +189,7 @@ function drawDrop(d) {
   const bob = d.z > 0 ? d.z : Math.sin(d.t * 4) * 1.2 + 1.2;
   shadow(d.x, d.y, 7);
   if (d.kind === 'gold') drawSpr(ispr('coin'), d.x, d.y - bob);
+  else if (d.kind === 'stone') { ctx.globalAlpha = 0.45 + Math.sin(d.t * 6) * 0.25; pc(d.x, d.y - bob - 4, 6, '#7cc8ff'); ctx.globalAlpha = 1; drawSpr(ispr('stone'), d.x, d.y - bob); }
   else if (d.kind === 'food') drawSpr(ispr(FOODS[d.id].icon), d.x, d.y - bob);
   else { const it = ITEMS[d.id]; const col = ['#ffffff', '#6fd0ff', '#d08cff', '#ffd84a', '#ff5a8a', '#7ef0ff'][it.rar]; const a = 0.5 + Math.sin(d.t * 6) * 0.3; ctx.globalAlpha = a; pc(d.x, d.y - bob - 5, 7, col); ctx.globalAlpha = 1; drawSpr(itemSpr(d.id), d.x, d.y - bob); if (Math.floor(d.t * 4) % 3 === 0) fr(d.x + 5, d.y - bob - 10, 1, 1, '#ffffff'); }
 }

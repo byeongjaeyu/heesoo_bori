@@ -346,6 +346,15 @@ const zoneQuota = Z => Math.round(Z.quota * loopMul().cnt);
 // 처치 1마리당 등급별 드롭 확률 (일반 몬스터 기준). 높은 등급부터 굴려서 하나만 떨어짐
 const DROP_RATE = [1 / 80, 1 / 250, 1 / 800, 1 / 2000, 1 / 5000, 1 / 12000];
 const DROP_MUL = { normal: 1, elite: 5, boss: 25 };
+/** 사냥·보스전 강화석 (11/24): 일반 몬스터 1%로 1개 · 정예 10%로 1~2개 · 보스는 확정 2 + 회차 단계/4개(최대 20). PvP·레이드는 없음.
+ * 엔드급(시간당 약 4,000마리·정예 25%·보스 약 20마리, 45단계) ≈ 시간당 +370개 — 서버 세이브 검사 한도(1,500/시간) 안 */
+const STONE_DROP = { normal: 0.01, elite: 0.1, bossBase: 2, bossPerL: 0.25, bossMax: 20 };
+function killStones(e, L) {
+  if (G.pvp || G.raid || e.rival) return 0;
+  if (e.boss) return Math.min(STONE_DROP.bossMax, STONE_DROP.bossBase + Math.floor(L * STONE_DROP.bossPerL));
+  if (e.elite) return Math.random() < STONE_DROP.elite ? 1 + (Math.random() < 0.5 ? 1 : 0) : 0;
+  return Math.random() < STONE_DROP.normal ? 1 : 0;
+}
 function rollDrop(mul) {
   const L = loopLv(), lm = loopMul().item * (mul || 1);
   for (let r = DROP_RATE.length - 1; r >= 0; r--) {
@@ -606,6 +615,8 @@ function killEnemy(e) {
   const gold = Math.round(randi(e.m.gold[0], e.m.gold[1]) * G.st.goldMul * LM.gold * (em ? 4 : 1) * RW);
   if (em) { addText(e.x, e.y - e.h - 8, '정예 처치!', 'crit'); G.shake = 3; }
   if (gold > 0) { const n = Math.min(e.boss ? 12 : 4, Math.max(1, Math.ceil(gold / 6))); let left = gold; for (let i = 0; i < n; i++) { const a = i === n - 1 ? left : Math.floor(gold / n); left -= a; spawnDrop('gold', null, a, e.x, e.y); } }
+  { const ns = killStones(e, LM.L); // 보스는 바로 지급(보스 타워는 처치 즉시 끝나서 땅에 떨어진 건 못 주움)
+    if (ns > 0 && e.boss) { G.pd.stones = (G.pd.stones || 0) + ns; addText(e.x, e.y - e.h - 18, '강화석 +' + ns, 'mana'); } else if (ns > 0) spawnDrop('stone', null, ns, e.x, e.y); }
   if (e.boss) { spawnDrop('food', 'eel', 1, e.x, e.y); if (G.zone >= 1) spawnDrop('food', G.zone % 2 ? 'banhmi' : 'jjukkumi', 1, e.x, e.y); for (let i = 0; i < 3; i++) spawnDrop('food', rollFood(), 1, e.x, e.y); if (!G.inf) for (const id of (e.m.drops || [])) spawnDrop('item', id, 1, e.x, e.y); { const id = rollDrop(DROP_MUL.boss); if (id) spawnDrop('item', id, 1, e.x, e.y); } }
   else {
     if (Math.random() < 0.14) spawnDrop('food', rollFood(), 1, e.x, e.y);
@@ -626,13 +637,14 @@ function updateDrops(dt) {
     const dd = Math.hypot(P.x - d.x, P.y - 4 - d.y);
     if (d.t > 0.45 && (dd < (G.auto ? 90 : 44) || d.mag)) { d.mag = true; moveToward(d, P.x, P.y - 4, 160 + d.t * 40, dt); }
     if (d.t > 0.45 && dd < 8) { pickup(d); d.gone = true; }
-    if (d.kind !== 'item' && d.t > 45) d.gone = true;
+    if (d.kind !== 'item' && d.kind !== 'stone' && d.t > 45) d.gone = true;
   }
   G.drops = G.drops.filter(d => !d.gone);
 }
 function pickup(d) {
   const pd = G.pd, P = G.P;
   if (d.kind === 'gold') { pd.gold += d.amt; addText(P.x, P.y - 28, '+' + d.amt + 'G', 'gold'); sfx('coin'); }
+  else if (d.kind === 'stone') { pd.stones = (pd.stones || 0) + d.amt; addText(P.x, P.y - 32, '강화석 +' + d.amt, 'mana'); sfx('ding'); }
   else if (d.kind === 'food') { pd.foods[d.id] = (pd.foods[d.id] || 0) + 1; addText(P.x, P.y - 30, '+' + FOODS[d.id].name, 'food'); sfx('ding'); if (PREMIUM.includes(d.id)) toast(`${FOODS[d.id].name} 획득! 최고급 보양식`, 'lvl'); }
   else if (d.kind === 'item') {
     const it = ITEMS[d.id], own = ownsDef(pd, d.id), keep = own && keepDupOf(pd, it);

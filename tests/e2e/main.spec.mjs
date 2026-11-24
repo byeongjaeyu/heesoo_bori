@@ -483,7 +483,8 @@ test('보스 타워: 1층 도전 → 보스 처치 → 돌파 기록·보상, 2�
   await page.evaluate(() => killEnemy(G.boss));
   await expect(page.locator('#towerRes')).toBeVisible();
   await expect(page.locator('#towerResT')).toContainText('1층 돌파');
-  expect(await page.evaluate(() => [loadGame().tower.best, loadGame().stones])).toEqual([1, 14]);
+  const tw = await page.evaluate(() => [loadGame().tower.best, loadGame().stones]);
+  expect(tw[0]).toBe(1); expect(tw[1]).toBeGreaterThanOrEqual(14 + 2); // 돌파 보상 14 + 보스 처치 강화석(확정 2 이상)
   await page.click('[data-tr="next"]');
   await page.waitForFunction(() => G.state === 'play' && G.tower && G.tower.f === 2 && G.boss, null, { timeout: 8000 });
   await page.evaluate(() => { G.tower.t = 0.01; });
