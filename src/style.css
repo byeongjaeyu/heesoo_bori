@@ -569,3 +569,13 @@ body.inPlaza #ctrl,body.inPlaza #guide,body.inPlaza #bossBar,body.inPlaza #keyHi
 .xcitems{display:flex;flex-wrap:wrap;gap:6px}
 .xcitem{display:flex;align-items:center;gap:4px;font:inherit;font-size:12px;padding:4px 8px 4px 4px;border:2px solid #ecc9da;border-radius:10px;background:#fff;cursor:pointer;max-width:100%}
 .xcitem img{width:22px;height:22px;image-rendering:pixelated}.xcitem small{font-size:10px;color:#8a6a7a}.xcitem.on{border-color:#c93d78;background:#ffe3ef;box-shadow:0 0 0 2px #ff6fa8 inset}
+
+/* 계정 연결 필수 창 (닫기 없음) */
+#accGate{z-index:92;background:rgba(20,8,30,.75)}
+.accgate{gap:10px;padding:14px 12px 16px!important}.accgate h2{margin-bottom:2px}
+#agMsg{font-size:13px;line-height:1.55;text-align:center;margin:0 2px 6px}
+#agBtns{display:flex;flex-direction:column;gap:12px;width:100%}
+.agsec{display:flex;flex-direction:column;gap:6px}.agsec .lb{font-size:11px;font-weight:bold;color:#8a2f5c}
+.agsec.sub{border-top:2px dashed #f3d3e2;padding-top:10px}.agsec.sub .btn{font-size:13px;padding-top:6px;padding-bottom:6px}
+#accGate .acc-google{background:#fff;color:#333;border-color:#ccc}#accGate .acc-kakao{background:#fee500;color:#3a1d1d;border-color:#d8c200}
+#agErr{font-size:12px;text-align:center;margin:0}

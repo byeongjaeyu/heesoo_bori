@@ -684,3 +684,40 @@ test('토스트는 로비·팝업 위에 보임 (계정 연결 완료 안내 등
   const z = await page.evaluate(() => ['#toasts', '#title', '#cloud', '#menu', '#confirm'].map(s => +getComputedStyle(document.querySelector(s)).zIndex || 0));
   expect(Math.max(...z.slice(1))).toBeLessThan(z[0]);
 });
+
+test('계정 연결 필수: 연결 안 된 희수는 로비에서 닫을 수 없는 연결 창 → 연결하면 사라짐', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await withSave(page, URL_MAIN, { lv: 12 });
+  await page.evaluate(MOCK_SB);
+  await page.evaluate(() => accBoot());
+  await expect(page.locator('#accGate')).toBeVisible();
+  await expect(page.locator('#agMsg')).toContainText('Lv.12');
+  await expect(page.locator('#accGate .acc-google', { hasText: '구글 계정으로 연결' })).toBeVisible();
+  await expect(page.locator('#accGate .acc-kakao', { hasText: '카카오로 로그인해서 불러오기' })).toBeVisible();
+  await expect(page.locator('#accGate button', { hasText: '닫기' })).toHaveCount(0);
+  // 여백: 창 안쪽 좌우 10px 이상
+  const pad = await page.evaluate(() => { const b = document.querySelector('#accGate .dbox').getBoundingClientRect(), c = document.querySelector('#agBtns').getBoundingClientRect(), h = document.querySelector('#accGate h2').getBoundingClientRect(); return [c.left - b.left, b.right - c.right, b.top - h.top]; });
+  expect(pad[0]).toBeGreaterThanOrEqual(10); expect(pad[1]).toBeGreaterThanOrEqual(10);
+  await page.screenshot({ path: 'test-results/accgate-390.png' });
+  // 로비 버튼은 가려져서 못 누름
+  expect(await page.evaluate(() => { const r = document.querySelector('#tCont').getBoundingClientRect(); const el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !!el.closest('#accGate'); })).toBe(true);
+  await page.locator('#accGate .acc-kakao', { hasText: '카카오 계정으로 연결' }).click();
+  await page.waitForFunction(() => window.__oauth);
+  expect(await page.evaluate(() => __oauth)).toEqual(['link', 'kakao']);
+  // 취소하고 돌아오면 다시 창
+  await page.evaluate(async () => { $('#accGate').hidden = true; await accBoot(); });
+  await expect(page.locator('.toast', { hasText: '연결이 취소됐어요' })).toBeVisible();
+  await expect(page.locator('#accGate')).toBeVisible();
+  // 연결하고 돌아오면 창 없음
+  await page.evaluate(async () => { __user = { id: 'u-me', identities: [{ provider: 'kakao' }] }; localStorage.setItem(ACC_KEY, JSON.stringify({ op: 'link', p: 'kakao' })); $('#accGate').hidden = true; await accBoot(); await accBoot(); });
+  await expect(page.locator('#accGate')).toBeHidden();
+});
+
+test('계정 연결 필수: 서버에 못 붙으면(오프라인) 막지 않음 · 로그인 방법이 꺼져 있으면 막지 않음', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 12 });
+  await page.waitForTimeout(500);
+  await expect(page.locator('#accGate')).toBeHidden(); // 테스트는 실제 서버 차단
+  await page.evaluate(MOCK_SB);
+  await page.evaluate(async () => { window.__prov = []; ACC.prov = null; await accBoot(); });
+  await expect(page.locator('#accGate')).toBeHidden();
+});

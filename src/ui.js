@@ -350,6 +350,7 @@ addEventListener('resize', () => { try { titleLayout(); } catch (e) { } });
 function showTitle() {
   if (typeof rankSync === 'function') { rankSync(); entryRegister(); dailyAutoOpen(); }
   if (G.plaza) plazaLeave(true);
+  if (typeof accGateShow === 'function') setTimeout(accGateShow, 0);
   G.inf = null; G.raid = null; G.tower = null; G.auto = false; G.autoMove = null; G.state = 'title'; showHUD(false); if (typeof e2HideAll === 'function') e2HideAll(); $('#title').hidden = false; $('#endScr').hidden = true; $('#death').hidden = true; $('#dlg').hidden = true; $('#skip').hidden = true; $('#mission').hidden = true;
   const saved = hasSave() ? loadGame() : null;
   let e2s = null; try { e2s = JSON.parse(localStorage.getItem(E2KEY) || 'null'); } catch (e) { }
