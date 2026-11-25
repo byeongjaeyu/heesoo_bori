@@ -44,27 +44,47 @@ function heePaint(L, dir, fr) {
   else if (side) orn(2, 8, 9, 24, 2, Hh);
   // ---- 백팩 (뒤) ----
   if (L.bag === 'backpack') { if (back) { orr(6, 22, 16, 13, L.G); r(8, 26, 12, 1, L.g); orr(9, 28, 10, 5, L.g); r(13, 29, 2, 1, '#ffffff'); } else if (side) { orr(1, 23, 6, 11, L.G); r(2, 28, 4, 1, L.g); } }
-  // ---- 다리·신발 ----
-  const legCol = gown || dress ? SK : L.P;
-  const shoe = (x, y, flip) => {
+  /** rows: [y, x0, x1, 색] — 테두리는 바깥쪽에만(몸통 안쪽은 생략) */
+  const blob = (rows, skip) => {
+    const on = new Set(rows.map(([y, x0, x1]) => { const a = []; for (let x = x0; x <= x1; x++) a.push(x + ',' + y); return a; }).flat());
+    const inSkip = (x, y) => skip && x >= skip[0] && x <= skip[1] && y >= skip[2] && y <= skip[3];
+    for (const k of on) { const [x, y] = k.split(',').map(Number); for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = x + dx, ny = y + dy; if (!on.has(nx + ',' + ny) && !inSkip(nx, ny)) p(nx, ny, HK); } }
+    for (const [y, x0, x1, col] of rows) r(x0, y, x1 - x0 + 1, 1, col);
+  };
+  // ---- 다리·신발 (11/25: 허벅지→종아리로 가늘어지는 다리 + 걸을 때 한 발씩 들기, 옆모습은 비스듬히 벌림) ----
+  const legCol = gown || dress ? SK : L.P, legSh = gown || dress ? sk : L.p;
+  const shoe = (x, y, flip, sideV) => {
     const O = L.O, o = L.o, s = L.shoe;
-    if (s === 'heel') { orr(x + 1, y, 3, 2, O); p(x + (flip ? 1 : 3), y + 2, HK); p(x + 2, y, o); return; }
-    if (s === 'sandal') { orr(x, y, 5, 2, SK); r(x, y, 5, 1, O); p(x + 2, y + 1, O); r(x, y + 2, 5, 1, o); return; }
-    if (s === 'chunky') { orr(x, y - 1, 5, 3, O); r(x, y + 1, 5, 1, o); p(x + 2, y - 1, o); return; }
-    if (s === 'cleat') { orr(x, y, 5, 2, O); p(x + 1, y + 2, HK); p(x + 3, y + 2, HK); p(x + 1, y, '#ffffff'); return; }
-    if (s === 'slipon') { orr(x, y, 5, 2, O); r(x, y + 1, 5, 1, o); return; }
-    if (s === 'boots') { orr(x, y - 4, 5, 6, O); r(x, y - 4, 5, 1, o); p(x + 1, y - 2, shadeHex(O, 0.4)); r(x, y + 1, 5, 1, o); return; }
-    orr(x, y, 5, 2, O); r(x, y + 1, 5, 1, o); p(x + 2, y, '#ffffff'); // 운동화
+    if (s === 'heel') { if (sideV) { blob([[y, x + 1, x + 3, O], [y + 1, x, x + 4, O]]); p(x, y + 2, HK); p(x + 4, y, o); } else { blob([[y, x + 1, x + 3, O], [y + 1, x + 1, x + 3, O]]); p(x + (flip ? 1 : 3), y + 2, HK); p(x + 2, y, o); } return; }
+    if (s === 'sandal') { blob([[y, x, x + 4, SK], [y + 1, x, x + 4, SK]]); r(x, y, 5, 1, O); p(x + 2, y + 1, O); return; }
+    if (s === 'chunky') { blob([[y - 1, x + 1, x + 3, O], [y, x, x + 4 + (sideV ? 1 : 0), O], [y + 1, x, x + 4 + (sideV ? 1 : 0), o]]); p(x + 2, y - 1, o); return; }
+    if (s === 'boots') { blob([[y - 4, x, x + 4, O], [y - 3, x, x + 4, O], [y - 2, x, x + 4, O], [y - 1, x, x + 4, O], [y, x, x + 4 + (sideV ? 1 : 0), O], [y + 1, x, x + 4 + (sideV ? 1 : 0), o]]); r(x, y - 4, 5, 1, o); p(x + 1, y - 2, shadeHex(O, 0.4)); return; }
+    blob([[y, x + 1, x + 3 + (sideV ? 1 : 0), O], [y + 1, x, x + 4 + (sideV ? 1 : 0), O]]);
+    if (s === 'cleat') { p(x + 1, y + 2, HK); p(x + 3, y + 2, HK); p(x + 2, y, '#ffffff'); }
+    else if (s === 'slipon') r(x, y + 1, 5, 1, o);
+    else { r(x, y + 1, 5 + (sideV ? 1 : 0), 1, o); p(x + 2, y, '#ffffff'); } // 운동화: 흰 밑창·끈
+  };
+  /** 다리 한 쪽: 위 4칸 → 아래 3칸, dx = 줄마다 기울기(옆모습 걸음) */
+  const leg = (x, y0, len, inner, dx) => {
+    const rows = [];
+    for (let i = 0; i < len; i++) { const o = Math.round(dx * i / Math.max(1, len - 1)), w = i < 2 ? 4 : 3, ax = x + o + (i >= 2 && inner === 'L' ? 1 : 0); rows.push([y0 + i, ax, ax + w - 1, legCol]); }
+    blob(rows); if (!dress && !gown) for (const [y, a2, b2] of rows) p(inner === 'L' ? b2 : a2, y, legSh);
+    return rows[rows.length - 1];
   };
   if (!gown) {
     if (side) {
-      const a = walk; // 앞뒤로 벌림
-      if (!longC) { ob(11 - a * 2, 34, 4, 5, legCol); ob(15 + a * 2, 34, 4, 5, legCol); }
-      shoe(11 - a * 2, 39, false); shoe(15 + a * 2, 39, false);
+      const a = walk;
+      if (a === 0) { if (!longC) { leg(11, 34, 5, 'R', 0); leg(14, 34, 5, 'R', 0); } shoe(11, 39, false, true); shoe(14, 39, false, true); }
+      else { // 뒤로 간 다리 먼저, 앞으로 간 다리 나중에
+        const back = !longC ? leg(13, 34, 5, 'R', -3 * a) : [38, 13 - 3 * a];
+        shoe(back[1] - (a > 0 ? 1 : 0), 39, false, true);
+        const fwd = !longC ? leg(13, 34, 5, 'R', 3 * a) : [38, 13 + 3 * a];
+        shoe(fwd[1] - (a > 0 ? 0 : 1), 39 - 1, false, true);
+      }
     } else {
-      const lu = fr === 1 ? 1 : 0, ru = fr === 2 ? 1 : 0;
-      if (!longC) { ob(9, 34, 4, 5 - lu, legCol); ob(15, 34, 4, 5 - ru, legCol); if (!dress) { r(12, 34, 1, 4, L.p); r(15, 34, 1, 4, L.p); } }
-      shoe(8, 39 - lu, false); shoe(15, 39 - ru, true);
+      const lu = fr === 1 ? 2 : 0, ru = fr === 2 ? 2 : 0; // 걷기: 한 발씩 2칸 들기
+      if (!longC) { leg(9, 34, 5 - lu, 'L', 0); leg(15, 34, 5 - ru, 'R', 0); }
+      shoe(9, 39 - lu, false); shoe(14, 39 - ru, true);
     }
   }
   // ---- 몸통 ----
@@ -122,13 +142,6 @@ function heePaint(L, dir, fr) {
   g.drawImage(TC, 0, 0);
   // ---- 팔 (11/25 「팔이 로봇 같다」: 어깨에서 살짝 벌어지며 내려오는 둥근 팔 + 동그란 손) ----
   const sleeveless = gown || dress, armC = sleeveless ? SK : Wc, puffArm = L.cloth === 'pad' || L.cloth === 'longpad';
-  /** rows: [y, x0, x1, 색] — 테두리는 바깥쪽에만(몸통 안쪽은 생략) */
-  const blob = (rows, skip) => {
-    const on = new Set(rows.map(([y, x0, x1]) => { const a = []; for (let x = x0; x <= x1; x++) a.push(x + ',' + y); return a; }).flat());
-    const inSkip = (x, y) => skip && x >= skip[0] && x <= skip[1] && y >= skip[2] && y <= skip[3];
-    for (const k of on) { const [x, y] = k.split(',').map(Number); for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = x + dx, ny = y + dy; if (!on.has(nx + ',' + ny) && !inSkip(nx, ny)) p(nx, ny, HK); } }
-    for (const [y, x0, x1, col] of rows) r(x0, y, x1 - x0 + 1, 1, col);
-  };
   const T0 = topY, body = [tx + 1, tx + tw - 2, T0 + 1, bot - 1];
   const armRows = (mir, sh) => { // 왼팔 기준 좌표 → mir면 좌우 뒤집기
     const pw = puffArm ? 1 : 0, rows = [];
