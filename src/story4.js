@@ -1,5 +1,5 @@
 // ===================== 4장 컷신: 결혼 대작전 =====================
-// 낚시터 프러포즈(빡침) → 웨딩홀 투어 → 드레스 투어(좋아무새) → 웨딩 촬영(감량 실패) → 사진 셀렉(모바일게임) → 본식
+// 낚시터 프러포즈(빡침) → 웨딩홀 투어 → 드레스 투어(좋아무새) → 웨딩 촬영(감량 실패) → 사진 셀렉(모바일게임 → 셀렉실에서 게임 마왕과 싸움) → 엔딩 본식
 // 오빠는 결혼 준비 내내 「응 좋아, 너무 좋아」만 말함 → 희수 멘헤라 포인트
 /** 웨딩드레스·면사포 차림 희수 (컷신) */
 const WED_PAL = { C: '#fffaf4', c: '#e8dcd0', W: '#fffaf4', w: '#e8dcd0', O: '#fffaf4', o: '#e0d4c8' };
@@ -134,17 +134,21 @@ const CH4_SELECT = [
       { who: 'hee', text: '뭐?????!!!!!!', do() { A_().hee.sweat = false; A_().hee.shake = true; A_().hee.alert = true; G.shake = 4; } },
       { who: 'hee', text: '우리 결혼사진 고르는데\n지금 게임을 해?!', do() { A_().hee.shake = false; A_().hee.alert = false; A_().aura = true; sfx('ult'); } },
       { who: 'sys', text: '그때, 오빠 핸드폰에서\n게임 마왕이 튀어나왔다!', do() { A_().hus.phone = false; A_().aura = false; A_().mons = [{ type: 'gphone', x: 62, y: -40, t0: G.time }]; G.shake = 5; sfx('slam'); } },
-      { who: 'mon', text: '크하하! 이 남자의 시간은 이제 내 거다!\n결혼식에서 보자!' },
-      { who: 'sys', text: '…그리고 대망의 본식 날.', do() { A_().mons = []; } },
-      { who: 'hee', text: '오빠, 핸드폰 줘.\n오늘은 내가 들고 있을게.', do() { A_().hee.fist = true; sfx('smash'); } },
-      { who: 'hus', text: '…넵.' }] },
+      { who: 'mon', text: '크하하! 이 남자의 시간은 이제 내 거다!\n셀렉실은 이제 내 던전이다!' },
+      { who: 'sys', text: '가챠 캡슐이 셀렉실에 쏟아졌다.\n모니터 속 결혼사진들이 깜빡인다.', do() { G.shake = 3; sfx('slam'); } },
+      { who: 'hus', text: '자, 자기야… 내가 끌게… 지금 끌게…' },
+      { who: 'hee', text: '됐고. 사진 다 고를 때까지\n아무 데도 못 가.', do() { A_().hee.fist = true; sfx('smash'); } },
+      { who: 'hee', text: '…너부터 지워줄게.' }] },
   { dur: 0.4 }
 ];
 const CH4_ENDING = [
   { scene: 'wwed', bgm: 'story',
     init(A) { clearA(A); Object.assign(A, { hee: { x: -22, pose: 'idle', dir: 'down', wed: true, bouquet: true }, bori: { x: -46, pose: 'sit', face: 1, y: 2, ring: true }, hus: { x: 22, tux: true } }); },
     delay: 0.8, lines: [
-      { who: 'sys', text: '게임 마왕이 쓰러지고,\n웨딩홀에 다시 음악이 흘렀다.' },
+      { who: 'sys', text: '게임 마왕이 쓰러지고,\n앨범 사진도 무사히 다 골랐다.' },
+      { who: 'sys', text: '…그리고 대망의 본식 날.' },
+      { who: 'hee', text: '오빠, 핸드폰 줘.\n오늘은 내가 들고 있을게.' },
+      { who: 'hus', text: '…넵.' },
       { who: 'sys', text: '신부 입장—!', do() { A_().sparkle = true; sfx('ding'); } },
       { who: 'hus', text: '자기야… 진짜 예쁘다.', do() { A_().sparkle = false; } },
       { who: 'hee', text: '…「좋아」 말고 다른 말 해줘서 고마워.', do() { A_().sparkle = true; } },

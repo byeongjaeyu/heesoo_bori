@@ -145,7 +145,9 @@ const THEME = {
   hall:   { bg: '#e8dcc8', hedge: ['#d8c8b0', '#f0e4d0', '#b8a890'], tint: [60, 30, 60, 0.04], glow: 0.12, wall: 1 },
   dress:  { bg: '#f6d6e2', hedge: ['#e8b8cc', '#ffd8e8', '#c890a8'], tint: [80, 20, 60, 0.05], glow: 0.12, wall: 1 },
   studio: { bg: '#f4f4f8', hedge: ['#c0c6d0', '#e0e4ec', '#9aa0aa'], tint: [30, 30, 60, 0.06], glow: 0.3, wall: 1 },
-  wed:    { bg: '#fff4ea', hedge: ['#f0d8c8', '#fff0e4', '#c8a890'], tint: [80, 40, 60, 0.08], glow: 0.35, wall: 1 }
+  wed:    { bg: '#fff4ea', hedge: ['#f0d8c8', '#fff0e4', '#c8a890'], tint: [80, 40, 60, 0.08], glow: 0.35, wall: 1 },
+  // FINAL 사진 셀렉실: 어두운 방 + 모니터 불빛 (핸드폰에서 튀어나온 게임 마왕 때문에 게임 불빛이 섞임)
+  select: { bg: '#3a3450', hedge: ['#4a4462', '#5e5878', '#2e2a40'], tint: [40, 20, 90, 0.12], glow: 0.45, wall: 1 }
 };
 // ---------- 3장 소품 ----------
 function dBooth() { const c = mkCanvas(34, 34), g = c.getContext('2d'); pRect(g, 2, 10, 30, 24, OK); pRect(g, 3, 11, 28, 23, '#e8e8ee'); pRect(g, 0, 4, 34, 8, OK); for (let x = 1; x < 33; x++) pRect(g, x, 5, 1, 6, (Math.floor(x / 4) % 2) ? '#ffffff' : '#e8414f'); pRect(g, 7, 15, 20, 9, OK); pRect(g, 8, 16, 18, 7, '#9fe8ff'); pRect(g, 6, 26, 22, 3, OK); pRect(g, 7, 26, 20, 2, '#8a5a3a'); pRect(g, 9, 0, 16, 5, OK); pRect(g, 10, 1, 14, 3, '#ffd84a'); return c; }
@@ -168,6 +170,10 @@ function dSofa() { const c = mkCanvas(30, 16), g = c.getContext('2d'); pRect(g, 
 function dSoftbox() { const c = mkCanvas(20, 40), g = c.getContext('2d'); pRect(g, 0, 0, 20, 16, OK); pRect(g, 1, 1, 18, 14, '#ffffff'); pRect(g, 3, 3, 14, 10, '#fffbe8'); pRect(g, 9, 16, 2, 20, OK); pRect(g, 3, 36, 14, 2, OK); pRect(g, 5, 34, 2, 2, OK); pRect(g, 13, 34, 2, 2, OK); return c; }
 function dTripod() { const c = mkCanvas(16, 26), g = c.getContext('2d'); pRect(g, 2, 0, 12, 8, OK); pRect(g, 3, 1, 10, 6, '#30323d'); pRect(g, 6, 2, 4, 4, '#9fe8ff'); pRect(g, 7, 8, 2, 8, OK); for (let i = 0; i < 10; i++) { pRect(g, 7 - Math.round(i * 0.6), 16 + i, 1, 1, OK); pRect(g, 8 + Math.round(i * 0.6), 16 + i, 1, 1, OK); pRect(g, 7, 16 + i, 2, 1, OK); } return c; }
 function dReflectorStand() { const c = mkCanvas(16, 28), g = c.getContext('2d'); pCirc(g, 8, 7, 7, OK); pCirc(g, 8, 7, 6, '#ffd84a'); pRect(g, 5, 4, 3, 2, '#fff6b0'); pRect(g, 7, 14, 2, 10, OK); pRect(g, 3, 24, 10, 2, OK); return c; }
+function dMonitor() { const c = mkCanvas(72, 40), g = c.getContext('2d'); pRect(g, 0, 0, 72, 34, OK); pRect(g, 2, 2, 68, 30, '#1c2238');
+  for (let r = 0; r < 3; r++) for (let k = 0; k < 6; k++) { const x = 4 + k * 11, y = 4 + r * 9; pRect(g, x, y, 10, 8, (r + k) % 4 === 1 ? '#ff7ab8' : '#fffaf4'); pRect(g, x + 1, y + 1, 8, 6, ['#ffd1e6', '#cfeaff', '#ffe9b0', '#e8dcc8'][(r * 6 + k) % 4]); pRect(g, x + 4, y + 2, 2, 2, '#6a4a3a'); pRect(g, x + 3, y + 4, 4, 3, (r + k) % 2 ? '#ffffff' : '#30323d'); }
+  pRect(g, 33, 34, 6, 4, OK); pRect(g, 26, 38, 20, 2, OK); return c; }
+function dPhotoStand() { const c = mkCanvas(14, 22), g = c.getContext('2d'); pRect(g, 0, 0, 14, 16, OK); pRect(g, 1, 1, 12, 14, '#e8c070'); pRect(g, 2, 2, 10, 12, '#fffaf4'); pRect(g, 3, 3, 8, 8, '#ffd1e6'); pRect(g, 5, 4, 2, 2, '#6a4a3a'); pRect(g, 4, 6, 4, 4, '#ffffff'); pRect(g, 7, 5, 2, 2, '#3a2a2a'); pRect(g, 7, 7, 3, 3, '#30323d'); pRect(g, 6, 16, 2, 4, OK); pRect(g, 3, 20, 8, 2, OK); return c; }
 function dCake() { const c = mkCanvas(16, 26), g = c.getContext('2d'); pRect(g, 1, 17, 14, 8, OK); pRect(g, 2, 18, 12, 6, '#fffaf4'); pRect(g, 3, 10, 10, 8, OK); pRect(g, 4, 11, 8, 6, '#fffaf4'); pRect(g, 5, 4, 6, 7, OK); pRect(g, 6, 5, 4, 5, '#fffaf4'); pRect(g, 2, 20, 12, 1, '#ff9fcf'); pRect(g, 4, 13, 8, 1, '#ff9fcf'); pRect(g, 7, 1, 2, 3, '#ff7ab8'); pRect(g, 0, 25, 16, 1, OK); return c; }
 // ---------- 2장 소품 ----------
 function dCar(col) { const c = mkCanvas(30, 18), g = c.getContext('2d'); pRect(g, 1, 6, 28, 9, OK); pRect(g, 2, 7, 26, 7, col); pRect(g, 7, 1, 16, 7, OK); pRect(g, 8, 2, 6, 5, '#9fe8ff'); pRect(g, 16, 2, 6, 5, '#9fe8ff'); pRect(g, 2, 10, 26, 1, shadeHex(col, -0.25)); pCirc(g, 7, 15, 3, OK); pCirc(g, 7, 15, 1, '#6a6f7c'); pCirc(g, 23, 15, 3, OK); pCirc(g, 23, 15, 1, '#6a6f7c'); pRect(g, 27, 8, 2, 2, '#ffd84a'); return c; }
@@ -242,6 +248,11 @@ function buildWorld(zi) {
     g.fillStyle = '#f6d6e2'; g.fillRect(0, 0, WORLD_W, WORLD_H);
     for (let y = 6; y < WORLD_H; y += 16) for (let x = ((y / 16) % 2) * 8 + 4; x < WORLD_W; x += 16) { g.fillStyle = '#ffeaf2'; g.fillRect(x, y, 3, 3); g.fillStyle = '#e8a8c4'; g.fillRect(x + 1, y + 1, 1, 1); }
     g.fillStyle = '#e8b8cc'; g.fillRect(cx - 26, 0, 52, WORLD_H); g.fillStyle = '#fff2f6'; g.fillRect(cx - 24, 0, 48, WORLD_H);
+  } else if (Z.theme === 'select') {
+    // 사진 셀렉실: 회보라 카펫 타일 + 바닥에 흩어진 인화 사진
+    for (let y = 0; y < WORLD_H; y += 24) for (let x = 0; x < WORLD_W; x += 24) { g.fillStyle = ((x + y) / 24) % 2 ? '#4a4462' : '#433d5a'; g.fillRect(x, y, 24, 24); g.fillStyle = '#3a3450'; g.fillRect(x, y, 24, 1); g.fillRect(x, y, 1, 24); }
+    for (let i = 0; i < 60; i++) { const x = Math.floor(R() * WORLD_W), y = Math.floor(R() * WORLD_H); g.fillStyle = '#fffaf4'; g.fillRect(x, y, 6, 5); g.fillStyle = choice(['#ffd1e6', '#cfeaff', '#ffe9b0', '#e8dcc8']); g.fillRect(x + 1, y + 1, 4, 3); }
+    g.fillStyle = '#5a4a7a'; g.fillRect(cx - 24, 0, 48, WORLD_H); g.fillStyle = '#6e5e92'; g.fillRect(cx - 22, 0, 44, WORLD_H);
   } else if (Z.theme === 'studio') {
     // 스튜디오: 흰 바닥 + 바닥 테이프 자리 표시
     for (let y = 0; y < WORLD_H; y += 8) { g.fillStyle = (y / 8) % 2 ? '#f4f4f8' : '#eeeef4'; g.fillRect(0, y, WORLD_W, 8); }
@@ -392,6 +403,11 @@ function buildWorld(zi) {
   } else if (Z.theme === 'studio') {
     const sb = dSoftbox(), tp = dTripod(); for (const [x, y] of [[50, 160], [WORLD_W - 50, 160], [50, WORLD_H - 170], [WORLD_W - 50, WORLD_H - 170]]) add(sb, x, y, 4, 10, { glow: '#ffffff' });
     scatter(5, () => tp, 3, 16, { avoidBoss: true }); scatter(4, () => dReflectorStand(), 3, 16, { avoidBoss: true });
+  } else if (Z.theme === 'select') {
+    // 위쪽 큰 모니터 벽(웨딩 사진 썸네일) + 셀렉 책상 + 소파
+    for (const x of [cx - 120, cx, cx + 120]) add(dMonitor(), x, 92, 30, 8, { glow: '#bfe4ff' });
+    const dk = dDesk(); for (let y = 200; y < WORLD_H - 90; y += 110) { add(dk, 64, y, 12, 8, { glow: '#bfe4ff' }); add(dk, WORLD_W - 64, y + 55, 12, 8, { glow: '#bfe4ff' }); }
+    scatter(4, () => dSofa(), 8, 16, { avoidBoss: true }); scatter(6, () => dPhotoStand(), 4, 10, { avoidBoss: true });
   } else if (Z.theme === 'wed') {
     const ch = dChairW(), fl = dFlowerPot(); for (let y = 170; y < WORLD_H - 90; y += 30) { for (const dx of [-58, -80, -102, -124]) add(ch, cx + dx, y, 0, 0); for (const dx of [58, 80, 102, 124]) add(ch, cx + dx, y, 0, 0); }
     for (let y = 150; y < WORLD_H - 70; y += 100) { add(fl, cx - 34, y, 3, 6, { glow: '#ffe0f0' }); add(fl, cx + 34, y, 3, 6, { glow: '#ffe0f0' }); }

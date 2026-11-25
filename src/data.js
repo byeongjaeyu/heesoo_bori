@@ -210,8 +210,8 @@ const ZONES = [
   // ---- 4장: 결혼 대작전 (난이도는 3장 5회차 수준 · Lv50, CH4_BASE_L) ----
   { name: '웨딩홀 투어', sub: 'STAGE 13', ch: 4, quota: 36, max: 12, spawnInt: 1.15, mons: [['planner', 5], ['quote', 4], ['addon', 3]], boss: 'feeking', theme: 'hall', next: '드레스 숍' },
   { name: '드레스 숍', sub: 'STAGE 14', ch: 4, quota: 38, max: 13, spawnInt: 1.1, mons: [['mannequin', 4], ['ribbon', 5], ['pin', 3]], boss: 'parrot', theme: 'dress', next: '웨딩 스튜디오' },
-  { name: '웨딩 스튜디오', sub: 'STAGE 15', ch: 4, quota: 40, max: 13, spawnInt: 1.1, mons: [['flashm', 4], ['reflector', 3], ['camera', 5]], boss: 'tuxboss', theme: 'studio', next: '본식 웨딩홀' },
-  { name: '본식 웨딩홀', sub: 'FINAL STAGE', ch: 4, quota: 42, max: 14, spawnInt: 1.05, mons: [['gacha', 5], ['quote', 3], ['ribbon', 3], ['camera', 2]], boss: 'gamelord', theme: 'wed', next: '' }
+  { name: '웨딩 스튜디오', sub: 'STAGE 15', ch: 4, quota: 40, max: 13, spawnInt: 1.1, mons: [['flashm', 4], ['reflector', 3], ['camera', 5]], boss: 'tuxboss', theme: 'studio', next: '사진 셀렉홀' },
+  { name: '사진 셀렉실', sub: 'FINAL STAGE', ch: 4, quota: 42, max: 14, spawnInt: 1.05, mons: [['gacha', 5], ['camera', 3], ['quote', 3], ['flashm', 2]], boss: 'gamelord', theme: 'select', next: '' }
 ];
 
 const NAG_WORDS = ['방 치워!', '밥 먹었어?', '양말!!', '또 게임해?', '설거지!', '일찍 와!', '물 마셔!', '옷 걸어!', '불 꺼!', '손 씻어!', '자세 똑바로!', '휴지 갈아!', '빨래 개!', '변기 커버!'];

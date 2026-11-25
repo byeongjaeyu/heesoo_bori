@@ -42,7 +42,7 @@ const ACH = [
   { id: 'c3', t: '9회말의 기적', d: '3장 클리어 (역전승)', tier: 3, v: pd => (pd.ch3 && pd.ch3.cleared) || 0, g: 1 },
   { id: 'c3x5', t: '사직 개근러', d: '3장 5번 클리어', tier: 4, v: pd => (pd.ch3 && pd.ch3.cleared) || 0, g: 5 },
   { id: 'c4s', t: '좋아무새 사육사', d: '4장 드레스 투어 통과', tier: 2, v: pd => pd.ch4 && (pd.ch4.cleared || pd.ch4.zone >= 14) ? 1 : 0, g: 1 },
-  { id: 'c4', t: '새신부', d: '4장 클리어 (본식)', tier: 3, v: pd => (pd.ch4 && pd.ch4.cleared) || 0, g: 1 },
+  { id: 'c4', t: '새신부', d: '4장 클리어 (결혼식)', tier: 3, v: pd => (pd.ch4 && pd.ch4.cleared) || 0, g: 1 },
   { id: 'c4x5', t: '리마인드 웨딩', d: '4장 5번 클리어', tier: 4, v: pd => (pd.ch4 && pd.ch4.cleared) || 0, g: 5 },
   { id: 'lp30', t: '회차 마라토너', d: '총 30회차 (1~4장 클리어 합계)', tier: 3, v: pd => loopsTotal(pd), g: 30 },
   { id: 'lp50', t: '무한 회차', d: '총 50회차', tier: 4, v: pd => loopsTotal(pd), g: 50 },
