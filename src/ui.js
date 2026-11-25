@@ -399,7 +399,7 @@ function showTitle() {
   let prof = '';
   if (saved) { let pw = 0; const keep = G.pd; try { G.pd = saved; pw = pvpSnap().power; } catch (e) { } G.pd = keep; G.st = null;
     const nick = (typeof PV !== 'undefined' && PV.me && PV.me.nickname) || '희수';
-    prof = `<div class="tprof"><img src="${pvpFaceURL(visEq(saved), saved.look && saved.look.hair)}" alt=""><span>${saved.title && (saved.ach || {})[saved.title] ? achTag(saved.title) : ''}${jobTag(jobOf(saved))}<b>${esc(nick)}</b><small>Lv.${saved.lv}${saved.aw ? ' ★' + saved.aw : ''}${saved.cleared ? ' · ' + (saved.cleared + 1) + '회차' : ''}</small><small class="tpw">전투력 ${pw.toLocaleString()}</small></span></div>`; }
+    prof = `<div class="tprof"><img src="${pvpFaceURL(visEq(saved), saved.look && saved.look.hair)}" alt=""><span>${saved.title && (saved.ach || {})[saved.title] ? achTag(saved.title) : ''}<b class="tpnm">${jobTag(jobOf(saved))}${esc(nick)}</b><small>Lv.${saved.lv}${saved.aw ? ' ★' + saved.aw : ''}${saved.cleared ? ' · ' + (saved.cleared + 1) + '회차' : ''}</small><small class="tpw">전투력 ${pw.toLocaleString()}</small></span></div>`; }
   $('#tbar').innerHTML = prof + (saved ? packTileHtml(saved) + jobTileHtml(saved) : '') + `<button class="ticon tsnd${SND.on ? '' : ' off'}" id="tSnd" aria-label="소리">${I('sound')}<small>${SND.on ? '소리 ON' : '소리 OFF'}</small></button>`;
   // 왼쪽 세로 아이콘
   const bagDot = saved && ((saved.lv >= JOB_LV && !JOBS[saved.job]) || saved.sp > 0 || saved.newItem || saved.newBori || saved.achNew || (saved.ap || 0) > 0);
