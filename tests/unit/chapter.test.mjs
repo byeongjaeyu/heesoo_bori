@@ -72,7 +72,7 @@ describe('4장 (결혼 대작전)', () => {
     const drops = ['feeking', 'parrot', 'tuxboss', 'gamelord'].flatMap(b => g.MONS[b].drops); expect(drops.sort()).toEqual([...wed].sort());
     for (const id of ['bouquet', 'wdress', 'veil']) expect(wed.includes(id)).toBe(false);
   });
-  test('웨딩 준비 세트: 7개 모두 착용해야 공격·방어·HP +15% (도감만 모으면 효과 없음)', () => {
+  test('웨딩 준비 세트: 7개 모두 착용해야 공격·방어·HP +15% (도감 세트 +6%와 따로)', () => {
     const S = g.EQ_SETS.find(x => x.k === 'wed4'); expect([...S.ids].sort()).toEqual([...g.bookIds(g.BOOK_SETS.find(s => s.k === 'wed'))].sort());
     const stat = pd => { g.G.pd = pd; g.G.P = null; g.calcStats(); return { ...g.G.st }; };
     const pd = fresh({ lv: 50, boriJoined: true }); for (const id of S.ids) { pd.inv[id] = 1; pd.book = pd.book || {}; pd.book[id] = 1; }

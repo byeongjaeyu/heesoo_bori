@@ -250,7 +250,7 @@ const BOOK_SETS = [
   { k: 'bori', name: '보리 용품', rar: -1, bori: true, txt: '보리 공격 +15%' },
   { k: 'sea', name: '2장 낚시 장비', rar: -1, sea: true, txt: '공격·방어 +4%' },
   { k: 'park', name: '3장 응원 장비', rar: -1, park: true, txt: '공격·방어 +5%' },
-  { k: 'wed', name: '4장 웨딩 준비 장비', rar: -1, wed: true, txt: '모으기만 하면 효과 없음 — 7개 모두 착용하면 세트 효과' }
+  { k: 'wed', name: '4장 웨딩 준비 장비', rar: -1, wed: true, txt: '공격·방어 +6%' }
 ];
 /** 세트에 들어가는 장비 id (시작 장비 제외) */
 const bookIds = set => Object.keys(ITEMS).filter(id => { const it = ITEMS[id]; if (it.start || it.job) return false; if (set.sea) return !!it.bossOnly && (it.ch || 2) === 2; if (set.park) return !!it.bossOnly && it.ch === 3; if (set.wed) return !!it.bossOnly && it.ch === 4; if (it.bossOnly) return false; return set.bori ? !!it.bori : !it.bori && it.rar === set.rar; });
