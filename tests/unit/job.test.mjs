@@ -6,12 +6,18 @@ const stat = pd => { g.G.pd = pd; g.G.P = null; g.calcStats(); return g.G.st; };
 
 describe('전직', () => {
   test('Lv50부터, 첫 전직 무료 · 바꾸면 강화석 2,000 + 1,000만G', () => {
+    g.JOB_BETA.free = false;
     const p49 = fresh({ lv: 49 }); expect(g.jobSet(p49, 'dev')).toBe(false); expect(p49.job).toBeUndefined();
     const pd = lv50(); expect(g.jobSet(pd, 'dev')).toEqual([]); expect(pd.job).toBe('dev');
     expect(g.jobSet(pd, 'career')).toBe(false); // 돈 없음
     pd.stones = 2500; pd.gold = 10000000; expect(g.jobSet(pd, 'career')).toEqual([]);
     expect([pd.job, pd.stones, pd.gold, pd.jobN]).toEqual(['career', 500, 0, 1]);
     expect(g.jobSet(pd, 'career')).toBe(false); // 같은 직업
+    g.JOB_BETA.free = true;
+  });
+  test('베타 기간: 직업 바꾸기 무료(강화석·골드 그대로)', () => {
+    const pd = lv50(); g.jobSet(pd, 'dev'); expect(g.jobSet(pd, 'bride')).not.toBe(false); expect(g.jobSet(pd, 'fish')).not.toBe(false);
+    expect([pd.job, pd.stones, pd.gold, pd.jobN]).toEqual(['fish', 0, 0, 2]);
   });
   test('예전 세이브(job 없음)는 직업 효과 없음', () => {
     const pd = lv50(); const a = stat(pd).atk; pd.job = 'nope'; expect(stat(pd).atk).toBe(a); expect(g.jobOf(pd)).toBe(null);

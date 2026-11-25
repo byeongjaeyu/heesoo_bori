@@ -2,6 +2,8 @@
 // 직업마다 「항상」 보너스 + 「대표 장비」를 끼면 붙는 보너스(약 +20%). 첫 전직은 무료, 바꾸면 강화석·골드.
 // 세이브 pd.job(직업 id)·pd.jobN(바꾼 횟수)·pd.jobGift(받은 전직 선물). 능력치는 calcStats 끝에서 jobApply → snap 값에 자연히 반영.
 const JOB_LV = 50, JOB_COST = { stones: 2000, gold: 10000000 };
+/** 베타 기간에는 직업 바꾸기 무료(11/25 사용자 요청). 정식 때 free: false → JOB_COST */
+const JOB_BETA = { free: true };
 /** @type {Record<string, {name: string, full: string, color: string, icon: string, flavor: string, always: string, sigTxt: string, sig: string[]}>} */
 const JOBS = {
   dev: { name: '개발자', full: '개발자 희수', color: '#3a6ac0', icon: 'laptop', flavor: '야근은 싫지만 버그는 못 참아',
@@ -52,11 +54,11 @@ function jobTick(dt) {
   P.regT = (P.regT || 0) + dt; if (P.regT < 5) return; P.regT = 0;
   const h = Math.max(1, Math.round(st.hp * st.regen)); P.hp = Math.min(st.hp, P.hp + h); addText(P.x, P.y - 30, '+' + h, 'heal');
 }
-function jobCanPay(pd) { return (pd.stones || 0) >= JOB_COST.stones && (pd.gold || 0) >= JOB_COST.gold; }
+function jobCanPay(pd) { if (JOB_BETA.free) return true; return (pd.stones || 0) >= JOB_COST.stones && (pd.gold || 0) >= JOB_COST.gold; }
 /** 전직 (첫 번째는 무료) */
 function jobSet(pd, id) {
   if (!JOBS[id] || pd.lv < JOB_LV || pd.job === id) return false;
-  if (pd.job) { if (!jobCanPay(pd)) return false; pd.stones -= JOB_COST.stones; pd.gold -= JOB_COST.gold; pd.jobN = (pd.jobN || 0) + 1; }
+  if (pd.job) { if (!jobCanPay(pd)) return false; if (!JOB_BETA.free) { pd.stones -= JOB_COST.stones; pd.gold -= JOB_COST.gold; } pd.jobN = (pd.jobN || 0) + 1; }
   pd.job = id; pd.jobGift = pd.jobGift || {};
   const gift = JOB_GIFT[id]; let got = [];
   if (gift && !pd.jobGift[id]) { pd.jobGift[id] = 1; for (const it of gift) { if (!ownsDef(pd, it)) { const k = addItem(pd, it); got.push(k); const sl = ITEMS[it].slot; const cur = ITEMS[pd.eq[sl]]; if (!cur || (cur.rar || 0) <= ITEMS[it].rar) pd.eq[sl] = k; } } }
@@ -67,7 +69,7 @@ function jobAsk(id) {
   if (pd.lv < JOB_LV) { toast(`전직은 Lv${JOB_LV}부터 할 수 있어요`, 'warn'); return; }
   if (pd.job === id) return;
   if (pd.job && !jobCanPay(pd)) { toast(`직업을 바꾸려면 강화석 ${numF(JOB_COST.stones)}개 + ${numF(JOB_COST.gold)}G가 필요해요`, 'warn'); return; }
-  const cost = pd.job ? `\n강화석 ${numF(JOB_COST.stones)}개 + ${numF(JOB_COST.gold)}G가 들어요.` : '\n첫 전직은 무료예요. (나중에 바꾸려면 강화석·골드가 들어요)';
+  const cost = JOB_BETA.free ? '\n베타 기간이라 직업 바꾸기도 무료예요.' : pd.job ? `\n강화석 ${numF(JOB_COST.stones)}개 + ${numF(JOB_COST.gold)}G가 들어요.` : '\n첫 전직은 무료예요. (나중에 바꾸려면 강화석·골드가 들어요)';
   const gift = JOB_GIFT[id] && !(pd.jobGift || {})[id] ? `\n전직 선물: ${JOB_GIFT[id].map(i => ITEMS[i].name).join(' · ')} (바로 착용)` : '';
   confirmBox(`「${J.full}」(으)로 ${pd.job ? '바꿀까요?' : '전직할까요?'}${cost}${gift}`, () => {
     const got = jobSet(pd, id); if (got === false) return;
@@ -78,7 +80,7 @@ function jobAsk(id) {
 }
 function jobHtml(pd) {
   const cur = jobOf(pd), lvOk = pd.lv >= JOB_LV;
-  let h = `<div class="jobhead"><b>전직</b>${cur ? jobTag(cur) : ''}<small class="jboost">직업에 맞는 <b>대표 장비</b>는 기본 능력치가 <b>초월 장비 수준</b>으로 올라가요. 강화하면 그만큼 더 세져요.</small><small>${lvOk ? (cur ? `지금 직업: ${JOBS[cur].full} · 바꾸면 강화석 ${numF(JOB_COST.stones)}개 + ${numF(JOB_COST.gold)}G` : '직업을 하나 골라요. 첫 전직은 무료예요.') : `Lv${JOB_LV}가 되면 전직할 수 있어요. (지금 Lv.${pd.lv})`}</small></div>`;
+  let h = `<div class="jobhead"><b>전직</b>${cur ? jobTag(cur) : ''}<small class="jboost">직업에 맞는 <b>대표 장비</b>는 기본 능력치가 <b>초월 장비 수준</b>으로 올라가요. 강화하면 그만큼 더 세져요.</small><small>${lvOk ? (JOB_BETA.free ? (cur ? `지금 직업: ${JOBS[cur].full} · <b>베타 기간 자유 전직 무료</b> — 언제든 바꿔 봐요` : '직업을 하나 골라요. <b>베타 기간에는 언제든 무료로 바꿀 수 있어요.</b>') : cur ? `지금 직업: ${JOBS[cur].full} · 바꾸면 강화석 ${numF(JOB_COST.stones)}개 + ${numF(JOB_COST.gold)}G` : '직업을 하나 골라요. 첫 전직은 무료예요.') : `Lv${JOB_LV}가 되면 전직할 수 있어요. (지금 Lv.${pd.lv})`}</small></div>`;
   for (const id of Object.keys(JOBS)) {
     const J = JOBS[id], on = cur === id, n = jobSigN(pd, id);
     const sig = J.sig.map(i => { const it = ITEMS[i]; if (!it) return ''; const eq = SLOTS.some(sl => defOf(pd.eq[sl]) === i), own = ownsDef(pd, i);
