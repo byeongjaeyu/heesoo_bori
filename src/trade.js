@@ -5,7 +5,7 @@
 // - tradeClaim: 받을 장비(거래로 받음·취소로 돌아옴)를 세이브에 넣음 (저장해서 서버에 올라가면 확정, 중간에 끊겨도 다시 받음)
 // 거래 화면은 방식이 정해지면 이 함수들 위에 만들 것. 넘기기(hb_escrow_settle)는 서버 함수만 부를 수 있음.
 const TRADE_MIN_RAR = 3; // 전설 이상 (supabase/item_defs.sql 의 tradable 과 같아야 함 — 테스트로 고정)
-const tradableKey = k => { const it = ITEMS[k]; return !!it && !it.start && (it.rar || 0) >= TRADE_MIN_RAR; };
+const tradableKey = k => { const it = ITEMS[k]; return !!it && !it.start && !it.job && (it.rar || 0) >= TRADE_MIN_RAR; };
 const TRADE_ERR = { balance: '가진 것보다 많아요', equipped: '착용 중인 장비는 맡길 수 없어요', unregistered: '아직 서버에 등록되지 않은 장비예요. 잠시 뒤 다시 해주세요',
   missing: '서버 기록에 없는 장비예요. 잠시 뒤 다시 해주세요', too_many: '맡긴 게 너무 많아요 (최대 50개)', amount: '수량이 이상해요', no_save: '서버에 저장된 기록이 없어요', sync: '서버 저장에 실패했어요', kind: '맡길 수 없는 종류예요' };
 const tradeErr = r => TRADE_ERR[r && r.reason] || '거래 처리에 실패했어요';

@@ -910,3 +910,9 @@ ICONS.chat = ['.KKKKKKKKK..', 'KLLLLLLLLLK.', 'KLKLLKLLKLK.', 'KLLLLLLLLLK.', 'K
 ICONS.tower = ['....KRRR...', '....KRR....', '....K......', '.KKKKKKKKK.', '.KCKCKCKCK.', '.KCCCCCCCK.', '.KCcCCCcCK.', '.KCCCCCCCK.', '.KCCKKKCCK.', '.KCKAAAKCK.', '.KcKAAAKcK.', 'KKKKKKKKKKK'];
 ICONS.bat = ['..........KK', '.........KDK', '........KDDK', '.......KDDK.', '......KDDK..', '.....KDDK...', '....KDDK....', '...KDDK.....', '..KdK.......', '.KdK........', 'KKK.........'];
 ICONS.ball = ['..KKKKK..', '.KeeReeK.', 'KeReeeReK', 'KeReeeReK', 'KeeReReeK', 'KeReeeReK', 'KeReeeReK', '.KeeReeK.', '..KKKKK..'];
+
+// 새신부 웨딩 세트 · 전직 배지
+ICONS.bouquet = ['..Q.R.Q..', '.QRQAQRQ.', 'KQAQRQAQK', '.KQRQRQK.', '..K222K..', '...K2K...', '..KeeeK..', '...KeK...', '...K2K...', '...K2K...', '....K....'];
+ICONS.dress = ['...K.K...', '...KWK...', '..KWwWK..', '..KWWWK..', '...KWK...', '..KWWWK..', '.KWWwWWK.', '.KWWWWWK.', 'KWWwWwWWK', 'KWWWWWWWK', 'KKKKKKKKK'];
+ICONS.veil = ['...KAKAK...', '..KAAeAAK..', '.KCCCCCCCK.', 'KCCCCCCCCCK', 'KCcCCCCCcCK', 'KC.......CK', 'Kc.......cK', '.K.......K.'];
+ICONS.jobbadge = ['...KKKKK...', '..KAAAAAK..', '.KAAeAAAAK.', 'KAAAAAAAAAK', 'KAAKAAAKAAK', 'KAAAAAAAAAK', '.KAAKKKAAK.', '..KAAAAAK..', '...KKKKK...', '...KR.RK...', '..KRr.rRK..', '..KK...KK..'];

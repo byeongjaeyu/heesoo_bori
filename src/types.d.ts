@@ -69,6 +69,12 @@ interface SaveData {
   /** 장비 재련 추가 옵션 (item id → 옵션 줄) */
   /** 같은 장비가 또 나오면 이 등급 이상은 가방에 따로 보관 (없으면 강화석) */
   keepDup?: number;
+  /** 전직 (Lv50): dev·career·cheer·bride·fish */
+  job?: string;
+  /** 직업 바꾼 횟수 */
+  jobN?: number;
+  /** 받은 전직 선물 (직업 id → 1) */
+  jobGift?: Record<string, number>;
   /** 거래로 서버에 맡겨 넘긴 장비 키 (다시 쓰면 서버가 거절) */
   tkeys?: string[];
   /** 마지막 저장 시각 (로그인 계정: 서버 세이브가 더 최근이면 받아옴) */
@@ -104,6 +110,8 @@ interface SaveData {
 interface ItemDef {
   /** 보스 확정 드롭 전용 (일반 드롭·상자 풀에서 제외) */
   bossOnly?: number;
+  /** 전직 전용 장비 (직업 id) — 거래·도감·드롭·분해 제외 */
+  job?: string;
   /** 보스 드롭 장비의 장 (2 낚시, 3 응원) */
   ch?: number;
   slot: EquipSlot;

@@ -1,4 +1,4 @@
--- 자동 생성 (tests/unit/itemdefs.test.mjs) — 손으로 고치지 말 것. 장비 63종
+-- 자동 생성 (tests/unit/itemdefs.test.mjs) — 손으로 고치지 말 것. 장비 66종
 insert into public.hb_item_defs (id, rar, slot, bori, tradable) values
   ('airshoes', 4, 'shoes', false, true),
   ('aurorabag', 5, 'bag', false, true),
@@ -13,6 +13,7 @@ insert into public.hb_item_defs (id, rar, slot, bori, tradable) values
   ('b_xmas', 4, 'bcloth', true, true),
   ('backpack', 2, 'bag', false, false),
   ('bat', 4, 'weapon', false, true),
+  ('bouquet', 4, 'weapon', false, false),
   ('bucket', 3, 'hat', false, true),
   ('cap_black', 2, 'hat', false, false),
   ('cap_gold', 3, 'hat', false, true),
@@ -61,7 +62,9 @@ insert into public.hb_item_defs (id, rar, slot, bori, tradable) values
   ('ugly', 1, 'shoes', false, false),
   ('umbrella', 1, 'weapon', false, false),
   ('uniform', 4, 'armor', false, true),
+  ('veil', 4, 'hat', false, false),
   ('vest', 3, 'armor', false, true),
+  ('wdress', 4, 'armor', false, false),
   ('wingshoes', 5, 'shoes', false, true)
 on conflict (id) do update set rar = excluded.rar, slot = excluded.slot, bori = excluded.bori, tradable = excluded.tradable;
-delete from public.hb_item_defs where id not in ('airshoes', 'aurorabag', 'aurorapad', 'b_blanket', 'b_cheer', 'b_jump', 'b_knit', 'b_life', 'b_pad', 'b_royal', 'b_xmas', 'backpack', 'bat', 'bucket', 'cap_black', 'cap_gold', 'cap_grey', 'cap_pink', 'cap_rainbow', 'cap_sky', 'cap_tiara', 'cheerbag', 'cheercap', 'churros', 'clutch', 'coat', 'crossbag', 'ecobag', 'fist', 'fleece', 'goldpan', 'goosepad', 'handbag', 'hoodie', 'lightstick', 'limitbag', 'longpad', 'net', 'padding', 'pan', 'rainboot', 'running', 'selfie', 'silverbag', 'skates', 'slipon', 'sneakers', 'spike', 'starstick', 'tackle', 'toy_ball', 'toy_bone', 'toy_carp', 'toy_doll', 'toy_duck', 'toy_goldbone', 'toy_lure', 'toy_melon', 'ugly', 'umbrella', 'uniform', 'vest', 'wingshoes');
+delete from public.hb_item_defs where id not in ('airshoes', 'aurorabag', 'aurorapad', 'b_blanket', 'b_cheer', 'b_jump', 'b_knit', 'b_life', 'b_pad', 'b_royal', 'b_xmas', 'backpack', 'bat', 'bouquet', 'bucket', 'cap_black', 'cap_gold', 'cap_grey', 'cap_pink', 'cap_rainbow', 'cap_sky', 'cap_tiara', 'cheerbag', 'cheercap', 'churros', 'clutch', 'coat', 'crossbag', 'ecobag', 'fist', 'fleece', 'goldpan', 'goosepad', 'handbag', 'hoodie', 'lightstick', 'limitbag', 'longpad', 'net', 'padding', 'pan', 'rainboot', 'running', 'selfie', 'silverbag', 'skates', 'slipon', 'sneakers', 'spike', 'starstick', 'tackle', 'toy_ball', 'toy_bone', 'toy_carp', 'toy_doll', 'toy_duck', 'toy_goldbone', 'toy_lure', 'toy_melon', 'ugly', 'umbrella', 'uniform', 'veil', 'vest', 'wdress', 'wingshoes');

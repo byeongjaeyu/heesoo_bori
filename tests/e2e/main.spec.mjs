@@ -721,3 +721,34 @@ test('계정 연결 필수: 서버에 못 붙으면(오프라인) 막지 않음 
   await page.evaluate(async () => { window.__prov = []; ACC.prov = null; await accBoot(); });
   await expect(page.locator('#accGate')).toBeHidden();
 });
+
+test('전직: Lv50 로비 「전직 가능!」 → 전직 탭에서 새신부 전직(웨딩 세트) → 바꾸기는 강화석·골드', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await withSave(page, URL_MAIN, { lv: 50, gold: 20000000, stones: 3000 });
+  await expect(page.locator('#tJob')).toContainText('전직 가능');
+  await page.click('#tJob');
+  await expect(page.locator('#mbody .jobc')).toHaveCount(5);
+  await page.screenshot({ path: 'test-results/job-390.png' });
+  await page.locator('.jobc', { hasText: '새신부 희수' }).locator('[data-m="job"]').click();
+  await expect(page.locator('#confirmT')).toContainText('첫 전직은 무료');
+  await expect(page.locator('#confirmT')).toContainText('웨딩드레스');
+  await page.click('#cfYes');
+  await expect(page.locator('.toast', { hasText: '새신부 희수 탄생' })).toBeVisible();
+  await expect(page.locator('.jobc.on')).toContainText('새신부 희수');
+  expect(await page.evaluate(() => { const s = loadGame(); return [s.job, s.eq.weapon, s.eq.armor, s.eq.hat]; })).toEqual(['bride', 'bouquet', 'wdress', 'veil']);
+  await page.locator('.jobc', { hasText: '개발자 희수' }).locator('[data-m="job"]').click();
+  await expect(page.locator('#confirmT')).toContainText('강화석 2,000개 + 10,000,000G');
+  await page.click('#cfYes');
+  expect(await page.evaluate(() => { const s = loadGame(); return [s.job, s.stones, s.gold]; })).toEqual(['dev', 1000, 10000000]);
+  await page.click('#menu [data-m="close"]');
+  await expect(page.locator('#tJob')).toHaveCount(0);
+  await expect(page.locator('.tprof .jtag')).toHaveText('개발자');
+});
+
+test('전직: Lv50 전엔 로비 타일 없음 · 탭은 잠김 안내', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 30 });
+  await expect(page.locator('#tJob')).toHaveCount(0);
+  await page.click('#tBag'); await page.click('#tabs [data-v="job"]');
+  await expect(page.locator('#mbody .jobhead')).toContainText('Lv50가 되면');
+  await expect(page.locator('#mbody [data-m="job"]')).toHaveCount(0);
+});

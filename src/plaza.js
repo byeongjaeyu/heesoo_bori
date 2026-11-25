@@ -15,7 +15,7 @@ function plazaBlockSave() { try { localStorage.setItem('hb_plaza_block', JSON.st
 /** 내 희수 모습(다른 사람에게 보이는 정보) */
 function plazaMeta() {
   const { snap } = pvpSnap(), P = G.P;
-  return { u: PV.uid, n: (PV.me && PV.me.nickname) || '희수', lv: G.pd.lv, aw: G.pd.aw || 0, ttl: snap.ttl || null, vis: snap.vis || snap.eq, hair: snap.hair || null, b: !!G.pd.boriJoined, x: Math.round(P.x), y: Math.round(P.y) };
+  return { u: PV.uid, n: (PV.me && PV.me.nickname) || '희수', lv: G.pd.lv, aw: G.pd.aw || 0, ttl: snap.ttl || null, job: snap.job || null, vis: snap.vis || snap.eq, hair: snap.hair || null, b: !!G.pd.boriJoined, x: Math.round(P.x), y: Math.round(P.y) };
 }
 
 // ---------- 들어가기 · 나가기 ----------
@@ -82,7 +82,7 @@ function plazaSync() {
     if (key === PV.uid) continue; const m = st[key][st[key].length - 1]; if (!m) continue; seen[key] = 1;
     let o = Z.others[key];
     if (!o) { o = Z.others[key] = { u: key, x: m.x, y: m.y, tx: m.x, ty: m.y, ang: Math.PI / 2, mv: 0, t: Math.random() * 5, spawnT: 0, flash: 0, stun: 0, dead: false, cast: null, chat: null, chatT: 0 }; }
-    o.nick = String(m.n || '희수').slice(0, 12); o.lv = m.lv; o.aw = m.aw; o.snap = { vis: m.vis, eq: m.vis, hair: m.hair, ttl: m.ttl };
+    o.nick = String(m.n || '희수').slice(0, 12); o.lv = m.lv; o.aw = m.aw; o.snap = { vis: m.vis, eq: m.vis, hair: m.hair, ttl: m.ttl, job: JOBS[m.job] ? m.job : null };
   }
   for (const key in Z.others) if (!seen[key]) delete Z.others[key];
   plazaPeopleBtn(); if (!$('#plazaList').hidden) plazaListRender();
@@ -141,7 +141,7 @@ function plazaSys(t) { const el = $('#plazaLog'); if (!el) return; const row = d
 function plazaPeopleBtn() { const n = G.plaza ? Object.keys(G.plaza.others).length + 1 : 0; $('#plazaPeople').textContent = `접속 ${n}`; }
 function plazaListRender() {
   const Z = G.plaza; if (!Z) return; const L = Object.values(Z.others);
-  $('#plazaListBody').innerHTML = (L.length ? L.map(o => `<div class="pzrow"><div><b>${esc(o.nick)}</b><small>Lv.${o.lv || 1}${o.aw ? '★' + o.aw : ''} ${o.snap && o.snap.ttl ? achTag(o.snap.ttl) : ''}</small></div>`
+  $('#plazaListBody').innerHTML = (L.length ? L.map(o => `<div class="pzrow"><div><b>${esc(o.nick)}</b><small>Lv.${o.lv || 1}${o.aw ? '★' + o.aw : ''} ${o.snap && o.snap.ttl ? achTag(o.snap.ttl) : ''}${o.snap ? jobTag(o.snap.job) : ''}</small></div>`
     + `<button class="btn sm wh" data-pz="blk" data-u="${esc(o.u)}">${PZ.block[o.u] ? '차단 풀기' : '차단'}</button><button class="btn sm wh" data-pz="rep" data-u="${esc(o.u)}">신고</button></div>`).join('')
     : '<div class="pvmsg">지금은 나 혼자 있어요. 친구에게 광장으로 오라고 해 봐요!</div>')
     + '<p class="smsub">차단하면 그 희수의 모습·채팅이 나에게만 안 보여요. 신고하면 최근 채팅이 운영자에게 전달돼요.</p>';

@@ -70,7 +70,7 @@ const ilvOf = id => ((G.pd && G.pd.ilv) || {})[id] || 0;
 const ilvMul = id => 1 + ILV_BONUS * ilvOf(id);
 function feedEquip(it) {
   const pd = G.pd, cur = it.bori ? (pd.beq || {})[it.slot] : pd.eq[it.slot], ci = ITEMS[cur];
-  if (!ci || ci.rar !== it.rar) return false;
+  if (!ci || (ci.rar !== it.rar && !jobFeedOk(pd, cur, it))) return false;
   pd.ilv = pd.ilv || {}; pd.iexp = pd.iexp || {}; const n = (pd.iexp[cur] || 0) + 1;
   if (n >= ILV_NEED) {
     pd.iexp[cur] = 0; pd.ilv[cur] = (pd.ilv[cur] || 0) + 1; calcStats(); sfx('lvl');
@@ -132,6 +132,7 @@ function calcStats() {
   st.weapon = ITEMS[pd.eq.weapon].w; st.moveSpd = 66 * st.spd;
   st.boriMul = 1 + AWK.bori.per * awkLv('bori'); for (const sl of BSLOTS) { const it = ITEMS[(pd.beq || {})[sl]]; if (it) st.boriMul += (it.bdmg || 0) * ilvMul(pd.beq[sl]); }
   for (const sl of BSLOTS) { const en = (pd.enh || {})[(pd.beq || {})[sl]] || 0; st.enhs[sl] = en; st.boriMul += ENH_FX[sl].boriMul * en; } st.toyEnh = st.enhs.btoy; st.clothEnh = st.enhs.bcloth; if (bk.done.bori) st.boriMul += 0.15; st.boriMul += st.refBori || 0;
+  jobApply(pd, st);
   G.st = st;
   if (G.P) { G.P.hp = Math.min(G.P.hp, st.hp); G.P.mp = Math.min(G.P.mp, st.mp); }
   return st;
@@ -161,6 +162,7 @@ function word(x, y, txt, col, size) { G.fx.push({ k: 'word', x, y, txt, col: col
 
 // ---------- player ----------
 function updatePlayer(dt) {
+  jobTick(dt);
   const P = G.P, st = G.st;
   const [mx, my] = moveVec(); const mag = Math.hypot(mx, my);
   P.moving = mag > 0.18 && P.castT <= 0;
@@ -189,9 +191,9 @@ function doAttack() {
   const P = G.P, w = G.st.weapon, fl = sk('fist');
   const t = nearestEnemy(P.x, P.y - 6, w.reach + 28);
   if (t) { const a = Math.atan2((t.y - t.h * 0.35) - (P.y - 8), t.x - P.x); P.fx = Math.cos(a); P.fy = Math.sin(a); P.dir = dirOf(P.fx, P.fy); }
-  P.atkCd = 1 / (w.rate * (1 + 0.03 * fl)); P.atkAnim = 0.2; P.punch ^= 1; P.idleT = 0;
+  P.atkCd = 1 / (w.rate * (1 + 0.03 * fl) * (G.st.rateMul || 1)); P.atkAnim = 0.2; P.punch ^= 1; P.idleT = 0;
   const ang = Math.atan2(P.fy, P.fx);
-  if (w.style === 'throw') { const sp = 230; G.projs.push({ k: 'card', x: P.x, y: P.y - 10, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, r: 5, dmg: G.st.atk * w.mul * (1 + 0.1 * fl), life: w.reach / sp + 0.08, pierce: 1, hit: new Set(), mine: true, rot: 0, slow: 0.01 }); sfx('swing'); return; }
+  if (w.style === 'throw') { const sp = 230; G.projs.push({ k: 'card', x: P.x, y: P.y - 10, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, r: 5, dmg: G.st.atk * w.mul * (1 + 0.1 * fl), life: w.reach / sp + 0.08, pierce: G.st.pierce || 1, hit: new Set(), mine: true, rot: 0, slow: 0.01 }); sfx('swing'); return; }
   G.fx.push({ k: 'swing', x: P.x, y: P.y - 8, a: ang, reach: w.reach, arc: w.arc * Math.PI / 180, t: 0, dur: 0.18, style: w.style, wpn: G.pd.eq.weapon, side: P.punch });
   let hit = false;
   for (const e of G.enemies) {
@@ -352,11 +354,12 @@ const STONE_DROP = { normal: 0.01, elite: 0.1, bossBase: 2, bossPerL: 0.25, boss
 function killStones(e, L) {
   if (G.pvp || G.raid || e.rival) return 0;
   if (e.boss) return Math.min(STONE_DROP.bossMax, STONE_DROP.bossBase + Math.floor(L * STONE_DROP.bossPerL));
-  if (e.elite) return Math.random() < STONE_DROP.elite ? 1 + (Math.random() < 0.5 ? 1 : 0) : 0;
-  return Math.random() < STONE_DROP.normal ? 1 : 0;
+  const dm = (G.st && G.st.dropMul) || 1;
+  if (e.elite) return Math.random() < STONE_DROP.elite * dm ? 1 + (Math.random() < 0.5 ? 1 : 0) : 0;
+  return Math.random() < STONE_DROP.normal * dm ? 1 : 0;
 }
 function rollDrop(mul) {
-  const L = loopLv(), lm = loopMul().item * (mul || 1);
+  const L = loopLv(), lm = loopMul().item * (mul || 1) * ((G.st && G.st.dropMul) || 1);
   for (let r = DROP_RATE.length - 1; r >= 0; r--) {
     if (Math.random() >= DROP_RATE[r] * lm) continue;
     const pool = Object.keys(ITEMS).filter(id => { const it = ITEMS[id]; return it.rar === r && it.tier && !it.bossOnly && it.tier <= G.zone + 1 + L && L >= it.rar - 3 && (!it.bori || G.pd.boriJoined); });
@@ -689,7 +692,7 @@ const STONE_YIELD = [1, 2, 4, 10, 25, 60];
 const DUP_YIELD = [0.5, 1.5, 4, 10, 25, 60];
 const dupStones = id => { const v = DUP_YIELD[ITEMS[id].rar] || 1, w = Math.floor(v); return w + (Math.random() < v - w ? 1 : 0); };
 const stoneYield = id => STONE_YIELD[ITEMS[id].rar] || 1;
-function canDismantle(id) { const it = ITEMS[id], pd = G.pd; return !!(it && !it.start && pd.inv[id] && pd.eq[it.slot] !== id && (pd.beq || {})[it.slot] !== id && !((pd.enh || {})[id] > 0) && !ilvOf(id) && !((pd.iexp || {})[id] > 0)); }
+function canDismantle(id) { const it = ITEMS[id], pd = G.pd; return !!(it && !it.start && !it.job && pd.inv[id] && pd.eq[it.slot] !== id && (pd.beq || {})[it.slot] !== id && !((pd.enh || {})[id] > 0) && !ilvOf(id) && !((pd.iexp || {})[id] > 0)); }
 function dismantle(ids) { let s = 0, n = 0; for (const id of ids) { if (!canDismantle(id)) continue; s += stoneYield(id); n++; dropItem(G.pd, id); } G.pd.stones = (G.pd.stones || 0) + s; return { n, s }; }
 function enhOdds(lv, useStone) { let p = ENH_P[lv], dn = ENH_DOWN[lv], ds = ENH_DEST[lv]; if (useStone) { const add = Math.min(0.1, 1 - p); p += add; const take = Math.min(add, dn); dn -= take; } return { p, dn, ds, protect: !!useStone }; }
 const enhTarget = slot => BSLOTS.includes(slot) ? (G.pd.beq || {})[slot] : G.pd.eq[slot || 'weapon'];

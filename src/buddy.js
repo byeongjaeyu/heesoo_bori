@@ -21,7 +21,7 @@ function buddyUpdate(dt) {
   if (tgt) { const reach = (w.reach || 16) + (tgt.r || 6); B.ang = Math.atan2(tgt.y - B.y, tgt.x - B.x);
     if (best > reach) { gx = tgt.x; gy = tgt.y; }
     else { gx = B.x; gy = B.y; if (B.atkCd <= 0) { B.atkCd = 1 / (w.rate || 1.5);
-      dealDamage(tgt, (S.atk || 10) * (w.mul || 1) * BUDDY_MUL, { kb: 18, ang: B.ang });
+      dealDamage(tgt, (S.atk || 10) * (w.mul || 1) * BUDDY_MUL * ((G.st && G.st.buddyMul) || 1), { kb: 18, ang: B.ang });
       G.fx.push({ k: 'swing', ent: B, x: B.x, y: B.y - 8, a: B.ang, reach: w.reach || 14, arc: (w.arc || 100) * Math.PI / 180, t: 0, dur: 0.18, style: w.style, wpn: w.id, side: (B.side ^= 1) }); } } }
   const dx = gx - B.x, dy = gy - B.y, d = Math.hypot(dx, dy);
   if (d > 3) { const m = Math.min(d, sp * dt * (d > 80 ? 1.8 : 1)); B.x += dx / d * m; B.y += dy / d * m; if (!tgt) B.ang = Math.atan2(dy, dx); }

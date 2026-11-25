@@ -99,7 +99,11 @@ const ITEM_DEFS = {
   spike:    { slot: 'shoes', name: '야구 스파이크', rar: 4, def: 9, spd: 0.28, color: '#2b2b34', icon: 'boots', tier: 6, bossOnly: 1, ch: 3, desc: '도루하듯 빠르게 매표소 줄로' },
   cheerbag: { slot: 'bag', name: '응원 도구 가방', rar: 4, atk: 13, mp: 100, crit: 0.06, color: '#e8414f', icon: 'bag', tier: 6, bossOnly: 1, ch: 3, desc: '막대풍선·비닐 봉지·간식이 한가득' },
   b_cheer:  { slot: 'bcloth', bori: 1, name: '보리 응원 조끼', rar: 4, bdmg: 0.75, color: '#3a5ab0', pat: 'pad', icon: 'bpad', tier: 6, bossOnly: 1, ch: 3, desc: '보리도 오늘은 열혈 팬' },
-  toy_ball: { slot: 'btoy', bori: 1, name: '보리 야구공 장난감', rar: 4, bdmg: 0.85, icon: 'ball', tier: 6, bossOnly: 1, ch: 3, desc: '끝내기 홈런볼(이라고 오빠가 우김)' }
+  toy_ball: { slot: 'btoy', bori: 1, name: '보리 야구공 장난감', rar: 4, bdmg: 0.85, icon: 'ball', tier: 6, bossOnly: 1, ch: 3, desc: '끝내기 홈런볼(이라고 오빠가 우김)' },
+  // 새신부 희수 전용 웨딩 세트 (전직할 때 받음 · job: 거래·도감·드롭·분해 제외)
+  bouquet:  { slot: 'weapon', name: '신부의 부케', rar: 4, atk: 46, crit: 0.06, icon: 'bouquet', tier: 6, bossOnly: 1, job: 'bride', w: { reach: 24, arc: 150, mul: 1, rate: 2.3, kb: 100, style: 'swing' }, desc: '받으면 다음 신부가 된다는 그 부케. 맞으면 꽤 아프다' },
+  wdress:   { slot: 'armor', name: '웨딩드레스', rar: 4, def: 28, hp: 280, color: '#fffaf4', icon: 'dress', tier: 6, bossOnly: 1, job: 'bride', desc: '오빠가 처음 보고 울었던(본인은 부정) 드레스' },
+  veil:     { slot: 'hat', name: '면사포 티아라', rar: 4, def: 15, mp: 100, crit: 0.05, color: '#fffaf4', icon: 'veil', tier: 6, bossOnly: 1, job: 'bride', desc: '반짝이는 티아라에 하늘하늘 면사포' },
 };
 /** 장비 정의표. 개별 키('starstick#a1b2')로 찾아도 원래 장비 정의가 나옴 → 착용·강화·재련 코드는 키 그대로 씀 */
 const ITEMS = /** @type {Record<ItemId, ItemDef>} */ (new Proxy(ITEM_DEFS, {
@@ -216,8 +220,8 @@ const BOOK_SETS = [
   { k: 'park', name: '3장 응원 장비', rar: -1, park: true, txt: '공격·방어 +5%' }
 ];
 /** 세트에 들어가는 장비 id (시작 장비 제외) */
-const bookIds = set => Object.keys(ITEMS).filter(id => { const it = ITEMS[id]; if (it.start) return false; if (set.sea) return !!it.bossOnly && (it.ch || 2) === 2; if (set.park) return !!it.bossOnly && it.ch === 3; if (it.bossOnly) return false; return set.bori ? !!it.bori : !it.bori && it.rar === set.rar; });
-const BOOK_ALL = Object.keys(ITEMS).filter(id => !ITEMS[id].start);
+const bookIds = set => Object.keys(ITEMS).filter(id => { const it = ITEMS[id]; if (it.start || it.job) return false; if (set.sea) return !!it.bossOnly && (it.ch || 2) === 2; if (set.park) return !!it.bossOnly && it.ch === 3; if (it.bossOnly) return false; return set.bori ? !!it.bori : !it.bori && it.rar === set.rar; });
+const BOOK_ALL = Object.keys(ITEMS).filter(id => !ITEMS[id].start && !ITEMS[id].job);
 
 // ===== 희수 꾸미기 (능력치 없음, 겉모습만) =====
 /** 겉모습을 바꿀 수 있는 부위 (도감에 등록한 장비의 모습으로) */

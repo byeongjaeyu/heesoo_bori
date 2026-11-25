@@ -579,3 +579,15 @@ body.inPlaza #ctrl,body.inPlaza #guide,body.inPlaza #bossBar,body.inPlaza #keyHi
 .agsec.sub{border-top:2px dashed #f3d3e2;padding-top:10px}.agsec.sub .btn{font-size:13px;padding-top:6px;padding-bottom:6px}
 #accGate .acc-google{background:#fff;color:#333;border-color:#ccc}#accGate .acc-kakao{background:#fee500;color:#3a1d1d;border-color:#d8c200}
 #agErr{font-size:12px;text-align:center;margin:0}
+/* 전직 */
+.jtag{display:inline-block;font-size:10px;font-weight:bold;color:#fff;background:var(--jc,#888);border-radius:6px;padding:1px 5px;margin-right:3px;vertical-align:1px;line-height:1.3}
+.tbar .tpack+.tjob{margin-left:6px}.tbar .tjob+.tsnd{margin-left:6px}.tjob{background:linear-gradient(#fff,#fff3c4)!important}
+.jobhead{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:2px 0 10px}.jobhead b{font-size:16px}.jobhead small{flex-basis:100%;color:#7a5a6a;font-size:12px}
+.jobc{background:#fff;border:3px solid var(--ink);border-left:8px solid var(--jc);border-radius:12px;padding:10px 12px;margin-bottom:10px;display:flex;flex-direction:column;gap:6px}
+.jobc.on{background:#fffaf0;box-shadow:0 0 0 3px var(--jc) inset}
+.jhd{display:flex;align-items:center;gap:8px}.jhd>img{width:28px;height:28px;image-rendering:pixelated}.jhd>div{flex:1;min-width:0;display:flex;flex-direction:column}.jhd b{font-size:14px;color:var(--jc)}.jhd small{font-size:11px;color:#8a6a7a}
+.jnow{font-size:11px;font-weight:bold;color:#fff;background:var(--jc);border-radius:8px;padding:3px 8px}
+.jrow{display:flex;gap:8px;font-size:12px;line-height:1.45}.jrow .lb{flex:none;width:52px;font-size:11px;font-weight:bold;color:#8a2f5c}.jcnt{color:var(--jc)}
+.jsig{display:flex;flex-wrap:wrap;gap:6px;border-top:2px dashed #f3d3e2;padding-top:8px}
+.jsi{display:flex;flex-direction:column;align-items:center;width:58px;font-size:10px;text-align:center;opacity:.45}.jsi img{width:24px;height:24px;image-rendering:pixelated}.jsi small{line-height:1.2;margin-top:2px}.jsi em{font-style:normal;font-size:9px;color:#8a6a7a}
+.jsi.own{opacity:.8}.jsi.eq{opacity:1}.jsi.eq em{color:#fff;background:var(--jc);border-radius:4px;padding:0 3px}
