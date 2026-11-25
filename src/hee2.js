@@ -17,6 +17,15 @@ function heeLookOf(slot, id) {
   return ic === 'handbag' ? 'handbag' : 'shoulder';
 }
 const HK = '#2b1b24';
+/** 머리 줄이기(11/25 「얼굴 조금만 작게」): 머리 그림에서 단색 줄·칸 몇 개를 빼서 도트 모양을 지키며 작게.
+ * rows: 뺄 줄(위쪽이 아래로 내려옴 — 턱·몸은 그대로), cols: 뺄 칸(가운데 cx 쪽으로 모임) */
+function heeSeam(src, rows, cols, cx) {
+  const W = src.width, H = src.height, a = mkCanvas(W, H), ag = a.getContext('2d');
+  for (let x = 0; x < W; x++) { if (cols.includes(x)) continue; const dx = x + cols.filter(c => c < cx && c > x).length - cols.filter(c => c >= cx && c < x).length; ag.drawImage(src, x, 0, 1, H, dx, 0, 1, H); }
+  const b = mkCanvas(W, H), bg = b.getContext('2d');
+  for (let y = 0; y < H; y++) { if (rows.includes(y)) continue; bg.drawImage(a, 0, y, W, 1, 0, y + rows.filter(r => r > y).length, W, 1); }
+  return b;
+}
 /** 28×42 캔버스에 희수 한 장 그리기. dir: down/up/right/phone, fr: 0 서기·1·2 걷기 */
 function heePaint(L, dir, fr) {
   const W = 14 * HR, H = 21 * HR, c = mkCanvas(W, H); let g = c.getContext('2d');
@@ -35,6 +44,9 @@ function heePaint(L, dir, fr) {
   const { Hh, Hd, S: SK, s: sk } = L;
   const longC = L.cloth === 'longpad' || L.cloth === 'coat', gown = L.cloth === 'gown', dress = L.cloth === 'dress';
   const walk = fr === 1 ? -1 : fr === 2 ? 1 : 0;
+  const SEAM_R = [4, 9, 18], SEAM_C = side ? [5, 9, 15] : [4, 12, 15, 23];
+  const layer = () => { const g0 = g, LC = mkCanvas(W, H); g = LC.getContext('2d'); return () => { g = g0; g.drawImage(heeSeam(LC, SEAM_R, SEAM_C, 14), 0, 0); }; };
+  let done = layer();
   // ---- 면사포 (머리 뒤로 길게) ----
   if (L.hat === 'veil') { // 몸 뒤로 늘어지는 면사포 자락
     if (back) { /* 머리 위에 덮음 (아래) */ } else if (side) dith(0, 6, 10, 36, 2); else { dith(0, 8, 5, 33, 2); dith(23, 8, 5, 33, 2); }
@@ -42,6 +54,7 @@ function heePaint(L, dir, fr) {
   // ---- 긴 머리 (몸 뒤) ----
   if (front || dir === 'phone') { orn(2, 10, 24, 22, 2, Hh); r(3, 30, 3, 1, Hd); r(22, 30, 3, 1, Hd); }
   else if (side) orn(2, 8, 9, 24, 2, Hh);
+  done();
   // ---- 백팩 (뒤) ----
   if (L.bag === 'backpack') { if (back) { orr(6, 22, 16, 13, L.G); r(8, 26, 12, 1, L.g); orr(9, 28, 10, 5, L.g); r(13, 29, 2, 1, '#ffffff'); } else if (side) { orr(1, 23, 6, 11, L.G); r(2, 28, 4, 1, L.g); } }
   /** rows: [y, x0, x1, 색] — 테두리는 바깥쪽에만(몸통 안쪽은 생략) */
@@ -145,9 +158,9 @@ function heePaint(L, dir, fr) {
   const T0 = topY, body = [tx + 1, tx + tw - 2, T0 + 1, bot - 1];
   const armRows = (mir, sh) => { // 왼팔 기준 좌표 → mir면 좌우 뒤집기
     const pw = puffArm ? 1 : 0, rows = [];
-    const spec = [[1, 6, 7], [2, 5, 7], [3, 4 - pw, 6], [4, 4 - pw, 6], [5, 4 - pw, 6], [6, 3 - pw, 5], [7, 3 - pw, 5]];
+    const spec = [[1, 6, 7], [2, 5, 7], [3, 4 - pw, 6], [4, 4 - pw, 6], [5, 4 - pw, 6], [6, 4 - pw, 6], [7, 4 - pw, 6]]; // 11/25 「팔 너무 벌어짐」: 밖으로 벌어지지 않고 몸 옆으로 곧게
     for (const [dy, x0, x1] of spec) rows.push([T0 + dy + sh, x0, x1, dy === 7 && !sleeveless ? wc : gown && dy >= 6 ? '#ffffff' : armC]);
-    rows.push([T0 + 8 + sh, 3, 5, gown ? '#ffffff' : SK], [T0 + 9 + sh, 3, 5, gown ? '#ffffff' : SK], [T0 + 10 + sh, 4, 5, gown ? '#f0ece8' : sk]);
+    rows.push([T0 + 8 + sh, 4, 6, gown ? '#ffffff' : SK], [T0 + 9 + sh, 4, 6, gown ? '#ffffff' : SK], [T0 + 10 + sh, 5, 6, gown ? '#f0ece8' : sk]);
     return mir ? rows.map(([y, x0, x1, c]) => [y, W - 1 - x1, W - 1 - x0, c]) : rows;
   };
   if (dir !== 'phone') {
@@ -174,6 +187,7 @@ function heePaint(L, dir, fr) {
   else if (L.bag === 'clutch' && dir !== 'phone') { const x = side ? 14 : 0; orr(x, topY + 10, 6, 4, G0); for (let i = 0; i < 3; i++) { p(x + i, topY + 10 + i, g0); p(x + 5 - i, topY + 10 + i, g0); } p(x + 2, topY + 12, '#e8414f'); p(x + 3, topY + 12, '#e8414f'); }
   else if (L.bag === 'box' && dir !== 'phone') { const x = side ? 14 : 22; orr(x, topY + 11, 6, 5, G0); r(x, topY + 13, 6, 1, g0); r(x + 2, topY + 9, 2, 2, HK); p(x + 2, topY + 14, '#ffd84a'); }
   // ---- 머리 ----
+  done = layer();
   if (side) {
     orn(3, 2, 22, 20, 5, Hh); // 머리통
     orn(11, 8, 13, 14, 3, SK); r(11, 8, 13, 3, SK); r(23, 13, 1, 2, SK); // 얼굴 (오른쪽)
@@ -233,6 +247,7 @@ function heePaint(L, dir, fr) {
     else if (side) dith(3, 3, 8, 20, 3);
     else { dith(2, 3, 5, 21, 2); dith(21, 3, 5, 21, 2); }
   }
+  done();
   return c;
 }
 function heeLook(pd, over) {
