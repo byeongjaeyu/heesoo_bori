@@ -28,7 +28,7 @@ const zoneTitle = (pd, z) => { const c = chCleared(pd, z); return (c ? `${c + 1}
 function chapterPickHtml(pd) {
   if (FORCE_EASY || !pd || !pd.cleared) return '';
   const cur = chOpen(pd, pd.chap || 1) ? (pd.chap || 1) : 1, show3 = !!(pd.ch2 && pd.ch2.cleared), show4 = !!(pd.ch3 && pd.ch3.cleared);
-  const btn = (c, label, need) => { const open = chOpen(pd, c), fresh = c > 1 && open && !pd[chKey(c)]; return `<button class="tch${cur === c ? ' on' : ''}${open ? '' : ' lock'}" data-ch="${c}"><b>${c}장</b> ${label}${fresh ? ' <em>NEW</em>' : ''}${open ? '' : ` <small>${need}</small>`}</button>`; };
+  const btn = (c, label, need) => { const open = chOpen(pd, c), fresh = c > 1 && open && !pd[chKey(c)]; const sep = show4 ? '<br>' : ' '; return `<button class="tch${cur === c ? ' on' : ''}${open ? '' : ' lock'}" data-ch="${c}"><b>${c}장</b>${sep}${label}${fresh ? ' <em>NEW</em>' : ''}${open ? '' : `${sep}<small>${need}</small>`}</button>`; };
   return `<div class="tchap${show4 ? ' c4' : show3 ? ' c3' : ''}">${btn(1, '에버랜드', '')}${btn(2, show3 ? '낚시터' : '바다낚시터', `Lv${CH2_LV}`)}${show3 ? btn(3, '야구장', `Lv${CH3_LV}`) : ''}${show4 ? btn(4, '결혼식', `Lv${CH4_LV}`) : ''}</div>`;
 }
 function chapterPick(c) {

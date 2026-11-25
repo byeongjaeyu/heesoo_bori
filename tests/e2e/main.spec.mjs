@@ -792,3 +792,11 @@ test('4장: 컷신·스테이지·보스 패턴이 오류 없이 돎', async ({ 
   }
   expect(errs).toEqual([]);
 });
+
+test('로비: 낮은 화면(360×660)·4장까지 열려도 양옆 버튼이 모드 타일과 안 겹침', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 660 });
+  await withSave(page, URL_MAIN, { lv: 50, aw: 160, cleared: 50, job: 'career', infBest: 54, tower: { best: 50 }, chap: 4, ch2: { zone: 4, cleared: 3, intro: 1 }, ch3: { zone: 8, cleared: 8, intro: 1 }, ch4: { zone: 13, cleared: 0, intro: 1 } });
+  await page.waitForTimeout(800);
+  const r = await page.evaluate(() => { const b = id => document.querySelector(id).getBoundingClientRect(); return { L: b('#tsideL').bottom, R: b('#tsideR').bottom, modes: b('.tmodes').top, tbtns: b('#tbtns').top, Rt: document.querySelector('#tsideR').className }; });
+  expect(r.L).toBeLessThanOrEqual(r.modes); expect(r.R).toBeLessThanOrEqual(r.modes);
+});

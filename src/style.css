@@ -592,3 +592,8 @@ body.inPlaza #ctrl,body.inPlaza #guide,body.inPlaza #bossBar,body.inPlaza #keyHi
 .jsi{display:flex;flex-direction:column;align-items:center;width:58px;font-size:10px;text-align:center;opacity:.45}.jsi img{width:24px;height:24px;image-rendering:pixelated}.jsi small{line-height:1.2;margin-top:2px}.jsi em{font-style:normal;font-size:9px;color:#8a6a7a}
 .jsi.own{opacity:.8}.jsi.eq{opacity:1}.jsi.eq em{color:#fff;background:var(--jc);border-radius:4px;padding:0 3px}
 .jobhead .jboost{background:#fff3c4;border:2px solid #f0d070;border-radius:8px;padding:5px 8px;color:#6a5020!important}
+
+/* 4장까지: 챕터 버튼 한 줄 4칸 (11/25 — 2×2면 로비 아래가 길어져 양옆 버튼과 겹침) */
+.tchap.c4{grid-template-columns:repeat(4,1fr);gap:5px}.tchap.c4 .tch{position:relative;font-size:11px;line-height:1.25;padding:5px 2px 6px;white-space:normal}.tchap.c4 .tch b{font-size:12px}
+.tchap.c4 .tch em{position:absolute;top:-7px;right:-3px}
+.tside.tl.tight{gap:5px}.tside.tl.tight .ticon{padding:2px 0 2px;width:52px}.tside.tl.tight .ticon img{width:20px;height:20px}.tside.tl.tight .ticon small{font-size:9px}

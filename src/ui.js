@@ -345,9 +345,9 @@ function titleLayout() {
   if (FORCE_EASY || $('#title').hidden) return;
   const top0 = $('#title').getBoundingClientRect().top, tb = $('#tbar').getBoundingClientRect().bottom - top0, lg = $('.ttl h1').getBoundingClientRect().bottom - top0;
   $('#tsideL').style.top = Math.round(tb + 8) + 'px'; $('#tsideR').style.top = Math.round(Math.max(tb, lg) + 8) + 'px';
-  // 오른쪽 줄이 아래 모드 타일에 닿으면 작게(좁은 화면)
-  const R = $('#tsideR'), lim = $('#tbtns').getBoundingClientRect().top - 6; R.classList.remove('tight');
-  if (R.getBoundingClientRect().bottom > lim) R.classList.add('tight');
+  // 양옆 줄이 아래 모드 타일에 닿으면 작게(좁은·낮은 화면)
+  const lim = $('#tbtns').getBoundingClientRect().top - 6;
+  for (const S of [$('#tsideR'), $('#tsideL')]) { S.classList.remove('tight'); if (S.getBoundingClientRect().bottom > lim) S.classList.add('tight'); }
 }
 addEventListener('resize', () => { try { titleLayout(); } catch (e) { } });
 function showTitle() {
