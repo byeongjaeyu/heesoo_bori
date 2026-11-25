@@ -358,11 +358,25 @@ let TITLE_PD = /** @type {any} */ (null);
 function titleLayout() {
   if (FORCE_EASY || $('#title').hidden) return;
   const top0 = $('#title').getBoundingClientRect().top, tb = $('#tbar').getBoundingClientRect().bottom - top0, lg = $('.ttl h1').getBoundingClientRect().bottom - top0;
-  $('#tsideL').style.top = Math.round(tb + 8) + 'px'; $('#tsideR').style.top = Math.round(Math.max(tb, lg) + 8) + 'px';
+  $('#tsideL').style.top = Math.round(tb + 8) + 'px';
+  // 오른쪽 줄도 상단(프로필 줄 바로 아래)부터 — 로고 글자와 가로로 겹칠 때만 로고 아래로
+  const R0 = $('#tsideR'); R0.style.transform = ''; R0.style.top = Math.round(tb + 8) + 'px';
+  { // 로고는 양옆 줄 사이에 들어가게 글자 크기를 줄임 (가운데 기준 양쪽 여유 중 좁은 쪽)
+    const h1 = $('.ttl h1'); h1.style.fontSize = ''; const lr = h1.getBoundingClientRect(), cx = lr.left + lr.width / 2;
+    const room = Math.min(cx - $('#tsideL').getBoundingClientRect().right, R0.getBoundingClientRect().left - cx) - 6, half = lr.width / 2;
+    if (half > room && room > 20) h1.style.fontSize = (parseFloat(getComputedStyle(h1).fontSize) * room / half).toFixed(1) + 'px';
+  }
   // 양옆 줄이 아래 모드 타일에 닿으면 작게(좁은·낮은 화면)
   const lim = $('#tbtns').getBoundingClientRect().top - 6;
-  for (const S of [$('#tsideR'), $('#tsideL')]) { S.classList.remove('tight'); if (S.getBoundingClientRect().bottom > lim) S.classList.add('tight'); }
+  for (const S of [$('#tsideR'), $('#tsideL')]) {
+    S.style.transform = ''; S.classList.remove('tight'); if (S.getBoundingClientRect().bottom > lim) S.classList.add('tight');
+    // 작게 해도 넘치면(프로필에 칭호·직업이 붙어 길어진 경우 등) 줄 전체를 비율로 줄임
+    const b = S.getBoundingClientRect(); if (b.bottom > lim && b.height > 0) { S.style.transformOrigin = S.id === 'tsideR' ? 'top right' : 'top left'; S.style.transform = `scale(${Math.max(0.55, (lim - b.top) / b.height).toFixed(3)})`; }
+  }
 }
+// 타일 글이 바뀌어 높이가 달라질 때(방치 보상 시간·회차 보상 등)도 다시 맞춤
+let TL_RAF = 0;
+if (typeof ResizeObserver === 'function') { const ro = new ResizeObserver(() => { cancelAnimationFrame(TL_RAF); TL_RAF = requestAnimationFrame(() => { try { titleLayout(); } catch (e) { } }); }); for (const id of ['#tbar', '#tbtns', '#tsideR', '#tsideL']) { const el = $(id); if (el) ro.observe(el); } }
 addEventListener('resize', () => { try { titleLayout(); } catch (e) { } });
 function showTitle() {
   if (typeof rankSync === 'function') { rankSync(); entryRegister(); dailyAutoOpen(); }

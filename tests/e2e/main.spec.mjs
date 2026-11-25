@@ -795,9 +795,10 @@ test('4장: 컷신·스테이지·보스 패턴이 오류 없이 돎', async ({ 
 
 test('로비: 낮은 화면(360×660)·4장까지 열려도 양옆 버튼이 모드 타일과 안 겹침', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 660 });
-  await withSave(page, URL_MAIN, { lv: 50, aw: 160, cleared: 50, job: 'career', infBest: 54, tower: { best: 50 }, chap: 4, ch2: { zone: 4, cleared: 3, intro: 1 }, ch3: { zone: 8, cleared: 8, intro: 1 }, ch4: { zone: 13, cleared: 0, intro: 1 } });
+  await withSave(page, URL_MAIN, { lv: 50, aw: 161, cleared: 51, job: 'career', title: 'eall', ach: { eall: 1 }, idleT: Date.now() - 6000e3, boriJoined: true, infBest: 54, tower: { best: 50 }, chap: 4, ch2: { zone: 4, cleared: 3, intro: 1 }, ch3: { zone: 8, cleared: 8, intro: 1 }, ch4: { zone: 13, cleared: 0, intro: 1 } });
   await page.waitForTimeout(800);
-  const r = await page.evaluate(() => { const b = id => document.querySelector(id).getBoundingClientRect(); return { L: b('#tsideL').bottom, R: b('#tsideR').bottom, modes: b('.tmodes').top, tbtns: b('#tbtns').top, Rt: document.querySelector('#tsideR').className }; });
+  const r = await page.evaluate(() => { const b = id => document.querySelector(id).getBoundingClientRect(); return { L: b('#tsideL').bottom, R: b('#tsideR').bottom, modes: b('.tmodes').top, tbtns: b('#tbtns').top, Lt: b('#tsideL').top, Rtop: b('#tsideR').top, logoR: b('.ttl h1').right, logoL: b('.ttl h1').left, Lr: b('#tsideL').right, Rl: b('#tsideR').left }; });
+  expect(r.Rtop).toBe(r.Lt); expect(r.logoR).toBeLessThanOrEqual(r.Rl); expect(r.logoL).toBeGreaterThanOrEqual(r.Lr);
   expect(r.L).toBeLessThanOrEqual(r.modes); expect(r.R).toBeLessThanOrEqual(r.modes);
 });
 
