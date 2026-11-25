@@ -19,7 +19,7 @@ function heeLookOf(slot, id) {
 const HK = '#2b1b24';
 /** 28×42 캔버스에 희수 한 장 그리기. dir: down/up/right/phone, fr: 0 서기·1·2 걷기 */
 function heePaint(L, dir, fr) {
-  const W = 14 * HR, H = 21 * HR, c = mkCanvas(W, H), g = c.getContext('2d');
+  const W = 14 * HR, H = 21 * HR, c = mkCanvas(W, H); let g = c.getContext('2d');
   const r = (x, y, w, h, col) => { if (w > 0 && h > 0 && col) { g.fillStyle = col; g.fillRect(x, y, w, h); } };
   const p = (x, y, col) => r(x, y, 1, 1, col);
   const ob = (x, y, w, h, col) => { r(x - 1, y - 1, w + 2, h + 2, HK); r(x, y, w, h, col); }; // 테두리 있는 칸
@@ -82,8 +82,8 @@ function heePaint(L, dir, fr) {
     for (let y = 29; y <= 35; y++) { const k = Math.round((y - 29) * 0.55); r((side ? 9 : 7) - k, y, (side ? 10 : 14) + k * 2, 1, y === 35 ? wc : Wc); }
     if (!side) for (let x = 5; x < 23; x += 3) p(x, 35, '#ffffff');
   } else if (longC) bot = 38;
-  // 윗몸
-  const topY = 23;
+  // 윗몸 — 따로 그린 뒤 허리를 1칸씩 잘록하게 (11/25 「허리 조금 얇게」)
+  const topY = 23; const gMain = g, TC = mkCanvas(W, H); g = TC.getContext('2d');
   if (gown || dress) {
     orr(tx, topY + 1, tw, 6, Wc); // 몸판
     if (!back) { r(tx, topY + 1, tw, 2, SK); r(tx + (side ? 0 : 2), topY + 3, side ? tw : tw - 4, 1, Wc); if (!side) { p(13, topY + 3, SK); p(14, topY + 3, SK); } } else r(tx + 2, topY + 1, tw - 4, 1, SK);
@@ -103,6 +103,13 @@ function heePaint(L, dir, fr) {
     else { if (!back) r(side ? x0 + w0 - 3 : 12, topY + 1, side ? 2 : 4, 2, wc); }
     if (C === 'longpad' || C === 'coat') r(x0, bot - 1, w0, 1, wc);
   }
+  g = gMain;
+  if (!side) { // 허리: 양옆 테두리를 1칸 안으로
+    const tg = TC.getContext('2d'), wl = gown || dress ? tx : (L.cloth === 'pad' || L.cloth === 'longpad' ? tx - 1 : tx), wr = wl + (gown || dress ? tw : (L.cloth === 'pad' || L.cloth === 'longpad' ? tw + 2 : tw)) - 1;
+    const rows = gown || dress ? [[topY + 3, 1], [topY + 4, 2], [topY + 5, 2]] : [[topY + 4, 1], [topY + 5, 2], [topY + 6, 2], [topY + 7, 2], [topY + 8, 1]];
+    for (const [y, n] of rows) { tg.clearRect(wl - 1, y, n, 1); tg.clearRect(wr + 2 - n, y, n, 1); tg.fillStyle = HK; tg.fillRect(wl - 1 + n, y, 1, 1); tg.fillRect(wr + 1 - n, y, 1, 1); }
+  }
+  g.drawImage(TC, 0, 0);
   // ---- 팔 ----
   const sleeveless = gown || dress, armC = sleeveless ? SK : Wc, puffArm = L.cloth === 'pad' || L.cloth === 'longpad';
   if (dir !== 'phone') {
@@ -134,7 +141,7 @@ function heePaint(L, dir, fr) {
     orn(11, 8, 13, 14, 3, SK); r(11, 8, 13, 3, SK); r(23, 13, 1, 2, SK); // 얼굴 (오른쪽)
     r(11, 8, 13, 3, Hh); for (const x of [12, 15, 18, 21]) p(x, 11, Hh); r(3, 8, 9, 14, Hh); // 앞머리·옆머리
     r(7, 4, 5, 1, Hd); r(6, 5, 2, 1, Hd); r(4, 10, 2, 8, Hd);
-    r(18, 14, 2, 3, '#1b1418'); p(18, 14, '#ffffff'); p(17, 14, HK); r(20, 18, 2, 1, '#ff9fa8'); p(22, 20, '#d0606a');
+    r(18, 13, 3, 5, '#1b1418'); r(18, 16, 3, 2, '#6a4038'); p(18, 13, '#ffffff'); p(18, 14, '#ffffff'); p(20, 17, '#ffe0ea'); r(17, 12, 5, 1, HK); p(21, 11, HK); r(20, 19, 2, 1, '#ff9fa8'); p(22, 20, '#d0606a');
   } else if (back) {
     orn(2, 1, 24, 22, 5, Hh); r(6, 4, 5, 1, Hd); r(5, 5, 2, 1, Hd); orn(4, 18, 20, 14, 2, Hh); r(6, 30, 16, 1, Hd); for (let x = 5; x < 23; x += 4) r(x, 24, 1, 6, Hd);
   } else {
@@ -145,9 +152,15 @@ function heePaint(L, dir, fr) {
     r(2, 8, 3, 15, Hh); r(23, 8, 3, 15, Hh); r(7, 3, 5, 1, Hd); r(6, 4, 2, 1, Hd); r(3, 10, 1, 10, Hd); r(24, 10, 1, 10, Hd);
     // 눈·볼·입
     const blink = dir === 'phone' && fr === 1;
-    if (dir === 'phone') { r(8, 16, 3, 1, '#1b1418'); r(17, 16, 3, 1, '#1b1418'); }
-    else { r(8, 14, 2, 3, '#1b1418'); r(18, 14, 2, 3, '#1b1418'); p(8, 14, '#ffffff'); p(18, 14, '#ffffff'); p(7, 13, HK); p(20, 13, HK); }
-    r(6, 18, 2, 1, '#ff9fa8'); r(20, 18, 2, 1, '#ff9fa8');
+    if (dir === 'phone') { r(7, 16, 3, 1, '#1b1418'); r(18, 16, 3, 1, '#1b1418'); p(6, 15, HK); p(21, 15, HK); r(7, 17, 3, 1, '#6a4038'); r(18, 17, 3, 1, '#6a4038'); }
+    else { // 큰 눈 (11/25): 3×5 눈동자 + 갈색 홍채 + 반짝이 두 개 + 속눈썹
+      for (const [x, fl] of [[7, -1], [18, 1]]) {
+        r(x, 13, 3, 5, '#1b1418'); r(x, 16, 3, 2, '#6a4038'); r(x + 1, 15, 1, 1, '#3a2428');
+        p(x, 13, '#ffffff'); p(x, 14, '#ffffff'); p(x + 2, 17, '#ffe0ea');
+        r(x - (fl < 0 ? 1 : 0), 12, 4, 1, HK); p(fl < 0 ? x - 1 : x + 3, 11, HK);
+      }
+    }
+    r(5, 19, 3, 1, '#ff9fa8'); r(20, 19, 3, 1, '#ff9fa8');
     r(13, 20, 2, 1, '#d0606a'); if (blink) r(13, 20, 2, 2, '#d0606a');
   }
   // ---- 모자 ----
