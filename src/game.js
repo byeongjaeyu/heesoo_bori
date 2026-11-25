@@ -116,7 +116,7 @@ function bookStats(pd) {
 function calcStats() {
   const pd = G.pd, lv = pd.lv;
   const st = { hp: 100 + (lv - 1) * 22, mp: 50 + (lv - 1) * 8, atk: 10 + (lv - 1) * 3.5, def: 2 + (lv - 1) * 1.2, spd: 1, crit: 0.08, critMul: 1.6 };
-  for (const slot of SLOTS) { const it = ITEMS[pd.eq[slot]]; if (!it) continue; const m = ilvMul(pd.eq[slot]) * brkMul(pd.eq[slot]); st.hp += (it.hp || 0) * m; st.mp += (it.mp || 0) * m; st.atk += (it.atk || 0) * m; st.def += (it.def || 0) * m; st.spd += (it.spd || 0) * m; st.crit += (it.crit || 0) * m; }
+  for (const slot of SLOTS) { const it = jobSigDef(pd, pd.eq[slot]) || ITEMS[pd.eq[slot]]; if (!it) continue; const m = ilvMul(pd.eq[slot]) * brkMul(pd.eq[slot]); st.hp += (it.hp || 0) * m; st.mp += (it.mp || 0) * m; st.atk += (it.atk || 0) * m; st.def += (it.def || 0) * m; st.spd += (it.spd || 0) * m; st.crit += (it.crit || 0) * m; }
   st.spd += 0.05 * sk('shop'); st.goldMul = 1 + 0.15 * sk('shop');
   st.hp = Math.round(st.hp * (1 + 0.05 * sk('mukbang'))); st.foodMul = 1 + 0.2 * sk('mukbang');
   st.enhs = {}; for (const sl of SLOTS) { const en = (pd.enh || {})[pd.eq[sl]] || 0; st.enhs[sl] = en; const f = ENH_FX[sl]; for (const k in f) if (k !== 'txt') st[k] += f[k] * en; } st.enh = st.enhs.weapon;

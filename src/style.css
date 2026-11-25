@@ -591,3 +591,4 @@ body.inPlaza #ctrl,body.inPlaza #guide,body.inPlaza #bossBar,body.inPlaza #keyHi
 .jsig{display:flex;flex-wrap:wrap;gap:6px;border-top:2px dashed #f3d3e2;padding-top:8px}
 .jsi{display:flex;flex-direction:column;align-items:center;width:58px;font-size:10px;text-align:center;opacity:.45}.jsi img{width:24px;height:24px;image-rendering:pixelated}.jsi small{line-height:1.2;margin-top:2px}.jsi em{font-style:normal;font-size:9px;color:#8a6a7a}
 .jsi.own{opacity:.8}.jsi.eq{opacity:1}.jsi.eq em{color:#fff;background:var(--jc);border-radius:4px;padding:0 3px}
+.jobhead .jboost{background:#fff3c4;border:2px solid #f0d070;border-radius:8px;padding:5px 8px;color:#6a5020!important}

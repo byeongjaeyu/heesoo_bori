@@ -27,26 +27,36 @@ describe('전직', () => {
   test('커리어우먼: 골드 +20%, 사원증이면 공격 속도·관통, 핸드백이면 치명 +5%', () => {
     const pd = lv50({ inv: { fist: 1, goldpan: 1, limitbag: 1 } }); pd.eq.weapon = 'goldpan'; pd.eq.bag = 'limitbag';
     const b = stat(pd); const gm = b.goldMul, cr = b.crit; g.jobSet(pd, 'career'); const st = stat(pd);
-    expect(st.goldMul).toBeCloseTo(gm * 1.2); expect(st.rateMul).toBe(1.2); expect(st.pierce).toBe(3); expect(st.crit).toBeCloseTo(cr + 0.05);
+    expect(st.goldMul).toBeCloseTo(gm * 1.2); expect(st.rateMul).toBe(1.2); expect(st.pierce).toBe(3); expect(st.crit).toBeGreaterThanOrEqual(cr + 0.05);
   });
   test('응원단장: 응원 장비 개수만큼 공격 +4%, 보리·동료 보너스', () => {
     const pd = lv50({ inv: { fist: 1, bat: 1, uniform: 1, cheercap: 1 } }); Object.assign(pd.eq, { weapon: 'bat', armor: 'uniform', hat: 'cheercap' });
     const b = stat(pd); const a0 = b.atk, bm = b.boriMul; g.jobSet(pd, 'cheer'); const st = stat(pd);
-    expect(g.jobSigN(pd, 'cheer')).toBe(3); expect(st.atk).toBe(Math.round(a0 * 1.12)); expect(st.boriMul).toBeCloseTo(bm + 0.2); expect(st.buddyMul).toBe(1.3);
+    expect(g.jobSigN(pd, 'cheer')).toBe(3); expect(st.atk).toBeGreaterThan(Math.round(a0 * 1.12)); expect(st.boriMul).toBeCloseTo(bm + 0.2); expect(st.buddyMul).toBe(1.3);
   });
   test('새신부: 처음 전직하면 웨딩 세트 3종(착용) · HP·방어↑ · 3개면 회복', () => {
     const pd = lv50(); const got = g.jobSet(pd, 'bride');
     expect(got.length).toBe(3); expect([pd.eq.weapon, pd.eq.armor, pd.eq.hat]).toEqual(['bouquet', 'wdress', 'veil']);
     const st = stat(pd); expect(st.regen).toBe(0.03);
     pd.job = null; const b = stat(pd); pd.job = 'bride'; const s2 = stat(pd);
-    expect(s2.hp).toBe(Math.round(b.hp * 1.15 * 1.21)); expect(s2.def).toBe(Math.round(b.def * 1.1 * 1.21));
+    expect(s2.hp).toBeGreaterThan(Math.round(b.hp * 1.15 * 1.21)); expect(s2.def).toBeGreaterThan(Math.round(b.def * 1.1 * 1.21));
     // 바꿨다 돌아와도 선물은 한 번만
     pd.stones = 9999; pd.gold = 1e8; g.jobSet(pd, 'dev'); g.jobSet(pd, 'bride'); expect(Object.keys(pd.inv).filter(k => g.defOf(k) === 'bouquet').length).toBe(1);
   });
   test('낚시왕: 보스 피해 +15%, 낚시 장비 개수만큼 공격·드롭↑', () => {
     const pd = lv50({ inv: { fist: 1, net: 1, vest: 1 } }); Object.assign(pd.eq, { weapon: 'net', armor: 'vest' });
     const b = stat(pd); const a0 = b.atk, bm = b.bossMul; g.jobSet(pd, 'fish'); const st = stat(pd);
-    expect(st.bossMul).toBeCloseTo(bm + 0.15); expect(st.atk).toBe(Math.round(a0 * 1.08)); expect(st.dropMul).toBeCloseTo(1.12);
+    expect(st.bossMul).toBeCloseTo(bm + 0.15); expect(st.atk).toBeGreaterThan(Math.round(a0 * 1.08)); expect(st.dropMul).toBeCloseTo(1.12);
+  });
+  test('대표 장비 보정: 같은 강화면 대표 장비가 초월 장비보다 세짐 (직업이 맞을 때만)', () => {
+    const top = { weapon: 'starstick', hat: 'cap_tiara', armor: 'aurorapad', shoes: 'wingshoes', bag: 'aurorabag' };
+    const mk = (eq, job) => { const pd = lv50(); pd.inv = {}; pd.enh = {}; pd.book = Object.fromEntries(Object.values(top).map(i => [i, 1])); for (const [s, id] of Object.entries(eq)) { pd.inv[id] = 1; pd.eq[s] = id; pd.enh[id] = 25; } pd.job = job; return stat(pd); };
+    const base = mk(top, null);
+    for (const [job, eq] of [['cheer', { weapon: 'bat', hat: 'cheercap', armor: 'uniform', shoes: 'spike', bag: 'cheerbag' }], ['fish', { weapon: 'net', hat: 'bucket', armor: 'vest', shoes: 'wingshoes', bag: 'tackle' }]]) {
+      const st = mk(eq, job); expect(st.atk).toBeGreaterThan(base.atk * 1.1); expect(st.def).toBeGreaterThanOrEqual(base.def); expect(st.hp).toBeGreaterThanOrEqual(base.hp);
+      const off = mk(eq, job === 'cheer' ? 'fish' : 'cheer'); expect(off.atk).toBeLessThan(base.atk); // 다른 직업이면 보정 없음
+    }
+    const pd = lv50(); pd.job = 'cheer'; expect(g.jobSigDef(pd, 'bat').atk).toBe(86); expect(g.jobSigDef(pd, 'starstick')).toBe(null); expect(g.ITEMS.bat.atk).toBe(48);
   });
   test('웨딩 세트는 거래·도감·분해 제외', () => {
     for (const id of ['bouquet', 'wdress', 'veil']) { expect(g.tradableKey(id)).toBe(false); expect(g.BOOK_ALL.includes(id)).toBe(false); }

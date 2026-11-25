@@ -15,6 +15,18 @@ const JOBS = {
   fish: { name: '낚시왕', full: '낚시왕 희수', color: '#2f8a8a', icon: 'net', flavor: '12시간? 이제 시작인데?',
     always: '보스 피해 +15%', sigTxt: '낚시 장비 1개마다 공격 +4% · 강화석·장비 드롭 +6% (최대 5개)', sig: ['net', 'vest', 'bucket', 'rainboot', 'wingshoes', 'tackle'] }
 };
+/** 직업 장비 보정 (11/25): 내 직업의 대표 장비는 기본 능력치가 그 부위 초월 장비 수준으로 올라감
+ * (대표 장비가 신화·전설이라 끼면 오히려 약해지던 문제). 능력치마다 max(원래 값, 그 부위 초월 장비 값). 무기 모양(사거리·속도)은 그대로 */
+const JOB_STATS = ['atk', 'def', 'hp', 'mp', 'crit', 'spd'];
+const JOB_TOP = (() => { const t = {}; for (const id of Object.keys(ITEMS)) { const it = ITEMS[id]; if (it.rar !== 5 || it.bori || it.bossOnly || it.job) continue; const o = t[it.slot] = t[it.slot] || {}; for (const k of JOB_STATS) if (it[k]) o[k] = Math.max(o[k] || 0, it[k]); } return t; })();
+const JOB_SIG_CACHE = {};
+/** 지금 직업의 대표 장비면 보정된 정의, 아니면 null */
+function jobSigDef(pd, key) {
+  const j = jobOf(pd); if (!j || !key) return null; const id = defOf(key); if (!JOBS[j].sig.includes(id)) return null;
+  const ck = j + '|' + id; if (JOB_SIG_CACHE[ck]) return JOB_SIG_CACHE[ck];
+  const it = ITEMS[id], top = JOB_TOP[it.slot] || {}, d = Object.assign({}, it); for (const k of JOB_STATS) if (top[k]) d[k] = Math.max(it[k] || 0, top[k]);
+  return (JOB_SIG_CACHE[ck] = d);
+}
 /** 새신부로 처음 전직하면 받는 웨딩 세트 */
 const JOB_GIFT = { bride: ['bouquet', 'wdress', 'veil'] };
 const jobOf = pd => (pd && pd.lv >= JOB_LV && JOBS[pd.job]) ? pd.job : null;
@@ -60,13 +72,13 @@ function jobAsk(id) {
   confirmBox(`「${J.full}」(으)로 ${pd.job ? '바꿀까요?' : '전직할까요?'}${cost}${gift}`, () => {
     const got = jobSet(pd, id); if (got === false) return;
     calcStats(); saveGame(); sfx('lvl'); renderMenu();
-    toast(`${J.full} 탄생! ${J.always}`, 'lvl');
+    toast(`${J.full} 탄생! ${J.always} · 대표 장비는 초월급 능력치`, 'lvl');
     if (got.length) setTimeout(() => toast(`전직 선물 ${got.map(k => ITEMS[k].name).join(' · ')} 착용!`, 'item r4'), 600);
   });
 }
 function jobHtml(pd) {
   const cur = jobOf(pd), lvOk = pd.lv >= JOB_LV;
-  let h = `<div class="jobhead"><b>전직</b>${cur ? jobTag(cur) : ''}<small>${lvOk ? (cur ? `지금 직업: ${JOBS[cur].full} · 바꾸면 강화석 ${numF(JOB_COST.stones)}개 + ${numF(JOB_COST.gold)}G` : '직업을 하나 골라요. 첫 전직은 무료예요.') : `Lv${JOB_LV}가 되면 전직할 수 있어요. (지금 Lv.${pd.lv})`}</small></div>`;
+  let h = `<div class="jobhead"><b>전직</b>${cur ? jobTag(cur) : ''}<small class="jboost">직업에 맞는 <b>대표 장비</b>는 기본 능력치가 <b>초월 장비 수준</b>으로 올라가요. 강화하면 그만큼 더 세져요.</small><small>${lvOk ? (cur ? `지금 직업: ${JOBS[cur].full} · 바꾸면 강화석 ${numF(JOB_COST.stones)}개 + ${numF(JOB_COST.gold)}G` : '직업을 하나 골라요. 첫 전직은 무료예요.') : `Lv${JOB_LV}가 되면 전직할 수 있어요. (지금 Lv.${pd.lv})`}</small></div>`;
   for (const id of Object.keys(JOBS)) {
     const J = JOBS[id], on = cur === id, n = jobSigN(pd, id);
     const sig = J.sig.map(i => { const it = ITEMS[i]; if (!it) return ''; const eq = SLOTS.some(sl => defOf(pd.eq[sl]) === i), own = ownsDef(pd, i);
