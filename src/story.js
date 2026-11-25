@@ -92,16 +92,17 @@ function drawActors(A, mid, gy, T) {
   if (A.mons) for (const m of A.mons) { const p = clamp((T - m.t0) * 4, 0, 1); if (p <= 0) continue; const s = monSpr(m.type); shadow(mid + m.x * CUTK, gy + m.y, 10); drawSpr(s, mid + m.x * CUTK, gy + m.y - Math.abs(Math.sin(T * 3 + m.x)) * 3 - (1 - p) * 10, { alpha: p, white: p < 0.6 }); }
   if (A.hus) {
     const hx = mid + A.hus.x * CUTK; shadow(hx, gy, 12);
-    if (A.hus.rodUp) { pxLine(hx + 6, gy - 7, hx + 30, gy - 52, '#3a3a46', 1); pxLine(hx + 5, gy - 6, hx + 9, gy - 12, '#c98a3a', 2); const tx = hx + 30, ty = gy - 52; for (let i = 0; i < 20; i++) fr(tx + i * 0.5, ty + i * 1.6 + Math.sin(i * 0.3) * 1, 1, 1, '#e8e8f0'); fr(tx + 9, ty + 30, 3, 2, '#e8414f'); fr(tx + 9, ty + 32, 3, 2, '#ffffff'); if (A.sparkle) for (let i = 0; i < 4; i++) { const a = T * 4 + i * 1.57; fr(tx + Math.cos(a) * 6, ty + Math.sin(a) * 6, 1, 1, '#ffd84a'); fr(tx + Math.cos(a) * 9, ty + Math.sin(a) * 9, 1, 1, '#fff6b0'); } }
+    if (A.hus.tux || A.hus.noRod) { }
+    else if (A.hus.rodUp) { pxLine(hx + 6, gy - 7, hx + 30, gy - 52, '#3a3a46', 1); pxLine(hx + 5, gy - 6, hx + 9, gy - 12, '#c98a3a', 2); const tx = hx + 30, ty = gy - 52; for (let i = 0; i < 20; i++) fr(tx + i * 0.5, ty + i * 1.6 + Math.sin(i * 0.3) * 1, 1, 1, '#e8e8f0'); fr(tx + 9, ty + 30, 3, 2, '#e8414f'); fr(tx + 9, ty + 32, 3, 2, '#ffffff'); if (A.sparkle) for (let i = 0; i < 4; i++) { const a = T * 4 + i * 1.57; fr(tx + Math.cos(a) * 6, ty + Math.sin(a) * 6, 1, 1, '#ffd84a'); fr(tx + Math.cos(a) * 9, ty + Math.sin(a) * 9, 1, 1, '#fff6b0'); } }
     else { pxLine(hx + 8, gy - 2, hx + 12, gy - 44, '#3a3a46', 1); fr(hx + 7, gy - 8, 2, 6, '#c98a3a'); }
-    drawSpr(husSpr(), hx, gy);
+    drawSpr(A.hus.tux ? husTuxSpr() : husSpr(), hx, gy);
   }
   if (A.bori && A.bori.x < 400) { const bx = mid + A.bori.x * CUTK, by = gy + (A.bori.y || 2); shadow(bx, by, 10); drawBoriAt(bx, by, A.bori.pose, A.bori.face || 1, T, { pant: A.bori.pant, jump: A.bori.jump ? Math.round(Math.abs(Math.sin(T * 9)) * 5) : 0 }); }
   if (A.leash && A.hee && A.bori) pxLine(mid + A.hee.x * CUTK + 5, gy - 7, mid + A.bori.x * CUTK - 3, gy + (A.bori.y || 2) - 7, '#e8414f');
   if (A.hee) {
     const hx = mid + A.hee.x * CUTK + (A.hee.shake ? Math.round(Math.sin(T * 50)) : 0), hy = gy + (A.hee.y || 0);
     if (A.aura) { for (let i = 0; i < 10; i++) { const a = T * 2 + i * 0.63, r = 10 + Math.sin(T * 5 + i) * 2; fr(hx + Math.cos(a) * r, hy - 10 + Math.sin(a) * r * 0.9, 2, 2, i % 2 ? '#b45cff' : '#ff7ab8'); } }
-    shadow(hx, hy, 12); drawHeeAt(hx, hy, A.hee.pose, A.hee.dir, T, {});
+    shadow(hx, hy, 12); drawHeeAt(hx, hy, A.hee.pose, A.hee.dir, T, { pal: A.hee.wed ? WED_PAL : null });
     if (A.hee.fist) { drawSpr(ispr('fist'), hx - 9, hy - 9 + Math.round(Math.sin(T * 8))); drawSpr(ispr('fist'), hx + 9, hy - 9 - Math.round(Math.sin(T * 8))); }
     if (A.hee.sweat) { fr(hx + 7, hy - 22, 2, 3, '#7ec8ff'); fr(hx + 7, hy - 23, 1, 1, '#7ec8ff'); }
   }
@@ -118,8 +119,9 @@ function renderCut() {
   else if (CUT.scene === 'e2lake') e2DrawLake(SW, SH, mid, gy, T);
   else if (['lot', 'sea', 'seaS', 'seaN', 'rocks'].includes(CUT.scene)) drawSeaCut(SW, SH, mid, gy, T, CUT.scene);
   else if (['pgate', 'pfood', 'pstand', 'prain', 'pwin'].includes(CUT.scene)) drawParkCut(SW, SH, mid, gy, T, CUT.scene);
+  else if (['whall', 'wdress', 'wstudio', 'wselect', 'wwed'].includes(CUT.scene)) drawWedCut(SW, SH, mid, gy, T, CUT.scene);
   else drawStars(SW, SH, T);
-  drawActors(A, mid, gy, T); drawSeaActors(A, mid, gy, T); drawParkActors(A, mid, gy, T);
+  drawActors(A, mid, gy, T); drawSeaActors(A, mid, gy, T); drawParkActors(A, mid, gy, T); drawWedActors(A, mid, gy, T);
   if (A.b2 || A.cat || A.fish) e2DrawActors(A, mid, gy, T);
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   const cw = cv.width, ch = cv.height;

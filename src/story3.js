@@ -170,7 +170,8 @@ const CH3_ENDING = [
       { who: 'hee', text: '…진짜 이 남자가.', do() { A_().sparkle = false; A_().aura = true; } },
       { who: 'hus', text: '그래도… 자기가 이렇게 좋아하니까\n나도 좋다.', do() { A_().aura = false; } },
       { who: 'hee', text: '…흥. 그럼 다음에도 같이 오는 거다?', do() { A_().sparkle = true; sfx('ding'); } },
-      { who: 'hus', text: '응. 근데 다음엔…\n보리 데리고 애견 운동장 가자.' },
+      { who: 'hus', text: '응. 근데 자기야… 다음에\n낚시터에서 꼭 할 말이 있어.' },
+      { who: 'hee', text: '…또 낚시야?', do() { A_().sparkle = false; A_().hee.sweat = true; } },
       { who: 'bori', text: '멍멍!! 멍멍멍!!', do() { A_().bori.jump = true; sfx('bark'); } }] },
   { dur: 1.0 }
 ];

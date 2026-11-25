@@ -52,3 +52,24 @@ describe('3장 (사직 야구장)', () => {
     const drops = ['cutking', 'chickboss', 'cheerleader', 'raincloud'].flatMap(b => g.MONS[b].drops); expect(drops.sort()).toEqual([...park].sort());
   });
 });
+
+describe('4장 (결혼 대작전)', () => {
+  test('3장을 깨고 Lv50이면 열림', () => {
+    const pd = fresh({ lv: 50, cleared: 5 }); pd.ch2 = { zone: 4, cleared: 1 }; expect(g.ch4Open(pd)).toBe(false);
+    pd.ch3 = { zone: 8, cleared: 1 }; expect(g.ch4Open(pd)).toBe(true);
+  });
+  test('ZONES 12~15 = 4장, 난이도 24단계부터, 장별 진행도 따로', () => {
+    expect([12, 13, 14, 15].map(z => g.zoneCh(z))).toEqual([4, 4, 4, 4]); expect(g.zoneCh(11)).toBe(3);
+    const pd = fresh({ lv: 50, cleared: 20 }); pd.ch3 = { zone: 9, cleared: 2 };
+    expect(g.zoneL(pd, 12)).toBe(24);
+    g.setCurZone(pd, 14); expect([pd.ch3.zone, pd.ch4.zone, pd.chap, g.curZone(pd)]).toEqual([9, 14, 4, 14]);
+  });
+  test('몬스터·보스 정의·스프라이트·보스 AI가 다 있음', () => {
+    for (const z of [12, 13, 14, 15]) { const Z = g.ZONES[z]; for (const [m] of Z.mons) expect(g.MONS[m]).toBeTruthy(); expect(g.MONS[Z.boss].boss).toBe(1); expect(typeof g.AI[g.MONS[Z.boss].ai]).toBe('function'); }
+  });
+  test('웨딩 준비 장비 7종 = 4장 보스 확정 드롭, 도감 세트 따로 · 웨딩 세트(전직)는 빠짐', () => {
+    const wed = g.bookIds(g.BOOK_SETS.find(s => s.k === 'wed')); expect(wed.length).toBe(7);
+    const drops = ['feeking', 'parrot', 'tuxboss', 'gamelord'].flatMap(b => g.MONS[b].drops); expect(drops.sort()).toEqual([...wed].sort());
+    for (const id of ['bouquet', 'wdress', 'veil']) expect(wed.includes(id)).toBe(false);
+  });
+});

@@ -97,6 +97,7 @@ function hairOk(pd, h) {
   if (h.need === 'enh25') return Object.values(pd.enh || {}).some(v => v >= 25);
   if (h.need === 'aw50') return (pd.aw || 0) >= 50;
   if (h.need === 'ch3') return !!(pd.ch3 && pd.ch3.cleared >= 1);
+  if (h.need === 'ch4') return !!(pd.ch4 && pd.ch4.cleared >= 1);
   if (h.need === 'lp20') return msGot(pd, 20);
   if (h.need === 'lp50') return msGot(pd, 50);
   if (h.need === 'tw30') return towerBest(pd) >= 30;
@@ -123,7 +124,7 @@ function calcStats() {
   st.skillMul = 1 + AWK.skill.per * awkLv('skill');
   const bk = bookStats(pd); st.book = bk.n;
   st.hp += BOOK_PER_HP * bk.n + (bk.done.r0 ? 80 : 0); if (bk.done.r1) st.atk += 12; if (bk.done.r2) st.def += 12; if (bk.done.r3) st.crit += 0.03;
-  if (bk.done.sea) { st.atk *= 1.04; st.def *= 1.04; } if (bk.done.park) { st.atk *= 1.05; st.def *= 1.05; } if (bk.done.r4) st.atk *= 1.05; if (bk.done.r5) { st.atk *= 1.05; st.def *= 1.05; st.hp *= 1.05; } st.hp = Math.round(st.hp);
+  if (bk.done.sea) { st.atk *= 1.04; st.def *= 1.04; } if (bk.done.park) { st.atk *= 1.05; st.def *= 1.05; } if (bk.done.wed) { st.atk *= 1.06; st.def *= 1.06; } if (bk.done.r4) st.atk *= 1.05; if (bk.done.r5) { st.atk *= 1.05; st.def *= 1.05; st.hp *= 1.05; } st.hp = Math.round(st.hp);
   if (G.P && G.P.buffs) { let ba = 0, bc = 0; for (const k in G.P.buffs) { ba += G.P.buffs[k].atk || 0; bc += G.P.buffs[k].crit || 0; } st.atk *= 1 + ba; st.crit += bc; }
   // 재련 추가 옵션
   { const R = refSum(pd); st.atk *= 1 + (R.atkP || 0) / 100; st.def *= 1 + (R.defP || 0) / 100; st.hp = Math.round(st.hp * (1 + (R.hpP || 0) / 100)); st.crit += (R.crit || 0) / 100; st.critMul += (R.critD || 0) / 100;
@@ -582,6 +583,64 @@ Object.assign(AI, {
     if (e.st === 'storm' && e.stT <= 0) { G.flashT = 0.35; G.shake = 7; sfx('slam'); for (const b of e.bolts || []) { G.fx.push({ k: 'ring', x: b.x, y: b.y, r: 28, col: '#fff6a0', t: 0, dur: 0.35 }); burst(b.x, b.y, '#fff6a0', 10, 80); if (Math.hypot(G.P.x - b.x, G.P.y - b.y) < 28) hurtPlayer(e.atk * 1.4, e); } }
     if (e.st === 'pour') { e.shT -= dt; if (e.shT <= 0) { e.shT = enr ? 0.07 : 0.1; shootAt(e, 'water', Math.PI / 2 + rand(-1.1, 1.1), 80); } }
     if (e.stT <= 0) { e.st = 'float'; e.stT = enr ? 1.2 : 1.9; }
+  }
+});
+// ---------- 4장 보스 (결혼 대작전) ----------
+Object.assign(AI, {
+  // 추가금 대마왕: 견적서 사방 발사 · 「부가세 별도」 도장 예고 원 · 추가금 옵션 호출
+  feeking(e, dt, sp, dP) {
+    const enr = e.hp < e.maxHp * 0.5; e.stT -= dt;
+    if (e.st === 'idle') { e.st = 'roam'; e.stT = 1.6; e.cyc = 0; }
+    if (e.st === 'roam') { moveToward(e, G.P.x, G.P.y, sp, dt); e.face = G.P.x > e.x ? -1 : 1;
+      if (e.stT <= 0) { e.cyc++; const pat = ['bill', 'stamp', 'bill', 'call'][e.cyc % 4]; e.st = pat;
+        if (pat === 'bill') { e.stT = 0.5; bubble(e, choice(['식대 추가요~!', '꽃장식은 별도예요~', '주말 저녁은 할증!']), 1.2); }
+        if (pat === 'stamp') { e.stT = 1.0; e.marks = []; const n = enr ? 5 : 3; for (let i = 0; i < n; i++) { const m = { x: G.P.x + (i ? rand(-70, 70) : 0), y: G.P.y + (i ? rand(-50, 50) : 0) }; e.marks.push(m); G.fx.push({ k: 'circle', x: m.x, y: m.y, r: 30, t: 0, dur: 1.0 }); } bubble(e, '부가세 별도!!', 1.1); }
+        if (pat === 'call') { e.stT = 0.6; for (let i = 0; i < (enr ? 3 : 2); i++) spawnEnemy('addon', e.x + rand(-40, 40), e.y + rand(10, 30)); bubble(e, '옵션 추가 출동!', 1.1); } } return; }
+    if (e.st === 'bill' && e.stT <= 0) { const n = enr ? 16 : 12, a0 = rand(0, 6.28); for (let i = 0; i < n; i++) shootAt(e, 'ticket', a0 + i / n * Math.PI * 2, 78); sfx('pop'); }
+    if (e.st === 'stamp' && e.stT <= 0) { G.shake = 6; sfx('slam'); for (const m of e.marks || []) { G.fx.push({ k: 'ring', x: m.x, y: m.y, r: 30, col: '#e8414f', t: 0, dur: 0.35 }); burst(m.x, m.y, '#ffd84a', 10, 80); if (Math.hypot(G.P.x - m.x, G.P.y - m.y) < 30) hurtPlayer(e.atk * 1.4, e); } }
+    if (e.stT <= 0) { e.st = 'roam'; e.stT = enr ? 1.2 : 1.9; }
+  },
+  // 좋아무새: 「응 좋아!」 돌진 · 하트 소용돌이 · 레이스 리본 호출 (둥둥 떠다님)
+  parrot(e, dt, sp, dP) {
+    const enr = e.hp < e.maxHp * 0.5; e.stT -= dt; if (e.st !== 'dash') e.hopY = 6 + Math.sin(e.t * 3) * 3;
+    if (e.st === 'idle') { e.st = 'roam'; e.stT = 1.6; e.cyc = 0; }
+    if (e.st === 'roam') { moveToward(e, G.P.x, G.P.y - 20, sp, dt); e.face = G.P.x > e.x ? -1 : 1;
+      if (e.stT <= 0) { e.cyc++; const pat = ['dash', 'chirp', 'dash', 'call'][e.cyc % 4];
+        if (pat === 'dash') { e.st = 'tele'; e.stT = 0.7; aimDash(e, 300, e.r * 1.3, choice(['응! 좋아!!', '너무 좋아!!', '다 좋아!!'])); }
+        if (pat === 'chirp') { e.st = 'chirp'; e.stT = 2.4; e.shT = 0; e.sa = rand(0, 6.28); bubble(e, '좋아~ 좋아~ 너무 좋아~♪', 1.3); }
+        if (pat === 'call') { e.st = 'call'; e.stT = 0.6; for (let i = 0; i < (enr ? 4 : 3); i++) spawnEnemy('ribbon', e.x + rand(-40, 40), e.y + rand(-10, 20)); bubble(e, '이것도 좋아! 저것도 좋아!', 1.2); } } return; }
+    if (e.st === 'tele') { if (e.stT <= 0) { e.st = 'dash'; e.stT = 1.0; } return; }
+    if (e.st === 'dash') { if (dashStep(e, 260, dt) || e.stT <= 0) { e.st = 'roam'; e.stT = enr ? 1.0 : 1.6; G.shake = 4; } return; }
+    if (e.st === 'chirp') { e.shT -= dt; if (e.shT <= 0) { e.shT = enr ? 0.09 : 0.13; e.sa += 0.45; shootAt(e, 'heart', e.sa, 68); if (enr) shootAt(e, 'heart', e.sa + Math.PI, 68); } }
+    if (e.stT <= 0) { e.st = 'roam'; e.stT = enr ? 1.1 : 1.8; }
+  },
+  // 감량 실패 턱시도: 숨 참고 점프 내려찍기(예고 원) · 단추 튕기기(부채꼴) · 「치킨 한 마리만」 치킨 호출
+  tuxboss(e, dt, sp, dP) {
+    const enr = e.hp < e.maxHp * 0.5; e.stT -= dt;
+    if (e.st === 'idle') { e.st = 'roam'; e.stT = 1.6; e.cyc = 0; }
+    if (e.st === 'roam') { moveToward(e, G.P.x, G.P.y, sp, dt); e.face = G.P.x > e.x ? -1 : 1;
+      if (e.stT <= 0) { e.cyc++; const pat = ['jump', 'pop', 'jump', 'snack'][e.cyc % 4]; e.st = pat;
+        if (pat === 'jump') { e.stT = enr ? 0.9 : 1.1; e.tx = G.P.x; e.ty = G.P.y; e.jx = e.x; e.jy = e.y; e.jT = e.stT; G.fx.push({ k: 'circle', x: e.tx, y: e.ty, r: 50, t: 0, dur: e.stT }); bubble(e, '흡—!! (숨 참기)', 1.1); }
+        if (pat === 'pop') { e.stT = 0.6; bubble(e, '단추가… 안 잠겨…!', 1.2); }
+        if (pat === 'snack') { e.stT = 0.6; spawnEnemy('chickbox', e.x - 30, e.y); if (enr) spawnEnemy('chickbox', e.x + 30, e.y); bubble(e, '치킨 한 마리만… 딱 한 마리만…', 1.3); } } return; }
+    if (e.st === 'jump') { const p = 1 - Math.max(0, e.stT) / e.jT; e.x = lerp(e.jx, e.tx, p); e.y = lerp(e.jy, e.ty, p); e.hopY = Math.sin(p * Math.PI) * 60;
+      if (e.stT <= 0) { e.hopY = 0; G.shake = 8; sfx('slam'); burst(e.x, e.y, '#ffffff', 18, 100); G.fx.push({ k: 'ring', x: e.x, y: e.y - 4, r: 50, col: '#ffd84a', t: 0, dur: 0.4 }); if (Math.hypot(G.P.x - e.x, G.P.y - e.y) < 50) hurtPlayer(e.atk * 1.6, e); } }
+    if (e.st === 'pop' && e.stT <= 0) { const a0 = Math.atan2(G.P.y - e.y, G.P.x - e.x), n = enr ? 9 : 7; for (let i = 0; i < n; i++) shootAt(e, 'button', a0 + (i - (n - 1) / 2) * 0.22, 96); sfx('pop'); }
+    if (e.stT <= 0) { e.st = 'roam'; e.stT = enr ? 1.1 : 1.8; }
+  },
+  // 모바일 게임 마왕: 3갈래 레이저(예고 선) · 과금 코인 소나기 · 가챠 10연차(캡슐 호출)
+  gamelord(e, dt, sp, dP) {
+    const enr = e.hp < e.maxHp * 0.5; e.stT -= dt; e.hopY = 4 + Math.sin(e.t * 2) * 2;
+    if (e.st === 'idle') { e.st = 'roam'; e.stT = 2; e.cyc = 0; }
+    if (e.st === 'roam') { moveToward(e, G.P.x, G.P.y - 30, sp, dt);
+      if (e.stT <= 0) { e.cyc++; const pat = ['laser', 'coin', 'laser', 'gacha'][e.cyc % 4]; e.st = pat; e.shT = 0;
+        if (pat === 'laser') { e.stT = enr ? 0.8 : 1.0; const a = Math.atan2(G.P.y - e.y, G.P.x - e.x); e.las = enr ? [a, a - 0.5, a + 0.5, a + Math.PI] : [a, a - 0.6, a + 0.6]; for (const l of e.las) G.fx.push({ k: 'line', x: e.x, y: e.y - 6, a: l, len: 220, w: 26, t: 0, dur: e.stT }); bubble(e, choice(['보스전 시작!', '이번 판만 하고!', '접속 보상 받아가~']), 1.1); }
+        if (pat === 'coin') { e.stT = 2.4; bubble(e, '과금하시겠습니까? [예] [예]', 1.3); }
+        if (pat === 'gacha') { e.stT = 0.6; for (let i = 0; i < (enr ? 4 : 3); i++) spawnEnemy('gacha', e.x + rand(-50, 50), e.y + rand(10, 40)); bubble(e, '10연차!! 확정 보상!!', 1.2); } } return; }
+    if (e.st === 'laser' && e.stT <= 0) { G.flashT = 0.2; G.shake = 6; sfx('slam'); const d = Math.hypot(G.P.x - e.x, G.P.y - e.y), pa = Math.atan2(G.P.y - e.y, G.P.x - e.x);
+      for (const l of e.las || []) { burst(e.x + Math.cos(l) * 60, e.y + Math.sin(l) * 60, '#b45cff', 10, 120); const da = Math.abs(((pa - l + Math.PI * 3) % (Math.PI * 2)) - Math.PI); if (d < 225 && Math.sin(da) * d < 15 && da < Math.PI / 2) { hurtPlayer(e.atk * 1.5, e); break; } } }
+    if (e.st === 'coin') { e.shT -= dt; if (e.shT <= 0) { e.shT = enr ? 0.07 : 0.1; shootAt(e, 'coin', Math.PI / 2 + rand(-1.2, 1.2), 82); } }
+    if (e.stT <= 0) { e.st = 'roam'; e.stT = enr ? 1.2 : 1.9; }
   }
 });
 function shootAt(e, kind, ang, spd) {

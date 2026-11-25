@@ -42,8 +42,8 @@ function heePal() {
   const hr = hairPal(pd && pd.look && pd.look.hair);
   return { C: hat, c: shadeHex(hat, -0.22), W: arm, w: shadeHex(arm, arm === '#3a3a46' ? 0.12 : -0.15), O: sh, o: shadeHex(sh, -0.18), G: bag, g: shadeHex(bag, -0.25), H: hr.H, h: hr.h };
 }
-function heeSet() {
-  const pal = heePal(); const key = 'hee|' + Object.values(pal).join(',');
+function heeSet(over) {
+  const pal = Object.assign(heePal(), over || {}); const key = 'hee|' + Object.values(pal).join(',');
   if (SPRC[key]) return SPRC[key];
   const H = HS, f = (a, b, c) => makeSpr(rowsToCanvas([...a, ...b, ...c], pal));
   const set = {
@@ -60,7 +60,7 @@ function drawHusSleep(x, y, t) { drawSpr(husSleepSpr(), x, y + (Math.sin(t * 1.6
 
 // draw heesu at x,y (feet). opts: pose, dir, t, flash, alpha
 function drawHeeAt(x, y, pose, dir, t, o) {
-  o = o || {}; const set = heeSet(); let s, flip = false, bob = 0;
+  o = o || {}; const set = heeSet(o.pal); let s, flip = false, bob = 0;
   if (pose === 'phone') { s = set.phone[Math.floor(t * 1.3) % 2]; }
   else {
     const d = dir === 'left' ? 'right' : (dir || 'down'); flip = dir === 'left'; const arr = set[d];
@@ -197,6 +197,10 @@ function drawProj(p) {
   if (p.k === 'nag') { fr(p.x - 1, p.y - 1, 3, 3, '#ffffff'); return; }
   if (p.k === 'balloon') drawSpr(pspr('balloon'), p.x, p.y + 3);
   else if (p.k === 'note') drawSpr(pspr('note'), p.x, p.y + 3);
+  else if (p.k === 'heart') drawSpr(ispr('heart'), p.x, p.y + 3);
+  else if (p.k === 'coin') drawSpr(ispr('coin'), p.x, p.y + 3);
+  else if (p.k === 'button') { const x = Math.round(p.x), y = Math.round(p.y); fr(x - 2, y - 2, 5, 5, '#2b1b24'); fr(x - 1, y - 1, 3, 3, '#ffd84a'); fr(x, y, 1, 1, '#2b1b24'); }
+  else if (p.k === 'flash') { const x = Math.round(p.x), y = Math.round(p.y); fr(x - 3, y, 7, 1, '#fffbe0'); fr(x, y - 3, 1, 7, '#fffbe0'); fr(x - 1, y - 1, 3, 3, '#ffffff'); }
   else if (p.k === 'tea') drawSpr(pspr('tea'), p.x, p.y + 2);
   else if (p.k === 'ticket') { const x = Math.round(p.x), y = Math.round(p.y); fr(x - 3, y - 2, 7, 5, '#2b1b24'); fr(x - 2, y - 1, 5, 3, '#ffffff'); fr(x - 2, y, 5, 1, '#e8414f'); }
   else if (p.k === 'water') { const x = Math.round(p.x), y = Math.round(p.y); fr(x - 2, y - 2, 4, 4, '#2b1b24'); fr(x - 1, y - 3, 2, 1, '#2b1b24'); fr(x - 1, y - 1, 2, 2, '#6fb8ff'); fr(x - 1, y - 2, 1, 1, '#d6f0ff'); }

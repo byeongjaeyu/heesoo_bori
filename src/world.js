@@ -140,7 +140,12 @@ const THEME = {
   gate:  { bg: '#9aa0aa', hedge: ['#8a8f9a', '#b0b5c0', '#6a6f7c'], tint: [60, 30, 80, 0.06], glow: 0.12, wall: 1 },
   food:  { bg: '#9aa0aa', hedge: ['#8a8f9a', '#b0b5c0', '#6a6f7c'], tint: [80, 40, 40, 0.08], glow: 0.2, wall: 1 },
   stand: { bg: '#2a3a5a', hedge: ['#8a8f9a', '#b0b5c0', '#6a6f7c'], tint: [20, 20, 70, 0.14], glow: 0.35, wall: 1 },
-  field: { bg: '#10182c', hedge: ['#3a3a48', '#55556a', '#262632'], tint: [10, 14, 40, 0.34], glow: 0.6, wall: 1, rain: 1 }
+  field: { bg: '#10182c', hedge: ['#3a3a48', '#55556a', '#262632'], tint: [10, 14, 40, 0.34], glow: 0.6, wall: 1, rain: 1 },
+  // 4장 결혼 대작전: 가장자리는 실내 벽
+  hall:   { bg: '#e8dcc8', hedge: ['#d8c8b0', '#f0e4d0', '#b8a890'], tint: [60, 30, 60, 0.04], glow: 0.12, wall: 1 },
+  dress:  { bg: '#f6d6e2', hedge: ['#e8b8cc', '#ffd8e8', '#c890a8'], tint: [80, 20, 60, 0.05], glow: 0.12, wall: 1 },
+  studio: { bg: '#f4f4f8', hedge: ['#c0c6d0', '#e0e4ec', '#9aa0aa'], tint: [30, 30, 60, 0.06], glow: 0.3, wall: 1 },
+  wed:    { bg: '#fff4ea', hedge: ['#f0d8c8', '#fff0e4', '#c8a890'], tint: [80, 40, 60, 0.08], glow: 0.35, wall: 1 }
 };
 // ---------- 3장 소품 ----------
 function dBooth() { const c = mkCanvas(34, 34), g = c.getContext('2d'); pRect(g, 2, 10, 30, 24, OK); pRect(g, 3, 11, 28, 23, '#e8e8ee'); pRect(g, 0, 4, 34, 8, OK); for (let x = 1; x < 33; x++) pRect(g, x, 5, 1, 6, (Math.floor(x / 4) % 2) ? '#ffffff' : '#e8414f'); pRect(g, 7, 15, 20, 9, OK); pRect(g, 8, 16, 18, 7, '#9fe8ff'); pRect(g, 6, 26, 22, 3, OK); pRect(g, 7, 26, 20, 2, '#8a5a3a'); pRect(g, 9, 0, 16, 5, OK); pRect(g, 10, 1, 14, 3, '#ffd84a'); return c; }
@@ -151,6 +156,19 @@ function dBin() { const c = mkCanvas(10, 14), g = c.getContext('2d'); pRect(g, 1
 function dLightTower() { const c = mkCanvas(20, 46), g = c.getContext('2d'); pRect(g, 9, 12, 2, 34, OK); pRect(g, 7, 42, 6, 4, OK); pRect(g, 0, 0, 20, 13, OK); for (let y = 0; y < 3; y++) for (let x = 0; x < 4; x++) pRect(g, 2 + x * 4, 2 + y * 4, 3, 3, '#fff6d0'); return c; }
 function dBase() { const c = mkCanvas(10, 10), g = c.getContext('2d'); pRect(g, 1, 1, 8, 8, OK); pRect(g, 2, 2, 6, 6, '#ffffff'); return c; }
 function dScore() { const c = mkCanvas(56, 30), g = c.getContext('2d'); pRect(g, 0, 0, 56, 24, OK); pRect(g, 2, 2, 52, 20, '#1c2a1c'); for (let i = 0; i < 9; i++) { pRect(g, 5 + i * 5, 6, 3, 4, '#ffd84a'); pRect(g, 5 + i * 5, 13, 3, 4, i === 8 ? '#e8414f' : '#ffd84a'); } pRect(g, 25, 24, 6, 6, OK); return c; }
+// ---------- 4장 소품 (결혼 대작전) ----------
+function dChairW() { const c = mkCanvas(12, 18), g = c.getContext('2d'); pRect(g, 1, 0, 10, 9, OK); pRect(g, 2, 1, 8, 7, '#ffffff'); pRect(g, 1, 9, 10, 3, OK); pRect(g, 2, 10, 8, 1, '#f0e8e0'); pRect(g, 1, 12, 2, 6, OK); pRect(g, 9, 12, 2, 6, OK); pRect(g, 4, 3, 4, 3, '#ff9fcf'); pRect(g, 5, 4, 2, 1, '#e8608a'); return c; }
+function dFlowerPot() { const c = mkCanvas(14, 24), g = c.getContext('2d'); pRect(g, 6, 10, 2, 11, OK); pRect(g, 3, 20, 8, 4, OK); pRect(g, 4, 21, 6, 2, '#ffffff'); pCirc(g, 7, 6, 6, OK); pCirc(g, 7, 6, 5, '#ffd1e6'); for (const [x, y, k] of [[4, 4, '#ff7ab8'], [9, 4, '#ffffff'], [7, 8, '#ff9fcf'], [5, 8, '#ffffff'], [10, 7, '#ff7ab8'], [7, 3, '#ffd84a']]) pRect(g, x, y, 2, 2, k); pRect(g, 2, 6, 2, 1, '#5aa845'); pRect(g, 10, 9, 2, 1, '#5aa845'); return c; }
+function dArch() { const c = mkCanvas(64, 56), g = c.getContext('2d'); pRect(g, 4, 18, 4, 38, OK); pRect(g, 56, 18, 4, 38, OK); pRect(g, 5, 18, 2, 38, '#ffffff'); pRect(g, 57, 18, 2, 38, '#ffffff');
+  for (let a = 0; a <= 40; a++) { const t = Math.PI * a / 40, x = 32 - Math.cos(t) * 26, y = 22 - Math.sin(t) * 18; pCirc(g, Math.round(x), Math.round(y), 4, OK); pCirc(g, Math.round(x), Math.round(y), 3, a % 3 ? '#ffd1e6' : '#ffffff'); if (a % 4 === 0) pRect(g, Math.round(x) - 1, Math.round(y) - 1, 2, 2, a % 8 ? '#ff7ab8' : '#5aa845'); } return c; }
+function dDesk() { const c = mkCanvas(26, 18), g = c.getContext('2d'); pRect(g, 0, 4, 26, 6, OK); pRect(g, 1, 5, 24, 4, '#c8a070'); pRect(g, 2, 10, 2, 8, OK); pRect(g, 22, 10, 2, 8, OK); pRect(g, 5, 1, 8, 4, OK); pRect(g, 6, 2, 6, 2, '#ffffff'); pRect(g, 15, 0, 6, 5, OK); pRect(g, 16, 1, 4, 3, '#ff9fcf'); return c; }
+function dMannequin(col) { const c = mkCanvas(18, 30), g = c.getContext('2d'); pRect(g, 8, 0, 2, 3, OK); pRect(g, 6, 3, 6, 4, OK); pRect(g, 7, 4, 4, 2, '#e3c9a0'); for (let y = 7; y < 24; y++) { const hw = Math.round(2 + (y - 7) * 0.45); pRect(g, 9 - hw - 1, y, hw * 2 + 2, 1, OK); pRect(g, 9 - hw, y, hw * 2, 1, col); } pRect(g, 3, 23, 12, 1, shadeHex(col, -0.12)); pRect(g, 8, 24, 2, 4, OK); pRect(g, 5, 28, 8, 2, OK); return c; }
+function dMirror() { const c = mkCanvas(14, 28), g = c.getContext('2d'); pRect(g, 1, 0, 12, 24, OK); pRect(g, 2, 1, 10, 22, '#e8c070'); pRect(g, 3, 2, 8, 20, '#cfeaff'); pRect(g, 4, 3, 2, 8, '#ffffff'); pRect(g, 3, 24, 2, 4, OK); pRect(g, 9, 24, 2, 4, OK); return c; }
+function dSofa() { const c = mkCanvas(30, 16), g = c.getContext('2d'); pRect(g, 0, 2, 30, 12, OK); pRect(g, 1, 3, 28, 4, '#e8608a'); pRect(g, 1, 7, 28, 5, '#ff9fcf'); pRect(g, 1, 3, 4, 9, '#e8608a'); pRect(g, 25, 3, 4, 9, '#e8608a'); pRect(g, 2, 14, 2, 2, OK); pRect(g, 26, 14, 2, 2, OK); return c; }
+function dSoftbox() { const c = mkCanvas(20, 40), g = c.getContext('2d'); pRect(g, 0, 0, 20, 16, OK); pRect(g, 1, 1, 18, 14, '#ffffff'); pRect(g, 3, 3, 14, 10, '#fffbe8'); pRect(g, 9, 16, 2, 20, OK); pRect(g, 3, 36, 14, 2, OK); pRect(g, 5, 34, 2, 2, OK); pRect(g, 13, 34, 2, 2, OK); return c; }
+function dTripod() { const c = mkCanvas(16, 26), g = c.getContext('2d'); pRect(g, 2, 0, 12, 8, OK); pRect(g, 3, 1, 10, 6, '#30323d'); pRect(g, 6, 2, 4, 4, '#9fe8ff'); pRect(g, 7, 8, 2, 8, OK); for (let i = 0; i < 10; i++) { pRect(g, 7 - Math.round(i * 0.6), 16 + i, 1, 1, OK); pRect(g, 8 + Math.round(i * 0.6), 16 + i, 1, 1, OK); pRect(g, 7, 16 + i, 2, 1, OK); } return c; }
+function dReflectorStand() { const c = mkCanvas(16, 28), g = c.getContext('2d'); pCirc(g, 8, 7, 7, OK); pCirc(g, 8, 7, 6, '#ffd84a'); pRect(g, 5, 4, 3, 2, '#fff6b0'); pRect(g, 7, 14, 2, 10, OK); pRect(g, 3, 24, 10, 2, OK); return c; }
+function dCake() { const c = mkCanvas(16, 26), g = c.getContext('2d'); pRect(g, 1, 17, 14, 8, OK); pRect(g, 2, 18, 12, 6, '#fffaf4'); pRect(g, 3, 10, 10, 8, OK); pRect(g, 4, 11, 8, 6, '#fffaf4'); pRect(g, 5, 4, 6, 7, OK); pRect(g, 6, 5, 4, 5, '#fffaf4'); pRect(g, 2, 20, 12, 1, '#ff9fcf'); pRect(g, 4, 13, 8, 1, '#ff9fcf'); pRect(g, 7, 1, 2, 3, '#ff7ab8'); pRect(g, 0, 25, 16, 1, OK); return c; }
 // ---------- 2장 소품 ----------
 function dCar(col) { const c = mkCanvas(30, 18), g = c.getContext('2d'); pRect(g, 1, 6, 28, 9, OK); pRect(g, 2, 7, 26, 7, col); pRect(g, 7, 1, 16, 7, OK); pRect(g, 8, 2, 6, 5, '#9fe8ff'); pRect(g, 16, 2, 6, 5, '#9fe8ff'); pRect(g, 2, 10, 26, 1, shadeHex(col, -0.25)); pCirc(g, 7, 15, 3, OK); pCirc(g, 7, 15, 1, '#6a6f7c'); pCirc(g, 23, 15, 3, OK); pCirc(g, 23, 15, 1, '#6a6f7c'); pRect(g, 27, 8, 2, 2, '#ffd84a'); return c; }
 function dCone() { const c = mkCanvas(9, 12), g = c.getContext('2d'); for (let y = 1; y < 10; y++) { const hw = Math.round(y / 2.4); pRect(g, 4 - hw - 1, y, hw * 2 + 3, 1, OK); pRect(g, 4 - hw, y, hw * 2 + 1, 1, y % 4 === 2 ? '#ffffff' : '#ff7a2a'); } pRect(g, 0, 10, 9, 2, OK); pRect(g, 1, 10, 7, 1, '#ff7a2a'); return c; }
@@ -213,6 +231,21 @@ function buildWorld(zi) {
     for (let i = 0; i < 160; i++) { g.fillStyle = nt ? '#3a2c1e' : '#9a7048'; g.fillRect(Math.floor(R() * WORLD_W), Math.floor(R() * WORLD_H), 2, 1); }
     // 데크 가운데 낚시 구멍(바다가 보이는 칸)
     for (const [hx, hy] of [[150, 300], [410, 420], [140, 560], [420, 190]]) { pRect(g, hx - 22, hy - 12, 44, 24, '#2b1b24'); pRect(g, hx - 20, hy - 10, 40, 20, nt ? '#0c2a4a' : '#2f7fc0'); for (let k = 0; k < 6; k++) pRect(g, hx - 16 + k * 6, hy - 4 + (k % 2) * 6, 4, 1, nt ? '#3a6aa0' : '#9fd8ff'); W.solids.push({ x: hx, y: hy, r: 14 }); }
+  } else if (Z.theme === 'hall' || Z.theme === 'wed') {
+    // 웨딩홀: 대리석 바둑판 + 가운데 레드 카펫(본식은 꽃잎)
+    const wed = Z.theme === 'wed'; for (let y = 0; y < WORLD_H; y += 20) for (let x = 0; x < WORLD_W; x += 20) { g.fillStyle = ((x + y) / 20) % 2 ? (wed ? '#fff4ea' : '#efe4d2') : (wed ? '#f4e6d8' : '#e2d4bc'); g.fillRect(x, y, 20, 20); }
+    for (let i = 0; i < 90; i++) { g.fillStyle = 'rgba(180,160,140,0.35)'; const x = Math.floor(R() * WORLD_W), y = Math.floor(R() * WORLD_H); g.fillRect(x, y, Math.floor(R() * 8) + 2, 1); }
+    g.fillStyle = '#7a1a26'; g.fillRect(cx - 24, 0, 48, WORLD_H); g.fillStyle = '#b8283a'; g.fillRect(cx - 22, 0, 44, WORLD_H); g.fillStyle = '#ffd84a'; g.fillRect(cx - 21, 0, 1, WORLD_H); g.fillRect(cx + 20, 0, 1, WORLD_H);
+    if (wed) for (let i = 0; i < 260; i++) { g.fillStyle = choice(['#ffd1e6', '#ffffff', '#ff9fcf']); const y = Math.floor(R() * WORLD_H), x = Math.round(cx + rr(-30, 30)); g.fillRect(x, y, 2, 1); }
+  } else if (Z.theme === 'dress') {
+    // 드레스 숍: 분홍 카펫 + 작은 꽃무늬
+    g.fillStyle = '#f6d6e2'; g.fillRect(0, 0, WORLD_W, WORLD_H);
+    for (let y = 6; y < WORLD_H; y += 16) for (let x = ((y / 16) % 2) * 8 + 4; x < WORLD_W; x += 16) { g.fillStyle = '#ffeaf2'; g.fillRect(x, y, 3, 3); g.fillStyle = '#e8a8c4'; g.fillRect(x + 1, y + 1, 1, 1); }
+    g.fillStyle = '#e8b8cc'; g.fillRect(cx - 26, 0, 52, WORLD_H); g.fillStyle = '#fff2f6'; g.fillRect(cx - 24, 0, 48, WORLD_H);
+  } else if (Z.theme === 'studio') {
+    // 스튜디오: 흰 바닥 + 바닥 테이프 자리 표시
+    for (let y = 0; y < WORLD_H; y += 8) { g.fillStyle = (y / 8) % 2 ? '#f4f4f8' : '#eeeef4'; g.fillRect(0, y, WORLD_W, 8); }
+    for (let i = 0; i < 14; i++) { const x = Math.round(rr(40, WORLD_W - 40)), y = Math.round(rr(80, WORLD_H - 80)); g.fillStyle = choice(['#ff7ab8', '#ffd84a', '#6fb8ff']); g.fillRect(x - 5, y, 11, 2); g.fillRect(x, y - 5, 2, 11); }
   } else if (Z.theme === 'gate' || Z.theme === 'food') {
     // 매표소 광장: 붉은 벽돌 / 먹거리 존: 베이지 타일
     const gate = Z.theme === 'gate'; g.fillStyle = gate ? '#b86a50' : '#e8d8b8'; g.fillRect(0, 0, WORLD_W, WORLD_H);
@@ -349,6 +382,20 @@ function buildWorld(zi) {
     scatter(7, () => cooler, 5, 14); scatter(5, () => buoy, 0, 12);
     if (!nt) { const p1 = dParasol('#e8414f'), p2 = dParasol('#3a78c0'); scatter(6, () => R() < 0.5 ? p1 : p2, 3, 22, { avoidBoss: true }); }
     const lan = nt ? dLantern() : dLamp('#ffe68a'); for (let y = 150; y < WORLD_H - 70; y += nt ? 110 : 160) { add(lan, cx - 40, y, 2, 8, { glow: '#ffcf6a' }); add(lan, cx + 40, y + (nt ? 55 : 0), 2, 8, { glow: '#ffcf6a' }); }
+  } else if (Z.theme === 'hall') {
+    const ch = dChairW(), fl = dFlowerPot(); for (let y = 150; y < WORLD_H - 90; y += 34) { for (const dx of [-60, -84, -108]) add(ch, cx + dx, y, 0, 0); for (const dx of [60, 84, 108]) add(ch, cx + dx, y, 0, 0); }
+    for (let y = 130; y < WORLD_H - 70; y += 136) { add(fl, cx - 36, y, 3, 6); add(fl, cx + 36, y, 3, 6); }
+    add(dArch(), cx, 120, 0, 0); scatter(4, () => dDesk(), 8, 14, { avoidBoss: true });
+  } else if (Z.theme === 'dress') {
+    const cols = ['#ffffff', '#fffaf4', '#ffd8e8', '#f4a6c8']; for (let y = 120; y < WORLD_H - 70; y += 92) { add(dMannequin(choice(cols)), 44, y, 5, 10); add(dMannequin(choice(cols)), WORLD_W - 44, y + 46, 5, 10); }
+    scatter(5, () => dMirror(), 4, 14, { avoidBoss: true }); scatter(4, () => dSofa(), 8, 16, { avoidBoss: true });
+  } else if (Z.theme === 'studio') {
+    const sb = dSoftbox(), tp = dTripod(); for (const [x, y] of [[50, 160], [WORLD_W - 50, 160], [50, WORLD_H - 170], [WORLD_W - 50, WORLD_H - 170]]) add(sb, x, y, 4, 10, { glow: '#ffffff' });
+    scatter(5, () => tp, 3, 16, { avoidBoss: true }); scatter(4, () => dReflectorStand(), 3, 16, { avoidBoss: true });
+  } else if (Z.theme === 'wed') {
+    const ch = dChairW(), fl = dFlowerPot(); for (let y = 170; y < WORLD_H - 90; y += 30) { for (const dx of [-58, -80, -102, -124]) add(ch, cx + dx, y, 0, 0); for (const dx of [58, 80, 102, 124]) add(ch, cx + dx, y, 0, 0); }
+    for (let y = 150; y < WORLD_H - 70; y += 100) { add(fl, cx - 34, y, 3, 6, { glow: '#ffe0f0' }); add(fl, cx + 34, y, 3, 6, { glow: '#ffe0f0' }); }
+    add(dArch(), cx, 118, 0, 0); add(dCake(), WORLD_W - 70, 140, 7, 14); add(dCake(), 70, 140, 7, 14);
   } else if (Z.theme === 'gate') {
     add(dBooth(), 90, 120, 16, 30); add(dBooth(), WORLD_W - 90, 120, 16, 30); add(dBooth(), 90, 300, 16, 30); add(dBooth(), WORLD_W - 90, 300, 16, 30);
     const st = dStanchion(); for (let y = 180; y < WORLD_H - 80; y += 56) { add(st, cx - 70, y, 4, 4); add(st, cx + 70, y + 28, 4, 4); }

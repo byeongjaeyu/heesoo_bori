@@ -84,6 +84,7 @@ interface SaveData {
   ch2?: { zone: number; cleared: number; intro?: number; seen?: Record<string, number> };
   /** 3장 진행도 (zone 8~11) */
   ch3?: { zone: number; cleared: number; intro?: number; seen?: Record<string, number> };
+  ch4?: { zone: number; cleared: number; intro?: number; seen?: Record<string, number> };
 
   /** 각성 단계 (Lv50 이후) */
   aw?: number;

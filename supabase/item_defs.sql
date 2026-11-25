@@ -1,4 +1,4 @@
--- 자동 생성 (tests/unit/itemdefs.test.mjs) — 손으로 고치지 말 것. 장비 66종
+-- 자동 생성 (tests/unit/itemdefs.test.mjs) — 손으로 고치지 말 것. 장비 73종
 insert into public.hb_item_defs (id, rar, slot, bori, tradable) values
   ('airshoes', 4, 'shoes', false, true),
   ('aurorabag', 5, 'bag', false, true),
@@ -10,6 +10,7 @@ insert into public.hb_item_defs (id, rar, slot, bori, tradable) values
   ('b_life', 3, 'bcloth', true, true),
   ('b_pad', 2, 'bcloth', true, false),
   ('b_royal', 5, 'bcloth', true, true),
+  ('b_tux', 4, 'bcloth', true, true),
   ('b_xmas', 4, 'bcloth', true, true),
   ('backpack', 2, 'bag', false, false),
   ('bat', 4, 'weapon', false, true),
@@ -28,12 +29,15 @@ insert into public.hb_item_defs (id, rar, slot, bori, tradable) values
   ('clutch', 3, 'bag', false, true),
   ('coat', 2, 'armor', false, false),
   ('crossbag', 1, 'bag', false, false),
+  ('dress2', 4, 'armor', false, true),
   ('ecobag', 0, 'bag', false, false),
+  ('envbag', 4, 'bag', false, true),
   ('fist', 0, 'weapon', false, false),
   ('fleece', 0, 'armor', false, false),
   ('goldpan', 4, 'weapon', false, true),
   ('goosepad', 4, 'armor', false, true),
   ('handbag', 3, 'weapon', false, true),
+  ('heels', 4, 'shoes', false, true),
   ('hoodie', 0, 'armor', false, false),
   ('lightstick', 3, 'weapon', false, true),
   ('limitbag', 4, 'bag', false, true),
@@ -41,7 +45,9 @@ insert into public.hb_item_defs (id, rar, slot, bori, tradable) values
   ('net', 3, 'weapon', false, true),
   ('padding', 1, 'armor', false, false),
   ('pan', 3, 'weapon', false, true),
+  ('pearlpin', 4, 'hat', false, true),
   ('rainboot', 3, 'shoes', false, true),
+  ('ringbox', 4, 'weapon', false, true),
   ('running', 2, 'shoes', false, false),
   ('selfie', 1, 'weapon', false, false),
   ('silverbag', 0, 'bag', false, false),
@@ -59,6 +65,7 @@ insert into public.hb_item_defs (id, rar, slot, bori, tradable) values
   ('toy_goldbone', 4, 'btoy', true, true),
   ('toy_lure', 3, 'btoy', true, true),
   ('toy_melon', 0, 'btoy', true, false),
+  ('toy_ring', 4, 'btoy', true, true),
   ('ugly', 1, 'shoes', false, false),
   ('umbrella', 1, 'weapon', false, false),
   ('uniform', 4, 'armor', false, true),
@@ -67,4 +74,4 @@ insert into public.hb_item_defs (id, rar, slot, bori, tradable) values
   ('wdress', 4, 'armor', false, false),
   ('wingshoes', 5, 'shoes', false, true)
 on conflict (id) do update set rar = excluded.rar, slot = excluded.slot, bori = excluded.bori, tradable = excluded.tradable;
-delete from public.hb_item_defs where id not in ('airshoes', 'aurorabag', 'aurorapad', 'b_blanket', 'b_cheer', 'b_jump', 'b_knit', 'b_life', 'b_pad', 'b_royal', 'b_xmas', 'backpack', 'bat', 'bouquet', 'bucket', 'cap_black', 'cap_gold', 'cap_grey', 'cap_pink', 'cap_rainbow', 'cap_sky', 'cap_tiara', 'cheerbag', 'cheercap', 'churros', 'clutch', 'coat', 'crossbag', 'ecobag', 'fist', 'fleece', 'goldpan', 'goosepad', 'handbag', 'hoodie', 'lightstick', 'limitbag', 'longpad', 'net', 'padding', 'pan', 'rainboot', 'running', 'selfie', 'silverbag', 'skates', 'slipon', 'sneakers', 'spike', 'starstick', 'tackle', 'toy_ball', 'toy_bone', 'toy_carp', 'toy_doll', 'toy_duck', 'toy_goldbone', 'toy_lure', 'toy_melon', 'ugly', 'umbrella', 'uniform', 'veil', 'vest', 'wdress', 'wingshoes');
+delete from public.hb_item_defs where id not in ('airshoes', 'aurorabag', 'aurorapad', 'b_blanket', 'b_cheer', 'b_jump', 'b_knit', 'b_life', 'b_pad', 'b_royal', 'b_tux', 'b_xmas', 'backpack', 'bat', 'bouquet', 'bucket', 'cap_black', 'cap_gold', 'cap_grey', 'cap_pink', 'cap_rainbow', 'cap_sky', 'cap_tiara', 'cheerbag', 'cheercap', 'churros', 'clutch', 'coat', 'crossbag', 'dress2', 'ecobag', 'envbag', 'fist', 'fleece', 'goldpan', 'goosepad', 'handbag', 'heels', 'hoodie', 'lightstick', 'limitbag', 'longpad', 'net', 'padding', 'pan', 'pearlpin', 'rainboot', 'ringbox', 'running', 'selfie', 'silverbag', 'skates', 'slipon', 'sneakers', 'spike', 'starstick', 'tackle', 'toy_ball', 'toy_bone', 'toy_carp', 'toy_doll', 'toy_duck', 'toy_goldbone', 'toy_lure', 'toy_melon', 'toy_ring', 'ugly', 'umbrella', 'uniform', 'veil', 'vest', 'wdress', 'wingshoes');

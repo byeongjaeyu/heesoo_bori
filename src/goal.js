@@ -1,7 +1,7 @@
 // ===================== 회차 보상 단계표 =====================
 // 총 회차 = 1장 + 2장 + 3장 클리어 수. 이정표마다 보상 (로비 「회차 보상」에서 받기, 예전 기록도 소급해서 받을 수 있음)
 // 보상 종류: stones(강화석) · auto(자동사냥 초) · tr(초월 장비 확정, 다 가졌으면 강화석) · hair(한정 헤어 k). 칭호는 ACH lp30·lp50·lp100 이 자동 달성
-const loopsTotal = pd => (pd.cleared || 0) + ((pd.ch2 && pd.ch2.cleared) || 0) + ((pd.ch3 && pd.ch3.cleared) || 0);
+const loopsTotal = pd => (pd.cleared || 0) + ((pd.ch2 && pd.ch2.cleared) || 0) + ((pd.ch3 && pd.ch3.cleared) || 0) + ((pd.ch4 && pd.ch4.cleared) || 0);
 /** @type {{n:number, r:[string, any][], ttl?:string}[]} */
 const LOOP_MS = [
   { n: 3, r: [['stones', 30]] },

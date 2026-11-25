@@ -104,6 +104,14 @@ const ITEM_DEFS = {
   bouquet:  { slot: 'weapon', name: '신부의 부케', rar: 4, atk: 46, crit: 0.06, icon: 'bouquet', tier: 6, bossOnly: 1, job: 'bride', w: { reach: 24, arc: 150, mul: 1, rate: 2.3, kb: 100, style: 'swing' }, desc: '받으면 다음 신부가 된다는 그 부케. 맞으면 꽤 아프다' },
   wdress:   { slot: 'armor', name: '웨딩드레스', rar: 4, def: 28, hp: 280, color: '#fffaf4', icon: 'dress', tier: 6, bossOnly: 1, job: 'bride', desc: '오빠가 처음 보고 울었던(본인은 부정) 드레스' },
   veil:     { slot: 'hat', name: '면사포 티아라', rar: 4, def: 15, mp: 100, crit: 0.05, color: '#fffaf4', icon: 'veil', tier: 6, bossOnly: 1, job: 'bride', desc: '반짝이는 티아라에 하늘하늘 면사포' },
+  // ---- 4장 웨딩 준비 장비 (보스 확정 드롭 · 신화) ----
+  ringbox:  { slot: 'weapon', name: '프러포즈 반지 상자', rar: 4, atk: 52, crit: 0.07, icon: 'ringbox', tier: 7, bossOnly: 1, ch: 4, w: { reach: 110, arc: 0, mul: 1.1, rate: 2.2, kb: 50, style: 'throw' }, desc: '지렁이 통 옆에서 나온 그 반지 상자. 반짝이를 날린다' },
+  dress2:   { slot: 'armor', name: '본식 2부 드레스', rar: 4, def: 30, hp: 300, color: '#f4a6c8', icon: 'dress', tier: 7, bossOnly: 1, ch: 4, desc: '「응 좋아」 말고 「예쁘다」를 들은 드레스' },
+  pearlpin: { slot: 'hat', name: '진주 헤어핀', rar: 4, def: 16, mp: 110, crit: 0.06, color: '#f6efe6', icon: 'hat', tier: 7, bossOnly: 1, ch: 4, desc: '머리에 꽂으면 마음도 단정해진다' },
+  heels:    { slot: 'shoes', name: '웨딩 하이힐', rar: 4, def: 10, spd: 0.3, color: '#fff6e0', icon: 'shoes', tier: 7, bossOnly: 1, ch: 4, desc: '버진로드 전용. 오빠 발 밟기에도 좋다' },
+  envbag:   { slot: 'bag', name: '축의금 봉투 클러치', rar: 4, atk: 14, mp: 110, crit: 0.06, color: '#f0d8a8', icon: 'handbag', tier: 7, bossOnly: 1, ch: 4, desc: '봉투가 두툼할수록 기분이 좋아진다' },
+  b_tux:    { slot: 'bcloth', bori: 1, name: '보리 링베어러 턱시도', rar: 4, bdmg: 0.8, color: '#2b2b34', pat: 'pad', icon: 'bpad', tier: 7, bossOnly: 1, ch: 4, desc: '반지 배달 담당. 나비넥타이가 포인트' },
+  toy_ring: { slot: 'btoy', bori: 1, name: '반지 쿠션', rar: 4, bdmg: 0.9, icon: 'cushion', tier: 7, bossOnly: 1, ch: 4, desc: '보리가 버진로드에서 물고 온 쿠션. 반지는 무사함' },
 };
 /** 장비 정의표. 개별 키('starstick#a1b2')로 찾아도 원래 장비 정의가 나옴 → 착용·강화·재련 코드는 키 그대로 씀 */
 const ITEMS = /** @type {Record<ItemId, ItemDef>} */ (new Proxy(ITEM_DEFS, {
@@ -154,6 +162,21 @@ const MONS = {
   chickboss:   { name: '통닭 대장',        spr: 'chickbox', scale: 3.6, crown: 1, hp: 32000, atk: 88,  def: 20, spd: 28, xp: 7200,  gold: [1600, 1900], r: 22, ai: 'chickboss', boss: 1, col: '#d9822b', drops: ['uniform', 'b_cheer'] },
   cheerleader: { name: '상대팀 응원단장',  spr: 'leader',   scale: 3.2, crown: 1, hp: 38000, atk: 96,  def: 22, spd: 30, xp: 8600,  gold: [1800, 2100], r: 22, ai: 'cheerleader', boss: 1, col: '#3a5ab0', drops: ['spike', 'cheerbag'] },
   raincloud:   { name: '우천취소 먹구름',  spr: 'cloud',    scale: 4.2, crown: 1, hp: 45000, atk: 108, def: 24, spd: 24, xp: 14000, gold: [0, 0],       r: 28, ai: 'raincloud', boss: 1, col: '#5a5a6e', fly: 1, drops: ['toy_ball'] },
+  // ---- 4장 결혼 대작전 ----
+  planner:   { name: '영업왕 웨딩플래너', spr: 'planner',   hp: 1100, atk: 84,  def: 15, spd: 32, xp: 170, gold: [38, 54], r: 6, ai: 'ranged', proj: 'ticket', col: '#2e3a5c' },
+  quote:     { name: '날아다니는 견적서', spr: 'quote',     hp: 900,  atk: 80,  def: 12, spd: 48, xp: 160, gold: [36, 52], r: 6, ai: 'float', col: '#f7f3ea', fly: 1 },
+  addon:     { name: '추가금 옵션',       spr: 'addon',     hp: 1300, atk: 88,  def: 16, spd: 30, xp: 170, gold: [40, 56], r: 6, ai: 'hop', col: '#ffd84a' },
+  mannequin: { name: '피팅룸 마네킹',     spr: 'mannequin', hp: 1600, atk: 90,  def: 20, spd: 26, xp: 180, gold: [40, 56], r: 7, ai: 'chase', col: '#fffaf4' },
+  ribbon:    { name: '레이스 리본',       spr: 'ribbon',    hp: 1000, atk: 86,  def: 12, spd: 50, xp: 170, gold: [38, 54], r: 6, ai: 'float', col: '#ffb3d9', fly: 1 },
+  pin:       { name: '시침핀',            spr: 'pin',       hp: 900,  atk: 100, def: 12, spd: 54, xp: 180, gold: [40, 56], r: 5, ai: 'charge', col: '#e8414f' },
+  flashm:    { name: '플래시 조명',       spr: 'flashm',    hp: 1200, atk: 92,  def: 14, spd: 28, xp: 180, gold: [42, 58], r: 6, ai: 'ranged', proj: 'flash', col: '#ffffff' },
+  reflector: { name: '금빛 반사판',       spr: 'reflector', hp: 1900, atk: 94,  def: 22, spd: 26, xp: 190, gold: [42, 58], r: 7, ai: 'chase', col: '#ffd84a' },
+  camera:    { name: '연사 카메라',       spr: 'camera',    hp: 1050, atk: 102, def: 14, spd: 52, xp: 190, gold: [42, 58], r: 6, ai: 'charge', col: '#30323d' },
+  gacha:     { name: '가챠 캡슐',         spr: 'gacha',     hp: 1400, atk: 96,  def: 16, spd: 32, xp: 190, gold: [44, 60], r: 6, ai: 'hop', col: '#ffb3d9' },
+  feeking:   { name: '추가금 대마왕',     spr: 'addon',     scale: 3.4, crown: 1, hp: 34000, atk: 92,  def: 22, spd: 28, xp: 9000,  gold: [1900, 2200], r: 22, ai: 'feeking', boss: 1, col: '#ffd84a', drops: ['ringbox', 'pearlpin'] },
+  parrot:    { name: '좋아무새',          spr: 'parrot',    scale: 3.4, crown: 1, hp: 42000, atk: 100, def: 24, spd: 34, xp: 10500, gold: [2100, 2400], r: 22, ai: 'parrot', boss: 1, col: '#7ccf5a', fly: 1, drops: ['dress2', 'b_tux'] },
+  tuxboss:   { name: '감량 실패 턱시도',  spr: 'tux',       scale: 3.4, crown: 1, hp: 50000, atk: 108, def: 26, spd: 26, xp: 12500, gold: [2300, 2600], r: 22, ai: 'tuxboss', boss: 1, col: '#30323d', drops: ['heels', 'envbag'] },
+  gamelord:  { name: '모바일 게임 마왕',  spr: 'gphone',    scale: 4.0, crown: 1, hp: 60000, atk: 116, def: 28, spd: 24, xp: 17000, gold: [0, 0],       r: 28, ai: 'gamelord', boss: 1, col: '#b45cff', drops: ['toy_ring'] },
   // ---- 2장 몬스터 ----
   mosquito: { name: '피에 굶주린 모기떼', spr: 'mosquito', hp: 520,  atk: 58, def: 8,  spd: 46, xp: 70,  gold: [16, 26], r: 5, ai: 'float', col: '#6a6f7c', fly: 1 },
   worm:     { name: '미끼 지렁이',       spr: 'worm',     hp: 900,  atk: 64, def: 12, spd: 22, xp: 84,  gold: [20, 30], r: 6, ai: 'chase', col: '#f28cc0' },
@@ -183,7 +206,12 @@ const ZONES = [
   { name: '사직 야구장 매표소', sub: 'STAGE 9', ch: 3, quota: 34, max: 12, spawnInt: 1.2, mons: [['cutter', 5], ['scalper', 3], ['pigeon', 4]], boss: 'cutking', theme: 'gate', next: '먹거리 존' },
   { name: '야구장 먹거리 존', sub: 'STAGE 10', ch: 3, quota: 36, max: 12, spawnInt: 1.15, mons: [['chickbox', 5], ['tteok', 4], ['soda', 3]], boss: 'chickboss', theme: 'food', next: '1루 응원석' },
   { name: '1루 응원석', sub: 'STAGE 11', ch: 3, quota: 38, max: 13, spawnInt: 1.1, mons: [['foul', 4], ['stick', 5], ['flag', 3]], boss: 'cheerleader', theme: 'stand', next: '9회말 그라운드' },
-  { name: '9회말 그라운드', sub: 'FINAL STAGE', ch: 3, quota: 40, max: 13, spawnInt: 1.1, mons: [['foul', 4], ['stick', 3], ['flag', 3], ['pigeon', 2]], boss: 'raincloud', theme: 'field', next: '' }
+  { name: '9회말 그라운드', sub: 'FINAL STAGE', ch: 3, quota: 40, max: 13, spawnInt: 1.1, mons: [['foul', 4], ['stick', 3], ['flag', 3], ['pigeon', 2]], boss: 'raincloud', theme: 'field', next: '' },
+  // ---- 4장: 결혼 대작전 (난이도는 3장 5회차 수준 · Lv50, CH4_BASE_L) ----
+  { name: '웨딩홀 투어', sub: 'STAGE 13', ch: 4, quota: 36, max: 12, spawnInt: 1.15, mons: [['planner', 5], ['quote', 4], ['addon', 3]], boss: 'feeking', theme: 'hall', next: '드레스 숍' },
+  { name: '드레스 숍', sub: 'STAGE 14', ch: 4, quota: 38, max: 13, spawnInt: 1.1, mons: [['mannequin', 4], ['ribbon', 5], ['pin', 3]], boss: 'parrot', theme: 'dress', next: '웨딩 스튜디오' },
+  { name: '웨딩 스튜디오', sub: 'STAGE 15', ch: 4, quota: 40, max: 13, spawnInt: 1.1, mons: [['flashm', 4], ['reflector', 3], ['camera', 5]], boss: 'tuxboss', theme: 'studio', next: '본식 웨딩홀' },
+  { name: '본식 웨딩홀', sub: 'FINAL STAGE', ch: 4, quota: 42, max: 14, spawnInt: 1.05, mons: [['gacha', 5], ['quote', 3], ['ribbon', 3], ['camera', 2]], boss: 'gamelord', theme: 'wed', next: '' }
 ];
 
 const NAG_WORDS = ['방 치워!', '밥 먹었어?', '양말!!', '또 게임해?', '설거지!', '일찍 와!', '물 마셔!', '옷 걸어!', '불 꺼!', '손 씻어!', '자세 똑바로!', '휴지 갈아!', '빨래 개!', '변기 커버!'];
@@ -217,10 +245,11 @@ const BOOK_SETS = [
   { k: 'r5', name: '초월', rar: 5, txt: '공격·방어·HP +5%' },
   { k: 'bori', name: '보리 용품', rar: -1, bori: true, txt: '보리 공격 +15%' },
   { k: 'sea', name: '2장 낚시 장비', rar: -1, sea: true, txt: '공격·방어 +4%' },
-  { k: 'park', name: '3장 응원 장비', rar: -1, park: true, txt: '공격·방어 +5%' }
+  { k: 'park', name: '3장 응원 장비', rar: -1, park: true, txt: '공격·방어 +5%' },
+  { k: 'wed', name: '4장 웨딩 준비 장비', rar: -1, wed: true, txt: '공격·방어 +6%' }
 ];
 /** 세트에 들어가는 장비 id (시작 장비 제외) */
-const bookIds = set => Object.keys(ITEMS).filter(id => { const it = ITEMS[id]; if (it.start || it.job) return false; if (set.sea) return !!it.bossOnly && (it.ch || 2) === 2; if (set.park) return !!it.bossOnly && it.ch === 3; if (it.bossOnly) return false; return set.bori ? !!it.bori : !it.bori && it.rar === set.rar; });
+const bookIds = set => Object.keys(ITEMS).filter(id => { const it = ITEMS[id]; if (it.start || it.job) return false; if (set.sea) return !!it.bossOnly && (it.ch || 2) === 2; if (set.park) return !!it.bossOnly && it.ch === 3; if (set.wed) return !!it.bossOnly && it.ch === 4; if (it.bossOnly) return false; return set.bori ? !!it.bori : !it.bori && it.rar === set.rar; });
 const BOOK_ALL = Object.keys(ITEMS).filter(id => !ITEMS[id].start && !ITEMS[id].job);
 
 // ===== 희수 꾸미기 (능력치 없음, 겉모습만) =====
@@ -236,6 +265,7 @@ const HAIRS = [
   { k: 'blonde', name: '금발', H: '#b8862a', h: '#e9c35a', need: 'book25', cond: '도감 25종' },
   { k: 'red', name: '레드', H: '#a11f2a', h: '#dd4651', need: 'enh25', cond: '장비 하나 +25 강화' },
   { k: 'cheer', name: '응원 레드', H: '#a8222e', h: '#ff5a6a', need: 'ch3', cond: '3장 클리어' },
+  { k: 'pearl', name: '웨딩 펄', H: '#c9b8a8', h: '#fff4ea', need: 'ch4', cond: '4장 클리어' },
   { k: 'ocean', name: '바다 블루', H: '#1f4f9a', h: '#5a9ae8', need: 'ch2', cond: '2장 클리어' },
   { k: 'silver', name: '은발', H: '#9da2b0', h: '#dde0e8', need: 'aw50', cond: '각성 ★50' },
   { k: 'wine', name: '체리 와인', H: '#5a1430', h: '#a8325e', need: 'lp20', cond: '회차 보상 총 20회차' },

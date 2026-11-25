@@ -157,7 +157,7 @@ test('도감 탭: 보유 장비는 보이고 없는 건 ???', async ({ page }) =
   await withSave(page, URL_MAIN, { lv: 20, inv: { fist: 1, cap_grey: 1, fleece: 1, sneakers: 1, silverbag: 1, churros: 1 } });
   await enterZone(page, 1);
   await openTab(page, 'book');
-  await expect(page.locator('.bookhead')).toContainText('1 / 58');
+  await expect(page.locator('.bookhead')).toContainText('1 / 65');
   await expect(page.locator('.bcell:not(.no)')).toHaveCount(1);
   await expect(page.locator('.bcell:not(.no)')).toContainText('츄러스');
 });
@@ -751,4 +751,44 @@ test('전직: Lv50 전엔 로비 타일 없음 · 탭은 잠김 안내', async (
   await page.click('#tBag'); await page.click('#tabs [data-v="job"]');
   await expect(page.locator('#mbody .jobhead')).toContainText('Lv50가 되면');
   await expect(page.locator('#mbody [data-m="job"]')).toHaveCount(0);
+});
+
+test('4장: 3장 클리어+Lv50 → 챕터 버튼 4개 → 프로포즈 프롤로그 후 STAGE 13', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await withSave(page, URL_MAIN, { lv: 50, cleared: 5, ch2: { zone: 4, cleared: 1, intro: 1 } });
+  await expect(page.locator('.tch[data-ch="4"]')).toHaveCount(0);
+  await page.evaluate(() => { const pd = loadGame(); pd.ch3 = { zone: 8, cleared: 1, intro: 1 }; localStorage.setItem(SAVEKEY, JSON.stringify(pd)); showTitle(); });
+  await expect(page.locator('.tchap .tch')).toHaveCount(4);
+  await page.click('.tch[data-ch="4"]');
+  await expect(page.locator('#tCont')).toContainText('웨딩홀 투어');
+  await page.screenshot({ path: 'test-results/ch4-lobby.png' });
+  await page.click('#tCont');
+  await page.waitForFunction(() => G.state === 'cut');
+  await page.waitForTimeout(800); await page.screenshot({ path: 'test-results/ch4-prologue.png' });
+  await page.evaluate(() => endCut());
+  await page.waitForFunction(() => G.state === 'play' && G.zone === 12, null, { timeout: 8000 });
+  expect(await page.evaluate(() => [loadGame().chap, loadGame().ch4.zone])).toEqual([4, 12]);
+});
+
+test('4장: 컷신·스테이지·보스 패턴이 오류 없이 돎', async ({ page }) => {
+  const errs = []; page.on('pageerror', e => errs.push(String(e)));
+  await page.setViewportSize({ width: 390, height: 844 });
+  await withSave(page, URL_MAIN, { lv: 50, cleared: 5, chap: 4, ch2: { zone: 4, cleared: 1, intro: 1 }, ch3: { zone: 8, cleared: 1, intro: 1 }, ch4: { zone: 12, cleared: 0, intro: 1, seen: { 13: 1, 14: 1, 15: 1 } } });
+  for (const [k, steps] of [['pro', 'CH4_PROLOGUE'], ['dress', 'CH4_DRESS'], ['studio', 'CH4_STUDIO'], ['select', 'CH4_SELECT'], ['end', 'CH4_ENDING']]) {
+    await page.evaluate(s => { $('#title').hidden = true; playCut(eval(s), () => { }); }, steps);
+    await page.waitForTimeout(900);
+    for (let i = 0; i < 30 && await page.evaluate(() => !!CUT.steps); i++) { await page.evaluate(() => { dlgTap(); dlgTap(); }); await page.waitForTimeout(80); if (i === 8) await page.screenshot({ path: `test-results/ch4-cut-${k}-mid.png` }); }
+    await page.screenshot({ path: `test-results/ch4-cut-${k}.png` });
+    await page.evaluate(() => { try { endCut(); } catch (e) { } });
+  }
+  for (const z of [12, 13, 14, 15]) {
+    await page.evaluate(zz => { if (!G.pd) { G.pd = loadGame(); calcStats(); } G.auto = false; startZone(zz); }, z);
+    await page.waitForFunction(() => G.state === 'play', null, { timeout: 8000 });
+    await page.evaluate(() => { G.st.hp = 1e9; G.P.hp = 1e9; spawnBoss(); });
+    await page.waitForTimeout(3500);
+    await page.screenshot({ path: `test-results/ch4-zone-${z}.png` });
+    await page.evaluate(() => { G.P.hp = 1e9; if (G.boss) { G.boss.hp = G.boss.maxHp * 0.4; } });
+    await page.waitForTimeout(2500);
+  }
+  expect(errs).toEqual([]);
 });

@@ -916,3 +916,22 @@ ICONS.bouquet = ['..Q.R.Q..', '.QRQAQRQ.', 'KQAQRQAQK', '.KQRQRQK.', '..K222K..'
 ICONS.dress = ['...K.K...', '...KWK...', '..KWwWK..', '..KWWWK..', '...KWK...', '..KWWWK..', '.KWWwWWK.', '.KWWWWWK.', 'KWWwWwWWK', 'KWWWWWWWK', 'KKKKKKKKK'];
 ICONS.veil = ['...KAKAK...', '..KAAeAAK..', '.KCCCCCCCK.', 'KCCCCCCCCCK', 'KCcCCCCCcCK', 'KC.......CK', 'Kc.......cK', '.K.......K.'];
 ICONS.jobbadge = ['...KKKKK...', '..KAAAAAK..', '.KAAeAAAAK.', 'KAAAAAAAAAK', 'KAAKAAAKAAK', 'KAAAAAAAAAK', '.KAAKKKAAK.', '..KAAAAAK..', '...KKKKK...', '...KR.RK...', '..KRr.rRK..', '..KK...KK..'];
+
+// ---------- 4장 몬스터 (결혼 대작전) ----------
+Object.assign(MONSPR, {
+  planner: personRows({ H: 'd', C: 'N', P: 'p' }),
+  quote: ['.KKKKKKKK.', 'KeeeeeeeeK', 'KeEeeeeEeK', 'KeeeMMeeeK', 'KeJJJJJJeK', 'KeJJJJeeeK', 'KeRRRRRReK', 'KeeeeeeeeK', '.KeKeKeKK.', '..K.K.K...'],
+  addon: ['..KKKKKK..', '.KAAAAAAK.', 'KAAaAAaAAK', 'KAEAAAAEAK', 'KAAAKKAAAK', 'KAAKKKKAAK', 'KAAAKKAAAK', 'KAAAMMAAAK', '.KaAAAAaK.', '..KKKKKK..'],
+  mannequin: ['....KK....', '...KYYK...', '..KKYYKK..', '.KeeeeeeK.', '.KeEeeEeK.', '..KeeeeK..', '..KeeeeK..', '.KeeeeeeK.', 'KeeweeweeK', 'KKKKKKKKKK', '....KK....', '...KKKK...'],
+  ribbon: ['KK.....KK.', 'KQK...KQK.', 'KQQKKKQQK.', 'KQEQQQEQK.', 'KQQQMQQQK.', 'KQQKKKQQK.', 'KQK.KQK.K.', 'KK..KQK...', '....KK....'],
+  pin: ['..KKK.', '.KRRRK', '.KRERK', '.KRRRK', '..KJK.', '..KJK.', '..KJK.', '..KJK.', '..KJK.', '...K..'],
+  flashm: ['KKKKKKKKKK', 'KeeeeeeeeK', 'KeEeeeeEeK', 'KeeeeeeeeK', 'KeeeMMeeeK', 'KKKKKKKKKK', '....KK....', '....KK....', '...K..K...', '..K....K..'],
+  reflector: ['..KKKKKK..', '.KAAAAAeK.', 'KAAAAAeeAK', 'KAEAAeEAAK', 'KAAAAAAAAK', 'KAAAMMAAAK', '.KaAAAAaK.', '..KKKKKK..', '....KK....', '...K..K...'],
+  camera: ['..KKK.....', '.KXXXKKKKK', 'KXXXXXXXXK', 'KXJKKKKJXK', 'KXKLLLLKXK', 'KXKLEELKXK', 'KXKLLLLKXK', 'KXJKKKKJXK', 'KXXXXXXXXK', '.KKKKKKKK.'],
+  gacha: ['..KKKKKK..', '.KQQQQQQK.', 'KQQeQQQQQK', 'KQQQQQQQQK', 'KKKKKKKKKK', 'KeEeeeeEeK', 'KeeeMMeeeK', '.KeeeeeeK.', '..KKKKKK..'],
+  parrot: ['...KKKK....', '..K1111K...', '.K1e1111K..', '.K1E11AAAK.', '.K1111KaaK.', '..K1111KK..', '.K122211K..', 'K1222211RK.', 'K12221RRRK.', '.K11RRRRK..', '..KKA.AKK..', '...KK.KK...'],
+  tux: ['...KKKK...', '..KHHHHK..', '..KSSSSK..', '..KSESEK..', '..KSSMSK..', '.KKXeeXKK.', 'KXXXeRXXXK', 'KXXXeAXXXK', 'KXXXeAXXXK', 'KXXXXXXXXK', '.KXXXXXXK.', '..KXKKXK..', '..KXKKXK..', '..KK..KK..'],
+  gphone: ['.KKKKKKKK.', 'KXXXXXXXXK', 'KXVVVVVVXK', 'KXVEVVEVXK', 'KXVVVVVVXK', 'KXVRRRRVXK', 'KXVVVVVVXK', 'KXVVVVVVXK', 'KXXXXXXXXK', 'KXXXooXXXK', '.KKKKKKKK.']
+});
+ICONS.ringbox = ['..KKKKK..', '.KRRRRRK.', 'KRRrrrRRK', 'KKKKKKKKK', 'KRRKeKRRK', 'KRKeAeKRK', 'KRRKAKRRK', 'KRRRRRRRK', 'KKKKKKKKK'];
+ICONS.cushion = ['..KKKKK..', '.KQQeQQK.', 'KQQeAeQQK', 'KQQQeQQQK', 'KQqQQQqQK', '.KQQQQQK.', '..KKKKK..'];
