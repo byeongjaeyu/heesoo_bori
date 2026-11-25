@@ -87,6 +87,8 @@ function visEq(pd) {
   for (const sl of LOOK_SLOTS) { const id = L[sl], it = id && ITEMS[id]; if (it && it.slot === sl && !it.bori && it.color && b[id]) e[sl] = id; }
   return e;
 }
+/** 착용 세트: 지금 끼고 있는 개수 */
+function eqSetN(pd, S) { const on = new Set([...SLOTS.map(sl => defOf(pd.eq[sl])), ...BSLOTS.map(sl => pd.beq && pd.beq[sl] ? defOf(pd.beq[sl]) : '')]); return S.ids.filter(id => on.has(id)).length; }
 const hairPal = k => HAIRS.find(h => h.k === k) || HAIRS[0];
 /** 헤어 색 해금 여부 */
 function hairOk(pd, h) {
@@ -124,7 +126,8 @@ function calcStats() {
   st.skillMul = 1 + AWK.skill.per * awkLv('skill');
   const bk = bookStats(pd); st.book = bk.n;
   st.hp += BOOK_PER_HP * bk.n + (bk.done.r0 ? 80 : 0); if (bk.done.r1) st.atk += 12; if (bk.done.r2) st.def += 12; if (bk.done.r3) st.crit += 0.03;
-  if (bk.done.sea) { st.atk *= 1.04; st.def *= 1.04; } if (bk.done.park) { st.atk *= 1.05; st.def *= 1.05; } if (bk.done.wed) { st.atk *= 1.06; st.def *= 1.06; } if (bk.done.r4) st.atk *= 1.05; if (bk.done.r5) { st.atk *= 1.05; st.def *= 1.05; st.hp *= 1.05; } st.hp = Math.round(st.hp);
+  if (bk.done.sea) { st.atk *= 1.04; st.def *= 1.04; } if (bk.done.park) { st.atk *= 1.05; st.def *= 1.05; } if (bk.done.r4) st.atk *= 1.05; if (bk.done.r5) { st.atk *= 1.05; st.def *= 1.05; st.hp *= 1.05; } st.hp = Math.round(st.hp);
+  for (const S of EQ_SETS) if (eqSetN(pd, S) >= S.ids.length) { const m = S.mul; st.atk *= m.atk || 1; st.def *= m.def || 1; st.hp = Math.round(st.hp * (m.hp || 1)); }
   if (G.P && G.P.buffs) { let ba = 0, bc = 0; for (const k in G.P.buffs) { ba += G.P.buffs[k].atk || 0; bc += G.P.buffs[k].crit || 0; } st.atk *= 1 + ba; st.crit += bc; }
   // 재련 추가 옵션
   { const R = refSum(pd); st.atk *= 1 + (R.atkP || 0) / 100; st.def *= 1 + (R.defP || 0) / 100; st.hp = Math.round(st.hp * (1 + (R.hpP || 0) / 100)); st.crit += (R.crit || 0) / 100; st.critMul += (R.critD || 0) / 100;

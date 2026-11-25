@@ -32,9 +32,13 @@ const PSPR = {
 };
 const pspr = k => spr('p_' + k, PSPR[k]);
 const ispr = k => spr('i_' + k, ICONS[k]);
-function itemPal(it) { const c = it.color; if (!c) return null; if (it.icon === 'hat' || it.icon === 'veil') return { C: c, c: shadeHex(c, -0.22) }; if (it.icon === 'jacket' || it.icon === 'dress') return { W: c, w: shadeHex(c, -0.15) }; if (['shoes', 'sandal', 'boots', 'fishshoe'].includes(it.icon)) return { O: c, o: shadeHex(c, -0.18) }; if (it.icon === 'handbag') return { Q: c, q: shadeHex(c, -0.2) }; if (it.icon === 'bag') return { G: c, g: shadeHex(c, -0.25) }; if (it.slot === 'bcloth') return { Y: c, y: shadeHex(c, -0.2) }; return null; }
-const itemSpr = id => { const it = ITEMS[id]; return spr('it_' + defOf(id), ICONS[it.icon], itemPal(it)); };
-const itemURL = id => { const it = ITEMS[id]; return iconURL('it_' + defOf(id), ICONS[it.icon], itemPal(it)); };
+/** 장비 → 아이콘 (모양별, 11/25). 장비 정의의 icon은 서버 장비표와 맞춰 두고 그림만 바꿈 */
+const ITEM_ICON = { bucket: 'i_bucket', cheercap: 'i_ballcap', cap_tiara: 'i_tiaracap', cap_rainbow: 'i_rainbowcap', pearlpin: 'i_pin', hoodie: 'i_hoodie', padding: 'i_pad', aurorapad: 'i_pad', longpad: 'i_longpad', goosepad: 'i_longpad', coat: 'i_coat', vest: 'i_lifevest', uniform: 'i_jersey', wdress: 'i_gown', heels: 'i_heel', spike: 'i_cleat', ugly: 'i_chunky', envbag: 'i_env', backpack: 'i_backpack', ecobag: 'i_tote', crossbag: 'i_cross', aurorabag: 'i_cross', tackle: 'i_box' };
+const iconKey = id => ITEM_ICON[defOf(id)] || ITEMS[id].icon;
+const ICON_PAL = { i_bucket: 'C', i_ballcap: 'C', i_tiaracap: 'C', i_rainbowcap: 'C', i_pin: 'C', i_hoodie: 'W', i_pad: 'W', i_longpad: 'W', i_coat: 'W', i_lifevest: 'W', i_jersey: 'W', i_gown: 'W', i_heel: 'O', i_cleat: 'O', i_chunky: 'O', i_env: 'G', i_backpack: 'G', i_tote: 'G', i_cross: 'G', i_box: 'G' };
+function itemPal(it, ik) { const c = it.color; if (!c) return null; const L = ik && ICON_PAL[ik]; if (L) { const sh = { C: -0.22, W: -0.15, O: -0.18, G: -0.25 }[L]; return { [L]: c, [L.toLowerCase()]: shadeHex(c, sh) }; } if (it.icon === 'hat' || it.icon === 'veil') return { C: c, c: shadeHex(c, -0.22) }; if (it.icon === 'jacket' || it.icon === 'dress') return { W: c, w: shadeHex(c, -0.15) }; if (['shoes', 'sandal', 'boots', 'fishshoe'].includes(it.icon)) return { O: c, o: shadeHex(c, -0.18) }; if (it.icon === 'handbag') return { Q: c, q: shadeHex(c, -0.2) }; if (it.icon === 'bag') return { G: c, g: shadeHex(c, -0.25) }; if (it.slot === 'bcloth') return { Y: c, y: shadeHex(c, -0.2) }; return null; }
+const itemSpr = id => { const it = ITEMS[id], ik = iconKey(id); return spr('it_' + defOf(id), ICONS[ik], itemPal(it, ik)); };
+const itemURL = id => { const it = ITEMS[id], ik = iconKey(id); return iconURL('it_' + defOf(id), ICONS[ik], itemPal(it, ik)); };
 
 function heePal() {
   const pd = G.pd || (G.state === 'title' ? TITLE_PD : null);

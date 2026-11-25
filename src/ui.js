@@ -186,6 +186,11 @@ function skillCard(id) {
   const nx = locked ? 'Lv3에 보리를 찾으면 열려요' : (!reqOk ? `Lv.${s.req}부터 배울 수 있어요` : (lv < s.max ? `다음 레벨: ${s.desc(lv + 1)}` : 'MAX 레벨!'));
   return `<div class="card ${(!reqOk || locked) ? 'dim' : ''}"><div class="ic"><img src="${iconURL('sk_' + s.icon, ICONS[s.icon])}"></div><div class="mid"><div class="nm">${s.name}<span class="tag ${s.type}">${SKILL_TYPE[s.type]}</span><span class="lvdots">${dots}</span></div><div class="ds">${lv ? '<b>현재</b> ' : ''}${cur}${meta}</div><div class="nx">${nx}</div></div><button class="btn plus" data-m="learn" data-v="${id}" ${can ? '' : 'disabled'}>+</button></div>`;
 }
+/** 착용 세트 카드 (조각을 하나라도 가지면 보임) */
+function eqSetHtml(pd) {
+  return EQ_SETS.filter(S => S.ids.some(id => ownsDef(pd, id))).map(S => { const n = eqSetN(pd, S), all = n >= S.ids.length, on = new Set([...SLOTS.map(sl => defOf(pd.eq[sl])), ...BSLOTS.map(sl => pd.beq && pd.beq[sl] ? defOf(pd.beq[sl]) : '')]);
+    return `<div class="eqset${all ? ' on' : ''}"><div class="eqsh"><b>${S.name}</b><span>${n}/${S.ids.length} 착용</span></div><div class="eqsi">${S.ids.map(id => `<img class="${on.has(id) ? 'w' : ownsDef(pd, id) ? 'h' : 'x'}" src="${itemURL(id)}" title="${ITEMS[id].name}">`).join('')}</div><small>${all ? '세트 효과 켜짐 · ' + S.txt : `${S.ids.length}개를 모두 끼면 ${S.txt}`}</small></div>`; }).join('');
+}
 const MREN = {
   look() {
     const pd = G.pd, L = pd.look || {}, b = pd.book || {};
@@ -225,6 +230,7 @@ const MREN = {
     let h = `<div class="stats"><div>공격력<b>${st.atk}</b></div><div>방어력<b>${st.def}</b></div><div>치명타<b>${Math.round(st.crit * 100)}%</b></div><div>최대 HP<b>${st.hp}</b></div><div>최대 MP<b>${st.mp}</b></div><div>이동속도<b>${Math.round(st.spd * 100)}%</b></div></div>`;
     h += enhCard(SLOTS); h += refCardHtml(pd, SLOTS);
     h += `<div class="slots">${SLOTS.map(sl => { const it = ITEMS[pd.eq[sl]]; return `<div class="slot"><img src="${itemURL(pd.eq[sl])}">${SLOTNAME[sl]}<br><b class="r${it.rar}">${it.name}${ilvTag(pd.eq[sl])}${(pd.enh || {})[pd.eq[sl]] ? ' +' + pd.enh[pd.eq[sl]] : ''}</b></div>`; }).join('')}</div>`;
+    h += eqSetHtml(pd);
     h += `<div class="gbar" style="margin-top:8px"><span>보리 옷·장난감은 '보리' 탭에 있어요</span><button class="btn" data-m="tab" data-v="bori" style="padding:3px 9px;font-size:12px">보리 탭</button></div>`;
     h += `<h3 style="margin-top:16px">희수 장비 목록</h3>` + `<div class="gbar dis"><span>강화석 <b>${pd.stones || 0}</b>개</span><span class="disb">일괄 분해 <button class="btn sm" data-m="bulk" data-v="0">일반</button><button class="btn sm" data-m="bulk" data-v="1">희귀↓</button><button class="btn sm" data-m="bulk" data-v="2">영웅↓</button></span></div>`;
     h += keepDupHtml(pd);
@@ -242,6 +248,7 @@ const MREN = {
     const pd = G.pd, st = G.st; let h = '';
     if (!pd.boriJoined) h += `<p class="ds" style="margin:4px">Lv3에 보리를 찾으면 입히고 물려줄 수 있어요.</p>`;
     else {
+      h += eqSetHtml(pd);
       h += `<div class="bprev"><img src="${boriPreviewURL()}"><div><b>보리</b><br>귀여워서 무적이라<br>장비는 전부 공격 보너스!</div></div><div class="gbar"><span>보리 공격 보너스</span><span>+${Math.round((st.boriMul - 1) * 100)}%</span></div><div class="slots" style="grid-template-columns:repeat(2,1fr)">${BSLOTS.map(sl => { const id = pd.beq[sl], it = ITEMS[id]; return `<div class="slot">${it ? `<img src="${itemURL(id)}">` : '<div style="height:34px;line-height:34px;color:#aaa">없음</div>'}${SLOTNAME[sl]}<br><b class="r${it ? it.rar : 0}">${it ? it.name + ilvTag(id) : '-'}${it && (pd.enh || {})[id] ? ' +' + pd.enh[id] : ''}</b></div>`; }).join('')}</div>`;
       h += enhCard(BSLOTS) + refCardHtml(pd, BSLOTS);
       h += `<div class="gbar dis"><span>강화석 <b>${pd.stones || 0}</b>개</span><span class="disb">일괄 분해 <button class="btn sm" data-m="bulk" data-v="0">일반</button><button class="btn sm" data-m="bulk" data-v="1">희귀↓</button><button class="btn sm" data-m="bulk" data-v="2">영웅↓</button></span></div>`;

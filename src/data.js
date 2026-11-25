@@ -236,6 +236,10 @@ const AWK_BASE = 60000, AWK_STEP = 0.25;
 
 // ===== 장비 도감: 처음 얻은 장비 기록. 1칸당 최대 HP +5, 세트(등급별·보리 용품) 완성 보너스 =====
 const BOOK_PER_HP = 5;
+/** 착용 세트 (11/25): 모두 끼고 있어야 효과. 4장 웨딩 준비 장비 7종 = 희수 5부위 + 보리 2부위 */
+const EQ_SETS = [
+  { k: 'wed4', name: '웨딩 준비 세트', ids: ['ringbox', 'pearlpin', 'dress2', 'heels', 'envbag', 'b_tux', 'toy_ring'], txt: '공격·방어·최대 HP +15%', mul: { atk: 1.15, def: 1.15, hp: 1.15 } }
+];
 const BOOK_SETS = [
   { k: 'r0', name: '일반', rar: 0, txt: '최대 HP +80' },
   { k: 'r1', name: '희귀', rar: 1, txt: '공격 +12' },
@@ -246,7 +250,7 @@ const BOOK_SETS = [
   { k: 'bori', name: '보리 용품', rar: -1, bori: true, txt: '보리 공격 +15%' },
   { k: 'sea', name: '2장 낚시 장비', rar: -1, sea: true, txt: '공격·방어 +4%' },
   { k: 'park', name: '3장 응원 장비', rar: -1, park: true, txt: '공격·방어 +5%' },
-  { k: 'wed', name: '4장 웨딩 준비 장비', rar: -1, wed: true, txt: '공격·방어 +6%' }
+  { k: 'wed', name: '4장 웨딩 준비 장비', rar: -1, wed: true, txt: '모으기만 하면 효과 없음 — 7개 모두 착용하면 세트 효과' }
 ];
 /** 세트에 들어가는 장비 id (시작 장비 제외) */
 const bookIds = set => Object.keys(ITEMS).filter(id => { const it = ITEMS[id]; if (it.start || it.job) return false; if (set.sea) return !!it.bossOnly && (it.ch || 2) === 2; if (set.park) return !!it.bossOnly && it.ch === 3; if (set.wed) return !!it.bossOnly && it.ch === 4; if (it.bossOnly) return false; return set.bori ? !!it.bori : !it.bori && it.rar === set.rar; });

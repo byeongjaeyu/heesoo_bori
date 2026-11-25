@@ -597,3 +597,9 @@ body.inPlaza #ctrl,body.inPlaza #guide,body.inPlaza #bossBar,body.inPlaza #keyHi
 .tchap.c4{grid-template-columns:repeat(4,1fr);gap:5px}.tchap.c4 .tch{position:relative;font-size:11px;line-height:1.25;padding:5px 2px 6px;white-space:normal}.tchap.c4 .tch b{font-size:12px}
 .tchap.c4 .tch em{position:absolute;top:-7px;right:-3px}
 .tside.tl.tight{gap:5px}.tside.tl.tight .ticon{padding:2px 0 2px;width:52px}.tside.tl.tight .ticon img{width:20px;height:20px}.tside.tl.tight .ticon small{font-size:9px}
+
+/* 착용 세트 카드 (11/25) */
+.eqset{margin-top:10px;padding:9px 11px 10px;border:2px solid #e8c0d4;border-radius:12px;background:#fff7fb}.eqset.on{border-color:#ff7ab8;background:#ffeef6;box-shadow:0 0 0 2px #ffd1e6 inset}
+.eqsh{display:flex;justify-content:space-between;align-items:center;font-size:13px}.eqsh span{font-size:12px;color:#a0607e}
+.eqsi{display:flex;gap:5px;margin:7px 0 5px;flex-wrap:wrap}.eqsi img{width:30px;height:30px;image-rendering:pixelated;background:#fff;border:2px solid #f0d8e4;border-radius:8px;padding:1px}
+.eqsi img.w{border-color:#ff7ab8}.eqsi img.h{opacity:.75}.eqsi img.x{opacity:.25;filter:grayscale(1)}.eqset small{font-size:11.5px;color:#7a4a62}
