@@ -56,7 +56,15 @@ function heeSet(over) {
 }
 const husSpr = () => spr('hus', [...HUS.head, ...HUS.body, ...HUS.legs]);
 const husSleepSpr = () => spr('husZ', [...HUS.headZ, ...HUS.body, ...HUS.legs]);
-function drawHusSleep(x, y, t) { drawSpr(husSleepSpr(), x, y + (Math.sin(t * 1.6) > 0.6 ? 1 : 0)); }
+/** 오빠의 찌낚시대 (항상 들고 다님): 손잡이·릴·대·낚싯줄·찌(빨강·흰색, 위에 노란 케미) */
+function drawFloat(x, y) { x = Math.round(x); y = Math.round(y); fr(x, y - 3, 1, 2, '#ffd84a'); fr(x - 1, y - 1, 3, 2, '#e8414f'); fr(x - 1, y + 1, 3, 2, '#ffffff'); fr(x, y + 3, 1, 1, '#2b1b24'); }
+function drawHusRod(hx, gy, T, lying) {
+  if (lying) { pxLine(hx + 6, gy - 1, hx + 34, gy - 5, '#3a3a46', 1); fr(hx + 5, gy - 2, 4, 2, '#c98a3a'); pxLine(hx + 34, gy - 5, hx + 38, gy - 1, '#e8e8f0'); drawFloat(hx + 39, gy - 2); return; }
+  const tx = hx + 15, ty = gy - 46, bob = Math.round(Math.sin(T * 3) * 1);
+  pxLine(hx + 6, gy - 6, tx, ty, '#3a3a46', 1); fr(hx + 4, gy - 9, 3, 6, '#c98a3a'); fr(hx + 7, gy - 10, 2, 2, '#9aa0aa');
+  pxLine(tx, ty, tx + 6, gy - 14 + bob, '#e8e8f0'); drawFloat(tx + 6, gy - 11 + bob);
+}
+function drawHusSleep(x, y, t) { drawHusRod(x, y, t, true); drawSpr(husSleepSpr(), x, y + (Math.sin(t * 1.6) > 0.6 ? 1 : 0)); }
 
 // draw heesu at x,y (feet). opts: pose, dir, t, flash, alpha
 function drawHeeAt(x, y, pose, dir, t, o) {
@@ -232,7 +240,7 @@ function drawFx(f) {
     case 'ring': { const r = f.r * (0.3 + 0.7 * Math.sqrt(p)); ctx.globalAlpha = 1 - p; pRingE(f.x, f.y, r, r * 0.65, f.col); pRingE(f.x, f.y, r - 2, (r - 2) * 0.65, f.col); ctx.globalAlpha = 1; break; }
     case 'bite': { ctx.globalAlpha = 1 - p; for (const ox of [-3, 1]) { fr(f.x + ox, f.y - 2, 3, 1, '#ffffff'); fr(f.x + ox + 1, f.y - 1, 1, 1, '#ffffff'); fr(f.x + ox, f.y + 2, 3, 1, '#ffffff'); fr(f.x + ox + 1, f.y + 1, 1, 1, '#ffffff'); } ctx.globalAlpha = 1; break; }
     case 'lvl': { const a = 1 - p; ctx.fillStyle = `rgba(255,240,150,${a * 0.5})`; const w = Math.round(16 * (1 - p * 0.6)); ctx.fillRect(Math.round(f.x - w / 2), Math.round(f.y - 70), w, 70); for (let i = 0; i < 10; i++) fr(f.x + Math.sin(i * 7.3) * 10, f.y - ((f.t * 60 + i * 9) % 60), 1, 2, '#fff6b0'); break; }
-    case 'hus': { const a = p < 0.15 ? p / 0.15 : p > 0.8 ? (1 - p) / 0.2 : 1; drawSpr(husSpr(), f.x - (1 - Math.min(1, p * 4)) * 30, f.y, { alpha: a }); break; }
+    case 'hus': { const a = p < 0.15 ? p / 0.15 : p > 0.8 ? (1 - p) / 0.2 : 1; { const hx = f.x - (1 - Math.min(1, p * 4)) * 30; ctx.globalAlpha = a; drawHusRod(hx, f.y, G.time); ctx.globalAlpha = 1; drawSpr(husSpr(), hx, f.y, { alpha: a }); } break; }
     case 'eat': drawSpr(ispr(f.icon), f.x, f.y - p * 10, { alpha: 1 - p * 0.6 }); break;
     case 'icon': drawSpr(pspr('phone'), f.x, f.y - p * 4, { alpha: 1 - p }); break;
     case 'camera': drawSpr(ispr('camera'), f.x, f.y, { alpha: 1 - p }); break;

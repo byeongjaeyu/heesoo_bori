@@ -92,9 +92,8 @@ function drawActors(A, mid, gy, T) {
   if (A.mons) for (const m of A.mons) { const p = clamp((T - m.t0) * 4, 0, 1); if (p <= 0) continue; const s = monSpr(m.type); shadow(mid + m.x * CUTK, gy + m.y, 10); drawSpr(s, mid + m.x * CUTK, gy + m.y - Math.abs(Math.sin(T * 3 + m.x)) * 3 - (1 - p) * 10, { alpha: p, white: p < 0.6 }); }
   if (A.hus) {
     const hx = mid + A.hus.x * CUTK; shadow(hx, gy, 12);
-    if (A.hus.tux || A.hus.noRod) { }
-    else if (A.hus.rodUp) { pxLine(hx + 6, gy - 7, hx + 30, gy - 52, '#3a3a46', 1); pxLine(hx + 5, gy - 6, hx + 9, gy - 12, '#c98a3a', 2); const tx = hx + 30, ty = gy - 52; for (let i = 0; i < 20; i++) fr(tx + i * 0.5, ty + i * 1.6 + Math.sin(i * 0.3) * 1, 1, 1, '#e8e8f0'); fr(tx + 9, ty + 30, 3, 2, '#e8414f'); fr(tx + 9, ty + 32, 3, 2, '#ffffff'); if (A.sparkle) for (let i = 0; i < 4; i++) { const a = T * 4 + i * 1.57; fr(tx + Math.cos(a) * 6, ty + Math.sin(a) * 6, 1, 1, '#ffd84a'); fr(tx + Math.cos(a) * 9, ty + Math.sin(a) * 9, 1, 1, '#fff6b0'); } }
-    else { pxLine(hx + 8, gy - 2, hx + 12, gy - 44, '#3a3a46', 1); fr(hx + 7, gy - 8, 2, 6, '#c98a3a'); }
+    if (A.hus.rodUp) { pxLine(hx + 6, gy - 7, hx + 30, gy - 52, '#3a3a46', 1); pxLine(hx + 5, gy - 6, hx + 9, gy - 12, '#c98a3a', 2); const tx = hx + 30, ty = gy - 52; for (let i = 0; i < 20; i++) fr(tx + i * 0.5, ty + i * 1.6 + Math.sin(i * 0.3) * 1, 1, 1, '#e8e8f0'); fr(tx + 9, ty + 30, 3, 2, '#e8414f'); fr(tx + 9, ty + 32, 3, 2, '#ffffff'); if (A.sparkle) for (let i = 0; i < 4; i++) { const a = T * 4 + i * 1.57; fr(tx + Math.cos(a) * 6, ty + Math.sin(a) * 6, 1, 1, '#ffd84a'); fr(tx + Math.cos(a) * 9, ty + Math.sin(a) * 9, 1, 1, '#fff6b0'); } }
+    else drawHusRod(hx, gy, T); // 오빠는 언제나 찌낚시대를 들고 있음
     drawSpr(A.hus.tux ? husTuxSpr() : husSpr(), hx, gy);
   }
   if (A.bori && A.bori.x < 400) { const bx = mid + A.bori.x * CUTK, by = gy + (A.bori.y || 2); shadow(bx, by, 10); drawBoriAt(bx, by, A.bori.pose, A.bori.face || 1, T, { pant: A.bori.pant, jump: A.bori.jump ? Math.round(Math.abs(Math.sin(T * 9)) * 5) : 0 }); }

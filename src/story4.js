@@ -63,7 +63,7 @@ const CH4_PROLOGUE = [
       { who: 'sys', text: '사직에서 역전승을 본 뒤 어느 주말.\n오빠가 또 유료 바다낚시터에 가자고 했다.' },
       { who: 'hee', text: '…또 낚시? 12시간은 안 돼. 6시간만.', do() { A_().hee.sweat = true; } },
       { who: 'hus', text: '응! 좋아!', do() { A_().hee.sweat = false; } },
-      { who: 'sys', text: '해 질 녘. 오빠가 갑자기 낚싯대를 내려놓았다.', do() { A_().hus.rodUp = false; A_().hus.noRod = true; } },
+      { who: 'sys', text: '해 질 녘. 오빠가 찌낚시대를 꼭 쥔 채\n갑자기 진지해졌다.', do() { A_().hus.rodUp = false; } },
       { who: 'hus', text: '자기야… 그동안 낚시터 따라와 줘서 진짜 고마웠어.\n밤새 모기 물리면서도 옆에 있어 줘서…' },
       { who: 'hus', text: '나랑… 결혼해 줄래?', do() { A_().ring = true; A_().sparkle = true; sfx('ding'); } },
       { who: 'hee', text: '……….', do() { A_().sparkle = false; } },
@@ -74,7 +74,7 @@ const CH4_PROLOGUE = [
       { who: 'hee', text: '…싫다고는 안 했어. 바보야.', do() { A_().aura = false; A_().sparkle = true; } },
       { who: 'bori', text: '멍멍!! (축하해!)', do() { A_().bori.jump = true; sfx('bark'); } }] },
   { scene: 'whall', bgm: 'story',
-    init(A) { clearA(A); Object.assign(A, { hee: { x: -24, pose: 'idle', dir: 'down' }, bori: { x: -48, pose: 'sit', face: 1, y: 2 }, hus: { x: 24, noRod: true } }); },
+    init(A) { clearA(A); Object.assign(A, { hee: { x: -24, pose: 'idle', dir: 'down' }, bori: { x: -48, pose: 'sit', face: 1, y: 2 }, hus: { x: 24 } }); },
     delay: 0.6, lines: [
       { who: 'sys', text: '그렇게 결혼 준비가 시작됐다.\n첫 번째 관문은 웨딩홀 투어.' },
       { who: 'hee', text: '오빠, 여기 홀 어때? 천장 높고 밝지?' },
@@ -89,7 +89,7 @@ const CH4_PROLOGUE = [
 ];
 const CH4_DRESS = [
   { scene: 'wdress', bgm: 'story',
-    init(A) { clearA(A); Object.assign(A, { hee: { x: -22, pose: 'idle', dir: 'down', wed: true }, bori: { x: -48, pose: 'sit', face: 1, y: 2 }, hus: { x: 26, noRod: true } }); },
+    init(A) { clearA(A); Object.assign(A, { hee: { x: -22, pose: 'idle', dir: 'down', wed: true }, bori: { x: -48, pose: 'sit', face: 1, y: 2 }, hus: { x: 26 } }); },
     delay: 0.6, lines: [
       { who: 'sys', text: '다음은 드레스 투어.\n희수는 드레스를 다섯 벌이나 입어봤다.' },
       { who: 'hee', text: '오빠, 이거 어때? 아까 거랑 비교해서!', do() { A_().sparkle = true; } },
@@ -124,7 +124,7 @@ const CH4_STUDIO = [
 ];
 const CH4_SELECT = [
   { scene: 'wselect', bgm: 'story',
-    init(A) { clearA(A); Object.assign(A, { hee: { x: -22, pose: 'idle', dir: 'down' }, bori: { x: -48, pose: 'sit', face: 1, y: 2 }, hus: { x: 26, noRod: true } }); },
+    init(A) { clearA(A); Object.assign(A, { hee: { x: -22, pose: 'idle', dir: 'down' }, bori: { x: -48, pose: 'sit', face: 1, y: 2 }, hus: { x: 26 } }); },
     delay: 0.6, lines: [
       { who: 'sys', text: '촬영 사진 셀렉 날.\n수백 장 중에 앨범에 넣을 사진을 골라야 한다.' },
       { who: 'hee', text: '오빠, 이 사진이랑 이 사진 중에 뭐가 나아?' },

@@ -65,7 +65,7 @@ function e2FishScene(dy, bobx, boby, tense, bkind, t, boom) {
   drawHeeAt(hx, dy, 'phone', 'down', t, {});
   const tipx = de + 16, tipy = dy - 40 + Math.round((1 - tense) * 4);
   ctx.strokeStyle = '#2b1b24'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(ux + 5, dy - 7); ctx.lineTo(tipx, tipy); ctx.stroke(); ctx.strokeStyle = '#8a5a2a'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ux + 5, dy - 7); ctx.lineTo(tipx, tipy); ctx.stroke();
-  if (boom) drawSpr(husSpr(), ux, dy); else drawHusSleep(ux, dy, t); if (!boom) { zzz(ux + 4, dy - 24, t); e2T(ux + 2, dy - 32, '쿨...', 3.4, '#ffffff', '#2b1b24'); } else e2T(ux + 2, dy - 30, '헉?!', 4, '#ffd84a', '#2b1b24');
+  if (boom) { drawHusRod(ux, dy, t); drawSpr(husSpr(), ux, dy); } else drawHusSleep(ux, dy, t); if (!boom) { zzz(ux + 4, dy - 24, t); e2T(ux + 2, dy - 32, '쿨...', 3.4, '#ffffff', '#2b1b24'); } else e2T(ux + 2, dy - 30, '헉?!', 4, '#ffd84a', '#2b1b24');
   const mx = bx + 6, my = dy - 5;
   ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(tipx, tipy); ctx.lineTo(mx, my); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(mx, my); ctx.quadraticCurveTo((mx + bobx) / 2, my + (1 - tense) * 22, bobx, boby); ctx.stroke();
