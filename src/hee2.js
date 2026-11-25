@@ -82,17 +82,26 @@ function heePaint(L, dir, fr) {
     for (let y = 29; y <= 35; y++) { const k = Math.round((y - 29) * 0.55); r((side ? 9 : 7) - k, y, (side ? 10 : 14) + k * 2, 1, y === 35 ? wc : Wc); }
     if (!side) for (let x = 5; x < 23; x += 3) p(x, 35, '#ffffff');
   } else if (longC) bot = 38;
-  // 윗몸 — 따로 그린 뒤 허리를 1칸씩 잘록하게 (11/25 「허리 조금 얇게」)
+  // 윗몸 — 줄마다 폭을 정한 모양(둥근 어깨·잘록한 허리·살짝 퍼지는 밑단)으로 따로 그린 뒤 그 모양으로 자름 (11/25 「허리 얇게」「로봇 같다」)
   const topY = 23; const gMain = g, TC = mkCanvas(W, H); g = TC.getContext('2d');
+  const puffyT = L.cloth === 'pad' || L.cloth === 'longpad';
+  const spans = []; {
+    const n = gown || dress ? 6 : bot - topY - 1, pf = gown || dress ? 0 : puffyT ? 1 : 0;
+    for (let d = 1; d <= n; d++) {
+      let a, b;
+      if (side) { a = d === 1 ? 10 : 9; b = d === 1 ? 17 : 18; if (d >= 5 && d <= 7) { a = 10; b = 17; } if (gown || dress) { if (d >= 5) { a = 10; b = 17; } } }
+      else if (gown || dress) { a = d === 1 ? 9 : d <= 3 ? 8 : 9; b = W - 1 - a; if (d >= 5) { a = 10; b = W - 1 - 10; } }
+      else { a = d === 1 ? 9 : d <= 4 ? 8 : d <= 7 ? 9 : d >= n - 1 ? 7 : 8; b = W - 1 - a; }
+      spans.push([topY + d, a - pf, b + pf]);
+    }
+  }
+  for (const [y, a, b] of spans) r(a, y, b - a + 1, 1, Wc);
   if (gown || dress) {
-    orr(tx, topY + 1, tw, 6, Wc); // 몸판
     if (!back) { r(tx, topY + 1, tw, 2, SK); r(tx + (side ? 0 : 2), topY + 3, side ? tw : tw - 4, 1, Wc); if (!side) { p(13, topY + 3, SK); p(14, topY + 3, SK); } } else r(tx + 2, topY + 1, tw - 4, 1, SK);
     r(tx, topY + 6, tw, 1, gown ? '#ffe3ef' : wc); if (!side && !back) { r(12, topY + 5, 4, 3, gown ? '#ffd1e6' : '#ffffff'); p(13, topY + 6, gown ? '#ff9fcf' : wc); } // 허리 리본
     if (gown && !back) { p(tx + 3, topY + 4, '#ffffff'); p(tx + tw - 4, topY + 5, '#ffffff'); }
   } else {
-    const puffy = L.cloth === 'pad' || L.cloth === 'longpad';
-    const x0 = puffy ? tx - 1 : tx, w0 = puffy ? tw + 2 : tw;
-    orr(x0, topY + 1, w0, bot - topY - 1, Wc);
+    const x0 = Math.min(...spans.map(s => s[1])), w0 = Math.max(...spans.map(s => s[2])) - x0 + 1;
     const C = L.cloth;
     if (C === 'pad' || C === 'longpad') { for (let y = topY + 4; y < bot; y += 3) r(x0, y, w0, 1, wc); if (!back) r(side ? x0 + w0 - 2 : 13, topY + 1, 1, bot - topY - 1, shadeHex(Wc, -0.3)); if (L.aur) for (let y = topY + 1; y < bot; y++) r(x0, y, w0, 1, y % 6 < 3 ? Wc : L.aur); }
     else if (C === 'fleece') { for (let i = 0; i < 18; i++) p(x0 + ((i * 7) % w0), topY + 2 + ((i * 5) % (bot - topY - 2)), wc); if (!back) { r(side ? x0 + w0 - 3 : 12, topY + 1, side ? 2 : 4, 2, wc); } }
@@ -104,27 +113,43 @@ function heePaint(L, dir, fr) {
     if (C === 'longpad' || C === 'coat') r(x0, bot - 1, w0, 1, wc);
   }
   g = gMain;
-  if (!side) { // 허리: 양옆 테두리를 1칸 안으로
-    const tg = TC.getContext('2d'), wl = gown || dress ? tx : (L.cloth === 'pad' || L.cloth === 'longpad' ? tx - 1 : tx), wr = wl + (gown || dress ? tw : (L.cloth === 'pad' || L.cloth === 'longpad' ? tw + 2 : tw)) - 1;
-    const rows = gown || dress ? [[topY + 3, 1], [topY + 4, 2], [topY + 5, 2]] : [[topY + 4, 1], [topY + 5, 2], [topY + 6, 2], [topY + 7, 2], [topY + 8, 1]];
-    for (const [y, n] of rows) { tg.clearRect(wl - 1, y, n, 1); tg.clearRect(wr + 2 - n, y, n, 1); tg.fillStyle = HK; tg.fillRect(wl - 1 + n, y, 1, 1); tg.fillRect(wr + 1 - n, y, 1, 1); }
+  { // 모양대로 자르고 바깥 테두리
+    const tg = TC.getContext('2d'), M = mkCanvas(W, H), mg = M.getContext('2d'); mg.fillStyle = '#000'; for (const [y, a2, b2] of spans) mg.fillRect(a2, y, b2 - a2 + 1, 1);
+    tg.globalCompositeOperation = 'destination-in'; tg.drawImage(M, 0, 0); tg.globalCompositeOperation = 'source-over';
+    const on = new Set(); for (const [y, a2, b2] of spans) for (let x = a2; x <= b2; x++) on.add(x + ',' + y);
+    for (const k of on) { const [x, y] = k.split(',').map(Number); for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) if (!on.has((x + dx) + ',' + (y + dy)) && !(gown || dress ? y + dy > topY + 6 : false)) p(x + dx, y + dy, HK); }
   }
   g.drawImage(TC, 0, 0);
-  // ---- 팔 ----
+  // ---- 팔 (11/25 「팔이 로봇 같다」: 어깨에서 살짝 벌어지며 내려오는 둥근 팔 + 동그란 손) ----
   const sleeveless = gown || dress, armC = sleeveless ? SK : Wc, puffArm = L.cloth === 'pad' || L.cloth === 'longpad';
+  /** rows: [y, x0, x1, 색] — 테두리는 바깥쪽에만(몸통 안쪽은 생략) */
+  const blob = (rows, skip) => {
+    const on = new Set(rows.map(([y, x0, x1]) => { const a = []; for (let x = x0; x <= x1; x++) a.push(x + ',' + y); return a; }).flat());
+    const inSkip = (x, y) => skip && x >= skip[0] && x <= skip[1] && y >= skip[2] && y <= skip[3];
+    for (const k of on) { const [x, y] = k.split(',').map(Number); for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = x + dx, ny = y + dy; if (!on.has(nx + ',' + ny) && !inSkip(nx, ny)) p(nx, ny, HK); } }
+    for (const [y, x0, x1, col] of rows) r(x0, y, x1 - x0 + 1, 1, col);
+  };
+  const T0 = topY, body = [tx + 1, tx + tw - 2, T0 + 1, bot - 1];
+  const armRows = (mir, sh) => { // 왼팔 기준 좌표 → mir면 좌우 뒤집기
+    const pw = puffArm ? 1 : 0, rows = [];
+    const spec = [[1, 6, 7], [2, 5, 7], [3, 4 - pw, 6], [4, 4 - pw, 6], [5, 4 - pw, 6], [6, 3 - pw, 5], [7, 3 - pw, 5]];
+    for (const [dy, x0, x1] of spec) rows.push([T0 + dy + sh, x0, x1, dy === 7 && !sleeveless ? wc : gown && dy >= 6 ? '#ffffff' : armC]);
+    rows.push([T0 + 8 + sh, 3, 5, gown ? '#ffffff' : SK], [T0 + 9 + sh, 3, 5, gown ? '#ffffff' : SK], [T0 + 10 + sh, 4, 5, gown ? '#f0ece8' : sk]);
+    return mir ? rows.map(([y, x0, x1, c]) => [y, W - 1 - x1, W - 1 - x0, c]) : rows;
+  };
   if (dir !== 'phone') {
-    if (side) { const a = walk; orr(13 + a, topY + 2, 3, 7, armC); r(13 + a, topY + 9, 3, 2, SK); if (!sleeveless) r(13 + a, topY + 8, 3, 1, wc); }
-    else {
-      const aw = puffArm ? 4 : 3, ax = puffArm ? 2 : 3;
-      orr(ax, topY + 2, aw, 7, armC); orr(W - ax - aw, topY + 2, aw, 7, armC);
-      r(ax, topY + 9, aw, 2, SK); r(W - ax - aw, topY + 9, aw, 2, SK); r(ax, topY + 10, aw, 1, sk); r(W - ax - aw, topY + 10, aw, 1, sk);
-      if (!sleeveless) { r(ax, topY + 8, aw, 1, wc); r(W - ax - aw, topY + 8, aw, 1, wc); }
-      if (gown) { r(ax, topY + 6, aw, 3, '#ffffff'); r(W - ax - aw, topY + 6, aw, 3, '#ffffff'); } // 장갑
+    if (side) {
+      const a = walk, rows = [];
+      for (let i = 0; i < 10; i++) { const o = Math.round(a * i / 4), y = T0 + 1 + i, w = i < 2 ? 3 : 3; const c = i >= 7 ? (i === 9 ? sk : SK) : i === 6 && !sleeveless ? wc : armC; rows.push([y, 13 + o + (i === 0 ? 1 : 0), 13 + o + w - 1, c]); }
+      blob(rows, [tx + 1, tx + tw - 2, T0 + 1, T0 + 2]);
+    } else {
+      blob(armRows(false, 0), body); blob(armRows(true, 0), body);
     }
   } else {
-    // 폰 보기: 두 손 가운데로
-    orr(5, topY + 2, 3, 5, armC); orr(20, topY + 2, 3, 5, armC); orr(8, topY + 5, 4, 3, armC); orr(16, topY + 5, 4, 3, armC);
-    orr(11, topY + 3, 6, 5, '#30323d'); r(12, topY + 4, 4, 3, fr ? '#bfe4ff' : '#9fe8ff'); r(10, topY + 6, 2, 2, SK); r(16, topY + 6, 2, 2, SK);
+    // 폰 보기: 팔꿈치를 굽혀 두 손을 가운데로
+    const up = [[T0 + 1, 6, 7, armC], [T0 + 2, 5, 7, armC], [T0 + 3, 5, 7, armC], [T0 + 4, 5, 8, armC], [T0 + 5, 6, 10, armC], [T0 + 6, 7, 11, sleeveless ? SK : wc]];
+    blob(up, body); blob(up.map(([y, x0, x1, c]) => [y, W - 1 - x1, W - 1 - x0, c]), body);
+    orr(11, T0 + 3, 6, 5, '#30323d'); r(12, T0 + 4, 4, 3, fr ? '#bfe4ff' : '#9fe8ff'); blob([[T0 + 6, 10, 11, SK], [T0 + 7, 10, 11, SK]]); blob([[T0 + 6, 16, 17, SK], [T0 + 7, 16, 17, SK]]);
   }
   // ---- 가방 (앞) ----
   const G0 = L.G, g0 = L.g;
