@@ -1,9 +1,16 @@
 // ===================== UI =====================
 const FINE = window.matchMedia && matchMedia('(pointer: fine)').matches;
+/** 2배 도트 캔버스 일부를 정사각 아이콘(64px)으로 */
+function hiURL(key, src, sx, sy, sw, sh) {
+  if (ICONURL[key]) return ICONURL[key];
+  const n = Math.max(sw, sh), k = Math.max(1, Math.floor(64 / n)), o = mkCanvas(64, 64), g = o.getContext('2d'); g.imageSmoothingEnabled = false;
+  g.drawImage(src, sx, sy, sw, sh, Math.round((64 - sw * k) / 2), Math.round((64 - sh * k) / 2), sw * k, sh * k);
+  return ICONURL[key] = o.toDataURL();
+}
 function faceURL(who) {
-  if (who === 'hee' || who === 'heePh') { const pal = heePal(); return iconURL('face_' + who + Object.values(pal).join(''), [...(who === 'hee' ? HS.headF : HS.headPh), ...(who === 'hee' ? HS.bodyF : HS.bodyPh).slice(0, 4)], pal); }
-  if (who === 'bori') return iconURL('face_bori', BORI.sit);
-  if (who === 'hus') return iconURL('face_hus', [...HUS.head, ...HUS.body.slice(0, 4)]);
+  if (who === 'hee' || who === 'heePh') { const set = heeSet(), s = who === 'hee' ? set.down[0] : set.phone[0]; return hiURL('face2_' + who + JSON.stringify(heeLook(G.pd || (G.state === 'title' ? TITLE_PD : null))), s.n, 0, 0, 28, 32); }
+  if (who === 'bori') { const s = boriSpr('sit'); return hiURL('face2_bori' + ((G.pd && G.pd.beq && G.pd.beq.bcloth) || ''), s.n, 0, 0, 24, 24); }
+  if (who === 'hus') return hiURL('face2_hus', husSpr().n, 0, 0, 28, 32);
   if (who === 'mon') return iconURL('face_mon', MONSPR.slime);
   if (who === 'bori2') return iconURL('face_bori2', BORI2.sit, B2PAL);
   if (who === 'somi') return iconURL('face_somi', BORI2.sit, { F: '#ffffff', f: '#d8d8e0', W: '#ffffff', w: '#e8e8f0', Y: '#ffffff', m: '#ffffff' });
@@ -182,7 +189,7 @@ function skillCard(id) {
 const MREN = {
   look() {
     const pd = G.pd, L = pd.look || {}, b = pd.book || {};
-    const prev = fighterURL({ vis: visEq(pd), hair: L.hair || 'base', bori: pd.boriJoined, beq: pd.beq }, 5);
+    const prev = fighterURL({ vis: visEq(pd), hair: L.hair || 'base', bori: pd.boriJoined, beq: pd.beq }, 6);
     let h = `<div class="lookhead"><img src="${prev}"><div><b>희수 꾸미기</b><small>능력치는 그대로, 겉모습만 바뀌어요.<br>랭킹·PvP에서도 이 모습으로 보여요.</small></div></div>`;
     h += `<h3>헤어 색</h3><div class="hairs">` + HAIRS.filter(hr => !hr.excl || hairOk(pd, hr)).map(hr => { const ok = hairOk(pd, hr), on = (L.hair || 'base') === hr.k;
       return `<button class="hair${on ? ' on' : ''}${ok ? '' : ' lock'}" data-m="hair" data-v="${hr.k}" ${ok ? '' : 'disabled'}><i style="background:linear-gradient(135deg,${hr.h},${hr.H})"></i><small>${ok ? hr.name : '🔒 ' + hr.cond}</small></button>`; }).join('') + '</div>';
@@ -280,7 +287,7 @@ const MREN = {
   }
 };
 function boriPreviewURL() {
-  const c = mkCanvas(16, 16), g = c.getContext('2d'); const s = boriSpr('sit'); g.drawImage(s.n, 2, 3);
+  const c = mkCanvas(32, 32), g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.scale(2, 2); const s = boriSpr('sit'); sprBlit(g, s, 2, 3);
   const toy = G.pd.beq && G.pd.beq.btoy; if (toy && ITEMS[toy]) { const ts = spr('t_' + toy, ICONS[ITEMS[toy].icon]); const bottom = 15 - 4 + Math.ceil(ts.H / 2); g.drawImage(ts.n, Math.round(8 - ts.W / 2), bottom - ts.H); }
   const o = mkCanvas(96, 96), og = o.getContext('2d'); og.imageSmoothingEnabled = false; og.drawImage(c, 0, 0, 96, 96); return o.toDataURL();
 }

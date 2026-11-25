@@ -2,9 +2,9 @@
 // 낚시터 프러포즈(빡침) → 웨딩홀 투어 → 드레스 투어(좋아무새) → 웨딩 촬영(감량 실패) → 사진 셀렉(모바일게임 → 셀렉실에서 게임 마왕과 싸움) → 엔딩 본식
 // 오빠는 결혼 준비 내내 「응 좋아, 너무 좋아」만 말함 → 희수 멘헤라 포인트
 /** 웨딩드레스·면사포 차림 희수 (컷신) */
-const WED_PAL = { C: '#fffaf4', c: '#e8dcd0', W: '#fffaf4', w: '#e8dcd0', O: '#fffaf4', o: '#e0d4c8' };
+const WED_PAL = { hat: 'veil', cloth: 'gown', shoe: 'heel', bag: 'none', C: '#fffaf4', c: '#e8dcd0', W: '#fffaf4', w: '#e8dcd0', O: '#fffaf4', o: '#e0d4c8' };
 /** 턱시도 오빠 (모자 대신 머리, 검은 재킷·흰 셔츠·검은 바지) */
-const husTuxSpr = () => spr('husTux', [...HUS.head, ...HUS.body, ...HUS.legs], { b: '#2a1c1c', n: '#3a2a26', t: '#2b2b34', J: '#ffffff', z: '#e8414f', U: '#2b2b34' });
+const husTuxSpr = () => sprFn('husTux2', () => husPaint({ tux: true }), 2);
 
 function wedWall(SW, gy, top, bot, col) { for (let y = 0; y < gy - 4; y += 4) { const k = y / (gy - 4); fr(0, y, SW, 4, k < 0.5 ? top : bot); } fr(0, gy - 6, SW, 2, col); }
 function drawWedCut(SW, SH, mid, gy, T, mode) {

@@ -800,3 +800,17 @@ test('로비: 낮은 화면(360×660)·4장까지 열려도 양옆 버튼이 모
   const r = await page.evaluate(() => { const b = id => document.querySelector(id).getBoundingClientRect(); return { L: b('#tsideL').bottom, R: b('#tsideR').bottom, modes: b('.tmodes').top, tbtns: b('#tbtns').top, Rt: document.querySelector('#tsideR').className }; });
   expect(r.L).toBeLessThanOrEqual(r.modes); expect(r.R).toBeLessThanOrEqual(r.modes);
 });
+
+test('2배 도트: 희수·오빠·보리 화면 크기는 그대로, 장비마다 모양이 다름', async ({ page }) => {
+  const errs = []; page.on('pageerror', e => errs.push(String(e)));
+  await withSave(page, URL_MAIN, { lv: 50 });
+  const r = await page.evaluate(() => {
+    const look = eq => { G.pd = Object.assign(newPD(), { eq: Object.assign(newPD().eq, eq), book: Object.fromEntries(Object.values(eq).map(v => [v, 1])) }); const s = heeSet().down[0]; return { W: s.W, H: s.H, R: s.R, px: s.n.toDataURL() }; };
+    const a = look({}), b = look({ hat: 'veil', armor: 'wdress', shoes: 'heels', bag: 'envbag' }), c = look({ hat: 'pearlpin', armor: 'dress2' });
+    const h = husSpr(), bo = boriSpr('sit'), m = monSpr('slime');
+    return { a: [a.W, a.H, a.R], diff: a.px !== b.px && b.px !== c.px, hus: [h.W, h.H, h.R], bori: [bo.W, bo.H, bo.R], mon: m.R, looks: [heeLookOf('hat', 'veil'), heeLookOf('cloth', 'wdress'), heeLookOf('shoe', 'heels'), heeLookOf('bag', 'envbag')] };
+  });
+  expect(r.a).toEqual([14, 21, 2]); expect(r.diff).toBe(true); expect(r.hus).toEqual([14, 21, 2]); expect(r.bori).toEqual([12, 12, 2]); expect(r.mon).toBe(2);
+  expect(r.looks).toEqual(['veil', 'gown', 'heel', 'clutch']);
+  expect(errs).toEqual([]);
+});

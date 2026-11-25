@@ -62,10 +62,30 @@ function rowsToCanvas(rows, pal) {
 }
 function flipC(c) { const o = mkCanvas(c.width, c.height), g = o.getContext('2d'); g.translate(c.width, 0); g.scale(-1, 1); g.drawImage(c, 0, 0); return o; }
 function whiteC(c) { const o = mkCanvas(c.width, c.height), g = o.getContext('2d'); g.drawImage(c, 0, 0); g.globalCompositeOperation = 'source-in'; g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); return o; }
-function makeSpr(c) { return { n: c, f: null, w: null, wf: null, W: c.width, H: c.height }; }
+/** r = 해상도 배수 (2면 칸이 절반 크기 — W·H는 화면 크기 기준이라 예전 코드 그대로 씀) */
+function makeSpr(c, r) { r = r || 1; return { n: c, f: null, w: null, wf: null, W: c.width / r, H: c.height / r, R: r }; }
+/** 스프라이트를 다른 캔버스에 화면 크기 × k 로 (해상도 배수 상관없이) */
+function sprBlit(g, s, x, y, k) { k = k || 1; g.drawImage(s.n, x, y, s.W * k, s.H * k); }
+/** EPX(Scale2x): 1배 도트를 2배로 — 대각선 계단이 매끈해짐 */
+function scale2x(src) {
+  const w = src.width, h = src.height, sg = src.getContext('2d'), d = sg.getImageData(0, 0, w, h).data;
+  const o = mkCanvas(w * 2, h * 2), og = o.getContext('2d'), od = og.createImageData(w * 2, h * 2), D = od.data;
+  const at = (x, y) => { x = x < 0 ? 0 : x >= w ? w - 1 : x; y = y < 0 ? 0 : y >= h ? h - 1 : y; const i = (y * w + x) * 4; return (d[i] << 24 | d[i + 1] << 16 | d[i + 2] << 8 | d[i + 3]) >>> 0; };
+  const put = (x, y, v) => { const i = (y * w * 2 + x) * 4; D[i] = v >>> 24 & 255; D[i + 1] = v >>> 16 & 255; D[i + 2] = v >>> 8 & 255; D[i + 3] = v & 255; };
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const P = at(x, y), A = at(x, y - 1), B = at(x + 1, y), C = at(x - 1, y), Dd = at(x, y + 1);
+    let p1 = P, p2 = P, p3 = P, p4 = P;
+    if (C === A && C !== Dd && A !== B) p1 = A; if (A === B && A !== C && B !== Dd) p2 = B;
+    if (Dd === C && Dd !== B && C !== A) p3 = C; if (B === Dd && B !== A && Dd !== C) p4 = Dd;
+    put(x * 2, y * 2, p1); put(x * 2 + 1, y * 2, p2); put(x * 2, y * 2 + 1, p3); put(x * 2 + 1, y * 2 + 1, p4);
+  }
+  og.putImageData(od, 0, 0); return o;
+}
+/** 2배 해상도 스프라이트 (EPX로 자동 2배) */
+function sprHi(key, rows, pal) { if (!SPRC[key]) SPRC[key] = makeSpr(scale2x(rowsToCanvas(rows, pal)), 2); return SPRC[key]; }
 const SPRC = {};
 function spr(key, rows, pal) { if (!SPRC[key]) SPRC[key] = makeSpr(rowsToCanvas(rows, pal)); return SPRC[key]; }
-function sprFn(key, fn) { if (!SPRC[key]) SPRC[key] = makeSpr(fn()); return SPRC[key]; }
+function sprFn(key, fn, r) { if (!SPRC[key]) SPRC[key] = makeSpr(fn(), r); return SPRC[key]; }
 function drawSpr(s, x, y, o) {
   o = o || {}; const sc = o.scale || 1; let img = s.n;
   if (o.white) { if (!s.w) s.w = whiteC(s.n); if (o.flip) { if (!s.wf) s.wf = flipC(s.w); img = s.wf; } else img = s.w; }

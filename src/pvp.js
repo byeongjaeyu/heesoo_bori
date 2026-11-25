@@ -194,7 +194,7 @@ function pvpForfeit() { if (!G.pvp || G.pvp.over) return; confirmBox('항복할�
 // ---------- 그리기 ----------
 function heeSetFor(eq, hair) { const keep = G.pd; G.pd = /** @type {SaveData} */ (/** @type {unknown} */ ({ eq, look: { hair } })); /* 초상화 렌더용 임시 세이브 */ try { return heeSet(); } finally { G.pd = keep; } }
 function pvpFaceURL(eq, hair) {
-  try { const set = heeSetFor(eq && ITEMS[eq.hat] && ITEMS[eq.armor] && ITEMS[eq.shoes] && ITEMS[eq.bag] ? eq : newPD().eq, hair); const s = set.down[0]; const o = mkCanvas(s.W * 3, s.H * 3), g = o.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(s.n, 0, 0, s.W * 3, s.H * 3); return o.toDataURL(); } catch (e) { return ''; }
+  try { const set = heeSetFor(eq && ITEMS[eq.hat] && ITEMS[eq.armor] && ITEMS[eq.shoes] && ITEMS[eq.bag] ? eq : newPD().eq, hair); const s = set.down[0]; const o = mkCanvas(s.W * 4, s.H * 4), g = o.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(s.n, 0, 0, s.W * 4, s.H * 4); return o.toDataURL(); } catch (e) { return ''; }
 }
 function drawRival(e) {
   let eq = e.snap.vis || e.snap.eq; if (!eq || !ITEMS[eq.hat] || !ITEMS[eq.armor] || !ITEMS[eq.shoes] || !ITEMS[eq.bag]) eq = newPD().eq;

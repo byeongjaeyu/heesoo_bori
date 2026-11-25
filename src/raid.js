@@ -10,7 +10,7 @@ async function raidLoad() {
   try { await sbInit(); const { data, error } = await SB.rpc('hb_raid_info'); if (error) throw error; RAID.info = data; } catch (e) { RAID.info = null; throw e; }
   return RAID.info;
 }
-const raidBossURL = boss => { try { const m = MONS[boss], s = monSpr(m.spr), k = 5, c = mkCanvas(s.W * k, s.H * k), g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(s.n, 0, 0, s.W * k, s.H * k); return c.toDataURL(); } catch (e) { return ''; } };
+const raidBossURL = boss => { try { const m = MONS[boss], s = monSpr(m.spr), k = 6, c = mkCanvas(s.W * k, s.H * k), g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(s.n, 0, 0, s.W * k, s.H * k); return c.toDataURL(); } catch (e) { return ''; } };
 const raidLeft = I => { const s = Math.max(0, (new Date(I.ends_at).getTime() - Date.now()) / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600); return d ? `${d}일 ${h}시간` : `${h}시간 ${Math.floor(s % 3600 / 60)}분`; };
 
 function raidOpen() {

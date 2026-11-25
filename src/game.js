@@ -6,7 +6,7 @@ const G = {
   zoneKills: 0, bossSpawned: false, bossDefeated: false, boss: null, exitOpen: false, spawnT: 1, eid: 0,
   pendingEvent: null, ult: null, evt: null, saveT: 0
 };
-const monSpr = n => spr('m_' + n, MONSPR[n]);
+const monSpr = n => sprHi('m_' + n, MONSPR[n]);
 
 // ---------- persistent data ----------
 const SAVEKEY = 'heesu_bori_save_v1';

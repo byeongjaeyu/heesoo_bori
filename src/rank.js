@@ -9,8 +9,8 @@ function fighterURL(snap, scale) {
     const hs = heeSet().down[0]; let bs = null, ts = null;
     if (snap.bori) { bs = boriSpr('sit'); if (beq.btoy) ts = spr('t_' + beq.btoy, ICONS[ITEMS[beq.btoy].icon]); }
     const W = hs.W + (bs ? bs.W + 2 : 0), H = Math.max(hs.H, bs ? bs.H + 1 : 0);
-    const c = mkCanvas(W, H), g = c.getContext('2d'); g.drawImage(hs.n, 0, H - hs.H);
-    if (bs) { const bx = hs.W + 2, by = H - bs.H; g.drawImage(bs.n, bx, by); if (ts) g.drawImage(ts.n, bx + Math.round(8 - ts.W / 2) - 2, by + 11 + Math.ceil(ts.H / 2) - ts.H - 3); }
+    const c = mkCanvas(W * 2, H * 2), g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.scale(2, 2); sprBlit(g, hs, 0, H - hs.H); // 2배 도트 그대로
+    if (bs) { const bx = hs.W + 2, by = H - bs.H; sprBlit(g, bs, bx, by); if (ts) g.drawImage(ts.n, bx + Math.round(8 - ts.W / 2) - 2, by + 11 + Math.ceil(ts.H / 2) - ts.H - 3); }
     const o = mkCanvas(W * scale, H * scale), og = o.getContext('2d'); og.imageSmoothingEnabled = false; og.drawImage(c, 0, 0, W * scale, H * scale);
     return RK.cache[key] = o.toDataURL();
   } catch (e) { return ''; } finally { G.pd = keep; }

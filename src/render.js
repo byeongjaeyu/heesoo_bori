@@ -43,19 +43,14 @@ function heePal() {
   return { C: hat, c: shadeHex(hat, -0.22), W: arm, w: shadeHex(arm, arm === '#3a3a46' ? 0.12 : -0.15), O: sh, o: shadeHex(sh, -0.18), G: bag, g: shadeHex(bag, -0.25), H: hr.H, h: hr.h };
 }
 function heeSet(over) {
-  const pal = Object.assign(heePal(), over || {}); const key = 'hee|' + Object.values(pal).join(',');
+  const pd = G.pd || (G.state === 'title' ? TITLE_PD : null), L = heeLook(pd, over); const key = 'hee2|' + JSON.stringify(L);
   if (SPRC[key]) return SPRC[key];
-  const H = HS, f = (a, b, c) => makeSpr(rowsToCanvas([...a, ...b, ...c], pal));
-  const set = {
-    down: [f(H.headF, H.bodyF, H.legsF.i), f(H.headF, H.bodyF, H.legsF.a), f(H.headF, H.bodyF, H.legsF.b)],
-    up: [f(H.headB, H.bodyB, H.legsF.i), f(H.headB, H.bodyB, H.legsF.a), f(H.headB, H.bodyB, H.legsF.b)],
-    right: [f(H.headR, H.bodyR, H.legsR.i), f(H.headR, H.bodyR, H.legsR.a), f(H.headR, H.bodyR, H.legsR.b)],
-    phone: [f(H.headPh, H.bodyPh, H.legsF.i), f(H.headPh2, H.bodyPh, H.legsF.i)]
-  };
+  const f = (d, fr) => makeSpr(heePaint(L, d, fr), HR);
+  const set = { down: [f('down', 0), f('down', 1), f('down', 2)], up: [f('up', 0), f('up', 1), f('up', 2)], right: [f('right', 0), f('right', 1), f('right', 2)], phone: [f('phone', 0), f('phone', 1)] };
   SPRC[key] = set; return set;
 }
-const husSpr = () => spr('hus', [...HUS.head, ...HUS.body, ...HUS.legs]);
-const husSleepSpr = () => spr('husZ', [...HUS.headZ, ...HUS.body, ...HUS.legs]);
+const husSpr = () => sprFn('hus2', () => husPaint(), 2);
+const husSleepSpr = () => sprFn('husZ2', () => husPaint({ sleep: true }), 2);
 /** 오빠의 찌낚시대 (항상 들고 다님): 손잡이·릴·대·낚싯줄·찌(빨강·흰색, 위에 노란 케미) */
 function drawFloat(x, y) { x = Math.round(x); y = Math.round(y); fr(x, y - 3, 1, 2, '#ffd84a'); fr(x - 1, y - 1, 3, 2, '#e8414f'); fr(x - 1, y + 1, 3, 2, '#ffffff'); fr(x, y + 3, 1, 1, '#2b1b24'); }
 function drawHusRod(hx, gy, T, lying) {
@@ -81,9 +76,7 @@ function drawHeeAt(x, y, pose, dir, t, o) {
 function boriSpr(kind) {
   const cl = G.pd && G.pd.beq ? G.pd.beq.bcloth : null; const key = 'b_' + kind + '|' + (cl || '');
   if (SPRC[key]) return SPRC[key];
-  let rows = BORI[kind], pal = null;
-  if (cl && ITEMS[cl]) { const it = ITEMS[cl]; rows = rows.map((r, y) => r.replace(/[Yy]/g, (ch, x) => it.pat === 'knit' ? ((x + y) % 2 ? 'Y' : 'y') : (y % 2 ? 'Y' : 'y'))); pal = { Y: it.color, y: shadeHex(it.color, -0.2) }; }
-  return SPRC[key] = makeSpr(rowsToCanvas(rows, pal));
+  return SPRC[key] = makeSpr(boriPaint(kind, cl && ITEMS[cl] ? cl : null), 2);
 }
 function drawBoriAt(x, y, pose, face, t, o) {
   o = o || {}; let s; const j = o.jump || 0;
