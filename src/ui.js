@@ -103,7 +103,7 @@ function updateHUD() {
 
 // ---------- menu ----------
 let MTAB = 'skill';
-const TABS = [['skill', '스킬'], ['equip', '장비'], ['bori', '보리'], ['daily', '미션'], ['book', '도감'], ['achv', '칭호'], ['job', '전직'], ['look', '꾸미기'], ['food', '음식'], ['shop', '배달앱'], ['info', '정보']];
+const TABS = [['skill', '스킬'], ['equip', '장비'], ['bori', '보리'], ['daily', '미션'], ['book', '도감'], ['achv', '칭호'], ['job', '전직'], ['look', '꾸미기'], ['food', '음식'], ['shop', '배달앱'], ['story', '이야기'], ['info', '정보']];
 function openMenu(tab) { if (G.state !== 'play') return; G.state = 'menu'; INP.atk = false; INP.joy.on = false; hideJoy(); if (tab) MTAB = tab; else if (G.pd.sp > 0) MTAB = 'skill'; else if (G.pd.newItem) MTAB = 'equip'; else if (G.pd.newBori) MTAB = 'bori'; $('#menu').hidden = false; renderMenu(true); sfx('select'); }
 /** 로비(타이틀)에서 메뉴 열기 — 음식 탭 빼고 장비·스킬·강화·도감·칭호·꾸미기 등 */
 function lobbyMenu(tab) {
@@ -192,6 +192,7 @@ function eqSetHtml(pd) {
     return `<div class="eqset${all ? ' on' : ''}"><div class="eqsh"><b>${S.name}</b><span>${n}/${S.ids.length} 착용</span></div><div class="eqsi">${S.ids.map(id => `<img class="${on.has(id) ? 'w' : ownsDef(pd, id) ? 'h' : 'x'}" src="${itemURL(id)}" title="${ITEMS[id].name}">`).join('')}</div><small>${all ? '세트 효과 켜짐 · ' + S.txt : `${S.ids.length}개를 모두 끼면 ${S.txt}`}</small></div>`; }).join('');
 }
 const MREN = {
+  story() { return replayHtml(G.pd); },
   look() {
     const pd = G.pd, L = pd.look || {}, b = pd.book || {};
     const prev = fighterURL({ vis: visEq(pd), hair: L.hair || 'base', bori: pd.boriJoined, beq: pd.beq }, 6);
@@ -305,6 +306,7 @@ function menuClick(e) {
   if (m === 'close') { closeMenu(); return; }
   if (m === 'tab') { MTAB = v; renderMenu(true); sfx('select'); return; }
   if (m === 'job') { jobAsk(v); return; }
+  if (m === 'replay') { replayPlay(v); return; }
   if (m === 'xch') {
     if (v === 'max') { const { n, c } = xchPlan(pd, Infinity); if (n > 0) { confirmBox(`강화석 ${n}개를 ${c.toLocaleString()}G에 바꿀까요?\n(지금 ${pd.gold.toLocaleString()}G → ${(pd.gold - c).toLocaleString()}G)`, () => { xchBuy(n); renderMenu(); }); return; } }
     xchBuy(v === 'max' ? Infinity : +v); renderMenu(); return;

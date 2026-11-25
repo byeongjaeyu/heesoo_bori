@@ -815,3 +815,20 @@ test('2배 도트: 희수·오빠·보리 화면 크기는 그대로, 장비마�
   expect(r.looks).toEqual(['veil', 'gown', 'heel', 'clutch']);
   expect(errs).toEqual([]);
 });
+
+test('이야기 다시보기: 본 장면만 열리고, 보고 나면 메뉴 「이야기」 탭으로 돌아옴', async ({ page }) => {
+  const errs = []; page.on('pageerror', e => errs.push(String(e)));
+  await page.setViewportSize({ width: 390, height: 844 });
+  await withSave(page, URL_MAIN, { lv: 50, cleared: 2, ch2: { zone: 6, cleared: 0, intro: 1, seen: { 5: 1 } } });
+  await page.evaluate(() => lobbyMenu('story'));
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: 'test-results/replay.png' });
+  const r = await page.evaluate(() => ({ open: [...document.querySelectorAll('.rprow:not(.lock)')].map(b => b.textContent), lock: document.querySelectorAll('.rprow.lock').length }));
+  expect(r.open.length).toBe(4); // 1장 프롤로그·엔딩 + 2장 프롤로그·낮낚시
+  expect(r.lock).toBe(2); // 2장 밤낚시·엔딩
+  await page.click('.rprow[data-v="2:1"]');
+  await page.waitForFunction(() => G.state === 'cut', null, { timeout: 5000 });
+  await page.evaluate(() => endCut());
+  await page.waitForFunction(() => G.state === 'lobbyMenu' && MTAB === 'story' && !document.querySelector('#menu').hidden, null, { timeout: 5000 });
+  expect(errs).toEqual([]);
+});
