@@ -23,6 +23,7 @@ import { tradeClaim } from './trade.js';
 import { GUIDE_DONE } from '../features/guide.js';
 import { raidGotOpen } from './raid.js';
 import { achTag } from '../features/achv.js';
+import { RULES, seasonLabel } from '../core/rules.js';
 
 export const RK = { tab: 'power', cache: {}, from: 'title' };
 const validEq = eq => (eq && SLOTS.every(sl => eq[sl] && ITEMS[eq[sl]])) ? eq : newPD().eq;
@@ -193,9 +194,8 @@ function seasonLeft() {
   const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
   return d ? `${d}일 ${h}시간` : h ? `${h}시간 ${m}분` : `${m}분`;
 }
-/** 시즌 보상표 (서버 hb_season_rollover 와 같아야 함) */
-const SEASON_REWARDS = [{ k: 1, label: '1위', s: 150, g: 3000000, a: 10800 }, { k: 2, label: '2위', s: 100, g: 2000000, a: 7200 }, { k: 3, label: '3위', s: 70, g: 1000000, a: 3600 },
-  { k: 4, label: '4~10위', s: 30, g: 300000 }, { k: 11, label: '1판 이상', s: 10 }];
+/** 시즌 보상표 — core/rules.js RULES.season (서버 hb_season_rollover 도 같은 표에서 만들어짐). k = 그 줄의 첫 순위 */
+const SEASON_REWARDS = RULES.season.map((t, i) => ({ k: i ? RULES.season[i - 1].to + 1 : 1, label: seasonLabel(i), s: t.s, g: t.g, a: t.a }));
 // ---------- 픽셀 메달·리본 ----------
 const PX_DIG = { 1: ['.m.', 'mm.', '.m.', '.m.', 'mmm'], 2: ['mm.', '..m', '.m.', 'm..', 'mmm'], 3: ['mm.', '..m', '.m.', '..m', 'mm.'] };
 function pxMedalRows(M, m, d) {

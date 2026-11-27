@@ -26,6 +26,7 @@ import { showTitle } from '../ui/lobby.js';
 import { RK, rankTab, seasonBar, seasonLoad } from './rank.js';
 import { dailyAdd } from '../features/daily.js';
 import { achTag } from '../features/achv.js';
+import { powerOf } from '../core/rules.js';
 
 export const SB_URL = 'https://ujxuzduomfssguibnjux.supabase.co';
 export const SB_KEY = 'sb_publishable_PcjuTpqwZMObF0YuHmTTjA_ifajvlMg';
@@ -56,7 +57,7 @@ export function pvpSnap() {
   const snap = { v: 1, lv: pd.lv, aw: pd.aw || 0, hp: st.hp, atk: st.atk, def: st.def, crit: Math.round(st.crit * 1000) / 1000, critMul: st.critMul, spd: Math.round(st.spd * 100) / 100, enh: st.enh || 0, tenh: st.toyEnh || 0,
     w: { id: defOf(pd.eq.weapon), mul: w.mul, rate: w.rate, reach: w.reach, arc: w.arc, style: w.style }, eq: visEqRaw(pd), sk: skl,
     job: jobOf(pd), bori: !!pd.boriJoined, beq: pd.boriJoined ? { bcloth: defOf(pd.beq.bcloth) || null, btoy: defOf(pd.beq.btoy) || null } : null, boriMul: Math.round((st.boriMul || 1) * 100) / 100, cleared: pd.cleared || 0, infBest: pd.infBest || 0, ttl: pd.title && pd.ach && pd.ach[pd.title] ? pd.title : null, achN: Object.keys(pd.ach || {}).length, skm: Math.round((st.skillMul || 1) * 100) / 100, sid: pd.sid || null, book: st.book || 0, vis: visEq(pd), hair: (pd.look && pd.look.hair) || 'base' };
-  const power = Math.round(st.atk * 4 + st.hp * 0.5 + st.def * 6 + st.crit * 300 + Math.max(0, st.spd - 1) * 150 + (pd.boriJoined ? 50 + ((st.boriMul || 1) - 1) * 300 : 0) + (skl.smash + skl.nag + skl.flash + skl.fist) * 12 + skl.menhera * 40 + ((st.skillMul || 1) - 1) * 600);
+  const power = powerOf({ atk: st.atk, hp: st.hp, def: st.def, crit: st.crit, spd: st.spd, bori: pd.boriJoined, boriMul: st.boriMul, sk: skl, skm: st.skillMul }); // 서버 hb_power 와 같은 식 (core/rules.js)
   if (keepP) calcStats();
   return { snap, power };
 }

@@ -12,7 +12,7 @@ const SRC = path.join(ROOT, 'src');
 /** 이어 붙이는 순서 (앞 파일의 전역을 뒤 파일이 씀). 확장자 없이, .ts 가 있으면 .ts 우선 */
 export const ORDER = [
   'draw/sprites', 'draw/sprites2',
-  'sys/dom', 'core/util', 'core/events', 'draw/sprite', 'sys/audio', 'sys/input',
+  'sys/dom', 'core/util', 'core/rules', 'core/events', 'draw/sprite', 'sys/audio', 'sys/input',
   'draw/hee2', 'core/data', 'core/chapter', 'play/chapter-flow',
   'chapters/ch1', 'chapters/ch2', 'chapters/ch3', 'chapters/ch4',
   'draw/world', 'core/refine', 'features/refine',

@@ -22,14 +22,15 @@ import { claimGifts } from './rank.js';
 import { cloudSync } from './cloud.js';
 import { TRADE_ERR, tradableKey, tradeClaim, tradeWithPd } from './trade.js';
 import { xcClick, xcHtml, xcInput, xcLoad } from './xchg.js';
+import { RULES } from '../core/rules.js';
 
-const AUC_FEE = 0.05, AUC_HOURS = [12, 24, 48];
+const AUC_FEE = RULES.auc.fee, AUC_HOURS = RULES.auc.hours; // 서버 hb_auc_* 와 같은 값 (core/rules.js)
 export const AUC = { tab: 'browse', slot: '', rar: 3, sort: 'end', list: /** @type {any[]} */ ([]), mine: /** @type {any} */ (null), sel: /** @type {string|null} */ (null), bidFor: /** @type {string|null} */ (null), hours: 24, busy: false, err: '' };
 const AUC_SLOTS = [['', '전체'], ['weapon', '무기'], ['hat', '모자'], ['armor', '옷'], ['shoes', '신발'], ['bag', '가방'], ['bori', '보리']];
 const AUC_RARS = [[3, '전설↑'], [4, '신화↑'], [5, '초월']];
 const AUC_SORTS = [['end', '마감 임박'], ['low', '낮은 가격'], ['high', '높은 가격'], ['new', '최신']];
-export const AUC_ERR = Object.assign({}, TRADE_ERR, { nick: '경매장은 랭킹에 닉네임을 등록한 희수만 이용할 수 있어요', hours: '기간을 골라주세요', price: '가격을 확인해 주세요 (시작가 1,000G 이상, 즉시 구매가는 시작가 이상)',
-  too_many: '경매는 한 번에 10개까지 올릴 수 있어요', closed: '이미 끝난 경매예요', own: '내가 올린 물건이에요', top: '이미 최고가로 입찰 중이에요', has_bids: '입찰이 있으면 취소할 수 없어요', balance: '골드가 부족해요' });
+export const AUC_ERR = Object.assign({}, TRADE_ERR, { nick: '경매장은 랭킹에 닉네임을 등록한 희수만 이용할 수 있어요', hours: '기간을 골라주세요', price: `가격을 확인해 주세요 (시작가 ${RULES.auc.minStart.toLocaleString()}G 이상, 즉시 구매가는 시작가 이상)`,
+  too_many: `경매는 한 번에 ${RULES.auc.maxOpen}개까지 올릴 수 있어요`, closed: '이미 끝난 경매예요', own: '내가 올린 물건이에요', top: '이미 최고가로 입찰 중이에요', has_bids: '입찰이 있으면 취소할 수 없어요', balance: '골드가 부족해요' });
 const aucErr = r => r && r.reason === 'low' ? `최소 ${Number(r.min).toLocaleString()}G부터 입찰할 수 있어요` : (AUC_ERR[r && r.reason] || '처리하지 못했어요');
 export const aucG = n => Number(n || 0).toLocaleString() + 'G';
 export function aucLeft(iso) { const s = Math.max(0, Math.round((new Date(iso).getTime() - Date.now()) / 1000)); if (s <= 0) return '마감'; const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); return h ? `${h}시간 ${m}분` : m ? `${m}분` : `${s}초`; }
@@ -133,7 +134,7 @@ async function aucBid(id, amt, isBuy) {
 async function aucSell(k) {
   if (AUC.busy) return; const pd = aucPd(), it = ITEMS[k];
   const start = numVal('#aucStart'), bv = numVal('#aucBuy'), buy = Number.isNaN(bv) ? null : bv;
-  if (!(start >= 1000) || (buy !== null && !(buy >= start))) { toast(AUC_ERR.price, 'warn'); return; }
+  if (!(start >= RULES.auc.minStart) || (buy !== null && !(buy >= start))) { toast(AUC_ERR.price, 'warn'); return; }
   if (!pd.inv[k] || Object.values(pd.eq).includes(k) || Object.values(pd.beq || {}).includes(k)) { toast(TRADE_ERR.equipped, 'warn'); return; }
   AUC.busy = true;
   try {

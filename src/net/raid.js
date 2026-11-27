@@ -24,11 +24,13 @@ import { PV, SB, esc, pvErr, pvpLoadMe, sbInit } from './pvp.js';
 import { autoOff } from '../play/auto.js';
 import { MEDAL, PXI, rankJoin, rewardCards, rwItems, seasonModalShow } from './rank.js';
 import { buddySpawn } from './buddy.js';
+import { RULES } from '../core/rules.js';
 
 const RAID_TIME = 60;
 export const RAID = { info: /** @type {any} */ (null), busy: false };
-/** 레이드 보상표 (서버 hb_raid_settle 과 같아야 함) */
-const RAID_REWARDS = [{ k: 1, label: '피해량 1위', s: 100, g: 1500000 }, { k: 2, label: '2~3위', s: 60, g: 800000 }, { k: 4, label: '처치 성공 시 참가자 전원', s: 40, g: 500000 }, { k: 5, label: '처치 실패 시 참가자', s: 15 }];
+/** 레이드 보상표 — core/rules.js RULES.raid (서버 hb_raid_settle 도 같은 값에서 만들어짐) */
+const RR = RULES.raid;
+const RAID_REWARDS = [{ k: 1, label: '피해량 1위', ...RR.top1 }, { k: 2, label: '2~3위', ...RR.top3 }, { k: 4, label: '처치 성공 시 참가자 전원', ...RR.kill }, { k: 5, label: '처치 실패 시 참가자', ...RR.fail }];
 
 async function raidLoad() {
   try { await sbInit(); const { data, error } = await SB.rpc('hb_raid_info'); if (error) throw error; RAID.info = data; } catch (e) { RAID.info = null; throw e; }
@@ -46,13 +48,13 @@ export function raidOpen() {
 }
 function raidRender() {
   const I = RAID.info; if (!I) return; const m = MONS[I.boss] || MONS.boss4, pct = I.max_hp ? Math.max(0, I.hp) / I.max_hp : 0, my = I.my || { damage: 0, tries_today: 0 };
-  const left = Math.max(0, (I.max_tries || 3) - (my.tries_today || 0)), killed = !!I.killed_at;
+  const left = Math.max(0, (I.max_tries || RR.tries) - (my.tries_today || 0)), killed = !!I.killed_at;
   const top = (I.top || []).map((t, i) => `<div class="rdrow${t.mine ? ' mine' : ''}"><i>${i < 3 ? MEDAL(i + 1) : i + 1}</i><em>${esc(t.nickname)}</em><b>${Number(t.damage).toLocaleString()}</b></div>`).join('') || '<div class="pvmsg">아직 아무도 도전하지 않았어요. 첫 타를 날려보세요!</div>';
   const can = PV.me && left > 0;
   $('#raidBody').innerHTML = `<div class="rdboss"><img src="${raidBossURL(I.boss)}"><div><small>이번 주 월드 보스</small><b>${esc(m.name)}</b><span>${killed ? '처치 완료! 남은 기간은 피해량 경쟁' : `월요일 0시까지 ${raidLeft(I)}`}</span></div></div>`
     + `<div class="rdhp${killed ? ' dead' : ''}"><i style="width:${(pct * 100).toFixed(2)}%"></i><span>${killed ? '처치 완료!' : `${Math.max(0, I.hp).toLocaleString()} / ${Number(I.max_hp).toLocaleString()}`}</span></div>`
     + `<div class="rdmine"><span>내 누적 피해 <b>${Number(my.damage || 0).toLocaleString()}</b></span><span>참가 ${I.participants || 0}명</span></div>`
-    + `<div class="row rdbtns"><button class="btn pk" data-rd="go" ${can ? '' : 'disabled'}>${PV.me ? `도전하기 <small>오늘 남은 도전 ${left}/${I.max_tries || 3}</small>` : '랭킹 등록 후 도전할 수 있어요'}</button><button class="btn wh sm" data-rd="rw">보상 보기</button></div>`
+    + `<div class="row rdbtns"><button class="btn pk" data-rd="go" ${can ? '' : 'disabled'}>${PV.me ? `도전하기 <small>오늘 남은 도전 ${left}/${I.max_tries || RR.tries}</small>` : '랭킹 등록 후 도전할 수 있어요'}</button><button class="btn wh sm" data-rd="rw">보상 보기</button></div>`
     + (PV.me ? '' : `<button class="btn wh" data-rd="join">랭킹에 내 희수 올리기</button>`)
     + `<h3>피해량 순위</h3><div class="rdlist">${top}</div>`;
 }

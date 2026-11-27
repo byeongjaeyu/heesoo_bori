@@ -18,14 +18,15 @@ import { claimGifts } from './rank.js';
 import { cloudOpen, cloudSync } from './cloud.js';
 import { TRADE_ERR, tradableKey, tradeClaim, tradeWithPd } from './trade.js';
 import { AUC, AUC_ERR, aucClose, aucG, aucLeft, aucLoad, aucPd, aucRefTxt, aucRender, numVal } from './auction.js';
+import { RULES } from '../core/rules.js';
 
-const XC_FEE = 0.05, XC_MAX_ITEMS = 5;
+const XR = RULES.xchg, XC_FEE = XR.fee, XC_MAX_ITEMS = XR.maxItems; // 서버 hb_xchg_* 와 같은 값 (core/rules.js)
 const XC = { mine: /** @type {any} */ (null), partner: /** @type {any} */ (null), nick: '', give: /** @type {string[]} */ ([]), want: /** @type {string[]} */ ([]), gold: '', wantGold: '', msg: '' };
-const XC_ERR = { nick: '랭킹에 닉네임을 등록한 희수만 교환할 수 있어요', lv: 'Lv30부터 교환할 수 있어요', link: '구글·카카오 계정을 연결한 희수만 교환할 수 있어요 (기기 이동 → 계정 연결)',
+const XC_ERR = { nick: '랭킹에 닉네임을 등록한 희수만 교환할 수 있어요', lv: `Lv${XR.lv}부터 교환할 수 있어요`, link: '구글·카카오 계정을 연결한 희수만 교환할 수 있어요 (기기 이동 → 계정 연결)',
   no_user: '그 닉네임의 희수가 없어요', self: '나와는 교환할 수 없어요', empty: '서로 하나 이상은 줘야 해요', no_item: '장비가 하나는 들어가야 해요 (골드끼리 교환은 안 돼요)',
-  gold: '골드는 100G 이상으로 적어주세요', want_item: '상대가 이미 가지고 있지 않은 장비가 있어요. 다시 찾아주세요', too_many: '보낸 제안은 10개까지예요', too_many_items: `장비는 한쪽에 ${XC_MAX_ITEMS}개까지예요`,
+  gold: `골드는 ${XR.minGold}G 이상으로 적어주세요`, want_item: '상대가 이미 가지고 있지 않은 장비가 있어요. 다시 찾아주세요', too_many: `보낸 제안은 ${XR.maxOpen}개까지예요`, too_many_items: `장비는 한쪽에 ${XC_MAX_ITEMS}개까지예요`,
   want_gone: '내가 줄 장비가 없어졌어요', closed: '이미 끝난 제안이에요' };
-const xcErr = r => { if (r && r.reason === 'partner') return '상대가 아직 교환할 수 없는 상태예요' + (r.why === 'lv' ? ' (Lv30 미만)' : r.why === 'link' ? ' (계정 연결 안 함)' : ''); return XC_ERR[r && r.reason] || AUC_ERR[r && r.reason] || TRADE_ERR[r && r.reason] || '처리하지 못했어요'; };
+const xcErr = r => { if (r && r.reason === 'partner') return '상대가 아직 교환할 수 없는 상태예요' + (r.why === 'lv' ? ` (Lv${XR.lv} 미만)` : r.why === 'link' ? ' (계정 연결 안 함)' : ''); return XC_ERR[r && r.reason] || AUC_ERR[r && r.reason] || TRADE_ERR[r && r.reason] || '처리하지 못했어요'; };
 const xcName = it => `${ITEMS[it.def] ? ITEMS[it.def].name : it.def}${it.enh ? ' +' + it.enh : ''}`;
 function xcItemChip(it, grp, v, on) {
   const def = ITEMS[it.def]; if (!def) return '';

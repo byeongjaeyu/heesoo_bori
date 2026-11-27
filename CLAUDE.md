@@ -11,11 +11,11 @@
 - 로컬 크롬으로 e2e: `CHROME_PATH=/usr/bin/google-chrome npm run test:e2e` (없으면 `npx playwright install chromium`)
 
 ## 코드 구조 (중요)
-- **층(폴더) 구조**(11/27 구조 개편 ①~③). 실행 순서는 `build/hb-build.mjs`의 `ORDER`.
+- **층(폴더) 구조**(11/27 구조 개편 ①~③, 11/28 ④ 공용 숫자·서버 SQL 생성). 실행 순서는 `build/hb-build.mjs`의 `ORDER`.
   | 폴더 | 내용 | 가져다 쓸 수 있는 층 |
   |---|---|---|
   | `sys/` | 바탕: `dom.js`($·캔버스 cv/ctx·숫자 쉼표) · `audio.js`(sfx·bgm) · `input.js`(조이스틱·키보드) | sys·core |
-  | `core/` | **규칙·세이브·계산 (화면 없이 돎)**: `util`(clamp·rand·todayKey…) · `events`(emit/on) · `data`(장비·스킬·몬스터 표) · `chapter`(장 등록부·진행도) · `state`(G) · `save`(newPD·loadGame·saveGame·헤어) · `items`(개별 장비·도감·calcStats) · `loop`(회차 난이도·드롭 확률) · `enhance`(강화·돌파) · `progress`(경험치·각성·msGot·towerBest) · `refine`(교환소 값·재련 표) · `job`(전직 규칙) | core·sys |
+  | `core/` | **규칙·세이브·계산 (화면 없이 돎)**: `util`(clamp·rand·todayKey…) · `rules`(게임·서버 공용 숫자 `RULES`·`powerOf`) · `events`(emit/on) · `data`(장비·스킬·몬스터 표) · `chapter`(장 등록부·진행도) · `state`(G) · `save`(newPD·loadGame·saveGame·헤어) · `items`(개별 장비·도감·calcStats) · `loop`(회차 난이도·드롭 확률) · `enhance`(강화·돌파) · `progress`(경험치·각성·msGot·towerBest) · `refine`(교환소 값·재련 표) · `job`(전직 규칙) | core·sys |
   | `draw/` | 그리기: `sprites`/`sprites2`(도트 표) · `sprite`(makeSpr·sprHi·monSpr) · `hee2`(희수·오빠·보리 2배 도트) · `world`(buildWorld·THEME·공용 소품) · `render`(한 프레임 합성·HUD 캔버스·컷신 무대) | draw·core·sys (+render 예외) |
   | `play/` | 필드: `player`·`skills`·`bori`·`enemies`(AI)·`drops`(줍기)·`food`·`zone`(소환·보스·출구·회차 대사·오빠 구조)·`fx`·`chapter-flow`(장 고르기·프롤로그·엔딩 화면)·`auto`·`inf`(할로윈)·`tower` | 아무 층 |
   | `ui/` | 화면: `common`(얼굴·아이콘 URL) · `dialog`(toast·배너·대화창) · `hud` · `menu`(메뉴 탭 전부) · `lobby`(로비·결과) | 아무 층 |
@@ -113,6 +113,11 @@
 - 첫 걸음 가이드(`src/features/guide.js`): 신규 세이브 `guide: 0` → 7단계(5마리·스매싱 배우기·써보기·무기 착용·강화·보리 합류·STAGE1 보스), 단계마다 확정 보상, 상단 카드 + 대상 버튼 `.gpulse`. 사건은 `guideEv('kill'|'skill:<id>'|'enh'|'boss')`, 상태 단계는 0.5초마다 `guideCheck`. 예전 세이브는 Lv5+·2스테이지 이후면 건너뜀. e2e `withSave` 기본 `guide: 99`.
 
 ## Supabase (project ref `ujxuzduomfssguibnjux`)
+- **공용 숫자 한 곳 + 서버 SQL 자동 생성**(11/28 구조 개편 ④): 게임과 서버가 같이 쓰는 숫자는 `src/core/rules.js` `RULES` 하나 — 전투력 계수(`power`, 게임 `powerOf`)·랭킹 스냅샷 상한(`snapMax`)·시즌 보상(`season`, 이름표 `seasonLabel`·글 `rewardTxt`)·월드 보스(`raid`: 하루 횟수·피해 상한·보상)·동료 데려가기(`buddy`)·경매장(`auc`)·1:1 교환(`xchg`)·서버 세이브 검사 한도(`save`).
+  - 서버 함수 틀 `supabase/fn/<함수>.sql`(운영 DB `pg_get_functiondef` 모양 그대로, 숫자 자리는 `{{raid.tries}}`·`{{tier season.s r.rk}}`·`{{list auc.hours}}`·`{{pct auc.fee}}`·`{{below xchg.minGold}}`) → `npm run sql`(`build/gen-sql.mjs`) → `supabase/gen/functions.sql`(운영 DB 에 실행) + `supabase/gen/check.sql`(운영 DB 에서 돌리면 생성본과 다른 함수만 나옴 — 빈 결과 = 같음). 지금 틀 15개: hb_power·hb_submit_fighter·hb_season_rollover·hb_raid_info/start/report/settle·hb_borrow_friend·hb_auc_min/list/close·hb_xchg_ok/propose/pay·hb_save_push.
+  - **숫자를 바꾸는 순서**: rules.js 수정 → `npm run sql` → `npm run check` → 운영 DB 에 `supabase/gen/functions.sql`(바뀐 함수만이라도) 실행 → `check.sql` 빈 결과 확인 → 푸시. 서버 함수 로직을 고칠 땐 틀 파일을 고치고 같은 순서(운영 DB 를 직접 고치면 check.sql 에 걸림).
+  - 테스트: `tests/unit/sql.test.mjs`(생성본 최신·틀 문법·rules 값이 전부 어느 틀에선가 쓰이는지·전투력 식), `tests/unit/rules.test.mjs`(MAX_LV·BRK_MAX = 서버 상한, 스냅샷 전투력 = powerOf, 회차·패키지·출석 한 번 보상 < 세이브 검사 기본 한도).
+  - 아직 틀로 안 옮긴 서버 함수(거래 보관·광장·전송 코드 등)는 숫자를 클라와 안 나눠 써서 그대로 둠. `supabase/schema.sql`·trade/auction/xchg.sql 은 처음 만들 때 기록(최신 아님) — 최신은 운영 DB, 틀로 옮긴 건 supabase/fn.
 - `hb_fighters`(랭킹·PvP 등록, 익명 로그인 user_id), `hb_battles`, `hb_grants`(운영자 선물함), `hb_saves`(클라우드 세이브), `hb_transfer_codes`(기기 옮기기). 스키마: `supabase/schema.sql`.
 - 클라우드 세이브(`src/net/cloud.js`): `saveGame`/`e2SaveNow` 때 1분에 한 번 업로드. 기기 옮기기 = 옛 기기 코드 발급 → 새 기기 `hb_use_transfer_code` (세이브·닉네임·전투기록·미수령 선물 이동) → localStorage 덮어쓰고 새로고침.
 - **계정 연결**(`src/net/account.js`, 기기 옮기기 창 맨 위 「계정 연결」): 익명 계정에 `SB.auth.linkIdentity`로 구글·카카오 연결(같은 user_id 유지 → 세이브·랭킹·선물 그대로). 다른 기기는 「로그인해서 불러오기」= `signInWithOAuth` → 돌아오면 `accBoot`가 `hb_saves`를 localStorage에 쓰고 새로고침(`accApply`). 그 계정에 희수가 없으면 `hb_acc_release()`로 빈 계정 삭제 후 원래 익명 세션 복구(`hb_acc_prev`). 로그인한 계정은 시작할 때(타이틀) 서버 세이브 `svT`가 이 기기보다 최근이면 자동으로 받아옴(`saveGame`이 `svT` 기록). 켜진 로그인 방법은 공개 `/auth/v1/settings`(`accFetchProv`)로 확인 — 없으면 「곧 열려요」. e2e 가짜 SB에 `auth`(`__user`·`__oauth`)와 `accFetchProv`(`__prov`) 있음.
@@ -139,12 +144,12 @@
 - 서버 함수는 운영 DB에서 `do $$ ... raise exception 'RESULT: %' ... $$` 로 감싸 실행하면 롤백되므로 안전하게 검증 가능.
 - 클라이언트는 공개(anon) 키로 RLS 범위만 접근. 테스트는 Supabase·CDN 요청을 차단하고 가짜 SB로 돔 — 운영 DB를 건드리지 말 것.
 - **랭킹 등록·갱신은 `hb_submit_fighter(snap, nick)` RPC로만** (직접 쓰기 권한 없음). 서버가 `hb_power(snap)`로 전투력을 계산하고 범위 밖 값은 거절.
-  - 전투력 공식을 바꾸면 `src/net/pvp.js` pvpSnap 과 DB 함수 `hb_power` 를 **같이** 바꿀 것. snap 에 새 값이 필요하면 hb_submit_fighter 범위 검사에도 추가.
+  - 전투력 공식은 `RULES.power`(core/rules.js) 하나 — 게임 `powerOf`와 서버 `hb_power`(틀)가 같이 씀. snap 에 새 값이 필요하면 `RULES.snapMax`·hb_submit_fighter 틀에도 추가.
   - 세이브 고유 번호 `sid`(SaveData.sid)로 같은 희수 중복 등록 차단 (기기 옮긴 뒤 옛 기기 → 'moved').
   - 의심 기록 보기: `select * from hb_flags order by at desc limit 50;` / 숨기기: `update hb_fighters set hidden = true where nickname = '닉네임';` (본인에겐 계속 보임)
 - 닉네임(랭킹 등록)은 첫 걸음 가이드를 끝낸(또는 Lv5·2회차 이상) 세이브가 있을 때만 타이틀에서 물어봄(`entryRegister`). 랭킹·PvP 목록은 `played` 희수만.
-- 주간 PvP 시즌 (보상표는 DB hb_season_rollover 와 src/rank.js SEASON_REWARDS 를 같이 바꿀 것): 월요일 0시(KST) `hb_season_rollover()` 정산 (pg_cron + 랭킹/PvP 열 때 `hb_season_info()`가 필요 시 정산). 보상은 선물함(note에 '시즌' → 🏆 문구). 지난 기록 `hb_season_results`.
-- 월드 보스 레이드(`src/net/raid.js`, 보상표는 DB `hb_raid_settle` 와 `RAID_REWARDS` 를 같이): 주간 보스 HP를 모두가 깎음, 60초 도전 하루 3회(`hb_raid_start` 입장 시 차감), 피해는 `dealDamage`→`raidHit` 집계 후 `hb_raid_report`(상한 전투력×250+5만). 보스는 전투 중 안 죽음, 처치 후에도 피해량 경쟁 계속. 보스 공격은 내 최대 HP 약 3.5%/타.
+- 주간 PvP 시즌 (보상표 = `RULES.season` 하나 → 화면 SEASON_REWARDS·서버 hb_season_rollover 틀): 월요일 0시(KST) `hb_season_rollover()` 정산 (pg_cron + 랭킹/PvP 열 때 `hb_season_info()`가 필요 시 정산). 보상은 선물함(note에 '시즌' → 🏆 문구). 지난 기록 `hb_season_results`.
+- 월드 보스 레이드(`src/net/raid.js`, 보상·횟수·피해 상한 = `RULES.raid` → 화면 RAID_REWARDS·서버 hb_raid_* 틀): 주간 보스 HP를 모두가 깎음, 60초 도전 하루 3회(`hb_raid_start` 입장 시 차감), 피해는 `dealDamage`→`raidHit` 집계 후 `hb_raid_report`(상한 전투력×250+5만). 보스는 전투 중 안 죽음, 처치 후에도 피해량 경쟁 계속. 보스 공격은 내 최대 HP 약 3.5%/타.
 - 친구 희수 데려가기(`src/net/buddy.js`): HUD 「동료」 → `hb_fighters` played 목록에서 고르면 `hb_borrow_friend(p_friend)` RPC (하루 1번 KST, `hb_borrows`). 동료는 친구 snap 공격의 50%로 15분(플레이 중에만 차감) 같이 싸우고 죽지 않음. 스테이지·할로윈·레이드 OK, PvP 제외. 세이브 `pd.buddy`. 빌려준 사람은 선물함으로 강화석 3 (하루 10번까지, note '데려갔어요' → 🤝 알림).
 - **온라인 광장**(`src/net/plaza.js`): 로비 「모험 계속하기」 왼쪽 `#tPlaza` → `plazaOpen`(랭킹에 닉네임 등록된 희수만) → 1장 정문 광장 맵(`buildWorld(0)`, 몬스터·출구 없음, `G.plaza`, body `.inPlaza`로 전투 버튼 숨김). Supabase Realtime 비공개 채널 `plaza-1`(`private: true`): Presence = 닉네임·Lv·★·칭호·꾸미기·위치(20초마다 다시 track), Broadcast `mv`(움직일 때 0.33초마다) · `chat`. 다른 희수는 `drawRival`로 그림·보간 이동.
   - 서버 권한: `realtime.messages` 정책 `hb_plaza_read`/`hb_plaza_write` → `hb_plaza_ok()`(hb_fighters에 있고 hidden 아님 + `hb_plaza_bans`에 없음). **광장에서 내보내기**: `insert into hb_plaza_bans(user_id, reason) select user_id, '사유' from hb_fighters where nickname = '닉네임';` · 신고 보기: `select * from hb_plaza_reports order by at desc;`
