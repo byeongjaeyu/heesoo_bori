@@ -91,7 +91,7 @@ function updateHUD() {
     hset(bid + 't', v => $('#' + bid + ' .cdT').textContent = v, cd > 0 ? String(Math.ceil(cd)) : '');
   }
   { const pd2 = G.pd, on = buddyActive(pd2); hset('buddyShow', v => $('#bBuddy').hidden = !v, !G.pvp && !FORCE_EASY); hset('buddyCls', v => $('#bBuddy').className = v, 'food buddyb' + (on ? ' on' : '') + (!on && buddyUsedToday(pd2) ? ' empty' : '')); hset('buddyT', v => $('#bBuddy span').textContent = v, on ? buddyLeftTxt(pd2.buddy.left) : buddyUsedToday(pd2) ? '내일' : '친구'); }
-  { const left = autoLeft(); hset('autoShow', v => $('#bAuto').hidden = !v, !G.pvp); hset('autoCls', v => $('#bAuto').className = v, 'food auto' + (G.auto ? ' on' : '') + (left <= 0 ? ' empty' : '')); hset('autoT', v => $('#bAuto span').textContent = v, mmss(left)); }
+  { const left = autoLeft(); hset('autoShow', v => $('#bAuto').hidden = !v, !G.pvp); hset('autoCls', v => $('#bAuto').className = v, 'food auto' + (G.auto ? ' on' : '') + (left <= 0 && !AUTO_BETA.free ? ' empty' : '')); hset('autoT', v => $('#bAuto span').textContent = v, AUTO_BETA.free ? '무제한' : mmss(left)); }
   hset('qhide', v => { $('#bHP').hidden = v; $('#bMP').hidden = v; }, sk('feed') > 0 && !!pd.boriJoined);
   for (const k of ['hp', 'mp']) {
     const pick = pickQuickFood(k, k === 'hp' ? st.hp - P.hp : st.mp - P.mp);

@@ -331,6 +331,15 @@ test('자동사냥: 출구가 열리면 출구로 가서 다음 스테이지도 
   expect(await page.evaluate(() => G.auto)).toBe(true); // 마지막 스테이지 → 다음 회차는 아래 엔딩 테스트에서
 });
 
+test('베타 기간 자동사냥 무제한: 쿠폰을 다 써도 켜지고, 시간이 줄지 않음', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 20, auto: { day: '', left: 0 }, autoBonus: 0 });
+  await enterZone(page, 0);
+  await page.evaluate(() => { G.pd.auto = { day: todayKey(), left: 0 }; G.pd.autoBonus = 120; autoToggle(); });
+  await page.waitForTimeout(1500);
+  const r = await page.evaluate(() => ({ on: G.auto, left: G.pd.auto.left, bonus: G.pd.autoBonus, txt: document.querySelector('#bAuto span').textContent }));
+  expect(r).toEqual({ on: true, left: 0, bonus: 120, txt: '무제한' });
+});
+
 test('방치 보상: 로비에서 받기 → 골드·강화석 증가, 다시 0부터', async ({ page }) => {
   await withSave(page, URL_MAIN, { lv: 20, gold: 0, stones: 0, idleT: Date.now() - 3 * 3600e3 });
   await expect(page.locator('#tIdle')).toContainText('3시간');
