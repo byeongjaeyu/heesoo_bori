@@ -2,6 +2,13 @@
 // 실제 있었던 일 4가지: 「밥하러 온 거지?」(낮) · 「장비만 좋았다면… → 당장 다 팔아」(해 질 녘) · 「잠만 잘 거면 오지 마」(밤) · 「연장할까..?」(엔딩)
 // 이 파일 = 2장 전부 (컷신·스테이지·몬스터·보스 패턴·낚시 장비·업적), 맨 아래 regChapter 로 등록
 
+import { choice, clamp, ctx, lerp, mkCanvas, pCirc, pEll, pRect, rand, sfx, shadeHex } from '../engine.js';
+import { regChapter } from '../chapter.js';
+import { OK, WORLD_H, WORLD_W, dLamp } from '../world.js';
+import { G, aimDash, bubble, burst, dashStep, hurtPlayer, moveToward, shootAt, spawnEnemy } from '../game.js';
+import { CUTK, cloud, fr, pc, skyBands } from '../render.js';
+import { A_, clearA } from '../story.js';
+
 function drawSeaCut(SW, SH, mid, gy, T, mode) {
   const night = mode === 'seaN' || mode === 'rocks', sunset = mode === 'seaS';
   skyBands(SW, gy - 24, night ? '#0a1030' : sunset ? '#6a3a9a' : '#6fb8ff', night ? '#2a3a6a' : sunset ? '#ffb07a' : '#d6f0ff');

@@ -1,11 +1,25 @@
 // ===================== 희수 PvP (Supabase 익명 로그인 + 비동기 봇 대전) =====================
-const SB_URL = 'https://ujxuzduomfssguibnjux.supabase.co';
-const SB_KEY = 'sb_publishable_PcjuTpqwZMObF0YuHmTTjA_ifajvlMg';
-const PVP_MUL = 0.12, PVP_TIME = 100;
-let SB = null, SBP = null;
-const PV = { me: null, uid: null, tab: 'find', list: [], busy: false, notReg: /** @type {boolean|undefined} */ (undefined), moved: false };
+import { $, INP, VH, VW, choice, clamp, drawSpr, mkCanvas, playBgm, rand, sfx } from './engine.js';
+import { ITEMS, defOf } from './data.js';
+import { curZone } from './chapter.js';
+import { buildWorld } from './world.js';
+import { AI, G, addText, bubble, burst, calcStats, dirOf, hurtPlayer, loadGame, moveToward, newPD, newPlayer, playerDie, saveGame, shootAt, sk, startZone, visEq, visEqRaw, word } from './game.js';
+import { jobOf, jobTag } from './job.js';
+import { enhAura, fr, heeSet, shadow } from './render.js';
+import { banner, confirmBox, fadeTo, showHUD, showTitle, toast } from './ui.js';
+import { RK, rankTab, seasonBar, seasonLoad } from './rank.js';
+import { dailyAdd } from './daily.js';
+import { achTag } from './achv.js';
 
-function sbInit() {
+export const SB_URL = 'https://ujxuzduomfssguibnjux.supabase.co';
+export const SB_KEY = 'sb_publishable_PcjuTpqwZMObF0YuHmTTjA_ifajvlMg';
+export const PVP_MUL = 0.12, PVP_TIME = 100;
+export let SB = null, SBP = null;
+/** 다른 파일에서 SBP 를 바꿀 때 (import 한 이름엔 대입 불가) */
+export function setSBP(v) { SBP = v; }
+export const PV = { me: null, uid: null, tab: 'find', list: [], busy: false, notReg: /** @type {boolean|undefined} */ (undefined), moved: false };
+
+export function sbInit() {
   if (SBP) return SBP;
   SBP = (async () => {
     const m = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
@@ -17,10 +31,10 @@ function sbInit() {
   SBP.catch(() => { SBP = null; });
   return SBP;
 }
-function pvErr(e) { const m = (e && (e.message || e.msg)) || String(e); if (/anonymous/i.test(m)) return '서버에서 익명 로그인이 꺼져 있어요'; if (/import|fetch|network|Failed/i.test(m)) return '서버에 연결할 수 없어요 (인터넷 확인)'; if (/duplicate|unique/i.test(m)) return '이미 누가 쓰는 닉네임이에요'; if (/hb:moved/.test(m)) return '이 희수는 다른 기기로 옮겨졌어요. 「다른 기기에서 하던 희수 불러오기」로 가져오거나 새로 시작해 주세요'; if (/hb:invalid/.test(m)) return '기록에 이상한 값이 있어서 등록할 수 없어요'; if (/hb:nickname/.test(m)) return '닉네임을 정해주세요'; if (/too fast|rate/i.test(m)) return '조금만 쉬었다가 다시 도전해 주세요'; return m.slice(0, 80); }
+export function pvErr(e) { const m = (e && (e.message || e.msg)) || String(e); if (/anonymous/i.test(m)) return '서버에서 익명 로그인이 꺼져 있어요'; if (/import|fetch|network|Failed/i.test(m)) return '서버에 연결할 수 없어요 (인터넷 확인)'; if (/duplicate|unique/i.test(m)) return '이미 누가 쓰는 닉네임이에요'; if (/hb:moved/.test(m)) return '이 희수는 다른 기기로 옮겨졌어요. 「다른 기기에서 하던 희수 불러오기」로 가져오거나 새로 시작해 주세요'; if (/hb:invalid/.test(m)) return '기록에 이상한 값이 있어서 등록할 수 없어요'; if (/hb:nickname/.test(m)) return '닉네임을 정해주세요'; if (/too fast|rate/i.test(m)) return '조금만 쉬었다가 다시 도전해 주세요'; return m.slice(0, 80); }
 
 // ---------- 내 희수 스냅샷 ----------
-function pvpSnap() {
+export function pvpSnap() {
   const keepP = G.P; G.P = null; const st = calcStats(); G.P = keepP; const pd = G.pd, w = st.weapon;
   const skl = {}; for (const id of ['fist', 'smash', 'nag', 'flash', 'menhera', 'mukbang', 'shop']) skl[id] = sk(id);
   const snap = { v: 1, lv: pd.lv, aw: pd.aw || 0, hp: st.hp, atk: st.atk, def: st.def, crit: Math.round(st.crit * 1000) / 1000, critMul: st.critMul, spd: Math.round(st.spd * 100) / 100, enh: st.enh || 0, tenh: st.toyEnh || 0,
@@ -31,24 +45,24 @@ function pvpSnap() {
   return { snap, power };
 }
 // 등록·갱신은 서버 함수로만: 전투력은 서버가 snap 으로 계산하고, 말이 안 되는 값·같은 세이브 중복 등록은 거절
-async function pvpUpload(nick) {
+export async function pvpUpload(nick) {
   await sbInit(); const { snap } = pvpSnap();
   const { data, error } = await SB.rpc('hb_submit_fighter', { p_snap: snap, p_nick: nick || null });
   if (error) throw error;
   if (data && data.ok === false) { if (data.reason === 'moved') PV.moved = true; throw new Error('hb:' + data.reason + (data.field ? ':' + data.field : '')); }
   await pvpLoadMe();
 }
-async function pvpLoadMe() { await sbInit(); const { data, error } = await SB.from('hb_fighters').select('*').eq('user_id', PV.uid).maybeSingle(); if (error) throw error; PV.me = data; PV.notReg = !data; if (data) try { localStorage.setItem('heesu_bori_pvp_reg', '1'); } catch (e) { } return data; }
+export async function pvpLoadMe() { await sbInit(); const { data, error } = await SB.from('hb_fighters').select('*').eq('user_id', PV.uid).maybeSingle(); if (error) throw error; PV.me = data; PV.notReg = !data; if (data) try { localStorage.setItem('heesu_bori_pvp_reg', '1'); } catch (e) { } return data; }
 
 // ---------- 로비 UI ----------
-function pvpOpen() {
+export function pvpOpen() {
   const saved = loadGame(); if (!saved) { toast('모험을 먼저 시작해야 PvP에 나갈 수 있어요', 'warn'); return; }
   G.pd = saved; G.P = null; calcStats(); G.pvp = null;
   $('#title').hidden = true; showHUD(false); G.state = 'pvpLobby'; playBgm('home');
   $('#pvp').hidden = false; $('#pvpSeason').innerHTML = ''; pvpRender('<div class="pvmsg">서버에 연결하는 중...</div>');
   sbInit().then(seasonLoad).then(() => { $('#pvpSeason').innerHTML = seasonBar(); }).then(pvpLoadMe).then(() => { if (!PV.me) pvpNickBox(true); else { pvpUpload().catch(() => { }); pvpTab(PV.tab); } }).catch(e => pvpRender(`<div class="pvmsg">연결 실패: ${esc(pvErr(e))}<br><small>잠시 후 다시 시도해 주세요</small></div>`));
 }
-const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+export const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function pvpRender(html) {
   const me = PV.me;
   $('#pvpInfo').innerHTML = me ? `<b>${esc(me.nickname)}</b> · 점수 ${me.rating} · ${me.wins}승 ${me.losses}패` : '';
@@ -75,11 +89,11 @@ async function pvpTab(t) {
     }
   } catch (e) { pvpRender(`<div class="pvmsg">불러오기 실패: ${esc(pvErr(e))}</div>`); }
 }
-function pvpNickBox(first) {
+export function pvpNickBox(first) {
   $('#pvpNick').hidden = false; $('#pvpNickNo').hidden = RK.joining === 'entry'; $('#pvpNickCloud').hidden = RK.joining !== 'entry'; const inp = $('#pvpNickIn'); inp.value = PV.me ? PV.me.nickname : ''; $('#pvpNickMsg').textContent = first ? 'PvP에서 쓸 닉네임을 정해주세요 (2~10자)' : '새 닉네임 (2~10자)';
   setTimeout(() => inp.focus(), 50);
 }
-async function pvpNickSave() {
+export async function pvpNickSave() {
   const v = $('#pvpNickIn').value.trim(); if (v.length < 2 || v.length > 10) { $('#pvpNickMsg').textContent = '2~10자로 정해주세요'; return; }
   $('#pvpNickMsg').textContent = '저장 중...';
   const joining = RK.joining, keep = G.pd, pd = keep || loadGame() || newPD();
@@ -90,7 +104,7 @@ async function pvpNickSave() {
   }
   catch (e) { $('#pvpNickMsg').textContent = pvErr(e); }
 }
-function pvpClick(e) {
+export function pvpClick(e) {
   const b = e.target.closest('[data-pv],[data-t]'); if (!b) return; sfx('select');
   if (b.dataset.t) return pvpTab(b.dataset.t);
   const a = b.dataset.pv;
@@ -170,11 +184,11 @@ function pvpTrueHurt(dmg) {
   const P = G.P; if (G.state !== 'play') return; P.hp -= dmg; P.flash = 0.2; addText(P.x, P.y - 24, dmg, 'hurt'); sfx('hurt');
   bubble(P, choice(['멘탈이...!', '흐엉', '그건 반칙이지!']), 1.2); if (P.hp <= 0) { P.hp = 0; playerDie(); }
 }
-function pvpUpdate(dt) {
+export function pvpUpdate(dt) {
   const V = G.pvp; if (!V || V.over || G.state !== 'play') return;
   V.t -= dt; if (V.t <= 0) { V.t = 0; const r = G.boss; const mine = G.P.hp / G.st.hp, theirs = r ? r.hp / r.maxHp : 0; pvpEnd(mine >= theirs, '시간 종료!'); }
 }
-async function pvpEnd(won, why) {
+export async function pvpEnd(won, why) {
   const V = G.pvp; if (!V || V.over) return; V.over = true; G.state = 'pvpEnd'; INP.atk = false; dailyAdd('pvp');
   if (won && G.boss) { const r = G.boss; r.dead = true; r.deadT = 0.25; burst(r.x, r.y - 10, '#ff7ab8', 30, 120); }
   if (won) G.pd.stats.pvpW = (G.pd.stats.pvpW || 0) + 1;
@@ -184,19 +198,19 @@ async function pvpEnd(won, why) {
   try { const { data, error } = await SB.rpc('hb_report_battle', { p_defender: V.opp.user_id, p_won: won }); if (error) throw error; const d = data && data.delta; $('#pvpDelta').textContent = `점수 ${d >= 0 ? '+' : ''}${d} → ${data.rating}`; pvpLoadMe().catch(() => { }); }
   catch (e) { $('#pvpDelta').textContent = '점수 반영 실패: ' + pvErr(e); }
 }
-function pvpResClick(e) {
+export function pvpResClick(e) {
   const b = e.target.closest('[data-pr]'); if (!b) return; sfx('select'); $('#pvpRes').hidden = true; const opp = G.pvp && G.pvp.opp;
   if (b.dataset.pr === 'again' && opp) pvpFight(opp);
   else { G.pvp = null; G.enemies = []; G.boss = null; showHUD(false); G.state = 'pvpLobby'; $('#pvp').hidden = false; playBgm('home'); pvpTab('find'); }
 }
-function pvpForfeit() { if (!G.pvp || G.pvp.over) return; confirmBox('항복할까요? (패배로 기록돼요)', () => pvpEnd(false, '항복')); }
+export function pvpForfeit() { if (!G.pvp || G.pvp.over) return; confirmBox('항복할까요? (패배로 기록돼요)', () => pvpEnd(false, '항복')); }
 
 // ---------- 그리기 ----------
 function heeSetFor(eq, hair) { const keep = G.pd; G.pd = /** @type {SaveData} */ (/** @type {unknown} */ ({ eq, look: { hair } })); /* 초상화 렌더용 임시 세이브 */ try { return heeSet(); } finally { G.pd = keep; } }
-function pvpFaceURL(eq, hair) {
+export function pvpFaceURL(eq, hair) {
   try { const set = heeSetFor(eq && ITEMS[eq.hat] && ITEMS[eq.armor] && ITEMS[eq.shoes] && ITEMS[eq.bag] ? eq : newPD().eq, hair); const s = set.down[0]; const o = mkCanvas(s.W * 4, s.H * 4), g = o.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(s.n, 0, 0, s.W * 4, s.H * 4); return o.toDataURL(); } catch (e) { return ''; }
 }
-function drawRival(e) {
+export function drawRival(e) {
   let eq = e.snap.vis || e.snap.eq; if (!eq || !ITEMS[eq.hat] || !ITEMS[eq.armor] || !ITEMS[eq.shoes] || !ITEMS[eq.bag]) eq = newPD().eq;
   const set = heeSetFor(eq, e.snap.hair); const d = dirOf(Math.cos(e.ang), Math.sin(e.ang)); const arr = set[d === 'left' ? 'right' : d];
   let s = arr[0]; if (e.mv > 8 && !e.cast) { const fi = Math.floor(e.t * 8) % 4; s = arr[[1, 0, 2, 0][fi]]; }

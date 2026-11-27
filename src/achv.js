@@ -1,7 +1,15 @@
 // ===================== 업적과 칭호 =====================
 // 업적을 깨면 강화석 보상 + 칭호 해금. 장착한 칭호는 snap.ttl 로 랭킹·PvP·카드·동료 이름표에 표시 (꾸미기라 능력치 없음)
+import { $, fmtTime, sfx } from './engine.js';
+import { BSLOTS, SLOTS } from './data.js';
+import { CHAPTERS } from './chapter.js';
+import { G, bookStats, saveGame } from './game.js';
+import { MTAB, renderMenu, toast } from './ui.js';
+import { loopsTotal } from './goal.js';
+import { towerBest } from './tower.js';
+
 const ACH_TIER = ['', '브론즈', '실버', '골드', '레전드'], ACH_REW = [0, 5, 15, 40, 100];
-const ACH_COL = ['', '#f0b27a', '#cfe0f0', '#ffd84a', '#ff9ce0'];
+export const ACH_COL = ['', '#f0b27a', '#cfe0f0', '#ffd84a', '#ff9ce0'];
 const achMaxEnh = pd => Math.max(0, ...Object.values(pd.enh || {}).map(Number));
 const achFullEnh = pd => { const ids = [...SLOTS.map(s => pd.eq[s]), ...(pd.boriJoined ? BSLOTS.map(s => (pd.beq || {})[s]) : [])]; return ids.filter(id => id && ((pd.enh || {})[id] || 0) >= 25).length; };
 const achFullN = pd => SLOTS.length + (pd.boriJoined ? BSLOTS.length : 0) || 1;
@@ -45,11 +53,11 @@ const ACH = [
   // 한정 칭호 (가진 사람만 목록에 보임, 업적 보상 없음)
   { id: 'beta', t: '베타 개척자', d: '베타 기간 뉴비 패키지', tier: 4, sp: 1, v: pd => pd.pack && pd.pack.got ? 1 : 0, g: 1 },
 ];
-const ACH_BY = Object.fromEntries(ACH.map(a => [a.id, a]));
+export const ACH_BY = Object.fromEntries(ACH.map(a => [a.id, a]));
 const achGoal = (a, pd) => typeof a.g === 'function' ? a.g(pd) : a.g;
 const achDone = (pd, a) => { try { return a.v(pd) >= achGoal(a, pd); } catch (e) { return false; } };
 /** 칭호 이름표 HTML (모르는 id면 빈 문자열) */
-const achTag = id => { const a = id && ACH_BY[id]; return a ? `<span class="ttag t${a.tier}">${a.t}</span>` : ''; };
+export const achTag = id => { const a = id && ACH_BY[id]; return a ? `<span class="ttag t${a.tier}">${a.t}</span>` : ''; };
 /** 새로 깬 업적 등록 + 강화석 지급. 여러 개면 한 번에 알림 */
 function achvCheck() {
   const pd = G.pd; if (FORCE_EASY || !pd || !pd.stats) return;
@@ -62,7 +70,7 @@ function achvCheck() {
   else toast(`🏅 업적 ${got.length}개 달성! 강화석 ${st}개 · 메뉴 「칭호」에서 확인해요`, 'lvl');
   if (!$('#menu').hidden && MTAB === 'achv') renderMenu();
 }
-function achvHtml(pd) {
+export function achvHtml(pd) {
   pd.achNew = false; const own = pd.ach || {}, n = ACH.filter(a => own[a.id] && !a.sp).length, NA = ACH.filter(a => !a.sp).length, cur = pd.title && own[pd.title] ? pd.title : '';
   let h = `<div class="bookhead"><b>업적과 칭호</b><span>${n} / ${NA}</span></div>`
     + `<div class="achnow">지금 칭호 ${cur ? achTag(cur) : '<span class="ttag">없음</span>'}${cur ? '<button class="btn wh sm" data-m="ttl" data-v="">떼기</button>' : ''}<small>칭호는 랭킹·PvP·카드·동료 이름표에 붙어요</small></div>`;
@@ -75,4 +83,4 @@ function achvHtml(pd) {
   }
   return h;
 }
-function achvBoot() { if (FORCE_EASY) return; setInterval(() => { try { if (G.state === 'play' || G.state === 'menu' || G.state === 'lobbyMenu') achvCheck(); } catch (e) { } }, 1000); }
+export function achvBoot() { if (FORCE_EASY) return; setInterval(() => { try { if (G.state === 'play' || G.state === 'menu' || G.state === 'lobbyMenu') achvCheck(); } catch (e) { } }, 1000); }

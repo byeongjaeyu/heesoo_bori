@@ -1,6 +1,14 @@
 // ===================== STORY / CUTSCENES =====================
-const CUT = { steps: null, i: -1, t: 0, st: null, A: {}, scene: 'park', linesDone: true, started: false, onEnd: null, light: 0, autoT: 0 };
-function playCut(steps, onEnd) {
+import { $, clamp, ctx, cv, drawSpr, lerp, playBgm } from './engine.js';
+import { CHAPTERS } from './chapter.js';
+import { WED_PAL, husTuxSpr } from './chapters/ch4.js';
+import { G, monSpr } from './game.js';
+import { CUTK, cutScale, drawBoriAt, drawEscape, drawHeeAt, drawHome, drawHusRod, drawPark, drawStars, fr, husSpr, ispr, pc, setCUTK, shadow, txt } from './render.js';
+import { DLG, dialog, dlgAuto, showHUD } from './ui.js';
+import { e2DrawActors, e2DrawLake } from './ep2story.js';
+
+export const CUT = { steps: null, i: -1, t: 0, st: null, A: {}, scene: 'park', linesDone: true, started: false, onEnd: null, light: 0, autoT: 0 };
+export function playCut(steps, onEnd) {
   G.state = 'cut'; CUT.steps = steps; CUT.i = -1; CUT.onEnd = onEnd; CUT.A = {}; CUT.light = 0; CUT.scene = 'park';
   showHUD(false); $('#skip').hidden = false; nextStep();
 }
@@ -10,12 +18,12 @@ function nextStep() {
   CUT.st = st; CUT.t = 0; CUT.linesDone = !st.lines; CUT.started = false;
   if (st.scene) CUT.scene = st.scene; if (st.init) st.init(CUT.A); if (st.bgm) playBgm(st.bgm);
 }
-function endCut() {
+export function endCut() {
   if (!CUT.steps) return;
   $('#skip').hidden = true; $('#dlg').hidden = true; DLG.cur = null; DLG.q = []; DLG.cb = null; $('#mission').hidden = true;
   const cb = CUT.onEnd; CUT.onEnd = null; CUT.steps = null; CUT.st = null; if (cb) cb();
 }
-function updateCut(dt) {
+export function updateCut(dt) {
   const st = CUT.st; if (!st) return; CUT.t += dt;
   if (st.update) st.update(CUT.A, dt, CUT.t);
   if (st.lines && !CUT.started && CUT.t >= (st.delay || 0)) { CUT.started = true; dialog(st.lines, () => { CUT.linesDone = true; }); }
@@ -23,12 +31,12 @@ function updateCut(dt) {
   if (CUT.light > 0) CUT.light -= dt * 2.5;
   if (CUT.steps && CUT.linesDone && CUT.t >= (st.dur || 0)) nextStep();
 }
-function clearA(A) { for (const k in A) delete A[k]; }
+export function clearA(A) { for (const k in A) delete A[k]; }
 
-const A_ = () => CUT.A;
+export const A_ = () => CUT.A;
 
 
-function pxLine(x0, y0, x1, y1, col, w) { const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) | 0; ctx.fillStyle = col; for (let i = 0; i <= n; i++) { const t = n ? i / n : 0; ctx.fillRect(Math.round(lerp(x0, x1, t)), Math.round(lerp(y0, y1, t)), w || 1, w || 1); } }
+export function pxLine(x0, y0, x1, y1, col, w) { const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) | 0; ctx.fillStyle = col; for (let i = 0; i <= n; i++) { const t = n ? i / n : 0; ctx.fillRect(Math.round(lerp(x0, x1, t)), Math.round(lerp(y0, y1, t)), w || 1, w || 1); } }
 function drawActors(A, mid, gy, T) {
   if (A.balloon) { const x = mid + A.balloon.x * CUTK, y = gy + A.balloon.y; pc(x, y, 4, '#2b1b24'); pc(x, y, 3, '#ff4d6d'); fr(x - 1, y - 2, 1, 1, '#fff'); pxLine(x, y + 4, x - 2, y + 18, '#9aa0aa'); }
   if (A.mons) for (const m of A.mons) { const p = clamp((T - m.t0) * 4, 0, 1); if (p <= 0) continue; const s = monSpr(m.type); shadow(mid + m.x * CUTK, gy + m.y, 10); drawSpr(s, mid + m.x * CUTK, gy + m.y - Math.abs(Math.sin(T * 3 + m.x)) * 3 - (1 - p) * 10, { alpha: p, white: p < 0.6 }); }
@@ -48,10 +56,10 @@ function drawActors(A, mid, gy, T) {
     if (A.hee.sweat) { fr(hx + 7, hy - 22, 2, 3, '#7ec8ff'); fr(hx + 7, hy - 23, 1, 1, '#7ec8ff'); }
   }
 }
-function renderCut() {
+export function renderCut() {
   const A = CUT.A; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.imageSmoothingEnabled = false;
   const CS = cutScale(), SW = cv.width / CS, SH = cv.height / CS; ctx.setTransform(CS, 0, 0, CS, 0, 0);
-  const mid = Math.round(SW / 2), gy = Math.round(SH * 0.56), T = G.time; CUTK = clamp(SW / 220, 0.6, 1);
+  const mid = Math.round(SW / 2), gy = Math.round(SH * 0.56), T = G.time; setCUTK(clamp(SW / 220, 0.6, 1));
   if (CUT.scene === 'park') drawPark(SW, SH, mid, gy, A.dark || 0, false, T);
   else if (CUT.scene === 'gate') drawPark(SW, SH, mid, gy, 1, true, T);
   else if (CUT.scene === 'home') drawHome(SW, SH, mid, gy, T, A);
@@ -69,7 +77,7 @@ function renderCut() {
   if (A.aura) { const a = 0.18 + Math.sin(G.time * 4) * 0.08; const vg = ctx.createRadialGradient(cw / 2, ch / 2, Math.min(cw, ch) * 0.25, cw / 2, ch / 2, Math.max(cw, ch) * 0.7); vg.addColorStop(0, 'rgba(120,30,160,0)'); vg.addColorStop(1, `rgba(120,30,160,${a + 0.25})`); ctx.fillStyle = vg; ctx.fillRect(0, 0, cw, ch); }
   if (CUT.light > 0) { ctx.fillStyle = `rgba(255,255,255,${Math.min(0.9, CUT.light)})`; ctx.fillRect(0, 0, cw, ch); }
 }
-function renderTitle() {
+export function renderTitle() {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.imageSmoothingEnabled = false;
   const CS = cutScale(), SW = cv.width / CS, SH = cv.height / CS; ctx.setTransform(CS, 0, 0, CS, 0, 0);
   const mid = Math.round(SW / 2), gy = Math.round(SH * 0.56), T = G.time;

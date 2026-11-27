@@ -1,23 +1,28 @@
 // ===================== ENGINE =====================
-const $ = s => document.querySelector(s);
+import { BASEPAL } from './sprites.js';
+import { G } from './game.js';
+import { dlgTap } from './ui.js';
+import { EP2, e2Ptr } from './ep2core.js';
+
+export const $ = s => document.querySelector(s);
 // ---------- 숫자 쉼표 (화면에 보이는 숫자는 전부 1,234 처럼) ----------
-const numF = (/** @type {any} */ n) => { const v = Number(n); return Number.isFinite(v) ? v.toLocaleString('ko-KR') : String(n); };
+export const numF = (/** @type {any} */ n) => { const v = Number(n); return Number.isFinite(v) ? v.toLocaleString('ko-KR') : String(n); };
 /** 글 속 4자리 이상 숫자에 쉼표. 글자 바로 뒤(닉네임 속 숫자)·날짜(-, :, /, 년)·소수점·장비 키(#)는 건드리지 않음 */
 const NUM_RE = /(?<![\p{L}\d.,:\-#/_])(\d{4,})(?![\d\-:/년.,]\d|[\d년])/gu;
-const fmtNumText = (/** @type {string} */ s) => String(s).replace(NUM_RE, d => Number(d).toLocaleString('ko-KR'));
+export const fmtNumText = (/** @type {string} */ s) => String(s).replace(NUM_RE, d => Number(d).toLocaleString('ko-KR'));
 /** 화면 글(텍스트 노드)에 쉼표를 자동으로 — data-raw 안(옮기기 코드·채팅)·입력칸은 제외 */
 function numFmtNode(/** @type {Node} */ n) {
   if (n.nodeType === 3) { const p = n.parentElement; if (!p || p.closest('[data-raw],script,style,textarea')) return; const v = n.nodeValue || '', w = fmtNumText(v); if (w !== v) n.nodeValue = w; }
   else if (n.nodeType === 1) { const tw = document.createTreeWalker(n, NodeFilter.SHOW_TEXT); let t; while ((t = tw.nextNode())) numFmtNode(t); }
 }
-function numFmtBoot() {
+export function numFmtBoot() {
   numFmtNode(document.body);
   new MutationObserver(ms => { for (const m of ms) { if (m.type === 'characterData') numFmtNode(m.target); else m.addedNodes.forEach(numFmtNode); } })
     .observe(document.body, { childList: true, subtree: true, characterData: true });
 }
-const cv = $('#cv'), ctx = cv.getContext('2d');
-let DPR = 1, S = 4, VW = 200, VH = 200, CW = 0, CH = 0;
-function resize() {
+export const cv = $('#cv'), ctx = cv.getContext('2d');
+export let DPR = 1, S = 4, VW = 200, VH = 200, CW = 0, CH = 0;
+export function resize() {
   DPR = Math.min(window.devicePixelRatio || 1, 3);
   CW = window.innerWidth; CH = window.innerHeight;
   cv.width = Math.round(CW * DPR); cv.height = Math.round(CH * DPR);
@@ -28,26 +33,26 @@ function resize() {
 }
 
 // ---------- utils ----------
-const rand = (a = 0, b = 1) => a + Math.random() * (b - a);
-const randi = (a, b) => Math.floor(rand(a, b + 1));
-const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
-const lerp = (a, b, t) => a + (b - a) * t;
+export const rand = (a = 0, b = 1) => a + Math.random() * (b - a);
+export const randi = (a, b) => Math.floor(rand(a, b + 1));
+export const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+export const lerp = (a, b, t) => a + (b - a) * t;
 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
-const choice = a => a[Math.floor(Math.random() * a.length)];
-function wpick(list) { let t = 0; for (const it of list) t += it[1]; let r = Math.random() * t; for (const it of list) { if ((r -= it[1]) < 0) return it[0]; } return list[0][0]; }
-function angDiff(a, b) { let d = a - b; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; return Math.abs(d); }
-function mulberry(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
-function shadeHex(hex, amt) {
+export const choice = a => a[Math.floor(Math.random() * a.length)];
+export function wpick(list) { let t = 0; for (const it of list) t += it[1]; let r = Math.random() * t; for (const it of list) { if ((r -= it[1]) < 0) return it[0]; } return list[0][0]; }
+export function angDiff(a, b) { let d = a - b; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; return Math.abs(d); }
+export function mulberry(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+export function shadeHex(hex, amt) {
   let c = hex.replace('#', ''); if (c.length === 3) c = c.split('').map(x => x + x).join('');
   let r = parseInt(c.slice(0, 2), 16), g = parseInt(c.slice(2, 4), 16), b = parseInt(c.slice(4, 6), 16);
   const f = amt < 0 ? (v => v * (1 + amt)) : (v => v + (255 - v) * amt);
   return '#' + [r, g, b].map(v => Math.round(clamp(f(v), 0, 255)).toString(16).padStart(2, '0')).join('');
 }
-function fmtTime(s) { s = Math.floor(s); const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, ss = s % 60; return (h ? h + '시간 ' : '') + m + '분 ' + ss + '초'; }
+export function fmtTime(s) { s = Math.floor(s); const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, ss = s % 60; return (h ? h + '시간 ' : '') + m + '분 ' + ss + '초'; }
 
 // ---------- sprites ----------
-function mkCanvas(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
-function rowsToCanvas(rows, pal) {
+export function mkCanvas(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+export function rowsToCanvas(rows, pal) {
   const w = Math.max(...rows.map(r => r.length)), h = rows.length;
   const c = mkCanvas(w, h), g = c.getContext('2d');
   for (let y = 0; y < h; y++) {
@@ -63,9 +68,9 @@ function rowsToCanvas(rows, pal) {
 function flipC(c) { const o = mkCanvas(c.width, c.height), g = o.getContext('2d'); g.translate(c.width, 0); g.scale(-1, 1); g.drawImage(c, 0, 0); return o; }
 function whiteC(c) { const o = mkCanvas(c.width, c.height), g = o.getContext('2d'); g.drawImage(c, 0, 0); g.globalCompositeOperation = 'source-in'; g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); return o; }
 /** r = 해상도 배수 (2면 칸이 절반 크기 — W·H는 화면 크기 기준이라 예전 코드 그대로 씀) */
-function makeSpr(c, r) { r = r || 1; return { n: c, f: null, w: null, wf: null, W: c.width / r, H: c.height / r, R: r }; }
+export function makeSpr(c, r) { r = r || 1; return { n: c, f: null, w: null, wf: null, W: c.width / r, H: c.height / r, R: r }; }
 /** 스프라이트를 다른 캔버스에 화면 크기 × k 로 (해상도 배수 상관없이) */
-function sprBlit(g, s, x, y, k) { k = k || 1; g.drawImage(s.n, x, y, s.W * k, s.H * k); }
+export function sprBlit(g, s, x, y, k) { k = k || 1; g.drawImage(s.n, x, y, s.W * k, s.H * k); }
 /** EPX(Scale2x): 1배 도트를 2배로 — 대각선 계단이 매끈해짐 */
 function scale2x(src) {
   const w = src.width, h = src.height, sg = src.getContext('2d'), d = sg.getImageData(0, 0, w, h).data;
@@ -82,11 +87,11 @@ function scale2x(src) {
   og.putImageData(od, 0, 0); return o;
 }
 /** 2배 해상도 스프라이트 (EPX로 자동 2배) */
-function sprHi(key, rows, pal) { if (!SPRC[key]) SPRC[key] = makeSpr(scale2x(rowsToCanvas(rows, pal)), 2); return SPRC[key]; }
-const SPRC = {};
-function spr(key, rows, pal) { if (!SPRC[key]) SPRC[key] = makeSpr(rowsToCanvas(rows, pal)); return SPRC[key]; }
-function sprFn(key, fn, r) { if (!SPRC[key]) SPRC[key] = makeSpr(fn(), r); return SPRC[key]; }
-function drawSpr(s, x, y, o) {
+export function sprHi(key, rows, pal) { if (!SPRC[key]) SPRC[key] = makeSpr(scale2x(rowsToCanvas(rows, pal)), 2); return SPRC[key]; }
+export const SPRC = {};
+export function spr(key, rows, pal) { if (!SPRC[key]) SPRC[key] = makeSpr(rowsToCanvas(rows, pal)); return SPRC[key]; }
+export function sprFn(key, fn, r) { if (!SPRC[key]) SPRC[key] = makeSpr(fn(), r); return SPRC[key]; }
+export function drawSpr(s, x, y, o) {
   o = o || {}; const sc = o.scale || 1; let img = s.n;
   if (o.white) { if (!s.w) s.w = whiteC(s.n); if (o.flip) { if (!s.wf) s.wf = flipC(s.w); img = s.wf; } else img = s.w; }
   else if (o.flip) { if (!s.f) s.f = flipC(s.n); img = s.f; }
@@ -95,14 +100,14 @@ function drawSpr(s, x, y, o) {
   ctx.drawImage(img, Math.round(x - s.W * sc / 2), Math.round(y - s.H * sc), Math.round(s.W * sc), Math.round(s.H * sc));
   if (a) ctx.globalAlpha = 1;
 }
-function pRect(g, x, y, w, h, c) { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); }
-function pCirc(g, cx, cy, r, c) { g.fillStyle = c; for (let y = -r; y <= r; y++) { const w = Math.floor(Math.sqrt(Math.max(0, r * r - y * y)) + 0.35); g.fillRect(Math.round(cx - w), Math.round(cy + y), w * 2 + 1, 1); } }
-function pEll(g, cx, cy, rx, ry, c) { g.fillStyle = c; for (let y = -ry; y <= ry; y++) { const w = Math.floor(rx * Math.sqrt(Math.max(0, 1 - (y * y) / (ry * ry))) + 0.35); g.fillRect(Math.round(cx - w), Math.round(cy + y), w * 2 + 1, 1); } }
-function pRing(g, cx, cy, r, c, step) { g.fillStyle = c; const n = Math.max(8, Math.floor(r * 6.28 / (step || 1.5))); for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2; g.fillRect(Math.round(cx + Math.cos(a) * r), Math.round(cy + Math.sin(a) * r), 1, 1); } }
+export function pRect(g, x, y, w, h, c) { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); }
+export function pCirc(g, cx, cy, r, c) { g.fillStyle = c; for (let y = -r; y <= r; y++) { const w = Math.floor(Math.sqrt(Math.max(0, r * r - y * y)) + 0.35); g.fillRect(Math.round(cx - w), Math.round(cy + y), w * 2 + 1, 1); } }
+export function pEll(g, cx, cy, rx, ry, c) { g.fillStyle = c; for (let y = -ry; y <= ry; y++) { const w = Math.floor(rx * Math.sqrt(Math.max(0, 1 - (y * y) / (ry * ry))) + 0.35); g.fillRect(Math.round(cx - w), Math.round(cy + y), w * 2 + 1, 1); } }
+export function pRing(g, cx, cy, r, c, step) { g.fillStyle = c; const n = Math.max(8, Math.floor(r * 6.28 / (step || 1.5))); for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2; g.fillRect(Math.round(cx + Math.cos(a) * r), Math.round(cy + Math.sin(a) * r), 1, 1); } }
 
 // icon -> dataURL (UI)
-const ICONURL = {};
-function iconURL(key, rows, pal) {
+export const ICONURL = {};
+export function iconURL(key, rows, pal) {
   if (ICONURL[key]) return ICONURL[key];
   const c = rowsToCanvas(rows, pal); const s = 4; const o = mkCanvas(16 * s, 16 * s), g = o.getContext('2d');
   g.imageSmoothingEnabled = false;
@@ -112,8 +117,8 @@ function iconURL(key, rows, pal) {
 }
 
 // ---------- audio ----------
-const SND = { ac: null, on: true, master: null, bgmG: null, sfxG: null, song: null, songName: '', step: 0, next: 0, lastHit: 0 };
-function audioInit() {
+export const SND = { ac: null, on: true, master: null, bgmG: null, sfxG: null, song: null, songName: '', step: 0, next: 0, lastHit: 0 };
+export function audioInit() {
   if (SND.ac) { if (SND.ac.state === 'suspended') SND.ac.resume().catch(() => { }); return; }
   try {
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
@@ -125,8 +130,8 @@ function audioInit() {
     if (SND.pending) { const p = SND.pending; SND.pending = null; playBgm(p); }
   } catch (e) { SND.ac = null; }
 }
-function setSound(on) { SND.on = on; if (SND.master) SND.master.gain.value = on ? 0.7 : 0; try { localStorage.setItem('hb_sound', on ? '1' : '0'); } catch (e) { } }
-function tone(f, d, type, v, f2, delay, dest) {
+export function setSound(on) { SND.on = on; if (SND.master) SND.master.gain.value = on ? 0.7 : 0; try { localStorage.setItem('hb_sound', on ? '1' : '0'); } catch (e) { } }
+export function tone(f, d, type, v, f2, delay, dest) {
   const a = SND.ac; if (!a) return;
   const t = a.currentTime + (delay || 0);
   const o = a.createOscillator(), g = a.createGain();
@@ -136,7 +141,7 @@ function tone(f, d, type, v, f2, delay, dest) {
   o.connect(g); g.connect(dest || SND.sfxG); o.start(t); o.stop(t + d + 0.03);
 }
 let NOISEBUF = null;
-function noise(d, v, delay, freq) {
+export function noise(d, v, delay, freq) {
   const a = SND.ac; if (!a) return;
   if (!NOISEBUF) { NOISEBUF = a.createBuffer(1, a.sampleRate * 0.6, a.sampleRate); const ch = NOISEBUF.getChannelData(0); for (let i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1; }
   const t = a.currentTime + (delay || 0);
@@ -169,7 +174,7 @@ const SFX = {
   slam: () => { noise(0.4, 0.5, 0, 150); tone(70, 0.35, 'square', 0.2, 35); },
   warn: () => tone(200, 0.12, 'square', 0.06, 160)
 };
-function sfx(n) { if (!SND.ac || !SND.on) return; if (n === 'hit' || n === 'punch') { const now = performance.now(); if (now - SND.lastHit < 45) return; SND.lastHit = now; } try { SFX[n] && SFX[n](); } catch (e) { } }
+export function sfx(n) { if (!SND.ac || !SND.on) return; if (n === 'hit' || n === 'punch') { const now = performance.now(); if (now - SND.lastHit < 45) return; SND.lastHit = now; } try { SFX[n] && SFX[n](); } catch (e) { } }
 
 const NOTEI = { C: 0, 'C#': 1, D: 2, 'D#': 3, E: 4, F: 5, 'F#': 6, G: 7, 'G#': 8, A: 9, 'A#': 10, B: 11 };
 function nf(s) { const m = s.match(/^([A-G]#?)(\d)$/); if (!m) return 0; const n = NOTEI[m[1]] + (+m[2] + 1) * 12; return 440 * Math.pow(2, (n - 69) / 12); }
@@ -190,7 +195,7 @@ const SONGS = {
     mel: 'G5 . E5 . C5 . E5 . G5 . . . A5 . G5 . F5 . D5 . F5 . A5 . . . G5 . F5 . E5 . D5 . C5 . E5 . G5 . . . C6 . . . . . . .',
     bass: 'C3 . G3 . C3 . G3 . F3 . C4 . F3 . C4 . G2 . D3 . G2 . D3 . C3 . G3 . C3 . . .' }
 };
-function playBgm(name) {
+export function playBgm(name) {
   if (!SND.ac) { SND.pending = name; return; }
   if (SND.songName === name && SND.song) return;
   SND.songName = name; const s = SONGS[name];
@@ -213,7 +218,7 @@ function bgmTick() {
 }
 
 // ---------- input ----------
-const INP = { k: {}, atk: false, act: new Set(), joy: { on: false, id: -1, ox: 0, oy: 0, dx: 0, dy: 0 } };
+export const INP = { k: {}, atk: false, act: new Set(), joy: { on: false, id: -1, ox: 0, oy: 0, dx: 0, dy: 0 } };
 const KEYMOVE = { ArrowUp: 'u', KeyW: 'u', ArrowDown: 'd', KeyS: 'd', ArrowLeft: 'l', KeyA: 'l', ArrowRight: 'r', KeyD: 'r' };
 const KEYACT = { KeyO: 'auto', ArrowUp: 'kup', ArrowDown: 'kdown', ArrowLeft: 'kleft', ArrowRight: 'kright', KeyK: 's1', Digit1: 's1', KeyL: 's2', Digit2: 's2', Semicolon: 's3', Digit3: 's3', KeyU: 'ult', Digit4: 'ult', KeyR: 'ult', KeyQ: 'hp', KeyE: 'mp', KeyI: 'menu', KeyM: 'menu', Tab: 'menu', Escape: 'esc', Enter: 'ok' };
 window.addEventListener('keydown', e => {
@@ -228,7 +233,7 @@ window.addEventListener('keyup', e => {
   if (e.code === 'KeyJ' || e.code === 'Space') INP.atk = false;
 });
 window.addEventListener('blur', () => { INP.k = {}; INP.atk = false; INP.joy.on = false; hideJoy(); });
-function moveVec() {
+export function moveVec() {
   let x = 0, y = 0;
   if (INP.k.l) x -= 1; if (INP.k.r) x += 1; if (INP.k.u) y -= 1; if (INP.k.d) y += 1;
   if (x || y) { const m = Math.hypot(x, y); return [x / m, y / m]; }
@@ -237,8 +242,8 @@ function moveVec() {
   return [0, 0];
 }
 const JOYR = 46;
-function hideJoy() { $('#joyBase').style.display = 'none'; }
-function setupTouch() {
+export function hideJoy() { $('#joyBase').style.display = 'none'; }
+export function setupTouch() {
   const layer = $('#touch');
   layer.addEventListener('pointerdown', e => {
     audioInit();

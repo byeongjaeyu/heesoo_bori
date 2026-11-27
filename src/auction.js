@@ -1,24 +1,37 @@
 // ===================== 경매장 (서버 supabase/auction.sql, 거래 기반 trade.js 위) =====================
 // 로비 왼쪽 「경매장」 → #auc. 둘러보기(부위·등급·정렬, 입찰·즉시 구매) / 판매하기(전설↑ 안 낀 장비 올리기) / 내 경매(판매 중·입찰 중·최근 결과).
 // 입찰 골드·올린 장비는 서버가 보관. 밀린 입찰 골드·판매 대금(수수료 5% 뺌)은 선물함, 낙찰·유찰 장비는 받을 장비로 들어옴.
+import { ICONS } from './sprites.js';
+import { $, iconURL, numF, sfx } from './engine.js';
+import { ITEMS, RARITY, SLOTNAME, defOf } from './data.js';
+import { refLineTxt } from './refine.js';
+import { G, dropItem, loadGame } from './game.js';
+import { itemURL } from './render.js';
+import { confirmBox, showTitle, toast } from './ui.js';
+import { PV, SB, esc, pvErr, pvpLoadMe, sbInit } from './pvp.js';
+import { claimGifts } from './rank.js';
+import { cloudSync } from './cloud.js';
+import { TRADE_ERR, tradableKey, tradeClaim, tradeWithPd } from './trade.js';
+import { xcClick, xcHtml, xcInput, xcLoad } from './xchg.js';
+
 const AUC_FEE = 0.05, AUC_HOURS = [12, 24, 48];
-const AUC = { tab: 'browse', slot: '', rar: 3, sort: 'end', list: /** @type {any[]} */ ([]), mine: /** @type {any} */ (null), sel: /** @type {string|null} */ (null), bidFor: /** @type {string|null} */ (null), hours: 24, busy: false, err: '' };
+export const AUC = { tab: 'browse', slot: '', rar: 3, sort: 'end', list: /** @type {any[]} */ ([]), mine: /** @type {any} */ (null), sel: /** @type {string|null} */ (null), bidFor: /** @type {string|null} */ (null), hours: 24, busy: false, err: '' };
 const AUC_SLOTS = [['', '전체'], ['weapon', '무기'], ['hat', '모자'], ['armor', '옷'], ['shoes', '신발'], ['bag', '가방'], ['bori', '보리']];
 const AUC_RARS = [[3, '전설↑'], [4, '신화↑'], [5, '초월']];
 const AUC_SORTS = [['end', '마감 임박'], ['low', '낮은 가격'], ['high', '높은 가격'], ['new', '최신']];
-const AUC_ERR = Object.assign({}, TRADE_ERR, { nick: '경매장은 랭킹에 닉네임을 등록한 희수만 이용할 수 있어요', hours: '기간을 골라주세요', price: '가격을 확인해 주세요 (시작가 1,000G 이상, 즉시 구매가는 시작가 이상)',
+export const AUC_ERR = Object.assign({}, TRADE_ERR, { nick: '경매장은 랭킹에 닉네임을 등록한 희수만 이용할 수 있어요', hours: '기간을 골라주세요', price: '가격을 확인해 주세요 (시작가 1,000G 이상, 즉시 구매가는 시작가 이상)',
   too_many: '경매는 한 번에 10개까지 올릴 수 있어요', closed: '이미 끝난 경매예요', own: '내가 올린 물건이에요', top: '이미 최고가로 입찰 중이에요', has_bids: '입찰이 있으면 취소할 수 없어요', balance: '골드가 부족해요' });
 const aucErr = r => r && r.reason === 'low' ? `최소 ${Number(r.min).toLocaleString()}G부터 입찰할 수 있어요` : (AUC_ERR[r && r.reason] || '처리하지 못했어요');
-const aucG = n => Number(n || 0).toLocaleString() + 'G';
-function aucLeft(iso) { const s = Math.max(0, Math.round((new Date(iso).getTime() - Date.now()) / 1000)); if (s <= 0) return '마감'; const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); return h ? `${h}시간 ${m}분` : m ? `${m}분` : `${s}초`; }
-const aucRefTxt = ref => ref && ref.lines && ref.lines.length ? `<br><span class="refmini">옵션 ${ref.lines.map(l => `<b class="g${l.g}">${refLineTxt(l)}</b>`).join(' · ')}</span>` : '';
-const aucPd = () => G.pd || loadGame();
+export const aucG = n => Number(n || 0).toLocaleString() + 'G';
+export function aucLeft(iso) { const s = Math.max(0, Math.round((new Date(iso).getTime() - Date.now()) / 1000)); if (s <= 0) return '마감'; const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); return h ? `${h}시간 ${m}분` : m ? `${m}분` : `${s}초`; }
+export const aucRefTxt = ref => ref && ref.lines && ref.lines.length ? `<br><span class="refmini">옵션 ${ref.lines.map(l => `<b class="g${l.g}">${refLineTxt(l)}</b>`).join(' · ')}</span>` : '';
+export const aucPd = () => G.pd || loadGame();
 /** 쉼표 들어간 입력칸 값 → 숫자 (비었으면 NaN) */
-const numVal = (/** @type {string} */ sel) => { const v = String((/** @type {HTMLInputElement} */ ($(sel)) || { value: '' }).value).replace(/[^\d]/g, ''); return v ? Number(v) : NaN; };
+export const numVal = (/** @type {string} */ sel) => { const v = String((/** @type {HTMLInputElement} */ ($(sel)) || { value: '' }).value).replace(/[^\d]/g, ''); return v ? Number(v) : NaN; };
 /** 시작가 추천 (등급별) */
 const aucSuggest = rar => [0, 0, 0, 10000, 50000, 200000][rar] || 10000;
 
-async function aucOpen() {
+export async function aucOpen() {
   if (FORCE_EASY) return; const pd = aucPd(); if (!pd) return;
   await sbInit().catch(() => null);
   if (!PV.me) await pvpLoadMe().catch(() => null);
@@ -26,9 +39,9 @@ async function aucOpen() {
   AUC.tab = 'browse'; AUC.sel = null; AUC.bidFor = null; AUC.err = '';
   $('#auc').hidden = false; aucLoad();
 }
-function aucClose() { $('#auc').hidden = true; if (!G.pd && G.state === 'title' && !$('#title').hidden) showTitle(); }
+export function aucClose() { $('#auc').hidden = true; if (!G.pd && G.state === 'title' && !$('#title').hidden) showTitle(); }
 /** 받을 것(밀린 입찰 골드·대금·장비) 먼저 받고 목록 불러오기 */
-async function aucLoad() {
+export async function aucLoad() {
   $('#aucBody').innerHTML = '<p class="aucmsg">불러오는 중...</p>'; aucHead();
   try {
     await claimGifts(aucPd()).catch(() => { }); await tradeClaim().catch(() => 0);
@@ -49,7 +62,7 @@ function aucItemHtml(def, rar, enh, ilv, ref, extra) {
   const it = ITEMS[def]; if (!it) return '';
   return `<div class="ic"><img src="${itemURL(def)}" alt=""></div><div class="mid"><div class="nm"><span class="r${rar}">${it.name}${enh ? ' +' + enh : ''}</span>${ilv ? ` <small class="ilv">Lv.${ilv}</small>` : ''}</div><div class="ds">${RARITY[rar]} · ${SLOTNAME[it.slot] || ''}${aucRefTxt(ref)}${extra || ''}</div></div>`;
 }
-function aucRender() {
+export function aucRender() {
   aucHead(); const b = $('#aucBody'); let h = AUC.err ? `<p class="aucmsg warn">${esc(AUC.err)}</p>` : '';
   if (AUC.tab === 'browse') {
     h += `<div class="aucfil">${aucRow('부위', AUC_SLOTS.map(([v, t]) => aucChip('slot', v, t, AUC.slot === v)).join(''))}`
@@ -129,7 +142,7 @@ async function aucCancel(id) {
   catch (e) { toast('내리지 못했어요: ' + pvErr(e), 'warn'); }
   aucLoad();
 }
-function aucBoot() {
+export function aucBoot() {
   if (FORCE_EASY) return;
   // 숫자 입력칸: 치는 동안 쉼표 넣기
   $('#auc').addEventListener('input', e => { const i = /** @type {HTMLInputElement} */ (e.target); if (!i.classList || !i.classList.contains('numin')) return; const d = i.value.replace(/[^\d]/g, '').slice(0, 10); i.value = d ? numF(+d) : ''; });

@@ -1,5 +1,5 @@
 // ===================== GAME DATA =====================
-const FOODS = {
+export const FOODS = {
   popcorn:    { name: '팝콘',       icon: 'popcorn',    hp: 0,    mp: 0.15, price: 20,  w: 30, desc: '고소한 팝콘 한 통. MP 15% 회복' },
   persimmon:  { name: '홍시',       icon: 'persimmon',  hp: 0.25, mp: 0,    price: 30,  w: 25, desc: '말랑달콤 홍시. HP 25% 회복' },
   cornflakes: { name: '콘푸라이트', icon: 'cornflakes', hp: 0,    mp: 0.30, price: 45,  w: 18, desc: '우유 말아 먹는 콘푸라이트. MP 30% 회복' },
@@ -12,17 +12,17 @@ const FOODS = {
   jjukkumi:   { name: '그리팅 쭈꾸미', icon: 'jjukkumi', hp: 1, mp: 1, price: 900, w: 0.5, rar: 3, buff: { id: 'jjukkumi', name: '쭈꾸미', t: 60, atk: 0.15, crit: 0.25 }, desc: '최고급! HP·MP 전부 회복 + 60초간 치명타 +25%·공격력 +15%' },
   eel:        { name: '민물장어',   icon: 'eel',        hp: 1,    mp: 1,    price: 400, w: 1,  rar: 2, buff: { id: 'eel', name: '장어', t: 30, atk: 0.3 }, desc: '최강 보양식! HP·MP 전부 회복 + 30초간 공격력 +30%' }
 };
-const FOOD_ORDER = ['popcorn', 'persimmon', 'cornflakes', 'watermelon', 'gangjeong', 'cake', 'gimbap', 'drink', 'eel', 'banhmi', 'jjukkumi'];
-const PREMIUM = ['eel', 'banhmi', 'jjukkumi'];
+export const FOOD_ORDER = ['popcorn', 'persimmon', 'cornflakes', 'watermelon', 'gangjeong', 'cake', 'gimbap', 'drink', 'eel', 'banhmi', 'jjukkumi'];
+export const PREMIUM = ['eel', 'banhmi', 'jjukkumi'];
 
-const RARITY = ['일반', '희귀', '영웅', '전설', '신화', '초월'];
-const SLOTS = ['weapon', 'hat', 'armor', 'shoes', 'bag'];
-const BSLOTS = ['bcloth', 'btoy'];
-const SLOTNAME = { weapon: '무기', hat: '모자', armor: '옷', shoes: '신발', bag: '가방', bcloth: '보리 옷', btoy: '장난감' };
+export const RARITY = ['일반', '희귀', '영웅', '전설', '신화', '초월'];
+export const SLOTS = ['weapon', 'hat', 'armor', 'shoes', 'bag'];
+export const BSLOTS = ['bcloth', 'btoy'];
+export const SLOTNAME = { weapon: '무기', hat: '모자', armor: '옷', shoes: '신발', bag: '가방', bcloth: '보리 옷', btoy: '장난감' };
 /** 개별 장비 키 → 장비 이름. 같은 장비 첫 개는 이름 그대로('starstick'), 둘째부터 'starstick#a1b2' */
-const defOf = (/** @type {any} */ k) => k ? String(k).split('#')[0] : k;
+export const defOf = (/** @type {any} */ k) => k ? String(k).split('#')[0] : k;
 /** @type {Record<ItemId, ItemDef>} */
-const ITEM_DEFS = {
+export const ITEM_DEFS = {
   fist:       { slot: 'weapon', name: '맨주먹',       rar: 0, atk: 0,  icon: 'fist',       start: 1, w: { reach: 15, arc: 110, mul: 1, rate: 3.0, kb: 40, style: 'punch' }, desc: '작고 소중한 희수의 주먹' },
   churros:    { slot: 'weapon', name: '츄러스',       rar: 0, atk: 5,  icon: 'churros',    tier: 1, price: 160,  w: { reach: 20, arc: 120, mul: 1, rate: 2.7, kb: 50, style: 'swing' }, desc: '설탕 듬뿍 츄러스. 먹으면 안 됨' },
   selfie:     { slot: 'weapon', name: '셀카봉',       rar: 1, atk: 10, icon: 'selfie',     tier: 2, price: 520,  w: { reach: 28, arc: 60,  mul: 1, rate: 2.5, kb: 50, style: 'poke' }, desc: '길어서 멀리 찌른다' },
@@ -90,12 +90,12 @@ const ITEM_DEFS = {
   veil:     { slot: 'hat', name: '면사포 티아라', rar: 4, def: 15, mp: 100, crit: 0.05, color: '#fffaf4', icon: 'veil', tier: 6, bossOnly: 1, job: 'bride', desc: '반짝이는 티아라에 하늘하늘 면사포' },
 };
 /** 장비 정의표. 개별 키('starstick#a1b2')로 찾아도 원래 장비 정의가 나옴 → 착용·강화·재련 코드는 키 그대로 씀 */
-const ITEMS = /** @type {Record<ItemId, ItemDef>} */ (new Proxy(ITEM_DEFS, {
+export const ITEMS = /** @type {Record<ItemId, ItemDef>} */ (new Proxy(ITEM_DEFS, {
   get: (t, k) => typeof k === 'string' && !(k in t) && k.includes('#') ? t[defOf(k)] : t[/** @type {any} */ (k)],
   has: (t, k) => typeof k === 'string' && (k in t || (k.includes('#') && defOf(k) in t)),
 }));
 
-const SKILLS = {
+export const SKILLS = {
   fist:    { who: 'h', name: '주먹 단련',   icon: 'fist',      type: 'passive', max: 5, req: 1, desc: l => `기본 공격 피해 +${10 * l}%, 공격 속도 +${3 * l}%` },
   smash:   { who: 'h', name: '등짝 스매싱', icon: 'hand',      type: 'active', btn: 's1', max: 5, req: 1, mp: 8, cd: () => 3.5, desc: l => `앞쪽 적에게 공격력 ${220 + 40 * (l - 1)}% 피해 + 0.6초 기절` },
   nag:     { who: 'h', name: '잔소리 폭격', icon: 'bubble',    type: 'active', btn: 's2', max: 5, req: 3, mp: 15, cd: () => 6, desc: l => `잔소리 ${4 + l}발 발사! 각 ${90 + 15 * (l - 1)}% 피해 + 2초 둔화` },
@@ -110,21 +110,21 @@ const SKILLS = {
   wag:     { who: 'b', name: '보리 테라피',   icon: 'heart',     type: 'passive', max: 3, req: 6, desc: l => `보리 곁에 있으면 초당 HP·MP ${(0.6 * l).toFixed(1)}% 추가 회복` },
   zoomies: { who: 'b', name: '보리 주세요', icon: 'bolt',      type: 'auto', max: 3, req: 9, desc: l => `12초마다 적들 사이를 우다다! 각 ${120 + 40 * l}% 피해` }
 };
-const SKILL_TYPE = { passive: '패시브', active: '액티브', ult: '궁극기', auto: '자동' };
+export const SKILL_TYPE = { passive: '패시브', active: '액티브', ult: '궁극기', auto: '자동' };
 
-const MONS = /** @type {Record<string, any>} */ ({}); // 장 파일이 regChapter 로 채움
+export const MONS = /** @type {Record<string, any>} */ ({}); // 장 파일이 regChapter 로 채움
 
-const ZONES = /** @type {any[]} */ ([]); // 장 파일(src/chapters/chN.js)이 regChapter 로 채움
+export const ZONES = /** @type {any[]} */ ([]); // 장 파일(src/chapters/chN.js)이 regChapter 로 채움
 
-const NAG_WORDS = ['방 치워!', '밥 먹었어?', '양말!!', '또 게임해?', '설거지!', '일찍 와!', '물 마셔!', '옷 걸어!', '불 꺼!', '손 씻어!', '자세 똑바로!', '휴지 갈아!', '빨래 개!', '변기 커버!'];
-const MENHERA_LINES = ['나 사랑해? 얼마나?', '왜 답장 안 해?', '읽씹했지?', '아까 그 여자 누구야?', '됐어. 아무것도 아니야.', '나 화난 거 몰라?', '오늘 나 뭐 달라진 거 없어?', '나만 봐.', '낚시가 좋아, 내가 좋아?', '나 살찐 것 같지?', '우리 처음 만난 날 기억해?', '내가 왜 화났는지 맞혀봐', '너 변했어...', '알아서 해 그럼.', '지금 한숨 쉰 거야?', '나 없이도 잘 지내지?'];
-const PHONE_WORDS = ['ㅋㅋㅋ', '♥', '좋아요', 'DM', '♪', 'ㅎㅎ', '인스타', '쇼핑중'];
+export const NAG_WORDS = ['방 치워!', '밥 먹었어?', '양말!!', '또 게임해?', '설거지!', '일찍 와!', '물 마셔!', '옷 걸어!', '불 꺼!', '손 씻어!', '자세 똑바로!', '휴지 갈아!', '빨래 개!', '변기 커버!'];
+export const MENHERA_LINES = ['나 사랑해? 얼마나?', '왜 답장 안 해?', '읽씹했지?', '아까 그 여자 누구야?', '됐어. 아무것도 아니야.', '나 화난 거 몰라?', '오늘 나 뭐 달라진 거 없어?', '나만 봐.', '낚시가 좋아, 내가 좋아?', '나 살찐 것 같지?', '우리 처음 만난 날 기억해?', '내가 왜 화났는지 맞혀봐', '너 변했어...', '알아서 해 그럼.', '지금 한숨 쉰 거야?', '나 없이도 잘 지내지?'];
+export const PHONE_WORDS = ['ㅋㅋㅋ', '♥', '좋아요', 'DM', '♪', 'ㅎㅎ', '인스타', '쇼핑중'];
 
-function xpNeed(lv) { return Math.round(20 * Math.pow(lv, XP_EXP)); }
+export function xpNeed(lv) { return Math.round(20 * Math.pow(lv, XP_EXP)); }
 const XP_EXP = 2.5;
 
 // ===== 각성 (Lv50 이후): 경험치가 계속 쌓여 각성 포인트 → 능력치·스킬 강화 =====
-const AWK = {
+export const AWK = {
   atk:   { name: '공격력',   icon: 'fist',   per: 3,     fmt: v => `+${v}` },
   def:   { name: '방어력',   icon: 'house',  per: 2,     fmt: v => `+${v}` },
   hp:    { name: '최대 HP',  icon: 'heart',  per: 25,    fmt: v => `+${v}` },
@@ -133,14 +133,14 @@ const AWK = {
   skill: { name: '스킬 위력', icon: 'bubble', per: 0.02,  fmt: v => `+${Math.round(v * 100)}%`, desc: '등짝 스매싱·잔소리·집에 갈래·멘헤라 피해' },
   bori:  { name: '보리 공격', icon: 'paw',   per: 0.02,  bori: 1, fmt: v => `+${Math.round(v * 100)}%`, desc: '보리 물기·멍멍·우다다 피해' }
 };
-const awkNeed = aw => Math.round(AWK_BASE * (1 + AWK_STEP * aw));
+export const awkNeed = aw => Math.round(AWK_BASE * (1 + AWK_STEP * aw));
 const AWK_BASE = 60000, AWK_STEP = 0.25;
 
 // ===== 장비 도감: 처음 얻은 장비 기록. 1칸당 최대 HP +5, 세트(등급별·보리 용품) 완성 보너스 =====
-const BOOK_PER_HP = 5;
+export const BOOK_PER_HP = 5;
 /** 착용 세트 (11/25): 모두 끼고 있어야 효과. 4장 웨딩 준비 장비 7종 = 희수 5부위 + 보리 2부위 */
-const EQ_SETS = /** @type {any[]} */ ([]); // 장 파일이 regChapter 로 채움 (4장 웨딩 준비 세트)
-const BOOK_SETS = [
+export const EQ_SETS = /** @type {any[]} */ ([]); // 장 파일이 regChapter 로 채움 (4장 웨딩 준비 세트)
+export const BOOK_SETS = [
   { k: 'r0', name: '일반', rar: 0, txt: '최대 HP +80' },
   { k: 'r1', name: '희귀', rar: 1, txt: '공격 +12' },
   { k: 'r2', name: '영웅', rar: 2, txt: '방어 +12' },
@@ -150,14 +150,14 @@ const BOOK_SETS = [
   { k: 'bori', name: '보리 용품', rar: -1, bori: true, txt: '보리 공격 +15%' },
 ];
 /** 세트에 들어가는 장비 id (시작 장비 제외) */
-const bookIds = set => Object.keys(ITEMS).filter(id => { const it = ITEMS[id]; if (it.start || it.job) return false; if (set.ch) return !!it.bossOnly && (it.ch || 2) === set.ch; if (it.bossOnly) return false; return set.bori ? !!it.bori : !it.bori && it.rar === set.rar; });
-const BOOK_ALL = Object.keys(ITEMS).filter(id => !ITEMS[id].start && !ITEMS[id].job);
+export const bookIds = set => Object.keys(ITEMS).filter(id => { const it = ITEMS[id]; if (it.start || it.job) return false; if (set.ch) return !!it.bossOnly && (it.ch || 2) === set.ch; if (it.bossOnly) return false; return set.bori ? !!it.bori : !it.bori && it.rar === set.rar; });
+export const BOOK_ALL = Object.keys(ITEMS).filter(id => !ITEMS[id].start && !ITEMS[id].job);
 
 // ===== 희수 꾸미기 (능력치 없음, 겉모습만) =====
 /** 겉모습을 바꿀 수 있는 부위 (도감에 등록한 장비의 모습으로) */
-const LOOK_SLOTS = /** @type {HeroSlot[]} */ (['hat', 'armor', 'shoes', 'bag']);
+export const LOOK_SLOTS = /** @type {HeroSlot[]} */ (['hat', 'armor', 'shoes', 'bag']);
 /** 헤어 색. need 가 있으면 조건 달성 시 열림 */
-const HAIRS = [
+export const HAIRS = [
   { k: 'base', name: '흑갈색', H: '#2a1c1c', h: '#4a3430' },
   { k: 'choco', name: '초코 브라운', H: '#5a3422', h: '#80513a' },
   { k: 'ash', name: '애쉬 브라운', H: '#5f5450', h: '#857873' },

@@ -1,7 +1,14 @@
 // ===================== 클라우드 세이브 + 기기 옮기기 (Supabase hb_saves / hb_transfer_codes) =====================
 // - 저장할 때 1분에 한 번 서버에 백업 (1탄 세이브 + 2탄 세이브)
 // - 기기 옮기기: 옛 기기에서 8자리 코드(10분·1회용) → 새 기기에서 입력하면 세이브·랭킹 닉네임·안 받은 선물이 넘어옴
-const CLOUD = { from: '', t: 0, p: /** @type {Promise<boolean>|null} */ (null), last: '', has: /** @type {boolean|null} */ (null), timer: 0 };
+import { $ } from './engine.js';
+import { G, SAVEKEY, loadGame, setSaveLock } from './game.js';
+import { confirmBox, toast } from './ui.js';
+import { PV, SB, pvErr, pvpNickBox, sbInit } from './pvp.js';
+import { accRender } from './account.js';
+import { E2KEY } from './ep2core.js';
+
+export const CLOUD = { from: '', t: 0, p: /** @type {Promise<boolean>|null} */ (null), last: '', has: /** @type {boolean|null} */ (null), timer: 0 };
 const CLOUD_LOADED_FLAG = 'heesu_bori_cloud_loaded';
 
 function cloudPayload() {
@@ -22,7 +29,7 @@ async function cloudPushNow() {
 const CLOUD_REVERT_FLAG = 'heesu_bori_cloud_revert';
 /** 서버가 거절한 세이브 → 마지막 정상 세이브로 되돌리고 새로고침 */
 function cloudRevert(r) {
-  SAVE_LOCK = true; // 새로고침 전에 지금 값이 다시 저장되지 않게
+  setSaveLock(true); // 새로고침 전에 지금 값이 다시 저장되지 않게
   try {
     localStorage.setItem(SAVEKEY, JSON.stringify(r.data)); if (r.ep2) localStorage.setItem(E2KEY, JSON.stringify(r.ep2));
     sessionStorage.setItem(CLOUD_REVERT_FLAG, '1');
@@ -30,7 +37,7 @@ function cloudRevert(r) {
   location.reload();
 }
 /** 백업 (1분에 한 번으로 제한, force 면 바로) */
-function cloudSync(force) {
+export function cloudSync(force) {
   if (FORCE_EASY) return Promise.resolve(false);
   if (!force && Date.now() - CLOUD.t < 60000) { if (!CLOUD.timer) CLOUD.timer = setTimeout(() => { CLOUD.timer = 0; cloudSync(); }, 60000 - (Date.now() - CLOUD.t)); return CLOUD.p || Promise.resolve(false); }
   CLOUD.t = Date.now(); CLOUD.p = cloudPushNow().catch(() => false).finally(() => { CLOUD.p = null; }); return CLOUD.p;
@@ -39,7 +46,7 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 
 // ---------- 기기 옮기기 화면 ----------
 let cloudCodeT = 0;
-function cloudOpen(from) {
+export function cloudOpen(from) {
   if (FORCE_EASY) return;
   CLOUD.from = from; const has = !!loadGame();
   $('#cloudMk').disabled = !has; $('#cloudMkMsg').textContent = has ? '지금 이 기기의 희수를 다른 기기로 보내요' : '이 기기에는 아직 모험 기록이 없어요';
@@ -80,7 +87,7 @@ async function cloudUseCode() {
   };
   if (here) confirmBox(`이 기기의 지금 기록(Lv.${here.lv}${here.cleared ? ' · ' + (here.cleared + 1) + '회차' : ''})은 지워지고\n코드의 희수로 바뀌어요. 계속할까요?`, go); else go();
 }
-function cloudBoot() {
+export function cloudBoot() {
   if (FORCE_EASY) return;
   let nick = null; try { nick = sessionStorage.getItem(CLOUD_LOADED_FLAG); sessionStorage.removeItem(CLOUD_LOADED_FLAG); } catch (e) { }
   let rv = null; try { rv = sessionStorage.getItem(CLOUD_REVERT_FLAG); sessionStorage.removeItem(CLOUD_REVERT_FLAG); } catch (e) { }

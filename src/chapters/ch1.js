@@ -3,7 +3,13 @@
 // 1장 업적(c1·c5·c10)은 기본 업적 목록(achv.js)에 그대로 있음 (칭호 목록 순서 유지)
 
 // ---------- 컷신 ----------
-const INTRO = [
+import { $, choice, clamp, lerp, mkCanvas, pCirc, pEll, pRect, pRing, rand, sfx, shadeHex } from '../engine.js';
+import { regChapter } from '../chapter.js';
+import { OK, WORLD_H, WORLD_W, dLamp } from '../world.js';
+import { G, bubble, burst, hurtPlayer, moveToward, shootAt, spawnEnemy } from '../game.js';
+import { A_, CUT, clearA } from '../story.js';
+
+export const INTRO = [
   { scene: 'park', bgm: 'story',
     init(A) { clearA(A); Object.assign(A, { hee: { x: -140, pose: 'walk', dir: 'right' }, bori: { x: -122, pose: 'run', face: 1, y: 2 }, leash: true, dark: 0 }); },
     update(A, dt, t) { A.hee.x = Math.min(-14, -140 + t * 50); if (A.bori.pose === 'run') A.bori.x = A.hee.x + 18; if (A.hee.x >= -14 && A.hee.pose === 'walk') { A.hee.pose = 'idle'; A.hee.dir = 'down'; A.bori.pose = 'sit'; A.bori.pant = true; } },
@@ -39,7 +45,7 @@ const INTRO = [
   { scene: 'stars', init(A) { A.hee = null; A.sign = false; A.dark = 0; $('#mission').hidden = false; $('#skip').hidden = true; }, dur: 3.6 }
 ];
 
-const ENDING = [
+export const ENDING = [
   { scene: 'escape', bgm: 'story',
     init(A) { clearA(A); Object.assign(A, { hee: { x: -150, pose: 'walk', dir: 'right' }, bori: { x: -132, pose: 'run', face: 1, y: 2 } }); },
     update(A, dt, t) { A.hee.x = Math.min(10, -150 + t * 52); if (A.bori.pose === 'run') A.bori.x = A.hee.x + 18; if (A.hee.x >= 10 && A.hee.pose === 'walk') { A.hee.pose = 'idle'; A.hee.dir = 'down'; A.bori.pose = 'sit'; A.bori.pant = true; } },

@@ -1,6 +1,15 @@
 // ===================== 방치 보상 =====================
 // 게임을 안 하는 동안(타이틀·창 닫힘) 희수와 보리가 알아서 사냥한 몫. 최대 12시간, 10분부터 받기.
 // 기준: 지금 스테이지·회차 몬스터를 시간당 IDLE_KPH 마리 (엔드급 자동사냥 약 4,000마리의 7~8%)
+import { ICONS } from './sprites.js';
+import { $, audioInit, iconURL, sfx } from './engine.js';
+import { MONS, ZONES, awkNeed, xpNeed } from './data.js';
+import { curZone, zoneL } from './chapter.js';
+import { G, LM_GOLD, LM_XP, MAX_LV, loadGame, saveGame } from './game.js';
+import { TITLE_PD, showTitle, toast } from './ui.js';
+import { PXI, rewardCards, seasonModalShow, setSmNext } from './rank.js';
+import { GUIDE_DONE } from './guide.js';
+
 const IDLE_MAX = 12 * 3600, IDLE_MIN = 600, IDLE_KPH = 300, IDLE_STONE = 0.03;
 ICONS.chest = ['..KKKKKKK..', '.KDDDDDDDK.', 'KDdDDDDDdDK', 'KKKKKAKKKKK', 'KDDDKAKDDDK', 'KDdDKKKDdDK', 'KDDDDDDDDDK', 'KDdDDDDDdDK', 'KKKKKKKKKKK'];
 /** 첫 걸음 가이드를 끝내야 쌓임 (Lv1로 만들어 두고 며칠 뒤 열면 12시간치를 받아 초반을 건너뛰던 문제, 11/23).
@@ -23,11 +32,11 @@ function idleXp(pd, x) {
   return { lv, aw };
 }
 const idleLabel = s => s >= IDLE_MAX ? '가득 참!' : `${Math.floor(s / 3600)}시간 ${Math.floor(s % 3600 / 60)}분`;
-function idleTileHtml(pd) {
+export function idleTileHtml(pd) {
   const s = idleSec(pd), ok = s >= IDLE_MIN, on = idleOn(pd);
   return `<button class="tidle${ok ? ' ready' : ''}${s >= IDLE_MAX ? ' full' : ''}" id="tIdle"><em>방치 보상</em><img src="${iconURL('px_chest', ICONS.chest)}" alt=""><b>${ok ? idleLabel(s) : on ? '모으는 중' : '잠김'}</b><small>${ok ? '받기!' : on ? '10분부터' : '첫 걸음 후'}</small>${ok ? '<em class="dot"></em>' : ''}</button>`;
 }
-function idleClaim() {
+export function idleClaim() {
   const pd = loadGame(); if (!pd || G.state !== 'title') return;
   if (!idleOn(pd)) { toast('방치 보상은 첫 걸음 가이드를 끝내면 쌓이기 시작해요', 'sub'); return; }
   const s = idleSec(pd); if (s < IDLE_MIN) { toast(`방치 보상은 게임을 쉬는 동안 쌓여요 (10분부터, 최대 12시간)`, 'sub'); return; }
@@ -36,9 +45,9 @@ function idleClaim() {
   const extra = [up.lv ? `레벨 +${up.lv}` : '', up.aw ? `각성 ★+${up.aw}` : ''].filter(Boolean).join(' · ');
   $('#seasonModalBody').innerHTML = `<div class="sgot"><div class="sbig">${PXI('chest')}</div><h2>방치 보상<br><em>${idleLabel(s)}</em></h2><p class="smsub">쉬는 동안 희수와 보리가 몬스터 ${r.kills.toLocaleString()}마리를 잡았어요${extra ? '<br><b>' + extra + '</b>' : ''}<br>(최대 12시간까지 쌓여요)</p>`
     + rewardCards([{ kind: 'gold', amount: r.gold }, { kind: 'xp', amount: r.xp }, { kind: 'stones', amount: r.stones }], true) + '</div>';
-  SM_NEXT = () => showTitle(); seasonModalShow();
+  setSmNext(() => showTitle()); seasonModalShow();
 }
-function idleBoot() {
+export function idleBoot() {
   if (FORCE_EASY) return;
   setInterval(() => { try { if (G.state === 'title' && $('#tIdle') && !$('#title').hidden) { const pd = TITLE_PD; if (pd) { const box = document.createElement('div'); box.innerHTML = idleTileHtml(pd); $('#tIdle').replaceWith(box.firstChild); $('#tIdle').onclick = () => { audioInit(); idleClaim(); }; } } } catch (e) { } }, 20000);
 }

@@ -3,10 +3,18 @@
 // 오빠는 결혼 준비 내내 「응 좋아, 너무 좋아」만 말함 → 희수 멘헤라 포인트
 // 이 파일 = 4장 전부 (컷신·스테이지·몬스터·보스 패턴·웨딩 준비 장비·착용 세트·업적), 맨 아래 regChapter 로 등록
 
+import { choice, clamp, ctx, drawSpr, lerp, mkCanvas, pCirc, pRect, rand, sfx, shadeHex, sprFn } from '../engine.js';
+import { husPaint } from '../hee2.js';
+import { regChapter } from '../chapter.js';
+import { OK, WORLD_H, WORLD_W } from '../world.js';
+import { G, aimDash, bubble, burst, dashStep, hurtPlayer, moveToward, shootAt, spawnEnemy } from '../game.js';
+import { CUTK, fr, ispr, pc } from '../render.js';
+import { A_, clearA, pxLine } from '../story.js';
+
 /** 웨딩드레스·면사포 차림 희수 (컷신) */
-const WED_PAL = { hat: 'veil', cloth: 'gown', shoe: 'heel', bag: 'none', C: '#fffaf4', c: '#e8dcd0', W: '#fffaf4', w: '#e8dcd0', O: '#fffaf4', o: '#e0d4c8' };
+export const WED_PAL = { hat: 'veil', cloth: 'gown', shoe: 'heel', bag: 'none', C: '#fffaf4', c: '#e8dcd0', W: '#fffaf4', w: '#e8dcd0', O: '#fffaf4', o: '#e0d4c8' };
 /** 턱시도 오빠 (모자 대신 머리, 검은 재킷·흰 셔츠·검은 바지) */
-const husTuxSpr = () => sprFn('husTux2', () => husPaint({ tux: true }), 2);
+export const husTuxSpr = () => sprFn('husTux2', () => husPaint({ tux: true }), 2);
 
 function wedWall(SW, gy, top, bot, col) { for (let y = 0; y < gy - 4; y += 4) { const k = y / (gy - 4); fr(0, y, SW, 4, k < 0.5 ? top : bot); } fr(0, gy - 6, SW, 2, col); }
 function drawWedCut(SW, SH, mid, gy, T, mode) {

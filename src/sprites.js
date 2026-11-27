@@ -1,5 +1,5 @@
 // ===================== PIXEL ART DATA =====================
-const BASEPAL = {
+export const BASEPAL = {
   K:'#2b1b24',
   C:'#8d939e', c:'#6a707c', N:'#2e3a5c',
   H:'#2a1c1c', h:'#4a3430',
@@ -20,7 +20,7 @@ const BASEPAL = {
 };
 
 // ---------- HEESU (14w) ----------
-const HS = {
+export const HS = {
   headF:[
 "....KKKKKK....",
 "..KKCCCCCCKK..",
@@ -215,7 +215,7 @@ const HUS = {
 };
 
 // ---------- MONSTERS ----------
-const MONSPR = {
+export const MONSPR = {
   slime:[
 "....KKKK....",
 "..KKQQQQKK..",
@@ -373,7 +373,7 @@ Object.assign(MONSPR, {
 });
 
 // ---------- ICONS ----------
-const ICONS = {
+export const ICONS = {
   gimbap:[
 ".KKKKKKK.",
 "K4444444K",

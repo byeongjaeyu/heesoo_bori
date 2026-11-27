@@ -1,6 +1,13 @@
 // ===================== 첫 걸음 가이드 (신규 유저 첫 10분) =====================
 // pd.guide = 지금 단계(0부터). GUIDE.length 이상이면 끝. 단계마다 확정 보상.
 // done(pd, ev) 가 true 가 되면 다음 단계로. ev 는 guideEv(kind) 로 들어오는 사건(처치·스킬·강화·보스).
+import { $, sfx } from './engine.js';
+import { FOODS } from './data.js';
+import { G, calcStats, saveGame } from './game.js';
+import { confirmBox, toast } from './ui.js';
+import { PV } from './pvp.js';
+import { PXI, rewardCards, seasonModalShow } from './rank.js';
+
 /** @typedef {{ kind: string, n: number }} GuideEv */
 const GUIDE = [
   { text: '몬스터 5마리 잡기', how: '오른쪽 아래 주먹 버튼 (PC: J / Space)', hl: '#ctrl .atk', need: 5, ev: 'kill', r: { g: 300 } },
@@ -11,7 +18,7 @@ const GUIDE = [
   { text: 'Lv.3 달성하고 보리 찾기', how: '몬스터를 잡아 레벨을 올려요', hl: '', done: pd => !!pd.boriJoined, r: { f: { persimmon: 2, cornflakes: 2 } } },
   { text: 'STAGE 1 보스 잡기', how: '몬스터를 20마리 잡으면 보스가 나와요', hl: '', need: 1, ev: 'boss', r: { s: 10, a: 1800 } }
 ];
-const GUIDE_DONE = GUIDE.length;
+export const GUIDE_DONE = GUIDE.length;
 /** 진행 중 단계의 사건 수 (세이브 안 함: 단계 바뀌면 0부터) */
 let guideCnt = 0;
 
@@ -41,7 +48,7 @@ function guideCheck() {
   guideRender();
 }
 /** 사건 알림 (처치·스킬·강화 성공·보스) */
-function guideEv(kind) {
+export function guideEv(kind) {
   const pd = G.pd; if (!guideOn(pd)) return;
   const st = GUIDE[pd.guide || 0]; if (st.ev !== kind) return;
   guideCnt++; guideCheck();
@@ -75,7 +82,7 @@ function guideHighlight(sel) {
   if (guideHl) for (const e of document.querySelectorAll(guideHl)) e.classList.remove('gpulse');
   guideHl = sel; if (sel) for (const e of document.querySelectorAll(sel)) e.classList.add('gpulse');
 }
-function guideBoot() {
+export function guideBoot() {
   if (FORCE_EASY) return;
   // 상태로 끝나는 단계(스킬 배움·무기 착용·보리 합류)와 화면 표시를 주기적으로 확인
   setInterval(() => { try { guideCheck(); } catch (e) { } }, 500);

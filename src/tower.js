@@ -1,9 +1,22 @@
 // ===================== 보스 타워 (도전 모드) =====================
 // 층마다 보스 1마리 · 제한 시간 90초. 층이 오를수록 강해짐(난이도 단계 = towerL). 다음 층(최고 기록 +1)만 도전, 횟수 제한 없음
 // 첫 돌파 보상: 강화석(층 비례) · 5층마다 자동사냥 30분 · 10층마다 초월 장비 확정 + 강화석 2배 · 30층 한정 헤어. 칭호는 ACH tw10·tw30·tw50
+import { $, INP, VH, VW, choice, clamp, playBgm, sfx } from './engine.js';
+import { MONS, ZONES } from './data.js';
+import { buildWorld } from './world.js';
+import { G, bubble, calcStats, loadGame, loopMul, newBori, newPlayer, saveGame, spawnEnemy } from './game.js';
+import { banner, fadeTo, showHUD, showTitle, toast } from './ui.js';
+import { esc } from './pvp.js';
+import { autoOff } from './auto.js';
+import { rewardCards } from './rank.js';
+import { raidBossURL } from './raid.js';
+import { buddySpawn } from './buddy.js';
+import { achTag } from './achv.js';
+import { applyRewards, rwLabel } from './goal.js';
+
 const TOWER_TIME = 90;
 const TOWER_BOSSES = ['boss1', 'boss2', 'boss3', 'boss4', 'truck', 'breamking', 'bassgen', 'grouper', 'cutking', 'chickboss', 'cheerleader', 'raincloud'];
-const towerBest = pd => (pd.tower && pd.tower.best) || 0;
+export const towerBest = pd => (pd.tower && pd.tower.best) || 0;
 const towerBoss = f => TOWER_BOSSES[(f - 1) % TOWER_BOSSES.length];
 /** 층 난이도 단계 (회차 난이도와 같은 척도: 1장 n회차 = n-1). 10층까지는 완만하게 */
 const towerL = f => f <= 10 ? Math.round(f * 0.7 * 10) / 10 : Math.round((7 + (f - 10) * 1.2) * 10) / 10;
@@ -26,7 +39,7 @@ function towerReward(f) {
 const TOWER = { busy: false };
 
 // ---------- 로비 ----------
-function towerOpen() {
+export function towerOpen() {
   const saved = loadGame(); if (!saved) return;
   if (!(saved.cleared >= 1)) { toast('보스 타워는 1장(에버랜드 대탈출)을 한 번 깨면 열려요', 'warn'); return; }
   G.pd = saved; G.P = null; calcStats(); G.pvp = null; G.raid = null; G.inf = null; G.tower = null;
@@ -68,11 +81,11 @@ function startTower(f) {
   G.state = 'play'; showHUD(true); playBgm('boss'); banner(`보스 타워 ${f}층`, m0.name, 'boss'); sfx('boss');
   bubble(G.P, choice(['한 층 더!', '위로 올라가자!', '이번 층도 접수!']), 1.6);
 }
-function towerUpdate(dt) {
+export function towerUpdate(dt) {
   const V = G.tower; if (!V || V.over || G.state !== 'play') return;
   V.t -= dt; if (V.t <= 0) { V.t = 0; towerEnd(false, '시간 초과!'); }
 }
-function towerEnd(win, why) {
+export function towerEnd(win, why) {
   const V = G.tower; if (!V || V.over) return; V.over = true; INP.atk = false; if (typeof autoOff === 'function') autoOff();
   const pd = G.pd, f = V.f, used = Math.round(TOWER_TIME - V.t);
   let body = '';
@@ -98,7 +111,7 @@ function towerResAct(a) {
   else if (a === 'lobby') { G.state = 'towerLobby'; towerRender(); $('#tower').hidden = false; playBgm('boss'); }
   else showTitle();
 }
-function towerBoot() {
+export function towerBoot() {
   if (FORCE_EASY) return;
   $('#tower').addEventListener('click', e => { const b = /** @type {HTMLElement} */ (e.target).closest('[data-tw]'); if (!b) return; const a = b.getAttribute('data-tw');
     if (a === 'go') towerGo(); else if (a === 'close') { $('#tower').hidden = true; showTitle(); } });

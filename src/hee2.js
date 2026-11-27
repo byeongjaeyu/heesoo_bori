@@ -1,7 +1,12 @@
 // ===================== 희수 2배 도트 (28×42, 11/25) =====================
 // 화면 크기는 예전(14×21)과 같고 칸만 2배로 잘게 — 장비마다 모양이 달라 보이게.
 // look = { hat, cloth, shoe, bag } 모양 + 색. 장비 → 모양은 HEE_LOOK(장비 id), 없으면 아이콘으로 짐작.
-const HR = 2; // 해상도 배수
+import { BASEPAL } from './sprites.js';
+import { mkCanvas, shadeHex } from './engine.js';
+import { ITEMS, defOf } from './data.js';
+import { hairPal, newPD, visEq } from './game.js';
+
+export const HR = 2; // 해상도 배수
 const HEE_LOOK = {
   hat: { cap_tiara: 'capTiara', cap_rainbow: 'capRainbow', bucket: 'bucket', cheercap: 'ballcap', pearlpin: 'pin', veil: 'veil' },
   cloth: { fleece: 'fleece', hoodie: 'hoodie', padding: 'pad', aurorapad: 'pad', coat: 'coat', longpad: 'longpad', goosepad: 'longpad', vest: 'vest', uniform: 'jersey', wdress: 'gown', dress2: 'dress' },
@@ -27,7 +32,7 @@ function heeSeam(src, rows, cols, cx) {
   return b;
 }
 /** 28×42 캔버스에 희수 한 장 그리기. dir: down/up/right/phone, fr: 0 서기·1·2 걷기 */
-function heePaint(L, dir, fr) {
+export function heePaint(L, dir, fr) {
   const W = 14 * HR, H = 21 * HR, c = mkCanvas(W, H); let g = c.getContext('2d');
   const r = (x, y, w, h, col) => { if (w > 0 && h > 0 && col) { g.fillStyle = col; g.fillRect(x, y, w, h); } };
   const p = (x, y, col) => r(x, y, 1, 1, col);
@@ -250,7 +255,7 @@ function heePaint(L, dir, fr) {
   done();
   return c;
 }
-function heeLook(pd, over) {
+export function heeLook(pd, over) {
   const eq = pd ? visEq(pd) : newPD().eq, hr = hairPal(pd && pd.look && pd.look.hair);
   const col = (id, k) => (ITEMS[id] && ITEMS[id].color) || BASEPAL[k];
   const hc = col(eq.hat, 'C'), wc = col(eq.armor, 'W'), oc = col(eq.shoes, 'O'), gc = col(eq.bag, 'G');
@@ -265,7 +270,7 @@ function heeLook(pd, over) {
 
 // ===================== 오빠 2배 (28×42) =====================
 /** o: { tux, sleep } */
-function husPaint(o) {
+export function husPaint(o) {
   o = o || {}; const W = 28, H = 42, c = mkCanvas(W, H), g = c.getContext('2d');
   const r = (x, y, w, h, col) => { if (w > 0 && h > 0) { g.fillStyle = col; g.fillRect(x, y, w, h); } }, p = (x, y, col) => r(x, y, 1, 1, col);
   const rf = (x, y, w, h, rad, col) => { for (let i = 0; i < h; i++) { const d = Math.min(i, h - 1 - i), ins = d >= rad ? 0 : Math.round(rad - Math.sqrt(rad * rad - (rad - d) * (rad - d))); r(x + ins, y + i, w - ins * 2, 1, col); } };
@@ -299,7 +304,7 @@ function husPaint(o) {
 }
 // ===================== 보리 2배 =====================
 /** kind: sit/sitT(앉음 24×24) · runA/runB(달리기 30×20). cl = 옷 장비 */
-function boriPaint(kind, cl) {
+export function boriPaint(kind, cl) {
   const run = kind === 'runA' || kind === 'runB', W = run ? 30 : 24, H = run ? 20 : 24, c = mkCanvas(W, H), g = c.getContext('2d');
   const r = (x, y, w, h, col) => { if (w > 0 && h > 0) { g.fillStyle = col; g.fillRect(x, y, w, h); } }, p = (x, y, col) => r(x, y, 1, 1, col);
   const rf = (x, y, w, h, rad, col) => { for (let i = 0; i < h; i++) { const d = Math.min(i, h - 1 - i), ins = d >= rad ? 0 : Math.round(rad - Math.sqrt(rad * rad - (rad - d) * (rad - d))); r(x + ins, y + i, w - ins * 2, 1, col); } };

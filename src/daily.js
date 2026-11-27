@@ -1,6 +1,11 @@
 // ===================== 출석 + 일일 미션 =====================
 // 세이브(pd.att, pd.daily)에 기록. 날짜는 기기 기준(todayKey, auto.js). 1탄 세이브가 있어야 동작.
 
+import { $, sfx } from './engine.js';
+import { G, SAVEKEY, calcStats, hasSave, loadGame, saveGame } from './game.js';
+import { renderMenu, showTitle, toast } from './ui.js';
+import { todayKey } from './auto.js';
+
 /** 출석 7일 주기 (누적, 빠져도 초기화 안 됨). g = 골드 배수(레벨·회차 비례), s = 강화석, a = 자동사냥(초) */
 const ATT_REWARDS = [{ g: 2 }, { s: 10 }, { a: 1800 }, { g: 3 }, { s: 25 }, { a: 3600 }, { g: 5, s: 50, a: 7200 }];
 /** 미션 풀. 매일 kill + 나머지 중 3개 */
@@ -37,7 +42,7 @@ function dailyState(pd, day = todayKey()) {
   if (i >= 0 && !(D.got || []).includes('ep2')) D.picks[i] = Object.keys(MISSIONS).find(k => k !== 'ep2' && !D.picks.includes(k)) || 'kill';
   return D;
 }
-function dailyClaimable(pd, day = todayKey()) {
+export function dailyClaimable(pd, day = todayKey()) {
   if (!pd) return 0; const d = dailyState(pd, day); let n = (pd.att && pd.att.last === day) ? 0 : 1;
   for (const id of d.picks) if ((d.prog[id] || 0) >= MISSIONS[id].n && !d.got.includes(id)) n++;
   if (!d.all && d.got.length === d.picks.length) n++;
@@ -48,7 +53,7 @@ function dailyPD() { return G.pd || loadGame(); }
 function dailyCommit(pd) { if (G.pd === pd) saveGame(); else try { localStorage.setItem(SAVEKEY, JSON.stringify(pd)); } catch (e) { } }
 
 /** 미션 진행 +n (처치·강화 등에서 호출) */
-function dailyAdd(kind, n = 1) {
+export function dailyAdd(kind, n = 1) {
   if (FORCE_EASY || !hasSave()) return; const pd = dailyPD(); if (!pd) return;
   const d = dailyState(pd); if (!d.picks.includes(kind) || d.got.includes(kind)) return;
   const M = MISSIONS[kind], before = d.prog[kind] || 0; if (before >= M.n) return;
@@ -73,7 +78,7 @@ function dailyClaimAll(pd, day = todayKey()) {
 }
 
 // ---------- 화면 (메뉴 '미션' 탭과 타이틀 창이 같은 HTML) ----------
-function dailyHtml(pd) {
+export function dailyHtml(pd) {
   const day = todayKey(), d = dailyState(pd, day), att = pd.att || { last: '', n: 0 }, todayDone = att.last === day;
   const cur = todayDone ? (att.n - 1) % 7 : att.n % 7; // 오늘(받을/받은) 칸
   const cells = ATT_REWARDS.map((r, i) => { const got = todayDone ? i <= cur : i < cur, now = i === cur;
@@ -95,22 +100,22 @@ function dailyAct(act, v) {
   if (!txt) return false;
   toast(txt, 'lvl'); sfx('lvl'); if (G.pd === pd) calcStats(); dailyCommit(pd); return true;
 }
-function dailyOpen() {
+export function dailyOpen() {
   const pd = dailyPD(); if (!pd) return;
   $('#dailyBody').innerHTML = dailyHtml(pd); $('#daily').hidden = false; dailyScrollToday();
 }
 /** 출석 칸 가로 스크롤을 오늘(받을/받은) 칸으로 */
-function dailyScrollToday() {
+export function dailyScrollToday() {
   requestAnimationFrame(() => { for (const row of document.querySelectorAll('.attrow')) { const c = row.querySelector('.attc.now') || [...row.querySelectorAll('.attc.got')].pop(); if (c) row.scrollLeft = Math.max(0, /** @type {HTMLElement} */ (c).offsetLeft - row.clientWidth / 2 + /** @type {HTMLElement} */ (c).offsetWidth / 2 - /** @type {HTMLElement} */ (row).offsetLeft); } });
 }
 function dailyClose() { $('#daily').hidden = true; if (G.state === 'title') showTitle(); }
 /** 타이틀에서 그날 처음이면 출석 창 자동으로 (닉네임 창이 떠 있으면 다음에) */
-function dailyAutoOpen() {
+export function dailyAutoOpen() {
   if (FORCE_EASY || !hasSave()) return; let seen = ''; try { seen = sessionStorage.getItem('hb_daily_seen') || ''; } catch (e) { }
   const pd = loadGame(); if (!pd || (pd.att && pd.att.last === todayKey()) || seen === todayKey()) return;
   setTimeout(() => { if (G.state !== 'title' || !$('#pvpNick').hidden || !$('#cloud').hidden || !$('#daily').hidden) return; try { sessionStorage.setItem('hb_daily_seen', todayKey()); } catch (e) { } dailyOpen(); }, 900);
 }
-function dailyBoot() {
+export function dailyBoot() {
   if (FORCE_EASY) return;
   $('#daily').addEventListener('click', e => { const b = /** @type {HTMLElement} */ (e.target).closest('[data-d]'); if (!b) return; if (dailyAct(b.getAttribute('data-d'), b.getAttribute('data-v'))) { $('#dailyBody').innerHTML = dailyHtml(dailyPD()); dailyScrollToday(); } });
   $('#dailyX').onclick = dailyClose;

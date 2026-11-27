@@ -1,4 +1,36 @@
 // ===================== UI =====================
+import { HS, ICONS, MONSPR } from './sprites.js';
+import { B2PAL, BORI2, SPR2 } from './sprites2.js';
+import { $, ICONURL, INP, SND, audioInit, choice, fmtTime, hideJoy, iconURL, mkCanvas, playBgm, setSound, sfx, spr, sprBlit } from './engine.js';
+import { heeLook } from './hee2.js';
+import { AWK, BOOK_ALL, BOOK_PER_HP, BOOK_SETS, BSLOTS, EQ_SETS, FOODS, FOOD_ORDER, HAIRS, ITEMS, LOOK_SLOTS, RARITY, SKILLS, SKILL_TYPE, SLOTNAME, SLOTS, ZONES, awkNeed, bookIds, defOf, xpNeed } from './data.js';
+import { adventureGo, chCleared, chapterPick, chapterPickHtml, curZone, isChLast, setCurZone, zoneCh, zoneTitle } from './chapter.js';
+import { ENDING, INTRO } from './chapters/ch1.js';
+import { REF_GRADE, refCardHtml, refLineTxt, refLock, refOf, refine, xchBuy, xchCardHtml, xchPlan } from './refine.js';
+import { BAG_MAX, BRK_MAX, BRK_STEP, ENH_FX, ENH_MAX, G, ILV_BONUS, ILV_NEED, MAX_LV, addItem, awkLv, bookNotify, bookStats, brkCost, bubble, calcStats, canDismantle, dismantle, dropItem, eatFood, enhCost, enhOdds, enhReset, enhStoneCost, eqSetN, hairOk, hasSave, ilvOf, loadGame, newPD, ownsDef, pickQuickFood, respawn, saveGame, sellPrice, sk, startZone, stoneYield, tryBreak, tryEnhance, visEq, zoneQuota } from './game.js';
+import { JOBS, JOB_LV, jobAsk, jobHtml, jobOf, jobTag, jobTileHtml } from './job.js';
+import { boriSpr, heeSet, husSpr, itemURL } from './render.js';
+import { PV, esc, pvpClick, pvpFaceURL, pvpNickSave, pvpOpen, pvpResClick, pvpSnap } from './pvp.js';
+import { INF_WAVE_KILLS, infLeave, startInfinite } from './inf.js';
+import { AUTO_BETA, autoLeft, mmss } from './auto.js';
+import { RK, entryRegister, fighterURL, rankClose, rankOpen, rankSync, rankTab } from './rank.js';
+import { cloudOpen } from './cloud.js';
+import { accGateShow } from './account.js';
+import { aucOpen } from './auction.js';
+import { dailyAutoOpen, dailyClaimable, dailyHtml, dailyOpen, dailyScrollToday } from './daily.js';
+import { shareOpen } from './share.js';
+import { RAID, raidBossURL, raidOpen } from './raid.js';
+import { buddyActive, buddyLeftTxt, buddyUsedToday } from './buddy.js';
+import { achTag, achvHtml } from './achv.js';
+import { idleClaim, idleTileHtml } from './idle.js';
+import { pack2Open, pack2Seen, packOpen, packSeen, packTileHtml } from './pack.js';
+import { msOpen, msTileHtml } from './goal.js';
+import { towerBest, towerOpen } from './tower.js';
+import { plazaLeave, plazaOpen } from './plaza.js';
+import { endCut, playCut } from './story.js';
+import { replayHtml, replayPlay } from './replay.js';
+import { E2KEY, e2Go, e2HideAll, e2MenuClick, e2Open, e2Pause, e2PauseClick, e2ResClick } from './ep2core.js';
+
 const FINE = window.matchMedia && matchMedia('(pointer: fine)').matches;
 /** 2배 도트 캔버스 일부를 정사각 아이콘(64px)으로 */
 function hiURL(key, src, sx, sy, sw, sh) {
@@ -21,21 +53,21 @@ function faceURL(who) {
 const SPEAK = { bori2: { name: '보리', face: 'bori2' }, cat: { name: '냥갱', face: 'cat' }, nurse: { name: '간호사 선생님', face: 'nurse' }, somi: { name: '솜이', face: 'somi' }, hee: { name: '희수', face: 'hee' }, heePh: { name: '희수', face: 'heePh' }, bori: { name: '보리', face: 'bori' }, hus: { name: '남편', face: 'hus' }, mon: { name: '몬스터', face: 'mon' }, sys: {} };
 
 // ---------- toast / banner / fade ----------
-function toast(msg, cls) {
+export function toast(msg, cls) {
   const box = $('#toasts'); const el = document.createElement('div'); el.className = 'toast ' + (cls || ''); el.textContent = msg; box.appendChild(el);
   while (box.children.length > 4) box.firstChild.remove();
   setTimeout(() => el.classList.add('out'), 2300); setTimeout(() => el.remove(), 2800);
 }
 let bannerTO = null;
-function banner(sub, main, cls) { const b = $('#banner'); b.hidden = true; void b.offsetWidth; b.className = cls || ''; b.querySelector('small').textContent = sub; b.querySelector('b').textContent = main; b.hidden = false; clearTimeout(bannerTO); bannerTO = setTimeout(() => b.hidden = true, 2700); }
-function fadeTo(cb, label) { const f = $('#fade'); f.textContent = label || ''; f.classList.add('on'); setTimeout(() => { try { cb(); } catch (e) { console.error(e); } setTimeout(() => f.classList.remove('on'), 200); }, 500); }
+export function banner(sub, main, cls) { const b = $('#banner'); b.hidden = true; void b.offsetWidth; b.className = cls || ''; b.querySelector('small').textContent = sub; b.querySelector('b').textContent = main; b.hidden = false; clearTimeout(bannerTO); bannerTO = setTimeout(() => b.hidden = true, 2700); }
+export function fadeTo(cb, label) { const f = $('#fade'); f.textContent = label || ''; f.classList.add('on'); setTimeout(() => { try { cb(); } catch (e) { console.error(e); } setTimeout(() => f.classList.remove('on'), 200); }, 500); }
 
 // ---------- dialog ----------
-const DLG = { q: [], cur: null, shown: 0, cb: null };
+export const DLG = { q: [], cur: null, shown: 0, cb: null };
 /** 자동사냥 중 대사 자동 넘김 (컷신·필드 대사 공통) */
 let DLG_AUTO_T = 0;
-function dlgAuto(dt) { if (!G.auto || !DLG.cur || $('#dlg').hidden) { DLG_AUTO_T = 0; return; } if (DLG.shown < DLG.cur.text.length) { DLG_AUTO_T = 0; return; } DLG_AUTO_T += dt; if (DLG_AUTO_T > 2.4) { DLG_AUTO_T = 0; dlgTap(); } }
-function dialog(lines, cb) { DLG.q = lines.slice(); DLG.cb = cb; if (G.state === 'play') G.state = 'dialog'; INP.atk = false; nextLine(); }
+export function dlgAuto(dt) { if (!G.auto || !DLG.cur || $('#dlg').hidden) { DLG_AUTO_T = 0; return; } if (DLG.shown < DLG.cur.text.length) { DLG_AUTO_T = 0; return; } DLG_AUTO_T += dt; if (DLG_AUTO_T > 2.4) { DLG_AUTO_T = 0; dlgTap(); } }
+export function dialog(lines, cb) { DLG.q = lines.slice(); DLG.cb = cb; if (G.state === 'play') G.state = 'dialog'; INP.atk = false; nextLine(); }
 function nextLine() {
   const l = DLG.q.shift();
   if (!l) { $('#dlg').hidden = true; DLG.cur = null; if (G.state === 'dialog') G.state = 'play'; const cb = DLG.cb; DLG.cb = null; if (cb) cb(); return; }
@@ -44,13 +76,13 @@ function nextLine() {
   $('#dlgName').textContent = sp.name || ''; if (sp.face) $('#dlgFace').src = faceURL(sp.face);
   $('#dlgText').textContent = ''; if (l.do) l.do(); sfx('select');
 }
-function dlgTap() { if (!DLG.cur) return; if (DLG.shown < DLG.cur.text.length) { DLG.shown = DLG.cur.text.length; $('#dlgText').textContent = DLG.cur.text; return; } nextLine(); }
-function updateDialog(dt) { if (!DLG.cur) return; if (DLG.shown < DLG.cur.text.length) { DLG.shown = Math.min(DLG.cur.text.length, DLG.shown + dt * 36); $('#dlgText').textContent = DLG.cur.text.slice(0, Math.floor(DLG.shown)); } }
+export function dlgTap() { if (!DLG.cur) return; if (DLG.shown < DLG.cur.text.length) { DLG.shown = DLG.cur.text.length; $('#dlgText').textContent = DLG.cur.text; return; } nextLine(); }
+export function updateDialog(dt) { if (!DLG.cur) return; if (DLG.shown < DLG.cur.text.length) { DLG.shown = Math.min(DLG.cur.text.length, DLG.shown + dt * 36); $('#dlgText').textContent = DLG.cur.text.slice(0, Math.floor(DLG.shown)); } }
 
 // ---------- HUD ----------
 const HC = {}; let HE = null;
 function hset(k, fn, v) { if (HC[k] === v) return; HC[k] = v; fn(v); }
-function showHUD(on) {
+export function showHUD(on) {
   $('#hud').hidden = !on; $('#ctrl').hidden = !on; $('#keyHint').hidden = !on || !FINE;
   if (on) { for (const k in HC) delete HC[k]; setHudImages(); }
 }
@@ -60,7 +92,7 @@ function setHudImages() {
   const w = G.pd.eq.weapon; $('#atkImg').src = w === 'fist' ? iconURL('sk_fist', ICONS.fist) : itemURL(w);
   for (const [id, b] of SKBTN) $('#' + b + ' img').src = iconURL('sk_' + SKILLS[id].icon, ICONS[SKILLS[id].icon]);
 }
-function updateHUD() {
+export function updateHUD() {
   const P = G.P, st = G.st, pd = G.pd; if (!P || !st) return;
   if (!HE) HE = { lv: $('#lv'), hpF: $('#hpF'), hpT: $('#hpT'), mpF: $('#mpF'), mpT: $('#mpT'), xpF: $('#xpF'), gold: $('#goldT'), zone: $('#zoneT'), quest: $('#questT'), bossBar: $('#bossBar'), bossName: $('#bossName'), bossF: $('#bossF'), badge: $('#spBadge'), boriHud: $('#boriHud'), hp: $('#bHP'), mp: $('#bMP') };
   hset('lv', v => { HE.lv.textContent = v; HE.lv.classList.toggle('aw', v.length > 6); }, pd.aw ? 'Lv' + pd.lv + '★' + pd.aw : 'Lv.' + pd.lv);
@@ -102,18 +134,19 @@ function updateHUD() {
 }
 
 // ---------- menu ----------
-let MTAB = 'skill';
+export let MTAB = 'skill';
+export function setMTab(t) { MTAB = t; }
 const TABS = [['skill', '스킬'], ['equip', '장비'], ['bori', '보리'], ['daily', '미션'], ['book', '도감'], ['achv', '칭호'], ['job', '전직'], ['look', '꾸미기'], ['food', '음식'], ['shop', '배달앱'], ['story', '이야기'], ['info', '정보']];
-function openMenu(tab) { if (G.state !== 'play') return; G.state = 'menu'; INP.atk = false; INP.joy.on = false; hideJoy(); if (tab) MTAB = tab; else if (G.pd.sp > 0) MTAB = 'skill'; else if (G.pd.newItem) MTAB = 'equip'; else if (G.pd.newBori) MTAB = 'bori'; $('#menu').hidden = false; renderMenu(true); sfx('select'); }
+export function openMenu(tab) { if (G.state !== 'play') return; G.state = 'menu'; INP.atk = false; INP.joy.on = false; hideJoy(); if (tab) MTAB = tab; else if (G.pd.sp > 0) MTAB = 'skill'; else if (G.pd.newItem) MTAB = 'equip'; else if (G.pd.newBori) MTAB = 'bori'; $('#menu').hidden = false; renderMenu(true); sfx('select'); }
 /** 로비(타이틀)에서 메뉴 열기 — 음식 탭 빼고 장비·스킬·강화·도감·칭호·꾸미기 등 */
-function lobbyMenu(tab) {
+export function lobbyMenu(tab) {
   const saved = loadGame(); if (!saved || G.state !== 'title') return;
   G.pd = saved; G.P = null; G.bori = null; calcStats(); G.state = 'lobbyMenu'; $('#title').hidden = true;
   MTAB = tab || (G.pd.sp > 0 ? 'skill' : G.pd.newItem ? 'equip' : G.pd.newBori ? 'bori' : 'equip'); $('#menu').hidden = false; renderMenu(true);
 }
-function closeMenu() { if (G.state === 'lobbyMenu') { $('#menu').hidden = true; saveGame(); showTitle(); return; }
+export function closeMenu() { if (G.state === 'lobbyMenu') { $('#menu').hidden = true; saveGame(); showTitle(); return; }
   $('#menu').hidden = true; if (G.state === 'menu') G.state = 'play'; saveGame(); setHudImages(); }
-function renderMenu(top) {
+export function renderMenu(top) {
   const pd = G.pd;
   if (G.state === 'lobbyMenu' && MTAB === 'food') MTAB = 'equip';
   $('#tabs').innerHTML = TABS.filter(([k]) => !(G.state === 'lobbyMenu' && k === 'food')).map(([k, n]) => `<button class="tab ${k === MTAB ? 'on' : ''}" data-m="tab" data-v="${k}">${n}${k === 'skill' && pd.sp > 0 ? `<em>${pd.sp}</em>` : ''}${k === 'equip' && pd.newItem ? '<em>N</em>' : ''}${k === 'job' && pd.lv >= JOB_LV && !JOBS[pd.job] ? '<em>!</em>' : ''}${k === 'bori' && pd.newBori ? '<em>N</em>' : ''}${k === 'achv' && pd.achNew ? '<em>N</em>' : ''}${k === 'daily' && dailyClaimable(pd) ? `<em>${dailyClaimable(pd)}</em>` : ''}</button>`).join('');
@@ -149,7 +182,7 @@ function awkPanel() {
     return `<div class="awkr${lock ? ' dim' : ''}"><img src="${iconURL('sk_' + A.icon, ICONS[A.icon])}"><span><em>${A.name} <b>${A.fmt(A.per * lv)}</b></em><small>${lv}pt · 1pt당 ${A.fmt(A.per)}${A.max ? ` · 최대 ${A.max}pt` : ''}${A.desc ? '<br>' + A.desc : ''}</small></span><button class="btn pk sm" data-m="awk" data-v="${k}" ${ap > 0 && !full && !lock ? '' : 'disabled'}>${full ? 'MAX' : '+1'}</button></div>`; }).join('');
   return `<div class="awk"><div class="awkh"><span><b>각성 ★${aw}</b> <small>다음 각성까지 ${pct}%</small></span><span>각성 포인트 <b class="ok">${ap}</b> <button class="btn wh sm" data-m="awkReset" ${spent ? '' : 'disabled'}>초기화</button></span></div><div class="awkbar"><i style="width:${pct}%"></i></div>${rows}</div>`;
 }
-let ENH_SEL = { h: 'weapon', b: 'btoy' };
+export let ENH_SEL = { h: 'weapon', b: 'btoy' };
 function enhCard(slots) {
   const pd = G.pd, grp = slots === BSLOTS ? 'b' : 'h', bori = grp === 'b';
   let sl = ENH_SEL[grp]; if (!slots.includes(sl)) sl = slots[0];
@@ -299,7 +332,7 @@ function boriPreviewURL() {
   const toy = G.pd.beq && G.pd.beq.btoy; if (toy && ITEMS[toy]) { const ts = spr('t_' + toy, ICONS[ITEMS[toy].icon]); const bottom = 15 - 4 + Math.ceil(ts.H / 2); g.drawImage(ts.n, Math.round(8 - ts.W / 2), bottom - ts.H); }
   const o = mkCanvas(96, 96), og = o.getContext('2d'); og.imageSmoothingEnabled = false; og.drawImage(c, 0, 0, 96, 96); return o.toDataURL();
 }
-function confirmBox(text, yes) { $('#confirmT').textContent = text; $('#confirm').hidden = false; $('#cfYes').onclick = () => { $('#confirm').hidden = true; yes(); }; $('#cfNo').onclick = () => { $('#confirm').hidden = true; }; }
+export function confirmBox(text, yes) { $('#confirmT').textContent = text; $('#confirm').hidden = false; $('#cfYes').onclick = () => { $('#confirm').hidden = true; yes(); }; $('#cfNo').onclick = () => { $('#confirm').hidden = true; }; }
 function menuClick(e) {
   const t = e.target.closest('[data-m]'); if (!t || t.disabled) return;
   const m = t.dataset.m, v = t.dataset.v, pd = G.pd;
@@ -355,7 +388,8 @@ function menuClick(e) {
 function updateSndBtn() { $('#sndBtn').textContent = SND.on ? '♪' : '×'; }
 
 // ---------- screens ----------
-let TITLE_PD = /** @type {any} */ (null);
+export let TITLE_PD = /** @type {any} */ (null);
+export function setTitlePd(pd) { TITLE_PD = pd; }
 /** 로비 양옆 버튼 줄 위치: 왼쪽은 프로필 아래, 오른쪽은 로고 아래 (화면 높이·칭호 유무와 상관없이 안 겹치게) */
 function titleLayout() {
   if (FORCE_EASY || $('#title').hidden) return;
@@ -380,7 +414,7 @@ function titleLayout() {
 let TL_RAF = 0;
 if (typeof ResizeObserver === 'function') { const ro = new ResizeObserver(() => { cancelAnimationFrame(TL_RAF); TL_RAF = requestAnimationFrame(() => { try { titleLayout(); } catch (e) { } }); }); for (const id of ['#tbar', '#tbtns', '#tsideR', '#tsideL']) { const el = $(id); if (el) ro.observe(el); } }
 addEventListener('resize', () => { try { titleLayout(); } catch (e) { } });
-function showTitle() {
+export function showTitle() {
   if (typeof rankSync === 'function') { rankSync(); entryRegister(); dailyAutoOpen(); }
   if (G.plaza) plazaLeave(true);
   if (typeof accGateShow === 'function') setTimeout(accGateShow, 0);
@@ -444,7 +478,7 @@ function showTitle() {
   playBgm('story');
 }
 function newGame() { G.pd = newPD(); saveGame(); $('#title').hidden = true; G.world = null; calcStats(); playCut(INTRO, () => startZone(0)); }
-function showDeath() { $('#death p').innerHTML = G.inf ? '할로윈파티에선 병원비 없이<br>바로 다시 일어나요!' : '폰 배터리도 0%...<br>병원비로 골드 10%를 내고 다시 일어나요.'; $('#death').hidden = false; }
+export function showDeath() { $('#death p').innerHTML = G.inf ? '할로윈파티에선 병원비 없이<br>바로 다시 일어나요!' : '폰 배터리도 0%...<br>병원비로 골드 10%를 내고 다시 일어나요.'; $('#death').hidden = false; }
 function showEnd() {
   G.state = 'end'; $('#endScr h2').textContent = '희수와 보리의 에버랜드 대탈출'; const s = G.pd.stats; showHUD(false);
   $('#endStats').innerHTML = `최종 레벨 <b>Lv.${G.pd.lv}</b><br>처치한 몬스터 <b>${s.kills}</b>마리<br>멘헤라 공격 <b>${s.ults}</b>회<br>먹은 음식 <b>${s.eaten}</b>개 · 기절 <b>${s.deaths}</b>회<br>플레이 시간 <b>${fmtTime(s.time)}</b>`;
@@ -453,9 +487,9 @@ function showEnd() {
   $('#eAgain').onclick = () => { $('#endScr').hidden = true; setCurZone(G.pd, 0); saveGame(); fadeTo(() => startZone(0)); };
   $('#eTitle').onclick = () => { $('#endScr').hidden = true; setCurZone(G.pd, 0); saveGame(); showTitle(); };
 }
-function startEnding() { showHUD(false); playCut(ENDING, () => { showEnd(); }); }
+export function startEnding() { showHUD(false); playCut(ENDING, () => { showEnd(); }); }
 
-function setupUI() {
+export function setupUI() {
   $('#rankTabs').addEventListener('click', e => { const b = e.target.closest('[data-rt]'); if (b) { sfx('select'); rankTab(b.dataset.rt); } }); $('#rankClose').onclick = () => { sfx('select'); rankClose(); };
   $('#pvp').addEventListener('click', pvpClick); $('#pvpRes').addEventListener('click', pvpResClick);
   $('#pvpNickOk').onclick = () => pvpNickSave(); $('#pvpNickNo').onclick = () => { $('#pvpNick').hidden = true; if (RK.joining) { RK.joining = false; return; } if (!PV.me) { $('#pvp').hidden = true; showTitle(); } };

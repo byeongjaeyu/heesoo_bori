@@ -11,10 +11,12 @@
 - 로컬 크롬으로 e2e: `CHROME_PATH=/usr/bin/google-chrome npm run test:e2e` (없으면 `npx playwright install chromium`)
 
 ## 코드 구조 (중요)
-- `src/*.js`는 ES 모듈이 아니라 **하나로 이어 붙는 전역 스크립트**. 순서는 `build/hb-build.mjs`의 `ORDER`. 다른 파일의 함수/상수를 import 없이 바로 씀.
-  - 새 파일을 만들면 `ORDER`에 넣을 것. 앞 파일의 전역을 뒤 파일이 씀.
-  - 파일을 `.ts`로 바꿔도 됨(빌드 시 타입만 제거). 단 `import`/`export`를 쓰면 전역 공유가 깨지니 쓰지 말 것.
-  - HTML 문자열 안의 `onclick="rankJoin()"`처럼 전역 이름에 의존하는 곳이 있음.
+- **모듈 문법 + 이어 붙이는 배포본**(11/27 구조 개편): `src/*.js`·`src/chapters/*.js`는 파일마다 `import { a, b } from './x.js';`(한 줄)로 가져다 쓰고, 다른 파일이 쓰는 이름은 선언 앞에 `export`. `tsc`가 모듈로 검사 → 안 가져온 이름·다른 파일 변수에 대입하면 에러.
+  - 배포본은 아직 `build/hb-build.mjs`의 `stripModule`이 import 줄·`export `를 걷어내고 **`ORDER` 순서로 이어 붙인 전역 스크립트**(HTML 문자열 속 `onclick="rankJoin()"`·e2e `page.evaluate`가 전역 이름을 써서). 그래서 실행 순서는 여전히 ORDER: 앞 파일 최상위 코드가 뒤 파일 const 를 바로 쓰면 안 됨(함수 안에서 쓰는 건 괜찮음).
+  - 새 파일 = ORDER에 넣고 import/export 적기. `export default`·여러 줄 import 는 빌드가 거부. 다른 파일의 `let`을 바꿀 땐 주인 파일의 setter(`setCUTK`·`setMTab`·`setSaveLock`·`setSmNext`·`setTitlePd`·`setSBP`)를 씀.
+  - `tests/unit/modules.test.mjs`: 두 파일에 같은 최상위 이름 금지(이어 붙이면 덮어씀)·src 파일 전부 ORDER에 있는지·빌드가 모듈 문법을 걷어내는지.
+  - 진짜 번들러(Vite/esbuild 모듈 번들)로 바꾸려면 먼저 onclick 문자열을 addEventListener 로 바꾸고, e2e 가 쓰는 전역은 `window`에 따로 연결할 것.
+  - 파일을 `.ts`로 바꿔도 됨(빌드 시 타입만 제거).
 - `FORCE_EASY` — 빌드가 맨 앞에 주입. `true`면 원터치 에디션(2탄만, 큰 글씨, 서버 기능 없음).
 - 정적 파일(og 이미지, `.nojekyll`)은 `public/` → `dist/`로 그대로 복사.
 - 주요 파일: `chapters/chN.js`(장별 내용 전부), `data.js`(공용 장비·스킬·각성 표), `game.js`(전투·드롭·강화·세이브), `ui.js`(메뉴·HUD), `render.js`/`sprites*.js`(도트), `pvp.js`/`rank.js`/`cloud.js`(Supabase), `inf.js`(할로윈파티), `auto.js`(자동사냥), `daily.js`(출석·미션), `guide.js`(첫 걸음 가이드), `share.js`(카드 공유), `raid.js`(월드 보스), `ep2*.js`(2탄).

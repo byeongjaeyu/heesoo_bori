@@ -1,6 +1,15 @@
 // ===================== 온라인 광장 (Supabase Realtime: Presence + Broadcast) =====================
 // 비공개 채널 'plaza-1': 서버 정책(hb_plaza_ok)이 랭킹에 등록된·숨김/차단 아닌 희수만 들여보냄.
 // 접속 표시(Presence) = 닉네임·꾸미기·칭호·처음 위치 / 이동(Broadcast 'mv', 움직일 때 초당 약 3번) / 채팅(Broadcast 'chat')
+import { $, VH, VW, clamp, ctx, playBgm, rand } from './engine.js';
+import { buildWorld } from './world.js';
+import { G, calcStats, loadGame, newBori, newPlayer } from './game.js';
+import { JOBS, jobTag } from './job.js';
+import { FONT, W2S, achNameTag, roundRect, txt } from './render.js';
+import { banner, confirmBox, fadeTo, showHUD, showTitle, toast } from './ui.js';
+import { PV, SB, drawRival, esc, pvErr, pvpLoadMe, pvpSnap, sbInit } from './pvp.js';
+import { achTag } from './achv.js';
+
 const PLAZA_CAP = 30, PLAZA_MAX_CH = 20, PLAZA_SEND = 0.33, PLAZA_CHAT_MAX = 60, PLAZA_CHAT_GAP = 1.2, PLAZA_BUBBLE = 6, PLAZA_LOG = 60;
 const PZ = { busy: false, block: /** @type {Record<string, string>} */ ({}) };
 
@@ -19,7 +28,7 @@ function plazaMeta() {
 }
 
 // ---------- 들어가기 · 나가기 ----------
-async function plazaOpen() {
+export async function plazaOpen() {
   if (FORCE_EASY || PZ.busy) return; const saved = loadGame(); if (!saved) { toast('모험을 먼저 시작해야 광장에 갈 수 있어요', 'warn'); return; }
   PZ.busy = true; toast('광장에 연결하는 중...', 'sub');
   try {
@@ -68,7 +77,7 @@ function plazaJoin(no) {
       else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') { G.plaza.ok = false; plazaSys('광장 서버에 연결하지 못했어요. 잠시 뒤 다시 들어와 주세요'); }
     });
 }
-function plazaLeave(silent) {
+export function plazaLeave(silent) {
   const Z = G.plaza; if (!Z) return; G.plaza = null;
   try { if (Z.ch) { Z.ch.untrack().catch(() => { }); SB.removeChannel(Z.ch); } } catch (e) { }
   document.body.classList.remove('inPlaza'); $('#plazaUI').hidden = true; $('#plazaList').hidden = true;
@@ -91,7 +100,7 @@ function plazaMove(p) {
   const Z = G.plaza; if (!Z || !p || !p.u) return; const o = Z.others[p.u]; if (!o) return;
   o.tx = clamp(+p.x || 0, 0, G.world.W); o.ty = clamp(+p.y || 0, 0, G.world.H); if (typeof p.a === 'number') o.ang = p.a;
 }
-function plazaUpdate(dt) {
+export function plazaUpdate(dt) {
   const Z = G.plaza; if (!Z || !G.P) return;
   // 내 위치 보내기: 움직였을 때만 초당 약 3번
   Z.sendT -= dt; const P = G.P, cur = { x: Math.round(P.x), y: Math.round(P.y) };
@@ -159,7 +168,7 @@ async function plazaAct(a, u) {
 }
 
 // ---------- 그리기 (render.js 에서 호출) ----------
-function plazaDrawLayer(L) { for (const o of plazaList()) L.push({ y: o.y, f: () => drawRival(o) }); }
+export function plazaDrawLayer(L) { for (const o of plazaList()) L.push({ y: o.y, f: () => drawRival(o) }); }
 function plazaWrap(s, n) { const a = [...s], out = []; for (let i = 0; i < a.length && out.length < 3; i += n) out.push(a.slice(i, i + n).join('')); if (a.length > n * 3) out[2] = out[2].slice(0, n - 1) + '…'; return out; }
 function plazaBubble(t, x, y, size) {
   const lines = plazaWrap(t, 12); ctx.font = `bold ${Math.round(size)}px ${FONT}`;
@@ -167,7 +176,7 @@ function plazaBubble(t, x, y, size) {
   ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#2b1b24'; ctx.lineWidth = Math.max(2, size * 0.16); roundRect(bx, by, w, h, size * 0.45); ctx.fill(); ctx.stroke();
   ctx.fillStyle = '#2b1b24'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; lines.forEach((l, i) => ctx.fillText(l, x, by + size * 0.3 + lh * (i + 0.5)));
 }
-function plazaOverlay(U) {
+export function plazaOverlay(U) {
   const Z = G.plaza; if (!Z) return;
   for (const o of plazaList()) {
     const [x, y] = W2S(o.x, o.y - 30); txt(o.nick, x, y, U * 4.2, '#ffffff', '#2b1b24'); achNameTag(o.snap, x, y - U * 0.8, U);
@@ -176,7 +185,7 @@ function plazaOverlay(U) {
   if (Z.me && G.P) { const [x, y] = W2S(G.P.x, G.P.y - 30); plazaBubble(Z.me, x, y - U * 3, U * 4.6); }
 }
 
-function plazaBoot() {
+export function plazaBoot() {
   if (FORCE_EASY) return;
   $('#plazaSend').onclick = () => { plazaSend(); };
   $('#plazaIn').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); plazaSend(); } });

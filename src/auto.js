@@ -1,13 +1,18 @@
 // ===================== 자동사냥 (하루 30분 쿠폰) =====================
+import { INP, choice, sfx } from './engine.js';
+import { PREMIUM, SKILLS } from './data.js';
+import { G, bubble, dirOf, eatFood, pickQuickFood, saveGame, sk, trySkill } from './game.js';
+import { toast } from './ui.js';
+
 const AUTO_DAILY = 1800;
 /** 베타 기간에는 자동사냥 무제한·무료(11/27 사용자 요청). 쿠폰·보너스 시간은 줄지 않고 그대로 쌓임 → 정식 때 free: false */
-const AUTO_BETA = { free: true };
-const todayKey = () => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
-const mmss = s => { s = Math.max(0, Math.ceil(s)); const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, ss = String(s % 60).padStart(2, '0'); return h ? `${h}:${String(m).padStart(2, '0')}:${ss}` : `${m}:${ss}`; };
+export const AUTO_BETA = { free: true };
+export const todayKey = () => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
+export const mmss = s => { s = Math.max(0, Math.ceil(s)); const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, ss = String(s % 60).padStart(2, '0'); return h ? `${h}:${String(m).padStart(2, '0')}:${ss}` : `${m}:${ss}`; };
 // 하루 쿠폰(자정 충전) + 선물 받은 보너스 시간(자정에 안 사라짐). 쓸 땐 하루 쿠폰부터
-function autoLeft() { const pd = G.pd; if (!pd) return 0; if (!pd.auto || pd.auto.day !== todayKey()) pd.auto = { day: todayKey(), left: AUTO_DAILY }; return pd.auto.left + (pd.autoBonus || 0); }
-function autoOff(msg) { G.auto = false; G.autoMove = null; G.autoAtk = false; if (msg) toast(msg, 'sub'); saveGame(); }
-function autoToggle() {
+export function autoLeft() { const pd = G.pd; if (!pd) return 0; if (!pd.auto || pd.auto.day !== todayKey()) pd.auto = { day: todayKey(), left: AUTO_DAILY }; return pd.auto.left + (pd.autoBonus || 0); }
+export function autoOff(msg) { G.auto = false; G.autoMove = null; G.autoAtk = false; if (msg) toast(msg, 'sub'); saveGame(); }
+export function autoToggle() {
   if (!G.P || G.state !== 'play') return;
   if (G.pvp) { toast('PvP에선 자동사냥을 쓸 수 없어요', 'warn'); sfx('warn'); return; }
   if (G.auto) { autoOff(AUTO_BETA.free ? '자동사냥 OFF' : '자동사냥 OFF · 남은 시간 ' + mmss(autoLeft())); sfx('select'); return; }
@@ -31,7 +36,7 @@ function autoSkills(P, tgt, d) {
   if (ok('nag') && d < 110 && (near(120) >= 2 || tgt.boss || tgt.elite)) return trySkill('nag');
   if (ok('smash') && d < 28) return trySkill('smash');
 }
-function autoTick(dt) {
+export function autoTick(dt) {
   if (!G.auto) { G.autoMove = null; G.autoAtk = false; return; }
   if (G.pvp || !G.P) { autoOff(); return; }
   if (!AUTO_BETA.free) {

@@ -1,7 +1,21 @@
 // ===================== 랭킹 대시보드 (전투력 · PvP) =====================
-const RK = { tab: 'power', cache: {}, from: 'title' };
+import { ICONS } from './sprites.js';
+import { $, INP, iconURL, mkCanvas, sfx, spr, sprBlit } from './engine.js';
+import { ITEMS, RARITY, SLOTS, ZONES } from './data.js';
+import { CH1_N } from './chapter.js';
+import { G, MAX_LV, SAVEKEY, addItem, calcStats, keysOf, loadGame, newPD } from './game.js';
+import { jobTag } from './job.js';
+import { boriSpr, heeSet } from './render.js';
+import { showHUD, showTitle, toast } from './ui.js';
+import { PV, SB, esc, pvErr, pvpLoadMe, pvpNickBox, pvpUpload, sbInit } from './pvp.js';
+import { tradeClaim } from './trade.js';
+import { GUIDE_DONE } from './guide.js';
+import { raidGotOpen } from './raid.js';
+import { achTag } from './achv.js';
+
+export const RK = { tab: 'power', cache: {}, from: 'title' };
 const validEq = eq => (eq && SLOTS.every(sl => eq[sl] && ITEMS[eq[sl]])) ? eq : newPD().eq;
-function fighterURL(snap, scale) {
+export function fighterURL(snap, scale) {
   scale = scale || 4; const key = JSON.stringify([snap.vis || snap.eq, snap.hair, snap.bori, snap.beq, scale]); if (RK.cache[key]) return RK.cache[key];
   const keep = G.pd; const beq = snap.bori && snap.beq ? { bcloth: ITEMS[snap.beq.bcloth] ? snap.beq.bcloth : null, btoy: ITEMS[snap.beq.btoy] ? snap.beq.btoy : null } : { bcloth: null, btoy: null };
   G.pd = /** @type {SaveData} */ (/** @type {unknown} */ ({ eq: validEq(snap.vis || snap.eq), beq, look: { hair: snap.hair } })); // 초상화 렌더용 임시 세이브
@@ -15,11 +29,11 @@ function fighterURL(snap, scale) {
     return RK.cache[key] = o.toDataURL();
   } catch (e) { return ''; } finally { G.pd = keep; }
 }
-function rankOpen(from) {
+export function rankOpen(from) {
   RK.from = from || 'title'; RK.synced = false; $('#title').hidden = true; showHUD(false); G.state = 'rank'; $('#rank').hidden = false; rankTab(RK.tab);
 }
-function rankClose() { $('#rank').hidden = true; if (location.hash === '#ranking') history.replaceState(null, '', location.pathname); showTitle(); }
-async function rankTab(t) {
+export function rankClose() { $('#rank').hidden = true; if (location.hash === '#ranking') history.replaceState(null, '', location.pathname); showTitle(); }
+export async function rankTab(t) {
   RK.tab = t; for (const b of document.querySelectorAll(/** @type {'button'} */ ('#rankTabs button'))) b.classList.toggle('on', b.dataset.rt === t);
   $('#rankSum').innerHTML = ''; $('#rankList').innerHTML = '<div class="pvmsg">랭킹을 불러오는 중...</div>';
   try {
@@ -34,7 +48,7 @@ async function rankTab(t) {
     rankRender(data || [], count || (data || []).length);
   } catch (e) { $('#rankList').innerHTML = `<div class="pvmsg">랭킹을 불러오지 못했어요: ${esc(pvErr(e))}</div>`; }
 }
-function rankJoin() { RK.joining = true; pvpNickBox(true); $('#pvpNickMsg').textContent = '랭킹·PvP에서 쓸 닉네임을 정해주세요 (2~10자)'; }
+export function rankJoin() { RK.joining = true; pvpNickBox(true); $('#pvpNickMsg').textContent = '랭킹·PvP에서 쓸 닉네임을 정해주세요 (2~10자)'; }
 function rankJoinBar() {
   if (FORCE_EASY || PV.me || !PV.notReg) return '';
   const has = !!(G.pd || loadGame());
@@ -69,14 +83,14 @@ async function rankSyncNow() {
   await tradeClaim().catch(() => 0);
   return true;
 }
-function rankSync(force) {
+export function rankSync(force) {
   if (FORCE_EASY || (!force && Date.now() - rankSyncT < 60000)) return rankSyncP || Promise.resolve(false);
   rankSyncT = Date.now(); rankSyncP = rankSyncNow().catch(() => false).finally(() => { rankSyncP = null; }); return rankSyncP;
 }
 
 // 처음 들어오면 바로 닉네임 등록 (원터치 에디션 제외, 서버 연결 실패 시엔 그냥 넘어감)
 let entryRegDone = false;
-async function entryRegister() {
+export async function entryRegister() {
   if (FORCE_EASY || entryRegDone) return;
   // 처음 온 사람은 바로 게임부터: 첫 걸음 가이드를 끝냈거나(Lv5·2회차 이상 포함) 했을 때만 닉네임을 물어봄
   const pd = loadGame(); if (!pd || ((pd.guide || 0) < GUIDE_DONE && (pd.lv || 1) < 5 && !pd.cleared)) return;
@@ -100,7 +114,7 @@ function giftItems(pd, r) {
   return ids;
 }
 // 운영자 선물(hb_grants) 받기: 서버에서 받은 표시를 남기고 세이브에 더함
-async function claimGifts(pd) {
+export async function claimGifts(pd) {
   if (FORCE_EASY || !pd || !SB) return;
   const { data, error } = await SB.rpc('hb_claim_grants', { p_kinds: ['auto', 'gold', 'stage', 'awaken', 'stones', 'level', 'items'] }); if (error || !data || !data.length) return;
   const tgt = G.pd || pd; // 그 사이 게임을 시작했으면 실제 플레이 중인 세이브에 넣음
@@ -158,7 +172,7 @@ async function claimGifts(pd) {
 
 // ---------- 주간 PvP 시즌 (서버 hb_season_info: 부르면 필요 시 정산까지) ----------
 let SEASON = /** @type {any} */ (null);
-async function seasonLoad() {
+export async function seasonLoad() {
   if (FORCE_EASY) return null;
   try { await sbInit(); const { data, error } = await SB.rpc('hb_season_info'); if (!error && data) SEASON = data; } catch (e) { }
   return SEASON;
@@ -181,18 +195,18 @@ function pxMedalRows(M, m, d) {
 ICONS.medal1 = pxMedalRows('A', 'D', 1); ICONS.medal2 = pxMedalRows('G', 'j', 2); ICONS.medal3 = pxMedalRows('F', 'f', 3); ICONS.medal4 = pxMedalRows('U', 'u', 0);
 ICONS.rosette = ['..KK.K.KK..', '.KQQKQKQQK.', 'KQQQQQQQQQK', '.KQQeeeQQK.', 'KQQeAAAeQQK', '.KQeAAAeQK.', 'KQQeAAAeQQK', '.KQQeeeQQK.', 'KQQQQQQQQQK', '.KQQKQKQQK.', '..KK.K.KK..', '...KVK.KVK.', '...KVK.KVK.', '...KK...KK.'];
 /** 픽셀 아이콘 <img> (medal1~4·rosette·trophy 등) */
-const PXI = (k, cls) => `<img class="pxi${cls ? ' ' + cls : ''}" src="${iconURL('px_' + k, ICONS[k])}" alt="">`;
-const MEDAL = r => PXI(r === 1 ? 'medal1' : r === 2 ? 'medal2' : r === 3 ? 'medal3' : 'medal4');
-const fmtGold = n => n >= 10000 ? `${(n / 10000).toLocaleString()}만` : n.toLocaleString();
+export const PXI = (k, cls) => `<img class="pxi${cls ? ' ' + cls : ''}" src="${iconURL('px_' + k, ICONS[k])}" alt="">`;
+export const MEDAL = r => PXI(r === 1 ? 'medal1' : r === 2 ? 'medal2' : r === 3 ? 'medal3' : 'medal4');
+export const fmtGold = n => n >= 10000 ? `${(n / 10000).toLocaleString()}만` : n.toLocaleString();
 const fmtAuto = s => s >= 3600 ? `${Math.round(s / 360) / 10}시간` : `${Math.round(s / 60)}분`;
 /** 보상 아이콘 카드 HTML. items: [{kind:'stones'|'gold'|'auto', amount}] */
-function rewardCards(items, big) {
+export function rewardCards(items, big) {
   const def = { stones: ['stone', '강화석', n => n + '개'], gold: ['gcoin', '골드', n => fmtGold(n) + 'G'], auto: ['alarm', '자동사냥', fmtAuto], xp: ['bolt', '경험치', n => fmtGold(n)] };
   return `<div class="rwcs${big ? ' big' : ''}">` + items.filter(it => def[it.kind] && it.amount > 0).map((it, i) => { const [ic, nm, f] = def[it.kind];
     return `<div class="rwc" style="animation-delay:${i * 0.12}s"><img src="${iconURL('i_' + ic, ICONS[ic])}"><b>${f(Number(it.amount))}</b><small>${nm}</small></div>`; }).join('') + '</div>';
 }
-const rwItems = r => [{ kind: 'stones', amount: r.s }, { kind: 'gold', amount: r.g || 0 }, { kind: 'auto', amount: r.a || 0 }];
-function seasonBar() {
+export const rwItems = r => [{ kind: 'stones', amount: r.s }, { kind: 'gold', amount: r.g || 0 }, { kind: 'auto', amount: r.a || 0 }];
+export function seasonBar() {
   if (!SEASON) return '';
   const top = (SEASON.top || []).map(t => `${MEDAL(t.rank)} ${esc(t.nickname)}`).join(' · ');
   const mine = SEASON.mine ? `<small class="smine">내 지난 시즌: ${MEDAL(SEASON.mine.rank)} ${SEASON.mine.rank}위</small>` : '';
@@ -211,6 +225,7 @@ function seasonGotOpen(rank, items) {
   seasonModalShow(); sfx('lvl');
 }
 let SM_PAUSED = false;
-function seasonModalShow() { if (G.state === 'play') { G.state = 'menu'; SM_PAUSED = true; INP.atk = false; } $('#seasonModal').hidden = false; }
-let SM_NEXT = /** @type {null|(() => void)} */ (null);
+export function seasonModalShow() { if (G.state === 'play') { G.state = 'menu'; SM_PAUSED = true; INP.atk = false; } $('#seasonModal').hidden = false; }
+export let SM_NEXT = /** @type {null|(() => void)} */ (null);
+export function setSmNext(f) { SM_NEXT = f; }
 function seasonModalClose() { $('#seasonModal').hidden = true; if (SM_NEXT) { const f = SM_NEXT; SM_NEXT = null; setTimeout(f, 80); } if (SM_PAUSED && G.state === 'menu' && $('#menu').hidden) G.state = 'play'; SM_PAUSED = false; }

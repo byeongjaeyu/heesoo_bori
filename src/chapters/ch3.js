@@ -3,6 +3,13 @@
 // 이 파일 = 3장 전부 (컷신·경기 장면·스테이지·몬스터·보스 패턴·응원 장비·업적), 맨 아래 regChapter 로 등록
 
 // ===================== 야구 경기 그리기 (컷신·응원석 스테이지 공용) =====================
+import { choice, clamp, ctx, lerp, mkCanvas, pCirc, pEll, pRect, rand, sfx } from '../engine.js';
+import { regChapter } from '../chapter.js';
+import { OK, WORLD_H, WORLD_W, dLamp } from '../world.js';
+import { G, aimDash, bubble, burst, dashStep, hurtPlayer, moveToward, shootAt, spawnEnemy } from '../game.js';
+import { CUTK, cloud, fr, pc, skyBands } from '../render.js';
+import { A_, CUT, clearA } from '../story.js';
+
 /** 다이아몬드 기하: 홈(hx,hy), 1·3루 가로 거리 w, 2루까지 세로 d2, 외야 펜스 wallY */
 function bbGeo(hx, hy, w, d2, wallY) { return { hx, hy, w, d2, wallY, b1: [hx + w, hy - d2 / 2], b2: [hx, hy - d2], b3: [hx - w, hy - d2 / 2], m: [hx, hy - d2 * 0.48] }; }
 /** 내야(흙·잔디·베이스·파울라인). g = 캔버스 컨텍스트(바닥 캔버스 또는 화면) */
@@ -28,7 +35,7 @@ function bbRun(F, path, u) { const pts = path.map(k => k === 'h' ? [F.hx, F.hy] 
 /**
  * 경기 장면. cfg.def/off = [유니폼, 모자], cfg.ev = { t0, kind: 'hr'|'hit', tx, ty } (없으면 투구만 반복)
  */
-function bbPlay(F, T, cfg) {
+export function bbPlay(F, T, cfg) {
   const { hx, hy, w, d2 } = F, [ds, dc] = cfg.def, [os, oc] = cfg.off, ofY = Math.max(F.wallY + 12, hy - d2 * 1.45);
   const ev = cfg.ev, t = ev ? T - ev.t0 : -1;
   const fld = { lf: [hx - w * 1.45, ofY + 4], cf: [hx, ofY], rf: [hx + w * 1.45, ofY + 4] };

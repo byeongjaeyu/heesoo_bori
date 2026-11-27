@@ -1,6 +1,6 @@
 // ===================== EP2 PIXEL ART =====================
-const B2PAL = { F: '#d98a36', f: '#9c5a1c', W: '#d98a36', w: '#b86e26', Y: '#f8e8cc', m: '#fdf0de' };
-const BORI2 = {
+export const B2PAL = { F: '#d98a36', f: '#9c5a1c', W: '#d98a36', w: '#b86e26', Y: '#f8e8cc', m: '#fdf0de' };
+export const BORI2 = {
   sit: [
 "..KK......KK..",
 ".KfFK....KFfK.",
@@ -154,7 +154,7 @@ const BORI2 = {
 "..KKKKKKKKKKKKKKK.",
 ".................."]
 };
-const SPR2 = {
+export const SPR2 = {
   cat: [
 "..........K..K.",
 "K.........KJKJK",

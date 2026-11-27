@@ -1,19 +1,42 @@
 // ===================== GAME CORE =====================
-const G = {
+import { MONSPR } from './sprites.js';
+import { INP, VH, VW, angDiff, choice, clamp, fmtNumText, lerp, moveVec, playBgm, rand, randi, sfx, sprHi, wpick } from './engine.js';
+import { AWK, BOOK_ALL, BOOK_PER_HP, BOOK_SETS, BSLOTS, EQ_SETS, FOODS, FOOD_ORDER, HAIRS, ITEMS, LOOK_SLOTS, MENHERA_LINES, MONS, NAG_WORDS, PHONE_WORDS, PREMIUM, SKILLS, SLOTS, ZONES, awkNeed, bookIds, defOf, xpNeed } from './data.js';
+import { CH1_N, CHAPTERS, chCleared, chClr, chFinish, chStageStory, isChLast, setCurZone, zoneCh, zoneL } from './chapter.js';
+import { ENDING } from './chapters/ch1.js';
+import { buildWorld } from './world.js';
+import { refSum } from './refine.js';
+import { jobApply, jobFeedOk, jobSigDef, jobTick } from './job.js';
+import { banner, dialog, fadeTo, openMenu, showDeath, showHUD, startEnding, toast } from './ui.js';
+import { PVP_MUL, pvpEnd, pvpForfeit, pvpUpdate } from './pvp.js';
+import { infKill, infSpawner, infWaveMul } from './inf.js';
+import { autoTick, autoToggle } from './auto.js';
+import { rankSync } from './rank.js';
+import { cloudSync } from './cloud.js';
+import { dailyAdd } from './daily.js';
+import { guideEv } from './guide.js';
+import { raidEnd, raidHit, raidUpdate } from './raid.js';
+import { buddyOpen, buddySpawn, buddyUpdate } from './buddy.js';
+import { msGot } from './goal.js';
+import { towerBest, towerEnd, towerUpdate } from './tower.js';
+import { plazaUpdate } from './plaza.js';
+import { playCut } from './story.js';
+
+export const G = {
   state: 'title', zone: 0, world: null, time: 0, pd: /** @type {SaveData|null} */ (null), raid: /** @type {any} */ (null), tower: /** @type {any} */ (null), plaza: /** @type {any} */ (null), flashT: 0, buddy: /** @type {any} */ (null), st: null, P: null, bori: null,
   enemies: [], projs: [], fx: [], drops: [], parts: [], texts: [], bubbles: [],
   cam: { x: 0, y: 0 }, shake: 0, hitstop: 0, flash: 0,
   zoneKills: 0, bossSpawned: false, bossDefeated: false, boss: null, exitOpen: false, spawnT: 1, eid: 0,
   pendingEvent: null, ult: null, evt: null, saveT: 0
 };
-const monSpr = n => sprHi('m_' + n, MONSPR[n]);
+export const monSpr = n => sprHi('m_' + n, MONSPR[n]);
 
 // ---------- persistent data ----------
-const SAVEKEY = 'heesu_bori_save_v1';
+export const SAVEKEY = 'heesu_bori_save_v1';
 /** @returns {SaveData} */
 /** 세이브 고유 번호 (기기 옮기기 후 옛 기기에서 같은 희수로 중복 등록 막는 용도) */
 const newSid = () => { try { if (crypto && crypto.randomUUID) return crypto.randomUUID(); } catch (e) { } return 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 12); };
-function newPD() {
+export function newPD() {
   return {
     sid: newSid(),
     guide: 0,
@@ -25,10 +48,11 @@ function newPD() {
   };
 }
 /** 서버 세이브로 되돌리는 중엔 저장 막음 (cloudRevert) */
-let SAVE_LOCK = false;
-function saveGame() { if (!G.pd || SAVE_LOCK) return; if (G.state !== 'title' && G.state !== 'lobbyMenu') G.pd.idleT = Date.now(); G.pd.svT = Date.now(); try { localStorage.setItem(SAVEKEY, JSON.stringify(G.pd)); } catch (e) { } if (G.state === 'play' && !G.pvp && typeof rankSync === 'function') rankSync(); if (typeof cloudSync === 'function') cloudSync(); }
+export let SAVE_LOCK = false;
+export function setSaveLock(v) { SAVE_LOCK = v; }
+export function saveGame() { if (!G.pd || SAVE_LOCK) return; if (G.state !== 'title' && G.state !== 'lobbyMenu') G.pd.idleT = Date.now(); G.pd.svT = Date.now(); try { localStorage.setItem(SAVEKEY, JSON.stringify(G.pd)); } catch (e) { } if (G.state === 'play' && !G.pvp && typeof rankSync === 'function') rankSync(); if (typeof cloudSync === 'function') cloudSync(); }
 /** @returns {SaveData|null} */
-function loadGame() {
+export function loadGame() {
   try {
     const s = localStorage.getItem(SAVEKEY); if (!s) return null;
     const d = JSON.parse(s); const pd = newPD();
@@ -44,29 +68,29 @@ function loadGame() {
     return pd;
   } catch (e) { return null; }
 }
-function hasSave() { try { return !!localStorage.getItem(SAVEKEY); } catch (e) { return false; } }
-const sk = id => (G.pd && G.pd.skills[id]) || 0;
+export function hasSave() { try { return !!localStorage.getItem(SAVEKEY); } catch (e) { return false; } }
+export const sk = id => (G.pd && G.pd.skills[id]) || 0;
 
 // 장비 레벨: 착용 장비와 같은 부위·같은 등급 장비를 ILV_NEED개 주우면 Lv+1, 레벨당 기본 스탯 +5%
-const ILV_NEED = 5, ILV_BONUS = 0.05;
+export const ILV_NEED = 5, ILV_BONUS = 0.05;
 // ---------- 개별 장비 ----------
 // pd.inv·enh·ilv·iexp·ref·eq·beq 는 '장비 키' 기준. 같은 장비 첫 개는 키 = 장비 이름(예전 세이브 그대로),
 // 둘째부터 '이름#xxxx'. ITEMS[키]는 원래 장비 정의를 돌려줌(data.js Proxy). 세이브 밖으로 나갈 땐 defOf로 이름만.
-const BAG_MAX = 300;
-const keysOf = (/** @type {SaveData} */ pd, id) => Object.keys(pd.inv || {}).filter(k => defOf(k) === id);
-const ownsDef = (/** @type {SaveData} */ pd, id) => keysOf(pd, id).length > 0;
+export const BAG_MAX = 300;
+export const keysOf = (/** @type {SaveData} */ pd, id) => Object.keys(pd.inv || {}).filter(k => defOf(k) === id);
+export const ownsDef = (/** @type {SaveData} */ pd, id) => keysOf(pd, id).length > 0;
 /** 새 장비 키. 거래로 넘긴 키(pd.tkeys)는 서버가 묘비로 기억하니 다시 쓰지 않음 */
 function newItemKey(/** @type {SaveData} */ pd, id) { const gone = pd.tkeys || []; if (!pd.inv[id] && !gone.includes(id)) return id; let k; do k = id + '#' + Math.random().toString(36).slice(2, 6); while (pd.inv[k] || gone.includes(k)); return k; }
 /** 장비 1개 추가 → 키. 도감도 등록 */
-function addItem(/** @type {SaveData} */ pd, id, enh) {
+export function addItem(/** @type {SaveData} */ pd, id, enh) {
   const k = newItemKey(pd, id); pd.inv[k] = 1; pd.book = pd.book || {}; pd.book[id] = 1;
   if (enh) { pd.enh = pd.enh || {}; pd.enh[k] = enh; } return k;
 }
 /** 장비 1개 없애기 (강화·레벨·재련 기록도 같이) */
-function dropItem(/** @type {SaveData} */ pd, k) { delete pd.inv[k]; for (const m of [pd.enh, pd.ilv, pd.iexp, pd.ref]) if (m) delete m[k]; }
+export function dropItem(/** @type {SaveData} */ pd, k) { delete pd.inv[k]; for (const m of [pd.enh, pd.ilv, pd.iexp, pd.ref]) if (m) delete m[k]; }
 /** 같은 장비가 또 나오면 보관할지 (pd.keepDup = 이 등급 이상 보관, 없으면 강화석) */
 const keepDupOf = (/** @type {SaveData} */ pd, it) => pd.keepDup != null && it.rar >= pd.keepDup && Object.keys(pd.inv).length < BAG_MAX;
-const ilvOf = id => ((G.pd && G.pd.ilv) || {})[id] || 0;
+export const ilvOf = id => ((G.pd && G.pd.ilv) || {})[id] || 0;
 const ilvMul = id => 1 + ILV_BONUS * ilvOf(id);
 function feedEquip(it) {
   const pd = G.pd, cur = it.bori ? (pd.beq || {})[it.slot] : pd.eq[it.slot], ci = ITEMS[cur];
@@ -80,18 +104,18 @@ function feedEquip(it) {
   return true;
 }
 /** 실제 착용 장비 이름 (개별 키 → 장비 이름) */
-function visEqRaw(/** @type {SaveData} */ pd) { const e = /** @type {Record<HeroSlot, ItemId>} */ ({}); for (const sl of SLOTS) e[sl] = defOf(pd.eq[sl]); return e; }
+export function visEqRaw(/** @type {SaveData} */ pd) { const e = /** @type {Record<HeroSlot, ItemId>} */ ({}); for (const sl of SLOTS) e[sl] = defOf(pd.eq[sl]); return e; }
 /** 화면에 보이는 장비 (꾸미기로 바꾼 겉모습 반영. 도감에 있고 색이 있는 장비만) */
-function visEq(pd) {
+export function visEq(pd) {
   const e = visEqRaw(pd), L = pd.look || {}, b = pd.book || {};
   for (const sl of LOOK_SLOTS) { const id = L[sl], it = id && ITEMS[id]; if (it && it.slot === sl && !it.bori && it.color && b[id]) e[sl] = id; }
   return e;
 }
 /** 착용 세트: 지금 끼고 있는 개수 */
-function eqSetN(pd, S) { const on = new Set([...SLOTS.map(sl => defOf(pd.eq[sl])), ...BSLOTS.map(sl => pd.beq && pd.beq[sl] ? defOf(pd.beq[sl]) : '')]); return S.ids.filter(id => on.has(id)).length; }
-const hairPal = k => HAIRS.find(h => h.k === k) || HAIRS[0];
+export function eqSetN(pd, S) { const on = new Set([...SLOTS.map(sl => defOf(pd.eq[sl])), ...BSLOTS.map(sl => pd.beq && pd.beq[sl] ? defOf(pd.beq[sl]) : '')]); return S.ids.filter(id => on.has(id)).length; }
+export const hairPal = k => HAIRS.find(h => h.k === k) || HAIRS[0];
 /** 헤어 색 해금 여부 */
-function hairOk(pd, h) {
+export function hairOk(pd, h) {
   if (!h.need) return true;
   if (h.need === 'book10') return bookStats(pd).n >= 10;
   if (h.need === 'book25') return bookStats(pd).n >= 25;
@@ -106,14 +130,14 @@ function hairOk(pd, h) {
   return false;
 }
 /** 도감 상태 (보유·착용 중인 장비는 자동 등록) */
-function bookStats(pd) {
+export function bookStats(pd) {
   const b = pd.book = pd.book || {};
   for (const k in pd.inv) if (ITEMS[k] && !ITEMS[k].start) b[defOf(k)] = 1;
   const n = BOOK_ALL.filter(id => b[id]).length, done = {};
   for (const s of BOOK_SETS) done[s.k] = bookIds(s).every(id => b[id]);
   return { n, done };
 }
-function calcStats() {
+export function calcStats() {
   const pd = G.pd, lv = pd.lv;
   const st = { hp: 100 + (lv - 1) * 22, mp: 50 + (lv - 1) * 8, atk: 10 + (lv - 1) * 3.5, def: 2 + (lv - 1) * 1.2, spd: 1, crit: 0.08, critMul: 1.6 };
   for (const slot of SLOTS) { const it = jobSigDef(pd, pd.eq[slot]) || ITEMS[pd.eq[slot]]; if (!it) continue; const m = ilvMul(pd.eq[slot]) * brkMul(pd.eq[slot]); st.hp += (it.hp || 0) * m; st.mp += (it.mp || 0) * m; st.atk += (it.atk || 0) * m; st.def += (it.def || 0) * m; st.spd += (it.spd || 0) * m; st.crit += (it.crit || 0) * m; }
@@ -141,26 +165,26 @@ function calcStats() {
 }
 
 // ---------- entities ----------
-function newPlayer(x, y) { return { x, y, hp: G.st.hp, mp: G.st.mp, fx: 0, fy: 1, dir: 'down', walkT: 0, moving: false, idleT: 1, atkCd: 0, atkAnim: 0, punch: 0, inv: 0, flash: 0, cds: {}, buffs: {}, eatCd: 0, castT: 0, kbx: 0, kby: 0, phoneT: 0.5, wasPhone: false }; }
-function newBori(x, y) { return { x, y, t: 0, face: 1, biteCd: 0, barkCd: 3, zoomCd: 6, target: null, run: false, zoom: null, jump: 0 }; }
-const dirOf = (fx, fy) => Math.abs(fx) > Math.abs(fy) * 1.05 ? (fx > 0 ? 'right' : 'left') : (fy > 0 ? 'down' : 'up');
-function isOnPhone() { const P = G.P; return !!P && G.state === 'play' && P.idleT > 0.3 && P.atkAnim <= 0 && P.castT <= 0 && !G.ult; }
+export function newPlayer(x, y) { return { x, y, hp: G.st.hp, mp: G.st.mp, fx: 0, fy: 1, dir: 'down', walkT: 0, moving: false, idleT: 1, atkCd: 0, atkAnim: 0, punch: 0, inv: 0, flash: 0, cds: {}, buffs: {}, eatCd: 0, castT: 0, kbx: 0, kby: 0, phoneT: 0.5, wasPhone: false }; }
+export function newBori(x, y) { return { x, y, t: 0, face: 1, biteCd: 0, barkCd: 3, zoomCd: 6, target: null, run: false, zoom: null, jump: 0 }; }
+export const dirOf = (fx, fy) => Math.abs(fx) > Math.abs(fy) * 1.05 ? (fx > 0 ? 'right' : 'left') : (fy > 0 ? 'down' : 'up');
+export function isOnPhone() { const P = G.P; return !!P && G.state === 'play' && P.idleT > 0.3 && P.atkAnim <= 0 && P.castT <= 0 && !G.ult; }
 
 function collide(o, r) {
   const W = G.world;
   for (const s of W.solids) { const dx = o.x - s.x, dy = o.y - s.y, d = Math.hypot(dx, dy), m = s.r + r; if (d < m && d > 0.001) { o.x = s.x + dx / d * m; o.y = s.y + dy / d * m; } }
   o.x = clamp(o.x, 20, W.W - 20); o.y = clamp(o.y, W.top || 34, W.H - 14);
 }
-function moveToward(e, tx, ty, sp, dt) { const dx = tx - e.x, dy = ty - e.y, d = Math.hypot(dx, dy); if (d < 0.5) return; const s = Math.min(d, sp * dt); e.x += dx / d * s; e.y += dy / d * s; if (Math.abs(dx) > 1) e.face = dx > 0 ? 1 : -1; }
+export function moveToward(e, tx, ty, sp, dt) { const dx = tx - e.x, dy = ty - e.y, d = Math.hypot(dx, dy); if (d < 0.5) return; const s = Math.min(d, sp * dt); e.x += dx / d * s; e.y += dy / d * s; if (Math.abs(dx) > 1) e.face = dx > 0 ? 1 : -1; }
 function wander(e, sp, dt, ch) { e.wT -= dt; if (e.wT <= 0) { e.wT = rand(ch * 0.6, ch * 1.4); const a = rand(0, Math.PI * 2), go = Math.random() < 0.7; e.wx = go ? Math.cos(a) : 0; e.wy = go ? Math.sin(a) : 0; } e.x += e.wx * sp * dt; e.y += e.wy * sp * dt; if (e.wx) e.face = e.wx > 0 ? 1 : -1; }
 function moveAway(e, sp, dt) { const a = Math.atan2(e.y - G.P.y, e.x - G.P.x); e.x += Math.cos(a) * sp * dt; e.y += Math.sin(a) * sp * dt; e.face = Math.cos(a) > 0 ? 1 : -1; }
 function nearestEnemy(x, y, maxD) { let best = null, bd = maxD; for (const e of G.enemies) { if (e.dead || e.spawnT > 0) continue; const d = Math.hypot(e.x - x, e.y - y) - e.r; if (d < bd) { bd = d; best = e; } } return best; }
 
 // ---------- text / fx helpers ----------
-function addText(x, y, txt, kind) { G.texts.push({ x: x + rand(-3, 3), y, txt: fmtNumText(txt), kind: kind || 'dmg', t: 0, dur: kind === 'crit' ? 0.9 : 0.75 }); if (G.texts.length > 60) G.texts.shift(); }
-function bubble(ent, txt, dur) { G.bubbles = G.bubbles.filter(b => b.ent !== ent); G.bubbles.push({ ent, txt, t: 0, dur: dur || 1.6 }); }
-function burst(x, y, col, n, spd) { for (let i = 0; i < n; i++) { const a = rand(0, Math.PI * 2), s = rand(20, spd || 70); G.parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 20, life: rand(0.3, 0.6), max: 0.6, col, sz: Math.random() < 0.3 ? 2 : 1, grav: 120 }); } }
-function word(x, y, txt, col, size) { G.fx.push({ k: 'word', x, y, txt, col: col || '#fff', size: size || 1.6, t: 0, dur: 0.7 }); }
+export function addText(x, y, txt, kind) { G.texts.push({ x: x + rand(-3, 3), y, txt: fmtNumText(txt), kind: kind || 'dmg', t: 0, dur: kind === 'crit' ? 0.9 : 0.75 }); if (G.texts.length > 60) G.texts.shift(); }
+export function bubble(ent, txt, dur) { G.bubbles = G.bubbles.filter(b => b.ent !== ent); G.bubbles.push({ ent, txt, t: 0, dur: dur || 1.6 }); }
+export function burst(x, y, col, n, spd) { for (let i = 0; i < n; i++) { const a = rand(0, Math.PI * 2), s = rand(20, spd || 70); G.parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 20, life: rand(0.3, 0.6), max: 0.6, col, sz: Math.random() < 0.3 ? 2 : 1, grav: 120 }); } }
+export function word(x, y, txt, col, size) { G.fx.push({ k: 'word', x, y, txt, col: col || '#fff', size: size || 1.6, t: 0, dur: 0.7 }); }
 
 // ---------- player ----------
 function updatePlayer(dt) {
@@ -209,7 +233,7 @@ function doAttack() {
   if (hit) { G.hitstop = 0.03; G.shake = Math.max(G.shake, 1.2); }
 }
 
-function dealDamage(e, raw, o) {
+export function dealDamage(e, raw, o) {
   o = o || {}; if (e.dead) return 0;
   const crit = !o.noCrit && Math.random() < G.st.crit + (o.critAdd || 0);
   let dmg = o.trueDmg ? raw : Math.max(raw * 0.2, raw - e.def * 0.5);
@@ -229,7 +253,7 @@ function dealDamage(e, raw, o) {
   return dmg;
 }
 
-function hurtPlayer(raw, src) {
+export function hurtPlayer(raw, src) {
   const P = G.P; if (P.inv > 0 || G.state !== 'play' || G.ult) return;
   if (G.pvp) raw *= PVP_MUL;
   let dmg = raw * 60 / (60 + G.st.def); dmg = Math.max(1, Math.round(dmg * rand(0.9, 1.1)));
@@ -241,7 +265,7 @@ function hurtPlayer(raw, src) {
 }
 
 // ---------- skills ----------
-function trySkill(id) {
+export function trySkill(id) {
   const lv = sk(id), S = SKILLS[id], P = G.P;
   if (!lv) { toast(`${S.name}: 아직 안 배웠어요 (메뉴 → 스킬)`, 'warn'); sfx('warn'); return; }
   if ((P.cds[id] || 0) > 0) return;
@@ -337,16 +361,16 @@ function updateBori(dt) {
 // ---------- 회차 (NG+) ----------
 const LOOP_CAP = 10;
 /** 회차 → 난이도 단계. 11회차부터도 계속 오르되 증가폭은 절반 (예: 50회차 = 30단계) */
-const loopEff = cl => cl <= LOOP_CAP ? cl : LOOP_CAP + (cl - LOOP_CAP) * LOOP_AFTER;
+export const loopEff = cl => cl <= LOOP_CAP ? cl : LOOP_CAP + (cl - LOOP_CAP) * LOOP_AFTER;
 const LOOP_AFTER = 0.75;
 function loopLv() { return G.pvp ? 0 : G.inf ? G.inf.loop : G.tower ? G.tower.L : G.pd ? zoneL(G.pd, G.zone || 0) : 0; }
 const FIRST_BOSS = { hp: 0.7, atk: 0.75 };
-const LM_HP = 1.3, LM_ATK = 1.0, LM_XP = 0.2, LM_GOLD = 0.4;
+export const LM_HP = 1.3, LM_ATK = 1.0, LM_XP = 0.2, LM_GOLD = 0.4;
 /** 고회차 가속: 30단계(1장 약 37회차)부터 단계마다 체력 ×1.05·공격 ×1.03·골드 ×1.02씩 더 → 풀강 유저도 회차를 올리다 막힘 */
 const LM_FAST = 30, LM_FAST_HP = 0.05, LM_FAST_ATK = 0.03, LM_FAST_GOLD = 0.02;
 const lmFast = (L, r) => L > LM_FAST ? Math.pow(1 + r, L - LM_FAST) : 1;
-function loopMul() { const L = loopLv(); return { L, hp: (1 + LM_HP * L) * lmFast(L, LM_FAST_HP), atk: (1 + LM_ATK * L) * lmFast(L, LM_FAST_ATK), def: 3 * L, spd: Math.min(1.3, 1 + 0.05 * L), xp: 1 + LM_XP * L, gold: (1 + LM_GOLD * L) * lmFast(L, LM_FAST_GOLD), item: Math.min(1.6, 1 + 0.2 * L), cnt: Math.min(2, 1 + 0.25 * L), elite: Math.min(0.25, 0.07 * L), legend: Math.min(0.3, 0.08 * L) }; }
-const zoneQuota = Z => Math.round(Z.quota * loopMul().cnt);
+export function loopMul() { const L = loopLv(); return { L, hp: (1 + LM_HP * L) * lmFast(L, LM_FAST_HP), atk: (1 + LM_ATK * L) * lmFast(L, LM_FAST_ATK), def: 3 * L, spd: Math.min(1.3, 1 + 0.05 * L), xp: 1 + LM_XP * L, gold: (1 + LM_GOLD * L) * lmFast(L, LM_FAST_GOLD), item: Math.min(1.6, 1 + 0.2 * L), cnt: Math.min(2, 1 + 0.25 * L), elite: Math.min(0.25, 0.07 * L), legend: Math.min(0.3, 0.08 * L) }; }
+export const zoneQuota = Z => Math.round(Z.quota * loopMul().cnt);
 // 처치 1마리당 등급별 드롭 확률 (일반 몬스터 기준). 높은 등급부터 굴려서 하나만 떨어짐
 const DROP_RATE = [1 / 80, 1 / 250, 1 / 800, 1 / 2000, 1 / 5000, 1 / 12000];
 const DROP_MUL = { normal: 1, elite: 5, boss: 25 };
@@ -405,14 +429,14 @@ function husbandSave() {
 }
 
 // ---------- enemies ----------
-function spawnEnemy(type, x, y) {
+export function spawnEnemy(type, x, y) {
   const m = MONS[type], s = monSpr(m.spr), sc = m.scale || 1;
   const LM = loopMul(); let sc2 = sc, hpM = LM.hp, atkM = LM.atk; const elite = LM.L > 0 && !m.boss && !G.pvp && Math.random() < LM.elite; if (elite) { hpM *= 2.5; atkM *= 1.3; sc2 = sc * 1.25; }
   const WM = infWaveMul(); const hp0 = Math.round(m.hp * hpM * WM.hp);
   const e = { type, m, x, y, hp: hp0, maxHp: hp0, atk: m.atk * atkM * WM.atk, def: m.def + LM.def, spd: m.spd * LM.spd, elite, r: m.r, h: s.H * sc2, w: s.W * sc2, sc: sc2, boss: !!m.boss, col: m.col, t: rand(0, 10), atkCd: rand(0.5, 1.2), kbx: 0, kby: 0, stun: 0, slow: 0, fear: 0, confuse: 0, mental: 0, flash: 0, wx: 0, wy: 0, wT: 0, st: 'idle', stT: 0, spawnT: 0.45, id: ++G.eid, fly: !!m.fly, face: 1, hopY: 0 };
   G.enemies.push(e); return e;
 }
-const AI = {
+export const AI = {
   hop(e, dt, sp, dP) { const c = e.t % 1.1; e.hopY = c < 0.45 ? Math.sin(c / 0.45 * Math.PI) * 4 : 0; if (dP < 130) { if (c < 0.45) moveToward(e, G.P.x, G.P.y, sp * 2.3, dt); } else wander(e, sp, dt, 1.5); },
   float(e, dt, sp, dP) { e.hopY = 3 + Math.sin(e.t * 3) * 2; if (dP < 140) { const a = Math.atan2(G.P.y - e.y, G.P.x - e.x) + Math.sin(e.t * 2) * 0.9; e.x += Math.cos(a) * sp * dt; e.y += Math.sin(a) * sp * dt; e.face = Math.cos(a) > 0 ? 1 : -1; } else wander(e, sp, dt, 1.2); },
   chase(e, dt, sp, dP) { if (dP < 150) moveToward(e, G.P.x, G.P.y, sp, dt); else wander(e, sp * 0.6, dt, 1.5); },
@@ -434,10 +458,10 @@ const AI = {
 };
 // ---------- 장 보스 패턴은 src/chapters/chN.js 의 ai (아래에서 합침) · 공용 돌진 도우미 ----------
 /** 일직선 돌진 준비 (빨간 줄 예고) */
-function aimDash(e, len, w, say) { const a = Math.atan2(G.P.y - e.y, G.P.x - e.x); e.dx = Math.cos(a); e.dy = Math.sin(a); e.face = e.dx > 0 ? -1 : 1; G.fx.push({ k: 'line', x: e.x, y: e.y - 6, a, len, w, t: 0, dur: e.stT }); if (say) bubble(e, say, 1); }
-const dashStep = (e, spd, dt) => { const W = G.world; e.x += e.dx * spd * dt; e.y += e.dy * spd * dt; if (Math.random() < dt * 25) G.parts.push({ x: e.x + rand(-8, 8), y: e.y, vx: 0, vy: -8, life: 0.35, max: 0.35, col: '#e8e8f0', sz: 2, grav: 0 }); return e.x < 36 || e.x > W.W - 36 || e.y < (W.top || 34) + 36 || e.y > W.H - 30; };
+export function aimDash(e, len, w, say) { const a = Math.atan2(G.P.y - e.y, G.P.x - e.x); e.dx = Math.cos(a); e.dy = Math.sin(a); e.face = e.dx > 0 ? -1 : 1; G.fx.push({ k: 'line', x: e.x, y: e.y - 6, a, len, w, t: 0, dur: e.stT }); if (say) bubble(e, say, 1); }
+export const dashStep = (e, spd, dt) => { const W = G.world; e.x += e.dx * spd * dt; e.y += e.dy * spd * dt; if (Math.random() < dt * 25) G.parts.push({ x: e.x + rand(-8, 8), y: e.y, vx: 0, vy: -8, life: 0.35, max: 0.35, col: '#e8e8f0', sz: 2, grav: 0 }); return e.x < 36 || e.x > W.W - 36 || e.y < (W.top || 34) + 36 || e.y > W.H - 30; };
 for (const ch of CHAPTERS) if (ch && ch.ai) Object.assign(AI, ch.ai);
-function shootAt(e, kind, ang, spd) {
+export function shootAt(e, kind, ang, spd) {
   const sy = e.y - e.h * 0.5 - (e.hopY || 0);
   const a = ang != null ? ang : Math.atan2(G.P.y - 8 - sy, G.P.x - e.x);
   const sp = spd || 92;
@@ -513,24 +537,24 @@ function pickup(d) {
   }
 }
 /** 도감 새로 등록 알림 + 세트 완성 축하 */
-function bookNotify(id) {
+export function bookNotify(id) {
   const pd = G.pd, before = bookStats(pd).done; pd.book[id] = 1; calcStats(); const after = bookStats(pd);
   toast(`📖 도감 등록! ${ITEMS[id].name} (${after.n}/${BOOK_ALL.length})`, 'sub');
   for (const s of BOOK_SETS) if (after.done[s.k] && !before[s.k]) { toast(`📖 ${s.name} 도감 완성! ${s.txt}`, 'lvl'); sfx('lvl'); }
 }
 // ---------- 강화 (+20, 확률) · 강화석 ----------
 // 강화: 모든 장비(보리 포함) +25까지. 0→+25 기댓값 약 500만G (+17 약 15만, +20 약 52만)
-const ENH_MAX = 25;
+export const ENH_MAX = 25;
 const ENH_P    = [1, .95, .9, .85, .8, .75, .7, .65, .6, .55, .5, .45, .4, .38, .35, .33, .31, .3, .29, .28, .27, .26, .25, .24, .22];
 const ENH_DOWN = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .1, .1, .12, .14, .15, .15, .16, .17, .18, .2, .2, .2, .22, .24];
 const ENH_DEST = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .01, .01, .015, .02, .02, .02, .025, .025, .03, .03, .035, .035, .04];
-const enhReset = lv => lv >= 20 ? 17 : 12; // 파괴 시 떨어지는 단계
-const enhCost = lv => Math.round(140 * Math.pow(1.3, lv));
+export const enhReset = lv => lv >= 20 ? 17 : 12; // 파괴 시 떨어지는 단계
+export const enhCost = lv => Math.round(140 * Math.pow(1.3, lv));
 // 강화석: +20 이상은 개수를 크게 올려 강화석이 병목이 되게 (강화석으로 +25 = 장비당 약 128만G + 약 2,700개)
 const ENH_STONE_HIGH = [50, 80, 120, 160, 200];
-const enhStoneCost = lv => lv < 10 ? 1 : lv < 15 ? 3 : lv < 18 ? 6 : lv < 20 ? 10 : ENH_STONE_HIGH[lv - 20] || 200;
+export const enhStoneCost = lv => lv < 10 ? 1 : lv < 15 ? 3 : lv < 18 ? 6 : lv < 20 ? 10 : ENH_STONE_HIGH[lv - 20] || 200;
 // 부위별 강화 1단계 효과
-const ENH_FX = {
+export const ENH_FX = {
   weapon: { atk: 2.5, crit: 0.01, txt: en => `공격 +${+(2.5 * en).toFixed(1)} · 치명 +${en}%` },
   hat:    { def: 1, hp: 12, txt: en => `방어 +${en} · HP +${12 * en}` },
   armor:  { def: 1.5, hp: 20, txt: en => `방어 +${+(1.5 * en).toFixed(1)} · HP +${20 * en}` },
@@ -544,12 +568,12 @@ const STONE_YIELD = [1, 2, 4, 10, 25, 60];
 // 사냥 중 주운 중복 장비 강화석 (평균값, 소수는 확률: 0.5 = 50%로 1개). 엔드급 자동사냥 시간당 약 350개 → 강화석으로 +25 1개 ≈ 사냥 8시간
 const DUP_YIELD = [0.5, 1.5, 4, 10, 25, 60];
 const dupStones = id => { const v = DUP_YIELD[ITEMS[id].rar] || 1, w = Math.floor(v); return w + (Math.random() < v - w ? 1 : 0); };
-const stoneYield = id => STONE_YIELD[ITEMS[id].rar] || 1;
-function canDismantle(id) { const it = ITEMS[id], pd = G.pd; return !!(it && !it.start && !it.job && pd.inv[id] && pd.eq[it.slot] !== id && (pd.beq || {})[it.slot] !== id && !((pd.enh || {})[id] > 0) && !ilvOf(id) && !((pd.iexp || {})[id] > 0)); }
-function dismantle(ids) { let s = 0, n = 0; for (const id of ids) { if (!canDismantle(id)) continue; s += stoneYield(id); n++; dropItem(G.pd, id); } G.pd.stones = (G.pd.stones || 0) + s; return { n, s }; }
-function enhOdds(lv, useStone) { let p = ENH_P[lv], dn = ENH_DOWN[lv], ds = ENH_DEST[lv]; if (useStone) { const add = Math.min(0.1, 1 - p); p += add; const take = Math.min(add, dn); dn -= take; } return { p, dn, ds, protect: !!useStone }; }
+export const stoneYield = id => STONE_YIELD[ITEMS[id].rar] || 1;
+export function canDismantle(id) { const it = ITEMS[id], pd = G.pd; return !!(it && !it.start && !it.job && pd.inv[id] && pd.eq[it.slot] !== id && (pd.beq || {})[it.slot] !== id && !((pd.enh || {})[id] > 0) && !ilvOf(id) && !((pd.iexp || {})[id] > 0)); }
+export function dismantle(ids) { let s = 0, n = 0; for (const id of ids) { if (!canDismantle(id)) continue; s += stoneYield(id); n++; dropItem(G.pd, id); } G.pd.stones = (G.pd.stones || 0) + s; return { n, s }; }
+export function enhOdds(lv, useStone) { let p = ENH_P[lv], dn = ENH_DOWN[lv], ds = ENH_DEST[lv]; if (useStone) { const add = Math.min(0.1, 1 - p); p += add; const take = Math.min(add, dn); dn -= take; } return { p, dn, ds, protect: !!useStone }; }
 const enhTarget = slot => BSLOTS.includes(slot) ? (G.pd.beq || {})[slot] : G.pd.eq[slot || 'weapon'];
-function tryEnhance(useStone, slot) {
+export function tryEnhance(useStone, slot) {
   const pd = G.pd, wid = enhTarget(slot); if (!wid) return null; pd.enh = pd.enh || {}; const en = pd.enh[wid] || 0; if (en >= ENH_MAX) return null;
   const cost = enhCost(en), sc = enhStoneCost(en); if (pd.gold < cost || (useStone && (pd.stones || 0) < sc)) return null;
   pd.gold -= cost; if (useStone) pd.stones -= sc;
@@ -562,10 +586,10 @@ function tryEnhance(useStone, slot) {
   calcStats(); saveGame(); return { res, from: en, to: pd.enh[wid], id: wid };
 }
 // ---------- 한계 돌파 (+26~+30): +25 장비만. 강화석이 많이 들고 성공률 낮음, 실패해도 하락·파괴 없음. 단계마다 장비 기본 능력치 +3% ----------
-const BRK_MAX = 30, BRK_STONE = [1000, 1500, 2000, 2500, 3000], BRK_P = [0.09, 0.07, 0.05, 0.04, 0.03], BRK_STEP = 0.03;
-const brkCost = en => ({ stones: BRK_STONE[en - ENH_MAX] || 0, gold: enhCost(en), p: BRK_P[en - ENH_MAX] || 0 });
+export const BRK_MAX = 30, BRK_STONE = [1000, 1500, 2000, 2500, 3000], BRK_P = [0.09, 0.07, 0.05, 0.04, 0.03], BRK_STEP = 0.03;
+export const brkCost = en => ({ stones: BRK_STONE[en - ENH_MAX] || 0, gold: enhCost(en), p: BRK_P[en - ENH_MAX] || 0 });
 const brkMul = id => 1 + BRK_STEP * Math.max(0, ((G.pd.enh || {})[id] || 0) - ENH_MAX);
-function tryBreak(slot) {
+export function tryBreak(slot) {
   const pd = G.pd, wid = enhTarget(slot); if (!wid) return null; pd.enh = pd.enh || {}; const en = pd.enh[wid] || 0;
   if (en < ENH_MAX || en >= BRK_MAX) return null; const c = brkCost(en);
   if (pd.gold < c.gold || (pd.stones || 0) < c.stones) return null;
@@ -573,10 +597,10 @@ function tryBreak(slot) {
   pd.stats.brkTry = (pd.stats.brkTry || 0) + 1; dailyAdd('enh');
   calcStats(); saveGame(); return { res: up ? 'up' : 'keep', from: en, to: pd.enh[wid], id: wid };
 }
-const sellPrice = id => { const it = ITEMS[id]; return it.price ? Math.floor(it.price * 0.3) : [40, 150, 400, 800, 1600, 3200][it.rar]; };
+export const sellPrice = id => { const it = ITEMS[id]; return it.price ? Math.floor(it.price * 0.3) : [40, 150, 400, 800, 1600, 3200][it.rar]; };
 
 // ---------- food ----------
-function eatFood(id) {
+export function eatFood(id) {
   const pd = G.pd, P = G.P, f = FOODS[id]; if (!pd.foods[id] || P.eatCd > 0) return false;
   pd.foods[id]--; P.eatCd = 0.5; P.idleT = 0; if (f.eatLine) bubble(P, choice(f.eatLine), 1.4);
   const m = G.st.foodMul, hp = Math.round(G.st.hp * f.hp * m), mp = Math.round(G.st.mp * f.mp * m);
@@ -593,7 +617,7 @@ function quickFood(kind) {
   if (!pick) { toast(kind === 'hp' ? 'HP 회복 음식이 없어요! (메뉴 → 배달앱)' : 'MP 회복 음식이 없어요! (메뉴 → 배달앱)', 'warn'); sfx('warn'); return; }
   eatFood(pick);
 }
-function pickQuickFood(kind, missing) {
+export function pickQuickFood(kind, missing) {
   const st = G.st; const cands = FOOD_ORDER.filter(id => G.pd.foods[id] > 0 && FOODS[id][kind] > 0 && !PREMIUM.includes(id));
   if (!cands.length) return PREMIUM.find(id => G.pd.foods[id] > 0) || null;
   const val = id => FOODS[id][kind] * (kind === 'hp' ? st.hp : st.mp) * st.foodMul;
@@ -602,7 +626,7 @@ function pickQuickFood(kind, missing) {
 }
 
 // ---------- progression ----------
-const MAX_LV = 50;
+export const MAX_LV = 50;
 function gainXp(x) {
   const pd = G.pd; if (pd.lv >= MAX_LV) { awkGain(x); return; } pd.xp += x;
   let up = false;
@@ -617,7 +641,7 @@ function awkGain(x) {
   toast(`각성! ★${pd.aw}`, 'lvl'); toast('각성 포인트 +' + n + ' · 메뉴 → 스킬에서 능력치를 올려주세요', 'sub');
   bubble(G.P, choice(['아직 더 강해질 수 있어!', '한계 돌파~!', '각성했다!']), 1.2); saveGame();
 }
-const awkLv = k => ((G.pd && G.pd.awp) || {})[k] || 0;
+export const awkLv = k => ((G.pd && G.pd.awp) || {})[k] || 0;
 function levelUp() {
   const pd = G.pd; calcStats(); G.P.hp = G.st.hp; G.P.mp = G.st.mp;
   G.fx.push({ k: 'lvl', x: G.P.x, y: G.P.y, t: 0, dur: 1.3 }); sfx('lvl');
@@ -636,7 +660,7 @@ function updateSpawner(dt) {
   G.spawnT -= dt;
   if (G.spawnT <= 0 && alive < max) { G.spawnT = Z.spawnInt * (G.bossSpawned ? 2.2 : 1) / (1 + 0.15 * L); spawnAround(wpick(Z.mons)); }
 }
-function spawnAround(type, minD, maxD) {
+export function spawnAround(type, minD, maxD) {
   const W = G.world, P = G.P;
   for (let k = 0; k < 12; k++) {
     const a = rand(0, 6.28), d = rand(minD || 120, maxD || 190), x = P.x + Math.cos(a) * d, y = P.y + Math.sin(a) * d;
@@ -683,7 +707,7 @@ function goNextZone() {
   setCurZone(G.pd, G.zone + 1); const n = 2 + Math.floor(loopLv() / 2); G.pd.foods.gimbap = (G.pd.foods.gimbap || 0) + n; G.pd.foods.drink = (G.pd.foods.drink || 0) + n; saveGame();
   fadeTo(() => { startZone(G.zone + 1); setTimeout(() => { if (G.state === 'play' || G.state === 'dialog') { toast(`스마트 푸드 센터 재고떨이! 유통기한 임박 김밥 ×${n} · 음료수 ×${n}`, 'item r2'); sfx('coin'); if (G.P) bubble(G.P, '공짜는 못 참지!', 1.4); } }, 2900); });
 }
-function startZone(i) {
+export function startZone(i) {
   G.pvp = null; G.inf = null; G.raid = null; G.tower = null; G.husUsed = false;
   G.zone = i; setCurZone(G.pd, i); G.world = buildWorld(i); const W = G.world; G.autoExitSaid = false;
   G.enemies = []; G.projs = []; G.fx = []; G.drops = []; G.parts = []; G.texts = []; G.bubbles = [];
@@ -697,7 +721,7 @@ function startZone(i) {
   { const st = zoneCh(i) > 1 && chStageStory(i); if (st) { saveGame(); playCut(st, () => { G.state = 'play'; showHUD(true); playBgm('field'); }); } }
   if (!G.pd.boriJoined) { if (G.pd.lv >= 3) G.pendingEvent = 'bori'; else setTimeout(() => { if (G.state === 'play' && !G.pd.boriJoined) bubble(G.P, '보리야... 어디 있어ㅠㅠ', 2.6); }, 1800); }
 }
-function playerDie() {
+export function playerDie() {
   if (!G.pvp && husbandSave()) return;
   if (G.pvp) { burst(G.P.x, G.P.y - 10, '#ffffff', 20); pvpEnd(false, '내 희수가 쓰러졌어요'); return; }
   if (G.raid) { burst(G.P.x, G.P.y - 10, '#ffffff', 20); raidEnd('희수가 쓰러졌어요'); return; }
@@ -706,7 +730,7 @@ function playerDie() {
   burst(G.P.x, G.P.y - 10, '#ffffff', 20);
   setTimeout(() => showDeath(), 700);
 }
-function respawn() {
+export function respawn() {
   const pd = G.pd, W = G.world; const lost = G.inf ? 0 : Math.floor(pd.gold * 0.1); pd.gold -= lost;
   G.P.x = W.start.x; G.P.y = W.start.y; G.P.hp = G.st.hp; G.P.mp = G.st.mp; G.P.inv = 2; G.P.kbx = G.P.kby = 0;
   if (G.bori) { G.bori.x = G.P.x + 14; G.bori.y = G.P.y + 3; G.bori.zoom = null; }
@@ -725,7 +749,7 @@ function boriEvent() {
   P.fx = sx > P.x ? 1 : -1; P.fy = 0; P.dir = P.fx > 0 ? 'right' : 'left'; P.idleT = 0; INP.atk = false;
   bubble(P, '...응? 저 소리는?', 1.6);
 }
-function updateEvent(dt) {
+export function updateEvent(dt) {
   const E = G.evt, B = G.bori, P = G.P; E.t += dt;
   if (!E.popped && E.t > 1.2) { E.popped = true; B.hidden = false; B.jump = 0.4; sfx('bark'); bubble(B, '멍!', 1.2); burst(E.sx, E.sy - 4, '#4f9a3f', 14, 60); }
   if (E.popped && !E.arrived) { if (E.t > 1.7) { moveToward(B, P.x + (E.sx > P.x ? 11 : -11), P.y + 2, 90, dt); B.run = true; B.t += dt; if (Math.hypot(B.x - P.x, B.y - P.y) < 14) { E.arrived = true; B.run = false; B.jump = 0.5; sfx('ding'); for (let i = 0; i < 10; i++) G.parts.push({ x: P.x + rand(-10, 10), y: P.y - 10, vx: rand(-25, 25), vy: rand(-60, -30), life: 1.2, max: 1.2, col: '#ff7ab8', sz: 3, grav: 30, heart: true }); E.at = E.t; } } }
@@ -757,7 +781,7 @@ function updateProjs(dt) {
   }
   G.projs = G.projs.filter(p => p.life > 0);
 }
-function updateFx(dt) {
+export function updateFx(dt) {
   for (const f of G.fx) { f.t += dt; if (f.t >= f.dur && f.onEnd && !f.ended) { f.ended = true; f.onEnd(); } }
   G.fx = G.fx.filter(f => f.t < f.dur);
   for (const p of G.parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += p.grav * dt; p.life -= dt; }
@@ -765,8 +789,8 @@ function updateFx(dt) {
   for (const t of G.texts) t.t += dt; G.texts = G.texts.filter(t => t.t < t.dur);
   updateBubbles(dt);
 }
-function updateBubbles(dt) { for (const b of G.bubbles) b.t += dt; G.bubbles = G.bubbles.filter(b => b.t < b.dur && !(b.ent && b.ent.gone)); }
-function updateCam(dt) {
+export function updateBubbles(dt) { for (const b of G.bubbles) b.t += dt; G.bubbles = G.bubbles.filter(b => b.t < b.dur && !(b.ent && b.ent.gone)); }
+export function updateCam(dt) {
   const W = G.world, P = G.P;
   let tx = P.x - VW / 2, ty = P.y - 12 - VH / 2;
   tx = W.W <= VW ? (W.W - VW) / 2 : clamp(tx, 0, W.W - VW); ty = W.H <= VH ? (W.H - VH) / 2 : clamp(ty, 0, W.H - VH);
@@ -786,7 +810,7 @@ function handleActions() {
   INP.act.clear();
 }
 
-function update(dt) {
+export function update(dt) {
   G.time += dt; G.pd.stats.time += dt;
   if (G.hitstop > 0) { G.hitstop -= dt; for (const t of G.texts) t.t += dt; return; }
   handleActions();

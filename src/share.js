@@ -1,6 +1,14 @@
 // ===================== 내 희수 카드 공유 =====================
 // 1080×1350 카드 이미지(꾸민 희수·보리, 레벨, 전투력 순위, PvP, 도감, 강화) → 공유(모바일 공유 시트) / 저장 / 링크 복사
 // 공유 링크: ?from=닉네임 → 받은 사람은 "○○님이 초대했어요" + 랭킹 열림
+import { $, fmtNumText, mkCanvas } from './engine.js';
+import { BOOK_ALL } from './data.js';
+import { G, calcStats, loadGame } from './game.js';
+import { toast } from './ui.js';
+import { PV, SB, pvpLoadMe, pvpSnap, sbInit } from './pvp.js';
+import { fighterURL, rankOpen } from './rank.js';
+import { ACH_BY, ACH_COL } from './achv.js';
+
 const SHARE_URL = 'https://byeongjaeyu.github.io/heesoo_bori/';
 const SHARE = { blob: /** @type {Blob|null} */ (null), url: '' };
 
@@ -64,7 +72,7 @@ async function shareCardMake(info) {
   return c;
 }
 
-async function shareOpen() {
+export async function shareOpen() {
   if (FORCE_EASY) return;
   const box = $('#share'); $('#shareImg').removeAttribute('src'); $('#shareMsg').textContent = '카드를 만드는 중...'; box.hidden = false;
   try {
@@ -90,7 +98,7 @@ async function shareCopy() {
   try { await navigator.clipboard.writeText(SHARE.url || SHARE_URL); toast('링크를 복사했어요', 'lvl'); } catch (e) { prompt('이 링크를 복사하세요', SHARE.url || SHARE_URL); }
 }
 /** 공유 링크로 들어온 경우: ?from=닉네임 */
-function shareBoot() {
+export function shareBoot() {
   if (FORCE_EASY) return;
   $('#shareGo').onclick = shareGo; $('#shareSave').onclick = shareSave; $('#shareCopy').onclick = shareCopy; $('#shareX').onclick = () => { $('#share').hidden = true; };
   const from = new URLSearchParams(location.search).get('from');

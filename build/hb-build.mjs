@@ -30,13 +30,20 @@ export function sourceFiles() {
   return ORDER.map(n => { const ts = path.join(SRC, n + '.ts'); return fs.existsSync(ts) ? ts : path.join(SRC, n + '.js'); });
 }
 
+/** 모듈 문법 걷어내기: 소스는 import/export 로 의존 관계를 적어 두지만(편집기·tsc 검사용), 배포본은 아직 ORDER 순서로 이어 붙인 전역 스크립트.
+ *  (HTML 속 onclick="fn()"·e2e 가 전역 이름을 써서. 진짜 번들러로 바꾸려면 그것부터 정리) */
+export function stripModule(code, f = '') {
+  const out = code.replace(/^import\s*\{[^}]*\}\s*from\s*'[^']+';[ \t]*\n?/gm, '').replace(/^export\s+(?=(?:async\s+)?function\b|const\b|let\b|var\b|class\b)/gm, '');
+  if (/^\s*(import|export)\b/m.test(out)) throw new Error('모듈 문법을 못 걷어냄: ' + f + ' — import 는 한 줄 `import { a, b } from \'./x.js\';`, export 는 선언 앞에만 쓸 것');
+  return out;
+}
 /** 파일들을 이어 붙인 JS (TS 는 타입만 제거) */
 export async function buildJs({ exclude = [] } = {}) {
   const parts = [];
   for (const f of sourceFiles().filter(f => !exclude.includes(path.basename(f).replace(/\.(js|ts)$/, '')))) {
     let code = fs.readFileSync(f, 'utf8');
     if (f.endsWith('.ts')) code = (await transformWithEsbuild(code, f, { loader: 'ts', target: 'es2022', format: undefined, sourcemap: false })).code.replace(/\n$/, '');
-    parts.push(code);
+    parts.push(stripModule(code, f));
   }
   return "'use strict';\n" + parts.join('\n');
 }

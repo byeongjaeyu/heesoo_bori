@@ -1,4 +1,26 @@
 // ===================== MAIN =====================
+import { $, INP, SND, numFmtBoot, resize, setupTouch } from './engine.js';
+import { G, saveGame, update, updateBubbles, updateCam, updateEvent, updateFx } from './game.js';
+import { renderGame } from './render.js';
+import { closeMenu, dlgAuto, dlgTap, openMenu, setupUI, showTitle, updateDialog, updateHUD } from './ui.js';
+import { entryRegister, rankOpen } from './rank.js';
+import { cloudBoot } from './cloud.js';
+import { accBoot } from './account.js';
+import { aucBoot } from './auction.js';
+import { dailyBoot } from './daily.js';
+import { guideBoot } from './guide.js';
+import { shareBoot } from './share.js';
+import { raidBoot } from './raid.js';
+import { buddyBoot } from './buddy.js';
+import { achvBoot } from './achv.js';
+import { idleBoot } from './idle.js';
+import { packBoot } from './pack.js';
+import { goalBoot } from './goal.js';
+import { towerBoot } from './tower.js';
+import { plazaBoot } from './plaza.js';
+import { renderCut, renderTitle, updateCut } from './story.js';
+import { e2Frame, e2RenderMenuBg } from './ep2core.js';
+
 let LAST = performance.now();
 function frame(now) {
   const dt = Math.min(0.05, Math.max(0, (now - LAST) / 1000)); LAST = now;

@@ -1,6 +1,6 @@
 {
-  // src/*.js 는 build.py 가 한 파일로 이어 붙이는 "전역 스크립트"라서
-  // TypeScript 도 import/export 없는 스크립트로 보고 전역 스코프를 공유해서 검사한다.
+  // src/*.js 는 파일마다 import/export 로 의존 관계를 적은 모듈 (11/27). tsc 는 모듈로 검사해서
+  // 안 가져온 이름·다른 파일 변수에 대입 같은 실수를 잡는다. 배포본은 아직 build/hb-build.mjs 가 모듈 문법을 걷어내고 ORDER 순서로 이어 붙인 전역 스크립트.
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],

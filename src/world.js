@@ -1,14 +1,18 @@
 // ===================== WORLD / DECOR =====================
-const WORLD_W = 560, WORLD_H = 760;
-const OK = '#2b1b24';
+import { clamp, mkCanvas, mulberry, pCirc, pRect } from './engine.js';
+import { ZONES } from './data.js';
+import { CHAPTERS } from './chapter.js';
 
-function dLamp(col) {
+export const WORLD_W = 560, WORLD_H = 760;
+export const OK = '#2b1b24';
+
+export function dLamp(col) {
   const c = mkCanvas(9, 28), g = c.getContext('2d');
   pRect(g, 3, 8, 3, 19, OK); pRect(g, 4, 8, 1, 19, '#5a5a6a'); pRect(g, 1, 26, 7, 2, OK);
   pRect(g, 3, 0, 3, 1, OK); pRect(g, 1, 1, 7, 7, OK); pRect(g, 2, 2, 5, 5, col); pRect(g, 3, 3, 2, 2, '#ffffff');
   return c;
 }
-function dGate(open) {
+export function dGate(open) {
   const c = mkCanvas(62, 54), g = c.getContext('2d');
   if (!open) {
     pRect(g, 12, 16, 38, 38, '#3a2a44');
@@ -36,7 +40,7 @@ function dSeaGate(open) {
   return c;
 }
 
-function buildWorld(zi) {
+export function buildWorld(zi) {
   const Z = ZONES[zi], th = THEME[Z.theme]; const R = mulberry(911 + zi * 131);
   const rr = (a, b) => a + R() * (b - a);
   const W = { W: WORLD_W, H: WORLD_H, decor: [], solids: [], start: { x: WORLD_W / 2, y: WORLD_H - 76 }, gate: { x: WORLD_W / 2, y: 62 }, theme: Z.theme, bg: th.bg, tint: th.tint, glowA: th.glow, fountain: null, rails: [], gateClosed: (th.sea ? dSeaGate : dGate)(false), gateOpen: (th.sea ? dSeaGate : dGate)(true), dark: !!th.dark, rain: !!th.rain, field: /** @type {any} */ (null), top: 34 };

@@ -1,6 +1,18 @@
 // ===================== 1:1 교환 (서버 supabase/xchg.sql, 경매장 창 4번째 탭) =====================
 // 제안 → 수락. 보내는 사람 물건은 제안할 때 서버 보관, 받는 사람이 수락하면 한 번에 맞바꿈. 거절·취소·24시간 지나면 반환.
 // 골드는 받는 쪽에 수수료 5%. 강화석은 교환 안 됨. 장비가 한쪽에라도 하나는 있어야 함. Lv30 + 구글·카카오 연결 계정만. 하루 한도 없음.
+import { ICONS } from './sprites.js';
+import { $, iconURL, sfx } from './engine.js';
+import { ITEMS, defOf } from './data.js';
+import { dropItem } from './game.js';
+import { itemURL } from './render.js';
+import { confirmBox, toast } from './ui.js';
+import { SB, esc, pvErr } from './pvp.js';
+import { claimGifts } from './rank.js';
+import { cloudOpen, cloudSync } from './cloud.js';
+import { TRADE_ERR, tradableKey, tradeClaim, tradeWithPd } from './trade.js';
+import { AUC, AUC_ERR, aucClose, aucG, aucLeft, aucLoad, aucPd, aucRefTxt, aucRender, numVal } from './auction.js';
+
 const XC_FEE = 0.05, XC_MAX_ITEMS = 5;
 const XC = { mine: /** @type {any} */ (null), partner: /** @type {any} */ (null), nick: '', give: /** @type {string[]} */ ([]), want: /** @type {string[]} */ ([]), gold: '', wantGold: '', msg: '' };
 const XC_ERR = { nick: '랭킹에 닉네임을 등록한 희수만 교환할 수 있어요', lv: 'Lv30부터 교환할 수 있어요', link: '구글·카카오 계정을 연결한 희수만 교환할 수 있어요 (기기 이동 → 계정 연결)',
@@ -14,7 +26,7 @@ function xcItemChip(it, grp, v, on) {
   return `<button class="xcitem${on ? ' on' : ''}" data-auc="${grp}" data-v="${v}"><img src="${itemURL(it.def)}" alt=""><span class="r${it.rar}">${xcName(it)}</span>${it.ref && it.ref.lines && it.ref.lines.length ? `<small>옵션 ${it.ref.lines.length}줄</small>` : ''}</button>`;
 }
 const xcList = (items, gold) => (items || []).map(it => `<div class="xcl"><img src="${itemURL(it.def)}" alt=""><span class="r${it.rar}">${xcName(it)}</span>${aucRefTxt(it.ref)}</div>`).join('') + (gold ? `<div class="xcl gold"><img src="${iconURL('i_coin', ICONS.coin)}" alt=""><b>${aucG(gold)}</b> <small>(받는 쪽 ${aucG(gold - Math.floor(gold * XC_FEE))})</small></div>` : '') || '<div class="xcl none">없음</div>';
-function xcHtml() {
+export function xcHtml() {
   const M = XC.mine || {}, why = M.why, list = M.list || [], pd = aucPd();
   let h = `<p class="aucmsg">서로 원하는 걸 정해서 제안하고, 상대가 수락하면 한 번에 바뀌어요. 보낸 물건은 서버가 맡아두고, 거절·취소·24시간이 지나면 돌아와요. 골드는 받는 쪽에 수수료 ${XC_FEE * 100}%가 붙어요. 강화석은 교환할 수 없어요.</p>`;
   if (why) h += `<div class="xcwarn"><b>${XC_ERR[why] || '아직 교환할 수 없어요'}</b>${why === 'link' ? '<button class="btn pk sm" data-auc="xcLink">계정 연결하러 가기</button>' : ''}</div>`;
@@ -45,7 +57,7 @@ function xcHtml() {
   if (done.length) { h += '<h4>최근 7일</h4>'; for (const t of done) { const st = { done: '교환 완료', cancelled: '취소함', declined: t.dir === 'in' ? '거절함' : '거절당함', expired: '기간 만료' }[t.state] || t.state; h += `<div class="xccard done"><div class="xchd">${esc(t.who || '희수')} · ${st}</div></div>`; } }
   return h;
 }
-async function xcLoad() { const { data, error } = await SB.rpc('hb_xchg_mine'); if (error) throw error; XC.mine = data || {}; }
+export async function xcLoad() { const { data, error } = await SB.rpc('hb_xchg_mine'); if (error) throw error; XC.mine = data || {}; }
 async function xcFind() {
   const nick = String(/** @type {HTMLInputElement} */ ($('#xcNick')).value || '').trim(); XC.nick = nick; if (!nick) { toast('상대 닉네임을 적어주세요', 'warn'); return; }
   try { const { data, error } = await SB.rpc('hb_xchg_find', { p_nick: nick }); if (error) throw error; if (!data || !data.ok) { XC.partner = null; toast(xcErr(data), 'warn'); aucRender(); return; } XC.partner = data; XC.want = []; aucRender(); }
@@ -103,7 +115,7 @@ async function xcCancel(id, decline) {
   aucLoad();
 }
 /** 경매장 창 클릭 중 교환 탭 것 처리 (처리했으면 true) */
-function xcClick(m, v) {
+export function xcClick(m, v) {
   if (m === 'xcFind') { xcFind(); return true; }
   if (m === 'xcGive') { xcToggle(XC.give, v); return true; }
   if (m === 'xcWant') { xcToggle(XC.want, v); return true; }
@@ -115,4 +127,4 @@ function xcClick(m, v) {
   return false;
 }
 /** 입력 중인 값 기억 (다시 그려도 안 지워지게) */
-function xcInput(i) { const id = i.id; if (id === 'xcNick') XC.nick = i.value; else if (id === 'xcGold') XC.gold = i.value; else if (id === 'xcWantGold') XC.wantGold = i.value; else if (id === 'xcMsg') XC.msg = i.value; }
+export function xcInput(i) { const id = i.id; if (id === 'xcNick') XC.nick = i.value; else if (id === 'xcGold') XC.gold = i.value; else if (id === 'xcWantGold') XC.wantGold = i.value; else if (id === 'xcMsg') XC.msg = i.value; }

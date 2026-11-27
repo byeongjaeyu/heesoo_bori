@@ -1,8 +1,19 @@
 // ===================== 월드 보스 레이드 (주간 협동) =====================
 // 서버: hb_raid_info(현황·순위), hb_raid_start(하루 3회, 입장 시 차감), hb_raid_report(피해 보고, 전투력 기반 상한)
 // 전투: 60초, 보스 체력바 = 모두가 깎은 남은 HP. 보스는 이 전투에서 죽지 않음(피해만 집계)
+import { $, INP, VH, VW, choice, clamp, mkCanvas, playBgm, sfx } from './engine.js';
+import { MONS } from './data.js';
+import { CH1_N } from './chapter.js';
+import { buildWorld } from './world.js';
+import { G, bubble, burst, calcStats, loadGame, monSpr, newBori, newPlayer, saveGame, spawnEnemy } from './game.js';
+import { banner, fadeTo, showHUD, showTitle, toast } from './ui.js';
+import { PV, SB, esc, pvErr, pvpLoadMe, sbInit } from './pvp.js';
+import { autoOff } from './auto.js';
+import { MEDAL, PXI, rankJoin, rewardCards, rwItems, seasonModalShow } from './rank.js';
+import { buddySpawn } from './buddy.js';
+
 const RAID_TIME = 60;
-const RAID = { info: /** @type {any} */ (null), busy: false };
+export const RAID = { info: /** @type {any} */ (null), busy: false };
 /** 레이드 보상표 (서버 hb_raid_settle 과 같아야 함) */
 const RAID_REWARDS = [{ k: 1, label: '피해량 1위', s: 100, g: 1500000 }, { k: 2, label: '2~3위', s: 60, g: 800000 }, { k: 4, label: '처치 성공 시 참가자 전원', s: 40, g: 500000 }, { k: 5, label: '처치 실패 시 참가자', s: 15 }];
 
@@ -10,10 +21,10 @@ async function raidLoad() {
   try { await sbInit(); const { data, error } = await SB.rpc('hb_raid_info'); if (error) throw error; RAID.info = data; } catch (e) { RAID.info = null; throw e; }
   return RAID.info;
 }
-const raidBossURL = boss => { try { const m = MONS[boss], s = monSpr(m.spr), k = 6, c = mkCanvas(s.W * k, s.H * k), g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(s.n, 0, 0, s.W * k, s.H * k); return c.toDataURL(); } catch (e) { return ''; } };
+export const raidBossURL = boss => { try { const m = MONS[boss], s = monSpr(m.spr), k = 6, c = mkCanvas(s.W * k, s.H * k), g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(s.n, 0, 0, s.W * k, s.H * k); return c.toDataURL(); } catch (e) { return ''; } };
 const raidLeft = I => { const s = Math.max(0, (new Date(I.ends_at).getTime() - Date.now()) / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600); return d ? `${d}일 ${h}시간` : `${h}시간 ${Math.floor(s % 3600 / 60)}분`; };
 
-function raidOpen() {
+export function raidOpen() {
   if (FORCE_EASY) return; const saved = loadGame(); if (!saved) { toast('모험을 먼저 시작해야 레이드에 갈 수 있어요', 'warn'); return; }
   G.pd = saved; G.P = null; calcStats(); G.pvp = null; G.raid = null;
   $('#title').hidden = true; showHUD(false); G.state = 'raidLobby'; playBgm('boss');
@@ -67,7 +78,7 @@ function startRaidArena(I) {
   bubble(G.P, done ? choice(['피해량 1등 가자!', '기록 갱신 간다!']) : choice(['다 같이 잡자!', '내 몫은 확실히!', '희수 출격!']), 1.8);
 }
 /** dealDamage 에서 호출: 레이드 보스는 죽지 않고 피해만 쌓임 */
-function raidHit(e, dmg) {
+export function raidHit(e, dmg) {
   if (!G.raid || G.raid.over) return; G.raid.dmg += dmg;
   if (e.raidDone) e.hp = e.maxHp; else if (e.hp < 1) raidDone(e, true);
 }
@@ -76,11 +87,11 @@ function raidDone(e, now) {
   e.raidDone = true; e.hp = e.maxHp; e.m.name = `${e.m.name} · 처치 완료! 피해량 경쟁`;
   if (now) { G.shake = 9; sfx('lvl'); burst(e.x, e.y - e.h / 2, '#ffd84a', 40); banner('월드 보스 처치!', '다 같이 쓰러뜨렸어요 · 남은 시간은 피해량 경쟁', 'boss'); bubble(G.P, '쓰러뜨렸다!!', 1.8); }
 }
-function raidUpdate(dt) {
+export function raidUpdate(dt) {
   const V = G.raid; if (!V || V.over || G.state !== 'play') return;
   V.t -= dt; if (V.t <= 0) { V.t = 0; raidEnd('시간 종료!'); }
 }
-async function raidEnd(why) {
+export async function raidEnd(why) {
   const V = G.raid; if (!V || V.over) return; V.over = true; G.state = 'raidEnd'; INP.atk = false; if (typeof autoOff === 'function') autoOff();
   const dmg = Math.round(V.dmg); sfx('lvl'); G.pd.stats.raidBest = Math.max(G.pd.stats.raidBest || 0, dmg); saveGame();
   $('#raidRes').hidden = false; $('#raidResT').textContent = why;
@@ -97,7 +108,7 @@ function raidResAct(a) {
   if (a === 'lobby') { G.state = 'raidLobby'; $('#raid').hidden = false; raidRender(); playBgm('boss'); (async () => { try { await raidLoad(); raidRender(); } catch (e) { } })(); }
   else showTitle();
 }
-function raidBoot() {
+export function raidBoot() {
   if (FORCE_EASY) return;
   $('#raid').addEventListener('click', e => { const b = /** @type {HTMLElement} */ (e.target).closest('[data-rd]'); if (!b) return; const a = b.getAttribute('data-rd');
     if (a === 'go') raidGo(); else if (a === 'rw') raidRewardsOpen(); else if (a === 'join') rankJoin(); else if (a === 'close') { $('#raid').hidden = true; showTitle(); } });
@@ -105,7 +116,7 @@ function raidBoot() {
 }
 
 /** 받은 레이드 보상 모달 */
-function raidGotOpen(rank, killed, items) {
+export function raidGotOpen(rank, killed, items) {
   const head = rank ? `월드 보스 피해량<br><em>${rank}위</em> 달성!` : killed ? '월드 보스<br><em>처치 성공!</em>' : '월드 보스<br><em>참가 보상</em>';
   $('#seasonModalBody').innerHTML = `<div class="sgot"><div class="sbig">${rank === 1 ? MEDAL(1) : rank ? MEDAL(rank <= 3 ? rank : 4) : killed ? PXI('trophy') : PXI('rosette')}</div><h2>지난 주 ${head}</h2><p class="smsub">${killed ? '다 같이 보스를 쓰러뜨렸어요!' : '아쉽게 못 잡았지만 함께해줘서 고마워요'}</p>${rewardCards(items, true)}</div>`;
   seasonModalShow(); sfx('lvl');

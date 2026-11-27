@@ -1,16 +1,23 @@
 // ===================== 친구 희수 데려가기 (하루 1번, 15분 동료) =====================
 // 서버 hb_borrow_friend: 하루 1번, 빌려준 친구는 강화석 3 (하루 10번까지). 동료는 친구 스냅샷 공격의 50%로 싸우고 죽지 않음
+import { $, INP, choice, sfx } from './engine.js';
+import { G, bubble, dealDamage, saveGame } from './game.js';
+import { toast } from './ui.js';
+import { PV, SB, esc, pvErr, pvpFaceURL, pvpLoadMe, sbInit } from './pvp.js';
+import { todayKey } from './auto.js';
+import { achTag } from './achv.js';
+
 const BUDDY_TIME = 900, BUDDY_MUL = 0.5;
 const BUDDY = { list: /** @type {any[]} */ ([]), busy: false, paused: false };
 
-const buddyActive = pd => !!(pd && pd.buddy && pd.buddy.day === todayKey() && pd.buddy.left > 0);
-const buddyUsedToday = pd => !!(pd && pd.buddy && pd.buddy.day === todayKey());
+export const buddyActive = pd => !!(pd && pd.buddy && pd.buddy.day === todayKey() && pd.buddy.left > 0);
+export const buddyUsedToday = pd => !!(pd && pd.buddy && pd.buddy.day === todayKey());
 /** 필드(스테이지·할로윈·레이드)에 동료 세우기 */
-function buddySpawn() {
+export function buddySpawn() {
   G.buddy = null; const pd = G.pd; if (FORCE_EASY || !buddyActive(pd) || G.pvp || !G.P) return;
   G.buddy = { x: G.P.x - 18, y: G.P.y + 6, t: 0, ang: -Math.PI / 2, mv: 0, atkCd: 1, side: 0, snap: pd.buddy.snap, nick: pd.buddy.nick, flash: 0, spawnT: 0.8, stun: 0, dead: false, cast: null };
 }
-function buddyUpdate(dt) {
+export function buddyUpdate(dt) {
   const B = G.buddy, pd = G.pd; if (!B || !G.P) return;
   if (!buddyActive(pd)) { toast(`${B.nick}의 희수가 돌아갔어요. 내일 또 데려와요!`, 'sub'); G.buddy = null; return; }
   pd.buddy.left = Math.max(0, pd.buddy.left - dt); B.t += dt; B.atkCd -= dt; if (B.spawnT > 0) { B.spawnT -= dt; return; }
@@ -28,10 +35,10 @@ function buddyUpdate(dt) {
   if (d > 260) { B.x = P.x - 18; B.y = P.y + 6; } // 너무 멀어지면 옆으로
   B.mv = Math.hypot(B.x - x0, B.y - y0) / Math.max(dt, 1e-3);
 }
-const buddyLeftTxt = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+export const buddyLeftTxt = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 
 // ---------- 친구 고르기 ----------
-async function buddyOpen() {
+export async function buddyOpen() {
   if (FORCE_EASY || G.pvp) return;
   if (G.state === 'play') { G.state = 'menu'; BUDDY.paused = true; INP.atk = false; }
   const box = $('#buddy'); box.hidden = false; const pd = G.pd;
@@ -61,7 +68,7 @@ async function buddyPick(i) {
   } catch (e) { toast('데려오지 못했어요: ' + pvErr(e), 'warn'); } finally { BUDDY.busy = false; }
 }
 function buddyClose() { $('#buddy').hidden = true; if (BUDDY.paused && G.state === 'menu' && $('#menu').hidden) G.state = 'play'; BUDDY.paused = false; }
-function buddyBoot() {
+export function buddyBoot() {
   if (FORCE_EASY) return;
   $('#buddy').addEventListener('click', e => { const b = /** @type {HTMLElement} */ (e.target).closest('[data-bd]'); if (b) buddyPick(+b.getAttribute('data-bd')); });
   $('#buddyX').onclick = buddyClose;

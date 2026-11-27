@@ -1,4 +1,13 @@
 // ===================== EP2 STORY =====================
+import { ICONS } from './sprites.js';
+import { $, drawSpr, sfx, spr } from './engine.js';
+import { G } from './game.js';
+import { CUTK, cloud, fr, mixHex, pc, shadow, skyBands } from './render.js';
+import { showTitle } from './ui.js';
+import { A_, clearA, playCut } from './story.js';
+import { EP2, drawB2, e2HideAll, e2Menu, e2Play, e2SaveNow, e2Stars, s2, zzz } from './ep2core.js';
+import { E2STAGES } from './ep2easy.js';
+
 let MISSION1 = null;
 const E2PRO = [
   { scene: 'ep2home', bgm: 'home',
@@ -39,11 +48,11 @@ const E2END = [
   { init(A) { A.b2.kind = 'lie'; A.b2.x = -40; A.b2.flip = false; A.fish = null; A.hee.dir = 'down'; }, delay: 0.4, lines: [{ who: 'sys', text: '노을 진 저수지.\n셋은 나란히 앉았고, 보리는 언니 옆에서 꾸벅꾸벅 졸았다.' }], dur: 1.2 },
   { scene: 'ep2home', bgm: 'home', init(A) { clearA(A); A.cat = { x: 32, y: -16 }; }, delay: 0.8, lines: [{ who: 'sys', text: '[쿠키] 그날 밤, 우리 집 소파 위.' }, { who: 'cat', text: '...여기 살기로 했다냥.' }], dur: 0.6 }
 ];
-function e2Prologue(replay) {
+export function e2Prologue(replay) {
   if (!MISSION1) MISSION1 = $('#mission').innerHTML;
   e2HideAll(); playCut(E2PRO, () => { $('#mission').innerHTML = MISSION1; $('#mission').hidden = true; EP2.save.prologue = true; e2SaveNow(); if (replay) e2Menu(); else { E2STAGES[0]._seen = false; e2Play(0); } });
 }
-function e2Ending() {
+export function e2Ending() {
   e2HideAll(); playCut(E2END, () => {
     EP2.save.cleared = true; e2SaveNow(); G.state = 'end';
     $('#endScr h2').textContent = '보리 외전 「보리 주세요」';
@@ -54,7 +63,7 @@ function e2Ending() {
     $('#e2eTitle').onclick = () => { $('#endScr').hidden = true; showTitle(); };
   });
 }
-function e2DrawActors(A, mid, gy, T) {
+export function e2DrawActors(A, mid, gy, T) {
   const K = CUTK;
   if (A.fish) { const x = mid + A.fish.x * K; shadow(x, gy + 4, 36); drawSpr(s2('fish'), x, gy + 4 - Math.round(Math.abs(Math.sin(T * 6)) * 2), { scale: 2 }); }
   if (A.bone && A.hee) drawSpr(spr('t_toy_bone', ICONS.tbone), mid + A.hee.x * K + 9, gy + 3);
@@ -67,7 +76,7 @@ function e2DrawActors(A, mid, gy, T) {
     if (b.kind === 'rub' && Math.floor(T * 6) % 2) { fr(x - 7, y - 16, 1, 1, '#ffd84a'); fr(x + 7, y - 14, 1, 1, '#ffd84a'); }
   }
 }
-function e2DrawLake(SW, SH, mid, gy, T) {
+export function e2DrawLake(SW, SH, mid, gy, T) {
   skyBands(SW, gy - 30, '#6a3a9a', '#ffb07a'); pc(mid + 50, gy - 34, 12, '#ffe070');
   for (let i = 0; i < 3; i++) cloud(((i * 97 + T * 3) % (SW + 60)) - 30, 16 + i * 11, '#ffc0d8');
   for (let i = 0; i < 6; i++) fr(i * 52 - 20, gy - 40 - (i % 2) * 6, 50, 12 + (i % 2) * 6, '#4a3060');

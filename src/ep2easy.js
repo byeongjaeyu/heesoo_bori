@@ -1,7 +1,13 @@
 // ===================== EP2 EASY (원터치모드) =====================
+import { ICONS } from './sprites.js';
+import { SPRC, choice, clamp, ctx, drawSpr, lerp, makeSpr, mkCanvas, pCirc, pEll, rand, randi, rowsToCanvas, sfx, spr, tone } from './engine.js';
+import { moveToward } from './game.js';
+import { drawHeeAt, drawHusSleep, fr, ispr, mixHex, pRingE, pc, shadow } from './render.js';
+import { E2TOP, EH, EP2, EW, b2Spr, drawB2, drawB2Roll, drawCaesar, drawScent, e2Alert, e2Bar, e2Bubble, e2End, e2FishScene, e2T, e2UltStart, e2Unlock, s2, zzz } from './ep2core.js';
+import { E2STAGES_NORMAL, rectHit } from './ep2stages.js';
+
 const E2STAGES_EASY = (() => {
 // ===================== EP2 STAGES (simple tap mini-games) =====================
-function rectHit(r, x, y, pad) { pad = pad || 0; return x > r.x - pad && x < r.x + r.w + pad && y > r.y - pad && y < r.y + r.h + pad; }
 function tapFx(S, x, y, s, c) { (S.texts || (S.texts = [])).push({ x, y, s, c: c || '#ffffff', t: 0 }); }
 function stepTexts(S, dt) { if (!S.texts) S.texts = []; for (const t of S.texts) t.t += dt; S.texts = S.texts.filter(t => t.t < 0.8); if (S.parts) { for (const p of S.parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 120 * dt; p.life -= dt; } S.parts = S.parts.filter(p => p.life > 0); } }
 function drawTexts(S) { for (const t of (S.texts || [])) { ctx.globalAlpha = 1 - t.t / 0.8; e2T(t.x, t.y - t.t * 14, t.s, 5.5, t.c, '#2b1b24'); } ctx.globalAlpha = 1; for (const p of (S.parts || [])) { ctx.globalAlpha = Math.max(0, p.life / p.max); fr(p.x, p.y, 2, 2, p.col); } ctx.globalAlpha = 1; }
@@ -296,5 +302,5 @@ return [ST_HOME, ST_RUN, ST_MARKET, ST_CAT, ST_CAFE, ST_VET, ST_FISH, ST_BOSSFIS
 
 })();
 /** @type {any[]} 일반/원터치 스테이지 목록 중 현재 모드 */
-let E2STAGES = E2STAGES_NORMAL;
-function e2ApplyMode() { E2STAGES = FORCE_EASY || (EP2.save && EP2.save.mode === 'easy') ? E2STAGES_EASY : E2STAGES_NORMAL; }
+export let E2STAGES = E2STAGES_NORMAL;
+export function e2ApplyMode() { E2STAGES = FORCE_EASY || (EP2.save && EP2.save.mode === 'easy') ? E2STAGES_EASY : E2STAGES_NORMAL; }

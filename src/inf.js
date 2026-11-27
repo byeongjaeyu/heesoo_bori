@@ -1,6 +1,15 @@
 // ===================== 무한던전 · 에버랜드: 할로윈파티 =====================
 // 지금까지 깬 가장 높은 스테이지·회차의 몬스터가 끝없이 몰려옴. 얻은 골드·경험치·장비·강화는 그대로 저장.
-const INF_WAVE_KILLS = 40;
+import { $, VH, VW, choice, clamp, mulberry, playBgm, rand, rowsToCanvas, sfx, wpick } from './engine.js';
+import { ZONES } from './data.js';
+import { CH1_N } from './chapter.js';
+import { buildWorld } from './world.js';
+import { G, bubble, calcStats, loadGame, loopEff, newBori, newPlayer, saveGame, spawnAround, spawnEnemy } from './game.js';
+import { banner, showHUD, showTitle, toast } from './ui.js';
+import { dailyAdd } from './daily.js';
+import { buddySpawn } from './buddy.js';
+
+export const INF_WAVE_KILLS = 40;
 function infBasis(pd) {
   const cl = pd.cleared || 0, z = pd.zone || 0;
   if (z > 0) return { zone: z - 1, loop: loopEff(cl), real: cl };
@@ -27,7 +36,7 @@ function halloweenize(W) {
     W.decor.push({ img, x: Math.round(x), y: Math.round(y), r: 0, space: 10, glow: '#ff9a3c' }); n++;
   }
 }
-function startInfinite() {
+export function startInfinite() {
   const saved = loadGame(); if (!saved) { toast('모험을 먼저 시작해야 들어갈 수 있어요', 'warn'); return; }
   G.pd = saved; const b = infBasis(G.pd), pd = G.pd;
   G.pvp = null; G.husUsed = false; G.inf = { zone: b.zone, loop: b.loop, wave: 1, kills: 0, waveKills: 0 };
@@ -42,14 +51,14 @@ function startInfinite() {
   banner('무한던전 · ' + infBasisLabel(b), '에버랜드: 할로윈파티', 'boss');
   setTimeout(() => { if (G.inf && G.state === 'play') { toast('몬스터가 끝없이 몰려와요! 잡은 만큼 골드·경험치·장비가 전부 저장돼요', 'lvl'); bubble(G.P, choice(['할로윈이다! 털러 가자!', '오늘 밤은 안 잔다!', '보리야, 사탕 대신 골드 줍자!']), 1.8); } }, 1600);
 }
-function infSpawner(dt) {
+export function infSpawner(dt) {
   const V = G.inf, Z = ZONES[G.zone], L = V.loop;
   const alive = G.enemies.filter(e => !e.dead && !e.boss).length;
   const max = Math.min(28, Z.max * 2 + Math.min(6, 2 * L) + Math.floor(V.wave / 2));
   G.spawnT -= dt;
   if (G.spawnT <= 0 && alive < max) { G.spawnT = Z.spawnInt * 0.45 / (1 + 0.15 * L); spawnAround(wpick(Z.mons)); }
 }
-function infKill(e) {
+export function infKill(e) {
   const V = G.inf, pd = G.pd; V.kills++;
   if (e.boss) { G.boss = null; banner(`WAVE ${V.wave}`, '할로윈 보스 격파!', 'stage'); sfx('lvl'); return; }
   if (++V.waveKills >= INF_WAVE_KILLS) {
@@ -61,5 +70,5 @@ function infKill(e) {
     saveGame();
   }
 }
-const infWaveMul = () => G.inf ? { hp: 1 + 0.12 * (G.inf.wave - 1), atk: 1 + 0.06 * (G.inf.wave - 1), rew: 1 + 0.08 * (G.inf.wave - 1) } : { hp: 1, atk: 1, rew: 1 };
-function infLeave() { if (!G.inf) return; saveGame(); G.inf = null; $('#menu').hidden = true; showTitle(); toast('할로윈파티에서 얻은 건 전부 저장됐어요!', 'sub'); }
+export const infWaveMul = () => G.inf ? { hp: 1 + 0.12 * (G.inf.wave - 1), atk: 1 + 0.06 * (G.inf.wave - 1), rew: 1 + 0.08 * (G.inf.wave - 1) } : { hp: 1, atk: 1, rew: 1 };
+export function infLeave() { if (!G.inf) return; saveGame(); G.inf = null; $('#menu').hidden = true; showTitle(); toast('할로윈파티에서 얻은 건 전부 저장됐어요!', 'sub'); }

@@ -1,5 +1,11 @@
 // ===================== EP2 STAGES =====================
-function rectHit(r, x, y, pad) { pad = pad || 0; return x > r.x - pad && x < r.x + r.w + pad && y > r.y - pad && y < r.y + r.h + pad; }
+import { ICONS } from './sprites.js';
+import { DPR, INP, angDiff, choice, clamp, ctx, drawSpr, iconURL, lerp, mkCanvas, moveVec, mulberry, noise, pCirc, pEll, pRect, pRing, rand, randi, sfx, spr, tone, wpick } from './engine.js';
+import { moveToward } from './game.js';
+import { drawHeeAt, drawHusSleep, fr, ispr, itemSpr, mixHex, pRingE, pc, shadow } from './render.js';
+import { ARENA_BTNS, EH, ES, EW, arenaBori, arenaDrawBori, arenaDrawCommon, arenaFx, arenaHUD, arenaHurt, arenaUpdateBori, b2Kind, b2Spr, drawB2, drawB2Roll, drawCaesar, drawScent, e2Alert, e2Bar, e2Bmul, e2Bubble, e2End, e2FishScene, e2Hearts, e2T, e2Top, e2UltStart, e2Unlock, s2, zzz } from './ep2core.js';
+
+export function rectHit(r, x, y, pad) { pad = pad || 0; return x > r.x - pad && x < r.x + r.w + pad && y > r.y - pad && y < r.y + r.h + pad; }
 function pushOut(o, r, rad) { const cx = clamp(o.x, r.x, r.x + r.w), cy = clamp(o.y, r.y, r.y + r.h); const dx = o.x - cx, dy = o.y - cy, d = Math.hypot(dx, dy); if (d < rad) { if (d < 0.01) { o.y = r.y + r.h + rad; return; } o.x = cx + dx / d * rad; o.y = cy + dy / d * rad; } }
 function kEdge(S, key, on) { const was = S['_k' + key]; S['_k' + key] = on; return on && !was; }
 
@@ -496,4 +502,4 @@ const ST_BOSSFISH = {
   }
 };
 
-const E2STAGES_NORMAL = [ST_HOME, ST_RUN, ST_MARKET, ST_CAT, ST_CAFE, ST_VET, ST_FISH, ST_BOSSFISH];
+export const E2STAGES_NORMAL = [ST_HOME, ST_RUN, ST_MARKET, ST_CAT, ST_CAFE, ST_VET, ST_FISH, ST_BOSSFISH];

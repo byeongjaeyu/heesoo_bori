@@ -3,6 +3,13 @@
 // - 다른 기기에서 「로그인해서 불러오기」→ 같은 계정으로 로그인 → 서버 세이브를 이 기기에 씀
 // - 로그인한 계정은 시작할 때 서버 세이브가 더 최근이면 자동으로 받아옴 (여러 기기 번갈아 하기)
 // Supabase 대시보드: Auth → Providers 에서 Google/Kakao 켜기 + "Allow manual linking" 켜기 + Redirect URL 에 게임 주소
+import { $, audioInit } from './engine.js';
+import { G, SAVEKEY, loadGame } from './game.js';
+import { confirmBox, toast } from './ui.js';
+import { PV, SB, SB_KEY, SB_URL, pvErr, sbInit, setSBP } from './pvp.js';
+import { CLOUD, cloudSync } from './cloud.js';
+import { E2KEY } from './ep2core.js';
+
 const ACC_KEY = 'hb_acc_pending', ACC_PREV = 'hb_acc_prev', ACC_LOADED = 'hb_acc_loaded';
 const ACC_NAME = { google: '구글', kakao: '카카오' };
 const ACC = { prov: /** @type {string[]|null} */ (null), linked: /** @type {string|null} */ (null), email: '', busy: false, need: false };
@@ -21,7 +28,7 @@ async function accState() {
   return ACC.linked;
 }
 function accMsg(t) { const m = $('#accMsg'); if (m) m.textContent = t; const g = $('#agErr'); if (g && !$('#accGate').hidden) g.textContent = t; }
-async function accRender() {
+export async function accRender() {
   const box = $('#accBtns'); if (!box) return; box.innerHTML = ''; accMsg('확인하는 중...');
   try {
     if (!ACC.prov) ACC.prov = await accFetchProv().catch(() => []);
@@ -89,7 +96,7 @@ async function accGate() {
   } catch (e) { return false; }
   ACC.need = true; accGateShow(); return true;
 }
-function accGateShow() {
+export function accGateShow() {
   if (!ACC.need || ACC.linked || G.state !== 'title' || $('#title').hidden) return;
   const P = ACC.prov || [], here = loadGame();
   const btn = (op, p, t) => `<button class="btn ${op === 'link' ? 'pk' : 'wh'} acc-${p}" data-acc="${op}:${p}">${t}</button>`;
@@ -102,7 +109,7 @@ function accGateShow() {
   $('#agErr').textContent = ''; $('#accGate').hidden = false;
 }
 const accUrlErr = () => { const s = new URLSearchParams(location.hash.slice(1) + '&' + location.search.slice(1)); return s.get('error_description') || s.get('error') || ''; };
-async function accBoot() {
+export async function accBoot() {
   if (FORCE_EASY) return;
   let done = null; try { done = sessionStorage.getItem(ACC_LOADED); sessionStorage.removeItem(ACC_LOADED); } catch (e) { }
   if (done) setTimeout(() => toast(done === 'sync' ? '다른 기기에서 한 기록을 불러왔어요' : '로그인한 계정의 희수를 불러왔어요! 어서 와요', 'lvl'), 300);
@@ -121,7 +128,7 @@ async function accBoot() {
       // 이 계정엔 희수가 없음: 방금 생긴 빈 계정은 지우고(나중에 연결할 수 있게) 원래 계정으로 돌아감
       await SB.rpc('hb_acc_release').catch(() => null);
       if (prev) await SB.auth.setSession({ access_token: prev.a, refresh_token: prev.r }); else await SB.auth.signOut();
-      SBP = null; await sbInit();
+      setSBP(null); await sbInit();
       toast('이 계정에 연결된 희수가 없어요. 먼저 원래 기기에서 「계정 연결」을 해주세요', 'warn'); accGate();
     } catch (e) { toast('로그인 처리 중 문제가 생겼어요: ' + accErr(e), 'warn'); accGate(); }
     return;
