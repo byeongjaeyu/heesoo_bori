@@ -1,25 +1,36 @@
 // ===================== MAIN =====================
-import { $, INP, SND, numFmtBoot, resize, setupTouch } from './engine.js';
-import { G, saveGame, update, updateBubbles, updateCam, updateEvent, updateFx } from './game.js';
-import { renderGame } from './render.js';
-import { closeMenu, dlgAuto, dlgTap, openMenu, setupUI, showTitle, updateDialog, updateHUD } from './ui.js';
-import { entryRegister, rankOpen } from './rank.js';
-import { cloudBoot } from './cloud.js';
-import { accBoot } from './account.js';
-import { aucBoot } from './auction.js';
-import { dailyBoot } from './daily.js';
-import { guideBoot } from './guide.js';
-import { shareBoot } from './share.js';
-import { raidBoot } from './raid.js';
-import { buddyBoot } from './buddy.js';
-import { achvBoot } from './achv.js';
-import { idleBoot } from './idle.js';
-import { packBoot } from './pack.js';
-import { goalBoot } from './goal.js';
-import { towerBoot } from './tower.js';
-import { plazaBoot } from './plaza.js';
-import { renderCut, renderTitle, updateCut } from './story.js';
-import { e2Frame, e2RenderMenuBg } from './ep2core.js';
+
+
+
+import { $, numFmtBoot, resize } from './sys/dom.js';
+import { SND } from './sys/audio.js';
+import { INP, setupTouch } from './sys/input.js';
+import { G } from './core/state.js';
+import { saveGame } from './core/save.js';
+import { updateEvent } from './play/zone.js';
+import { update, updateBubbles, updateCam, updateFx } from './play/fx.js';
+import { renderGame } from './draw/render.js';
+import { dlgAuto, dlgTap, updateDialog } from './ui/dialog.js';
+import { updateHUD } from './ui/hud.js';
+import { closeMenu, openMenu } from './ui/menu.js';
+import { setupUI, showTitle } from './ui/lobby.js';
+import { entryRegister, rankOpen } from './net/rank.js';
+import { cloudBoot } from './net/cloud.js';
+import { accBoot } from './net/account.js';
+import { aucBoot } from './net/auction.js';
+import { dailyBoot } from './features/daily.js';
+import { guideBoot } from './features/guide.js';
+import { shareBoot } from './features/share.js';
+import { raidBoot } from './net/raid.js';
+import { buddyBoot } from './net/buddy.js';
+import { achvBoot } from './features/achv.js';
+import { idleBoot } from './features/idle.js';
+import { packBoot } from './features/pack.js';
+import { goalBoot } from './features/goal.js';
+import { towerBoot } from './play/tower.js';
+import { plazaBoot } from './net/plaza.js';
+import { renderCut, renderTitle, updateCut } from './story/story.js';
+import { e2Frame, e2RenderMenuBg } from './minigame/ep2core.js';
 
 let LAST = performance.now();
 function frame(now) {

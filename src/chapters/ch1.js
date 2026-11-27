@@ -3,11 +3,19 @@
 // 1장 업적(c1·c5·c10)은 기본 업적 목록(achv.js)에 그대로 있음 (칭호 목록 순서 유지)
 
 // ---------- 컷신 ----------
-import { $, choice, clamp, lerp, mkCanvas, pCirc, pEll, pRect, pRing, rand, sfx, shadeHex } from '../engine.js';
-import { regChapter } from '../chapter.js';
-import { OK, WORLD_H, WORLD_W, dLamp } from '../world.js';
-import { G, bubble, burst, hurtPlayer, moveToward, shootAt, spawnEnemy } from '../game.js';
-import { A_, CUT, clearA } from '../story.js';
+
+
+
+import { $ } from '../sys/dom.js';
+import { choice, clamp, lerp, rand, shadeHex } from '../core/util.js';
+import { mkCanvas, pCirc, pEll, pRect, pRing } from '../draw/sprite.js';
+import { sfx } from '../sys/audio.js';
+import { regChapter } from '../core/chapter.js';
+import { OK, WORLD_H, WORLD_W, dLamp } from '../draw/world.js';
+import { G } from '../core/state.js';
+import { bubble, burst, hurtPlayer, moveToward } from '../play/player.js';
+import { shootAt, spawnEnemy } from '../play/enemies.js';
+import { A_, CUT, clearA } from '../story/story.js';
 
 export const INTRO = [
   { scene: 'park', bgm: 'story',

@@ -2,12 +2,20 @@
 // 실제 있었던 일 4가지: 「밥하러 온 거지?」(낮) · 「장비만 좋았다면… → 당장 다 팔아」(해 질 녘) · 「잠만 잘 거면 오지 마」(밤) · 「연장할까..?」(엔딩)
 // 이 파일 = 2장 전부 (컷신·스테이지·몬스터·보스 패턴·낚시 장비·업적), 맨 아래 regChapter 로 등록
 
-import { choice, clamp, ctx, lerp, mkCanvas, pCirc, pEll, pRect, rand, sfx, shadeHex } from '../engine.js';
-import { regChapter } from '../chapter.js';
-import { OK, WORLD_H, WORLD_W, dLamp } from '../world.js';
-import { G, aimDash, bubble, burst, dashStep, hurtPlayer, moveToward, shootAt, spawnEnemy } from '../game.js';
-import { CUTK, cloud, fr, pc, skyBands } from '../render.js';
-import { A_, clearA } from '../story.js';
+
+
+
+import { ctx } from '../sys/dom.js';
+import { choice, clamp, lerp, rand, shadeHex } from '../core/util.js';
+import { mkCanvas, pCirc, pEll, pRect } from '../draw/sprite.js';
+import { sfx } from '../sys/audio.js';
+import { regChapter } from '../core/chapter.js';
+import { OK, WORLD_H, WORLD_W, dLamp } from '../draw/world.js';
+import { G } from '../core/state.js';
+import { bubble, burst, hurtPlayer, moveToward } from '../play/player.js';
+import { aimDash, dashStep, shootAt, spawnEnemy } from '../play/enemies.js';
+import { CUTK, cloud, fr, pc, skyBands } from '../draw/render.js';
+import { A_, clearA } from '../story/story.js';
 
 function drawSeaCut(SW, SH, mid, gy, T, mode) {
   const night = mode === 'seaN' || mode === 'rocks', sunset = mode === 'seaS';

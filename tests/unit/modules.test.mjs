@@ -8,6 +8,8 @@ import ts from 'typescript';
 import { ORDER, ROOT, stripModule } from '../../build/hb-build.mjs';
 
 const SRC = path.join(ROOT, 'src');
+/** src 아래 모든 .js (확장자 뺀 경로, 예: core/save) */
+const ALL = (function walk(d) { return fs.readdirSync(path.join(SRC, d), { withFileTypes: true }).flatMap(e => e.isDirectory() ? walk(path.join(d, e.name)) : e.name.endsWith('.js') ? [path.join(d, e.name.slice(0, -3)).replace(/\\/g, '/')] : []); })('');
 const top = f => { const sf = ts.createSourceFile(f, fs.readFileSync(f, 'utf8'), ts.ScriptTarget.ES2022, true), out = [];
   for (const st of sf.statements) {
     if ((ts.isFunctionDeclaration(st) || ts.isClassDeclaration(st)) && st.name) out.push(st.name.text);
@@ -21,8 +23,20 @@ describe('모듈 구조', () => {
     expect(dup).toEqual([]);
   });
   test('src 의 .js 파일은 전부 ORDER 에 있음', () => {
-    const all = [...fs.readdirSync(SRC).filter(f => f.endsWith('.js')).map(f => f.slice(0, -3)), ...fs.readdirSync(path.join(SRC, 'chapters')).map(f => 'chapters/' + f.slice(0, -3))];
-    expect(all.filter(n => !ORDER.includes(n))).toEqual([]);
+    expect(ALL.filter(n => !ORDER.includes(n))).toEqual([]);
+  });
+  test('층 규칙: sys·core 는 화면·필드·서버를 모름, draw 는 그리기만 (예외는 아래 목록 — 줄이기만 할 것)', () => {
+    const layer = n => n.includes('/') ? n.split('/')[0] : 'main';
+    const RULE = { sys: ['sys', 'core'], core: ['core', 'sys'], draw: ['draw', 'core', 'sys'] };
+    // 남아 있는 예외: render.js 는 모든 화면을 한 프레임에 합치는 곳 · input.js 는 터치를 대화창·미니게임에 넘김
+    const ALLOW = ['draw/render -> play/player', 'draw/render -> ui/lobby', 'draw/render -> net/pvp', 'draw/render -> features/achv', 'draw/render -> net/plaza',
+      'sys/input -> ui/dialog', 'sys/input -> minigame/ep2core'];
+    const bad = [];
+    for (const n of ALL) { const L = layer(n); if (!RULE[L]) continue;
+      for (const m of fs.readFileSync(path.join(SRC, n + '.js'), 'utf8').matchAll(/^import \{[^}]*\} from '([^']+)';/gm)) {
+        const t = path.relative(SRC, path.join(SRC, path.dirname(n), m[1])).replace(/\\/g, '/').replace(/\.js$/, '');
+        if (!RULE[L].includes(layer(t))) bad.push(`${n} -> ${t}`); } }
+    expect(bad.sort()).toEqual([...ALLOW].sort());
   });
   test('빌드가 import/export 를 걷어냄 (한 줄 import · 선언 앞 export 만 허용)', () => {
     expect(stripModule("import { a, b } from './x.js';\nexport const c = a;\nexport function d() {}\n")).toBe('const c = a;\nfunction d() {}\n');

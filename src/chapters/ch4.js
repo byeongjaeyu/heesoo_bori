@@ -3,13 +3,21 @@
 // 오빠는 결혼 준비 내내 「응 좋아, 너무 좋아」만 말함 → 희수 멘헤라 포인트
 // 이 파일 = 4장 전부 (컷신·스테이지·몬스터·보스 패턴·웨딩 준비 장비·착용 세트·업적), 맨 아래 regChapter 로 등록
 
-import { choice, clamp, ctx, drawSpr, lerp, mkCanvas, pCirc, pRect, rand, sfx, shadeHex, sprFn } from '../engine.js';
-import { husPaint } from '../hee2.js';
-import { regChapter } from '../chapter.js';
-import { OK, WORLD_H, WORLD_W } from '../world.js';
-import { G, aimDash, bubble, burst, dashStep, hurtPlayer, moveToward, shootAt, spawnEnemy } from '../game.js';
-import { CUTK, fr, ispr, pc } from '../render.js';
-import { A_, clearA, pxLine } from '../story.js';
+
+
+
+import { ctx } from '../sys/dom.js';
+import { choice, clamp, lerp, rand, shadeHex } from '../core/util.js';
+import { drawSpr, mkCanvas, pCirc, pRect, sprFn } from '../draw/sprite.js';
+import { sfx } from '../sys/audio.js';
+import { husPaint } from '../draw/hee2.js';
+import { regChapter } from '../core/chapter.js';
+import { OK, WORLD_H, WORLD_W } from '../draw/world.js';
+import { G } from '../core/state.js';
+import { bubble, burst, hurtPlayer, moveToward } from '../play/player.js';
+import { aimDash, dashStep, shootAt, spawnEnemy } from '../play/enemies.js';
+import { CUTK, fr, ispr, pc, pxLine } from '../draw/render.js';
+import { A_, clearA } from '../story/story.js';
 
 /** 웨딩드레스·면사포 차림 희수 (컷신) */
 export const WED_PAL = { hat: 'veil', cloth: 'gown', shoe: 'heel', bag: 'none', C: '#fffaf4', c: '#e8dcd0', W: '#fffaf4', w: '#e8dcd0', O: '#fffaf4', o: '#e0d4c8' };

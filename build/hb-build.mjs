@@ -10,7 +10,18 @@ export const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname)
 const SRC = path.join(ROOT, 'src');
 
 /** 이어 붙이는 순서 (앞 파일의 전역을 뒤 파일이 씀). 확장자 없이, .ts 가 있으면 .ts 우선 */
-export const ORDER = ['sprites', 'sprites2', 'engine', 'hee2', 'data', 'chapter', 'chapters/ch1', 'chapters/ch2', 'chapters/ch3', 'chapters/ch4', 'world', 'refine', 'game', 'job', 'render', 'ui', 'pvp', 'inf', 'auto', 'rank', 'cloud', 'account', 'trade', 'auction', 'xchg', 'daily', 'guide', 'share', 'raid', 'buddy', 'achv', 'idle', 'pack', 'goal', 'tower', 'plaza', 'story', 'replay', 'ep2core', 'ep2stages', 'ep2easy', 'ep2story', 'main'];
+export const ORDER = [
+  'draw/sprites', 'draw/sprites2',
+  'sys/dom', 'core/util', 'core/events', 'draw/sprite', 'sys/audio', 'sys/input',
+  'draw/hee2', 'core/data', 'core/chapter', 'play/chapter-flow',
+  'chapters/ch1', 'chapters/ch2', 'chapters/ch3', 'chapters/ch4',
+  'draw/world', 'core/refine', 'features/refine',
+  'core/state', 'core/save', 'core/items', 'play/player', 'play/skills', 'play/bori', 'core/loop', 'play/enemies', 'play/drops', 'core/enhance', 'play/food', 'core/progress', 'play/zone', 'play/fx',
+  'core/job', 'features/job', 'draw/render',
+  'ui/common', 'ui/dialog', 'ui/hud', 'ui/menu', 'ui/lobby',
+  'net/pvp', 'play/inf', 'play/auto', 'net/rank', 'net/cloud', 'net/account', 'net/trade', 'net/auction', 'net/xchg',
+  'features/daily', 'features/guide', 'features/share', 'net/raid', 'net/buddy', 'features/achv', 'features/idle', 'features/pack', 'features/goal',
+  'play/tower', 'net/plaza', 'story/story', 'story/replay', 'minigame/ep2core', 'minigame/ep2stages', 'minigame/ep2easy', 'minigame/ep2story', 'main'];
 
 export const BASE_URL = 'https://byeongjaeyu.github.io/heesoo_bori/';
 export const EDITIONS = {
