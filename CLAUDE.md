@@ -33,7 +33,8 @@
   - 진짜 번들러(Vite/esbuild 모듈 번들)로 바꾸려면 먼저 onclick 문자열을 addEventListener 로 바꾸고, e2e 가 쓰는 전역은 `window`에 따로 연결할 것.
   - 파일을 `.ts`로 바꿔도 됨(빌드 시 타입만 제거).
 - `FORCE_EASY` — 빌드가 맨 앞에 주입. `true`면 원터치 에디션(2탄만, 큰 글씨, 서버 기능 없음).
-- 정적 파일(og 이미지, `.nojekyll`)은 `public/` → `dist/`로 그대로 복사.
+- 정적 파일(og 이미지, `.nojekyll`, 개인정보처리방침 `privacy.html`)은 `public/` → `dist/`로 그대로 복사.
+  - 소개(랜딩) 페이지 `public/landing/index.html` → `/heesoo_bori/landing/` (11/27, 사용자가 만든 한 파일: 도트 이미지·Galmuri·GSAP·Lenis 인라인). 게임 소스와 별개라 장·몬스터·보스가 바뀌어도 자동 반영 안 됨 — 안의 `MONS`·`BOSSES`·`SPR`을 손으로 고칠 것.
 - 주요 파일: 위 층 표 참고. 아래 설명에서 `game.js`·`ui.js`·`engine.js`라고 적힌 함수는 위 「옛 파일 → 새 위치」로 찾을 것(파일 이름 대신 함수 이름으로 검색하면 빠름).
 - 타입: `src/types.d.ts`(SaveData, ItemDef), `src/globals.d.ts`. JS 파일도 `checkJs`로 검사됨.
 - PC(마우스·900px 이상): `#hud`·`#ctrl`을 CSS `zoom` 1.3(1600×1000 이상 1.5)으로 키우고 버튼에 단축키 배지(`data-key`), 키보드 안내 `#keyHint`(대화창 뜨면 숨김).
