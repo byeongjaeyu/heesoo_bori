@@ -25,66 +25,8 @@ function updateCut(dt) {
 }
 function clearA(A) { for (const k in A) delete A[k]; }
 
-const INTRO = [
-  { scene: 'park', bgm: 'story',
-    init(A) { clearA(A); Object.assign(A, { hee: { x: -140, pose: 'walk', dir: 'right' }, bori: { x: -122, pose: 'run', face: 1, y: 2 }, leash: true, dark: 0 }); },
-    update(A, dt, t) { A.hee.x = Math.min(-14, -140 + t * 50); if (A.bori.pose === 'run') A.bori.x = A.hee.x + 18; if (A.hee.x >= -14 && A.hee.pose === 'walk') { A.hee.pose = 'idle'; A.hee.dir = 'down'; A.bori.pose = 'sit'; A.bori.pant = true; } },
-    delay: 2.4, lines: [
-      { who: 'sys', text: '어느 화창한 주말 오후.' },
-      { who: 'sys', text: '희수는 강아지 보리와 함께 에버랜드에 놀러 왔다.' },
-      { who: 'hee', text: '보리야~ 오늘 사진 백 장 찍자!' },
-      { who: 'bori', text: '멍! 멍!' }] },
-  { init(A) { A.hee.pose = 'phone'; }, delay: 0.5, lines: [{ who: 'heePh', text: '잠깐만 보리야~ 인스타에 올리고...\n#에버랜드 #보리 #행복 #주말' }] },
-  { init(A) { A.balloon = { x: -90, y: -34 }; },
-    update(A, dt, t) { A.balloon.x += dt * 38; A.balloon.y = -34 + Math.sin(t * 3) * 4 - t * 4; if (t > 0.9) { A.leash = false; A.bori.pose = 'run'; A.bori.pant = false; A.bori.face = 1; A.bori.x += dt * (80 + t * 30); } if (t > 1.1 && !A.bk) { A.bk = 1; sfx('bark'); } }, dur: 3.0 },
-  { init(A) { A.bori.x = 999; A.balloon = null; }, delay: 0.3, lines: [
-      { who: 'sys', text: '...희수가 폰을 보는 사이, 보리가 사라졌다!' },
-      { who: 'hee', text: '...응? 보리야?', do() { A_().hee.pose = 'idle'; A_().hee.alert = true; } },
-      { who: 'hee', text: '보리야아아아아!!!!', do() { A_().hee.shake = true; } }] },
-  { bgm: 'dark', init(A) { A.hee.alert = false; A.hee.shake = false; A.mons = []; },
-    update(A, dt, t) {
-      A.dark = Math.min(1, t / 1.8);
-      if (t > 0.6 && !A.th1) { A.th1 = 1; CUT.light = 1; sfx('thunder'); }
-      if (t > 1.9 && !A.th2) { A.th2 = 1; CUT.light = 1; sfx('thunder'); const T = G.time; A.mons = [['slime', -78, 8], ['balloon', 52, -26], ['slime', 74, 12], ['balloon', -56, -34], ['slime', 34, 16], ['balloon', 0, -48]].map((m, i) => ({ type: m[0], x: m[1], y: m[2], t0: T + i * 0.15 })); }
-      if (t > 2.0 && t < 2.9 && Math.random() < dt * 4) sfx('pop');
-    }, dur: 3.2 },
-  { delay: 0, lines: [
-      { who: 'sys', text: '그 순간, 하늘이 보랏빛으로 물들더니...' },
-      { who: 'sys', text: '놀이공원 곳곳에서 몬스터들이 쏟아져 나왔다!' },
-      { who: 'mon', text: '뿌루루룽~ 끼에에에엑!!' },
-      { who: 'hee', text: '꺄악! 이게 다 뭐야?!', do() { A_().hee.alert = true; } }] },
-  { scene: 'gate', init(A) { A.mons = []; A.hee.x = -40; A.hee.dir = 'right'; A.hee.pose = 'idle'; A.hee.alert = false; A.dark = 1; A.sign = true; }, delay: 0.6, lines: [
-      { who: 'hee', text: '출구가... 막혔잖아?!' },
-      { who: 'sys', text: '출구는 몬스터들에게 봉쇄됐다.\n구역마다 있는 보스를 쓰러뜨려야 길이 열릴 것 같다.' },
-      { who: 'hee', text: '무기도 없고... 가방엔 폰밖에 없는데...', do() { A_().hee.dir = 'down'; } },
-      { who: 'hee', text: '좋아. 맨주먹으로라도 보리 찾아서\n여기서 탈출한다!!', do() { A_().hee.fist = true; sfx('smash'); } }] },
-  { scene: 'stars', init(A) { A.hee = null; A.sign = false; A.dark = 0; $('#mission').hidden = false; $('#skip').hidden = true; }, dur: 3.6 }
-];
 const A_ = () => CUT.A;
 
-const ENDING = [
-  { scene: 'escape', bgm: 'story',
-    init(A) { clearA(A); Object.assign(A, { hee: { x: -150, pose: 'walk', dir: 'right' }, bori: { x: -132, pose: 'run', face: 1, y: 2 } }); },
-    update(A, dt, t) { A.hee.x = Math.min(10, -150 + t * 52); if (A.bori.pose === 'run') A.bori.x = A.hee.x + 18; if (A.hee.x >= 10 && A.hee.pose === 'walk') { A.hee.pose = 'idle'; A.hee.dir = 'down'; A.bori.pose = 'sit'; A.bori.pant = true; } },
-    delay: 2.2, lines: [
-      { who: 'sys', text: '퍼레이드 대왕이 쓰러지자, 하늘이 다시 맑아졌다.' },
-      { who: 'sys', text: '희수와 보리는 마침내 에버랜드를 탈출했다!' },
-      { who: 'hee', text: '보리야, 집에 가자!\n오빠가 엄청 걱정하고 있을 거야ㅠㅠ' },
-      { who: 'bori', text: '멍멍!' }] },
-  { scene: 'home', bgm: 'home',
-    init(A) { clearA(A); Object.assign(A, { hus: { x: 30 }, hee: { x: -86, pose: 'walk', dir: 'right' }, bori: { x: -102, pose: 'run', face: 1, y: 3 }, door: true }); },
-    update(A, dt, t) { A.hee.x = Math.min(-22, -86 + t * 44); A.bori.x = Math.min(-40, A.hee.x - 16); if (A.hee.x >= -22 && A.hee.pose === 'walk') { A.hee.pose = 'idle'; A.bori.pose = 'sit'; A.door = false; } },
-    delay: 1.8, lines: [
-      { who: 'hee', text: '오빠!!! 나 살아왔어!!!' },
-      { who: 'hee', text: '에버랜드에 몬스터가 막 쏟아져 나오고,\n보리도 잃어버리고, 나 진짜 죽을 뻔했...' },
-      { who: 'hus', text: '오 왔어? 같이 낚시터 가자!', do() { A_().hus.rodUp = true; A_().sparkle = true; sfx('ding'); } },
-      { who: 'hus', text: '자기 오면 바로 출발하려고\n채비 다 해놨지~ 오늘 물때 좋대!' },
-      { who: 'hee', text: '..........', do() { A_().hee.sweat = true; } },
-      { who: 'hee', text: '......지금 낚시터라고 했어?' },
-      { who: 'sys', text: '희수의 멘헤라 게이지가 차오르기 시작했다...', do() { A_().aura = true; sfx('ult'); } },
-      { who: 'bori', text: '멍! 멍멍! (낚시터 신난다!)', do() { A_().bori.jump = true; sfx('bark'); } }] },
-  { dur: 1.0 }
-];
 
 function pxLine(x0, y0, x1, y1, col, w) { const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) | 0; ctx.fillStyle = col; for (let i = 0; i <= n; i++) { const t = n ? i / n : 0; ctx.fillRect(Math.round(lerp(x0, x1, t)), Math.round(lerp(y0, y1, t)), w || 1, w || 1); } }
 function drawActors(A, mid, gy, T) {
@@ -116,11 +58,8 @@ function renderCut() {
   else if (CUT.scene === 'escape') drawEscape(SW, SH, mid, gy, T);
   else if (CUT.scene === 'ep2home') drawHome(SW, SH, mid, gy, T, A);
   else if (CUT.scene === 'e2lake') e2DrawLake(SW, SH, mid, gy, T);
-  else if (['lot', 'sea', 'seaS', 'seaN', 'rocks'].includes(CUT.scene)) drawSeaCut(SW, SH, mid, gy, T, CUT.scene);
-  else if (['pgate', 'pfood', 'pstand', 'prain', 'pwin'].includes(CUT.scene)) drawParkCut(SW, SH, mid, gy, T, CUT.scene);
-  else if (['whall', 'wdress', 'wstudio', 'wselect', 'wwed'].includes(CUT.scene)) drawWedCut(SW, SH, mid, gy, T, CUT.scene);
-  else drawStars(SW, SH, T);
-  drawActors(A, mid, gy, T); drawSeaActors(A, mid, gy, T); drawParkActors(A, mid, gy, T); drawWedActors(A, mid, gy, T);
+  else { const ch = CHAPTERS.find(c => c && c.cut && c.cut.scenes.includes(CUT.scene)); if (ch) ch.cut.draw(SW, SH, mid, gy, T, CUT.scene); else drawStars(SW, SH, T); } // 장 컷신 장면 (장 파일 cut.draw)
+  drawActors(A, mid, gy, T); for (const ch of CHAPTERS) if (ch && ch.cut) ch.cut.actors(A, mid, gy, T);
   if (A.b2 || A.cat || A.fish) e2DrawActors(A, mid, gy, T);
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   const cw = cv.width, ch = cv.height;

@@ -3,9 +3,9 @@ import { g, fresh, withRandom } from './helpers.mjs';
 
 describe('2장 (유료 바다낚시터)', () => {
   test('1장을 깨고 Lv30이 되면 열림', () => {
-    expect(g.ch2Open(fresh({ lv: 40, cleared: 0 }))).toBe(false);
-    expect(g.ch2Open(fresh({ lv: 29, cleared: 3 }))).toBe(false);
-    expect(g.ch2Open(fresh({ lv: 30, cleared: 1 }))).toBe(true);
+    expect(g.chOpen(fresh({ lv: 40, cleared: 0 }), 2)).toBe(false);
+    expect(g.chOpen(fresh({ lv: 29, cleared: 3 }), 2)).toBe(false);
+    expect(g.chOpen(fresh({ lv: 30, cleared: 1 }), 2)).toBe(true);
   });
   test('난이도: 2장 1회차 = 1장 10회차 수준(9단계)에서 시작해 2장 회차마다 오름, 1장은 그대로', () => {
     const pd = fresh({ lv: 30, cleared: 7 });
@@ -36,9 +36,9 @@ describe('2장 (유료 바다낚시터)', () => {
 
 describe('3장 (사직 야구장)', () => {
   test('2장을 깨고 Lv50이면 열림', () => {
-    expect(g.ch3Open(fresh({ lv: 50, cleared: 5 }))).toBe(false);
-    const pd = fresh({ lv: 49, cleared: 5 }); pd.ch2 = { zone: 4, cleared: 1 }; expect(g.ch3Open(pd)).toBe(false);
-    pd.lv = 50; expect(g.ch3Open(pd)).toBe(true);
+    expect(g.chOpen(fresh({ lv: 50, cleared: 5 }), 3)).toBe(false);
+    const pd = fresh({ lv: 49, cleared: 5 }); pd.ch2 = { zone: 4, cleared: 1 }; expect(g.chOpen(pd, 3)).toBe(false);
+    pd.lv = 50; expect(g.chOpen(pd, 3)).toBe(true);
   });
   test('난이도: 3장 1회차 = 20단계(1장 약 15회차), 장별 진행도 따로', () => {
     const pd = fresh({ lv: 50, cleared: 20, zone: 1 }); pd.ch2 = { zone: 6, cleared: 3 };
@@ -55,8 +55,8 @@ describe('3장 (사직 야구장)', () => {
 
 describe('4장 (결혼 대작전)', () => {
   test('3장을 깨고 Lv50이면 열림', () => {
-    const pd = fresh({ lv: 50, cleared: 5 }); pd.ch2 = { zone: 4, cleared: 1 }; expect(g.ch4Open(pd)).toBe(false);
-    pd.ch3 = { zone: 8, cleared: 1 }; expect(g.ch4Open(pd)).toBe(true);
+    const pd = fresh({ lv: 50, cleared: 5 }); pd.ch2 = { zone: 4, cleared: 1 }; expect(g.chOpen(pd, 4)).toBe(false);
+    pd.ch3 = { zone: 8, cleared: 1 }; expect(g.chOpen(pd, 4)).toBe(true);
   });
   test('ZONES 12~15 = 4장, 난이도 24단계부터, 장별 진행도 따로', () => {
     expect([12, 13, 14, 15].map(z => g.zoneCh(z))).toEqual([4, 4, 4, 4]); expect(g.zoneCh(11)).toBe(3);
@@ -80,5 +80,28 @@ describe('4장 (결혼 대작전)', () => {
     wearAll(); pd.beq.btoy = null; const six = stat(pd); expect(g.eqSetN(pd, S)).toBe(6);
     wearAll(); const all = stat(pd); expect(g.eqSetN(pd, S)).toBe(7);
     expect(all.atk).toBeGreaterThan(six.atk * 1.12); expect(all.def).toBeGreaterThan(six.def * 1.12); expect(all.hp).toBeGreaterThan(six.hp * 1.12);
+  });
+});
+
+describe('장 등록부 (src/chapters/chN.js → regChapter)', () => {
+  test('1~4장이 순서대로 등록, 스테이지 번호가 이어짐, 장마다 필요한 게 다 있음', () => {
+    const cs = g.CHAPTERS.filter(Boolean); expect(cs.map(c => c.c)).toEqual([1, 2, 3, 4]);
+    expect(cs.map(c => g.CH_Z0[c.c])).toEqual([0, 4, 8, 12]); expect(g.ZONES.length).toBe(16);
+    expect(cs.map(c => g.CH_BASE_L[c.c])).toEqual([0, 9, 20, 24]);
+    for (const ch of cs) {
+      ch.zones.forEach((Z, i) => {
+        const z = g.CH_Z0[ch.c] + i; expect(g.ZONES[z].name).toBe(Z.name);
+        for (const [m] of Z.mons) expect(g.MONS[m], m).toBeTruthy();
+        const B = g.MONS[Z.boss]; expect(B.boss).toBe(1); expect(typeof g.AI[B.ai], B.ai).toBe('function'); // 보스 패턴
+        for (const [m] of Z.mons) expect(typeof g.AI[g.MONS[m].ai], m).toBe('function');
+      });
+      expect(Array.isArray(ch.story.prologue[1])).toBe(true); expect(Array.isArray(ch.story.ending[1])).toBe(true);
+      for (const i of Object.keys(ch.story.stages)) { expect(+i).toBeGreaterThan(0); expect(+i).toBeLessThan(ch.zones.length); }
+      if (ch.c > 1) { expect(g.HAIRS.some(h => h.need === 'ch' + ch.c)).toBe(true); expect(g.BOOK_SETS.some(s => s.ch === ch.c && s.mul > 1)).toBe(true); expect(ch.ach.length).toBeGreaterThan(0); }
+    }
+  });
+  test('장 클리어 헤어는 그 장을 깨야 열림', () => {
+    const pd = fresh(); const H = g.HAIRS.find(h => h.need === 'ch3');
+    expect(g.hairOk(pd, H)).toBe(false); pd.ch3 = { zone: 8, cleared: 1 }; expect(g.hairOk(pd, H)).toBe(true);
   });
 });
