@@ -26,14 +26,16 @@ function rewardApply(pd, r) {
 /** 날짜로 정해지는 미션 4개 (같은 날엔 누구나 같은 미션) */
 function dailyPicks(day) {
   let h = 0; for (const c of day) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-  const rest = Object.keys(MISSIONS).filter(k => k !== 'kill');
+  const rest = Object.keys(MISSIONS).filter(k => k !== 'kill' && k !== 'ep2'); // 11/27 미니게임을 메인에서 뺌 → 「보리 주세요」 미션 안 나옴
   for (let i = rest.length - 1; i > 0; i--) { h = (h * 1103515245 + 12345) >>> 0; const j = h % (i + 1);[rest[i], rest[j]] = [rest[j], rest[i]]; }
   return ['kill', ...rest.slice(0, 3)];
 }
 /** 오늘 미션 상태 (날짜 바뀌면 새로) */
 function dailyState(pd, day = todayKey()) {
   if (!pd.daily || pd.daily.day !== day) pd.daily = { day, picks: dailyPicks(day), prog: {}, got: [], all: false };
-  return pd.daily;
+  const D = pd.daily, i = D.picks.indexOf('ep2'); // 예전에 뽑힌 미니게임 미션은 다른 미션으로 바꿈
+  if (i >= 0 && !(D.got || []).includes('ep2')) D.picks[i] = Object.keys(MISSIONS).find(k => k !== 'ep2' && !D.picks.includes(k)) || 'kill';
+  return D;
 }
 function dailyClaimable(pd, day = todayKey()) {
   if (!pd) return 0; const d = dailyState(pd, day); let n = (pd.att && pd.att.last === day) ? 0 : 1;

@@ -26,6 +26,11 @@ describe('일일 미션', () => {
     expect(g.dailyPicks('2026-11-20')).toEqual(p);
     const sets = new Set(Array.from({ length: 14 }, (_, i) => g.dailyPicks(`2026-12-${i + 1}`).join(',')));
     expect(sets.size).toBeGreaterThan(2);
+    for (let i = 1; i <= 60; i++) expect(g.dailyPicks(`2027-1-${i}`)).not.toContain('ep2'); // 미니게임 미션은 메인에서 안 나옴
+  });
+  test('예전에 뽑힌 미니게임 미션은 다른 미션으로 바뀜', () => {
+    const pd = fresh(); pd.daily = { day: g.todayKey(), picks: ['kill', 'ep2', 'enh', 'pvp'], prog: {}, got: [], all: false };
+    const d = g.dailyState(pd); expect(d.picks).not.toContain('ep2'); expect(new Set(d.picks).size).toBe(4);
   });
   test('진행 → 완료 후에만 받기, 한 번만', () => {
     const pd = fresh(); localStorage.setItem(g.SAVEKEY, JSON.stringify(pd));

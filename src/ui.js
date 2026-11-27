@@ -410,9 +410,8 @@ function showTitle() {
     + (saved ? `<button class="ticon" id="tShare">${I('camera')}<small>카드 공유</small></button>` : '')
     + (saved ? `<button class="ticon" id="tAuc">${I('auc')}<small>경매장</small></button>` : '')
     + `<button class="ticon" id="tCloud">${I('phone')}<small>기기 이동</small></button>`;
-  // 오른쪽: 미니게임
-  let boriImg = ''; try { const c = mkCanvas(20, 20), g = c.getContext('2d'); g.drawImage(b2Spr('sit').n, 3, 4); const o = mkCanvas(80, 80), og = o.getContext('2d'); og.imageSmoothingEnabled = false; og.drawImage(c, 0, 0, 80, 80); boriImg = o.toDataURL(); } catch (e) { }
-  $('#tsideR').innerHTML = (saved ? idleTileHtml(saved) + msTileHtml(saved) : '') + `<button class="tmini" id="tEp2"><em>MINI GAME</em><img src="${boriImg}" alt=""><b>보리 주세요</b><small>${e2s ? '★ ' + e2n + '/24' : 'NEW'}</small></button>`;
+  // 오른쪽: 방치 보상·회차 보상 (미니게임 「보리 주세요」는 11/27 메인에서 뺌 — 원터치판에만, 나중에 새로 만들 예정)
+  $('#tsideR').innerHTML = saved ? idleTileHtml(saved) + msTileHtml(saved) : '';
   // 하단: 모드 타일 + 시작
   const rb = (typeof RAID !== 'undefined' && RAID.info && RAID.info.boss) || 'boss4';
   $('#tbtns').innerHTML = (saved ? `<div class="tmodes">`
@@ -422,7 +421,6 @@ function showTitle() {
     + `<button class="tmode m-tower" id="tTower">${I('tower')}<b>보스 타워</b><small>${towerBest(saved) ? '최고 ' + towerBest(saved) + '층' : '도전 모드'}</small></button></div>` : '')
     + (saved ? chapterPickHtml(saved) + `<div class="tstartRow"><button class="btn tplaza" id="tPlaza">${I('chat')}<b>광장</b><small>온라인</small></button><button class="btn pk tstart" id="tCont"><span>▶ 모험 계속하기</span><small>${zoneCh(curZone(saved)) === 2 ? '2장 · ' : ''}${zoneTitle(saved, curZone(saved))} · Lv.${saved.lv}</small></button></div>`
       : `<button class="btn pk tstart" id="tNew"><span>▶ 모험 시작</span><small>에버랜드 대탈출 · 도트 액션 RPG</small></button>`);
-  $('#tEp2').onclick = () => { audioInit(); e2Open(); };
   if ($('#tPack')) $('#tPack').onclick = () => { audioInit(); packOpen(); };
   if ($('#tJob')) $('#tJob').onclick = () => { audioInit(); lobbyMenu('job'); };
   if ($('#tPack2')) $('#tPack2').onclick = () => { audioInit(); pack2Open(); };

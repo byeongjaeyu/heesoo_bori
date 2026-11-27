@@ -842,3 +842,13 @@ test('이야기 다시보기: 본 장면만 열리고, 보고 나면 메뉴 「�
   await page.waitForFunction(() => G.state === 'lobbyMenu' && MTAB === 'story' && !document.querySelector('#menu').hidden, null, { timeout: 5000 });
   expect(errs).toEqual([]);
 });
+
+test('미니게임 「보리 주세요」: 메인 로비엔 없고 원터치판엔 있음', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 20 });
+  await expect(page.locator('#title')).toBeVisible();
+  await expect(page.locator('#tEp2')).toHaveCount(0);
+  await expect(page.locator('#tsideR')).not.toContainText('보리 주세요');
+  await page.screenshot({ path: 'test-results/lobby-nomini.png' });
+  await page.goto(URL_ONETOUCH);
+  await expect(page.locator('#tEp2')).toBeVisible();
+});
