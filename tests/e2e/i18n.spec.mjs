@@ -1,5 +1,5 @@
 // 영어판: 브라우저 언어가 영어면 영어로, 로비 버튼으로 한국어 ↔ 영어
-import { test, expect, URL_MAIN, withSave, enterZone, openTab } from './fixtures.mjs';
+import { test, expect, URL_MAIN, withSave, enterZone, openTab, tap } from './fixtures.mjs';
 
 const HANGUL = /[가-힣]/;
 /** 화면에 보이는 글자 중 한글 (언어 버튼·닉네임 등 사람이 넣은 글자는 빼고) */
@@ -30,11 +30,11 @@ test.describe('영어판', () => {
   test('언어 버튼: 영어 → 한국어 → 영어 (새로고침)', async ({ page }) => {
     await withSave(page, URL_MAIN, { lv: 10, zone: 1 });
     await expect(page.locator('#tLang')).toContainText('한국어');
-    await Promise.all([page.waitForEvent('load'), page.click('#tLang')]);
+    await Promise.all([page.waitForEvent('load'), tap(page, '#tLang')]);
     await expect(page.locator('#tCont')).toContainText('모험 계속하기');
     expect(await page.evaluate(() => localStorage.getItem('hb_lang'))).toBe('ko');
     await expect(page.locator('#tLang')).toContainText('English');
-    await Promise.all([page.waitForEvent('load'), page.click('#tLang')]);
+    await Promise.all([page.waitForEvent('load'), tap(page, '#tLang')]);
     await expect(page.locator('#tCont')).toContainText('Continue Adventure');
   });
 });

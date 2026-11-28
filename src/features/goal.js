@@ -37,7 +37,7 @@ const LOOP_MS = [
 const TR_DUP = 120; // 초월 장비를 다 가졌으면 대신 주는 강화석
 /** 100회차 이후는 25회차마다 강화석 500 + 초월 장비 */
 function msList(pd) { const L = LOOP_MS.slice(), t = loopsTotal(pd); for (let n = 125; n <= Math.max(125, t + 25); n += 25) L.push({ n, r: [['stones', 500], ['tr', 1]] }); return L; }
-const msReady = pd => msList(pd).filter(m => loopsTotal(pd) >= m.n && !msGot(pd, m.n));
+export const msReady = pd => msList(pd).filter(m => loopsTotal(pd) >= m.n && !msGot(pd, m.n));
 const msNext = pd => msList(pd).find(m => loopsTotal(pd) < m.n);
 
 /** 초월 장비 하나 지급 (안 가진 것 중에서). 다 있으면 강화석. 돌려주는 값: 받은 장비 id 또는 null */
@@ -65,7 +65,7 @@ export const rwLabel = r => r.map(([k, v]) => k === 'stones' ? tt('features/goal
 // ---------- 로비 타일 · 창 ----------
 export function msTileHtml(pd) {
   const ready = msReady(pd).length, nx = msNext(pd);
-  return tt('features/goal.18', { v1: ready ? ' ready' : '', v2: iconURL('px_rosette', ICONS.rosette), v3: loopsTotal(pd), v4: ready ? tt('features/goal.8', { ready }) : nx ? tt('features/goal.9', { n: nx.n }) : '', v5: ready ? '<em class="dot"></em>' : '' });
+  return tt('features/goal.18', { v1: ready ? ' ready' : '', v2: iconURL('px_rosette', ICONS.rosette), v3: loopsTotal(pd), v4: ready ? tt('features/goal.21', { ready }) : nx ? tt('features/goal.9', { n: nx.n }) : '', v5: ready ? `<i class="tget">${tt('features/goal.8', { ready })}</i>` : '<i class="tget off">›</i>' });
 }
 export function msOpen() {
   const pd = loadGame(); if (!pd) return; const t = loopsTotal(pd), L = msList(pd), nx = msNext(pd);
@@ -78,12 +78,18 @@ export function msOpen() {
     + `<div class="mslist">${rows}</div>`;
   setSmNext(() => showTitle()); seasonModalShow();
 }
+/** 이정표 보상을 세이브에 반영 (list 없으면 받을 수 있는 것 전부). 받을 게 없으면 null */
+export function msTake(pd, list = msReady(pd)) {
+  if (!list.length) return null;
+  pd.ms = pd.ms || {}; let cards = [], extra = [];
+  for (const m of list) { pd.ms[m.n] = Date.now(); const r = applyRewards(pd, m.r); cards = cards.concat(r.cards); extra = extra.concat(r.extra); }
+  return { cards, extra, list };
+}
 /** n회차 보상 받기 (0이면 받을 수 있는 것 전부) */
 function msClaim(n) {
   const pd = loadGame(); if (!pd) return;
   const list = msReady(pd).filter(m => !n || m.n === n); if (!list.length) return;
-  pd.ms = pd.ms || {}; let cards = [], extra = [];
-  for (const m of list) { pd.ms[m.n] = Date.now(); const r = applyRewards(pd, m.r); cards = cards.concat(r.cards); extra = extra.concat(r.extra); }
+  const { cards, extra } = msTake(pd, list);
   const sum = {}; for (const c of cards) sum[c.kind] = (sum[c.kind] || 0) + c.amount;
   G.pd = pd; saveGame(); setTitlePd(pd); sfx('lvl');
   $('#seasonModalBody').innerHTML = tt('features/goal.20', { v1: PXI('rosette'), v2: list.map(m => m.n + tt('features/goal.16')).join(' · ') })

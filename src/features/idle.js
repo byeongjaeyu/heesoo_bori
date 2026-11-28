@@ -44,13 +44,20 @@ function idleXp(pd, x) {
 const idleLabel = s => s >= IDLE_MAX ? tt('features/idle.1') : tt('features/idle.2', { v1: Math.floor(s / 3600), v2: Math.floor(s % 3600 / 60) });
 export function idleTileHtml(pd) {
   const s = idleSec(pd), ok = s >= IDLE_MIN, on = idleOn(pd);
-  return tt('features/idle.13', { v1: ok ? ' ready' : '', v2: s >= IDLE_MAX ? ' full' : '', v3: iconURL('px_chest', ICONS.chest), v4: ok ? idleLabel(s) : on ? tt('features/idle.3') : tt('features/idle.4'), v5: ok ? tt('features/idle.5') : on ? tt('features/idle.6') : tt('features/idle.7'), v6: ok ? '<em class="dot"></em>' : '' });
+  return tt('features/idle.13', { v1: ok ? ' ready' : '', v2: s >= IDLE_MAX ? ' full' : '', v3: iconURL('px_chest', ICONS.chest), v4: ok ? idleLabel(s) : on ? tt('features/idle.3') : tt('features/idle.4'), v5: ok ? tt('features/idle.14') : on ? tt('features/idle.6') : tt('features/idle.7'), v6: ok ? `<i class="tget">${tt('features/idle.5')}</i>` : '<i class="tget off">›</i>' });
 }
+/** 받을 수 있으면(10분 이상) 세이브에 반영하고 받은 양을 돌려줌, 아니면 null */
+export function idleTake(pd) {
+  const s = idleSec(pd); if (s < IDLE_MIN) return null;
+  const r = idleCalc(pd, s); pd.gold += r.gold; pd.stones = (pd.stones || 0) + r.stones; pd.stats.kills += r.kills; const up = idleXp(pd, r.xp); pd.idleT = Date.now();
+  return { r, up, s };
+}
+export const idleReady = pd => idleSec(pd) >= IDLE_MIN;
 export function idleClaim() {
   const pd = loadGame(); if (!pd || G.state !== 'title') return;
   if (!idleOn(pd)) { toast(tt('features/idle.8'), 'sub'); return; }
   const s = idleSec(pd); if (s < IDLE_MIN) { toast(tt('features/idle.9'), 'sub'); return; }
-  const r = idleCalc(pd, s); pd.gold += r.gold; pd.stones = (pd.stones || 0) + r.stones; pd.stats.kills += r.kills; const up = idleXp(pd, r.xp); pd.idleT = Date.now();
+  const { r, up } = idleTake(pd);
   G.pd = pd; saveGame(); sfx('lvl');
   const extra = [up.lv ? tt('features/idle.10', { lv: up.lv }) : '', up.aw ? tt('features/idle.11', { aw: up.aw }) : ''].filter(Boolean).join(' · ');
   $('#seasonModalBody').innerHTML = tt('features/idle.12', { v1: PXI('chest'), v2: idleLabel(s), v3: r.kills.toLocaleString(), v4: extra ? '<br><b>' + extra + '</b>' : '' })

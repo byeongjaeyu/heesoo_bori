@@ -17,22 +17,22 @@ import { towerBest } from '../core/progress.js';
 import { respawn, startZone } from '../play/zone.js';
 import { JOBS, JOB_LV, jobOf } from '../core/job.js';
 import { jobTag, jobTileHtml } from '../features/job.js';
-import { dlgTap, fadeTo } from './dialog.js';
+import { dlgTap, fadeTo, toast } from './dialog.js';
 import { showHUD } from './hud.js';
 import { lobbyMenu, menuClick, openMenu, updateSndBtn } from './menu.js';
 import { PV, esc, pvpClick, pvpFaceURL, pvpNickSave, pvpOpen, pvpResClick, pvpSnap } from '../net/pvp.js';
 import { startInfinite } from '../play/inf.js';
-import { RK, entryRegister, rankClose, rankOpen, rankSync, rankTab } from '../net/rank.js';
+import { PXI, RK, entryRegister, fmtGold, rankClose, rankOpen, rankSync, rankTab, rewardCards, seasonModalShow, setSmNext } from '../net/rank.js';
 import { cloudOpen } from '../net/cloud.js';
 import { accGateShow } from '../net/account.js';
 import { aucOpen } from '../net/auction.js';
-import { dailyAutoOpen, dailyClaimable, dailyOpen } from '../features/daily.js';
+import { dailyAutoOpen, dailyClaimable, dailyOpen, dailyTakeAll } from '../features/daily.js';
 import { shareOpen } from '../features/share.js';
 import { RAID, raidBossURL, raidOpen } from '../net/raid.js';
 import { achTag } from '../features/achv.js';
-import { idleClaim, idleTileHtml } from '../features/idle.js';
+import { idleClaim, idleReady, idleTake, idleTileHtml } from '../features/idle.js';
 import { pack2Open, pack2Seen, packOpen, packSeen, packTileHtml } from '../features/pack.js';
-import { msOpen, msTileHtml } from '../features/goal.js';
+import { msOpen, msReady, msTake, msTileHtml } from '../features/goal.js';
 import { towerOpen } from '../play/tower.js';
 import { plazaLeave, plazaOpen } from '../net/plaza.js';
 import { endCut, playCut } from '../story/story.js';
@@ -41,31 +41,51 @@ import { tt, langNext, langToggle } from '../sys/i18n.js';
 
 export let TITLE_PD = /** @type {any} */ (null);
 export function setTitlePd(pd) { TITLE_PD = pd; }
-/** 로비 양옆 버튼 줄 위치: 왼쪽은 프로필 아래, 오른쪽은 로고 아래 (화면 높이·칭호 유무와 상관없이 안 겹치게) */
+/** 로비 오른쪽 버튼 줄(패키지·보상함)은 프로필 아래, 로고는 그 줄과 안 겹치게 글자 크기를 줄임 */
 function titleLayout() {
   if (FORCE_EASY || $('#title').hidden) return;
-  const top0 = $('#title').getBoundingClientRect().top, tb = $('#tbar').getBoundingClientRect().bottom - top0, lg = $('.ttl h1').getBoundingClientRect().bottom - top0;
-  $('#tsideL').style.top = Math.round(tb + 8) + 'px';
-  // 오른쪽 줄도 상단(프로필 줄 바로 아래)부터 — 로고 글자와 가로로 겹칠 때만 로고 아래로
-  const R0 = $('#tsideR'); R0.style.transform = ''; R0.style.top = Math.round(tb + 8) + 'px';
-  { // 로고는 양옆 줄 사이에 들어가게 글자 크기를 줄임 (가운데 기준 양쪽 여유 중 좁은 쪽)
-    const h1 = $('.ttl h1'); h1.style.fontSize = ''; const lr = h1.getBoundingClientRect(), cx = lr.left + lr.width / 2;
-    const room = Math.min(cx - $('#tsideL').getBoundingClientRect().right, R0.getBoundingClientRect().left - cx) - 6, half = lr.width / 2;
-    if (half > room && room > 20) h1.style.fontSize = (parseFloat(getComputedStyle(h1).fontSize) * room / half).toFixed(1) + 'px';
-  }
-  // 양옆 줄이 아래 모드 타일에 닿으면 작게(좁은·낮은 화면)
+  const top0 = $('#title').getBoundingClientRect().top, tb = $('#tbar').getBoundingClientRect().bottom - top0;
+  const R0 = $('#tsideR'); R0.style.transform = ''; R0.classList.remove('tight'); R0.style.top = Math.round(tb + 8) + 'px';
+  { const h1 = $('.ttl h1'); h1.style.fontSize = ''; const lr = h1.getBoundingClientRect(), cx = lr.left + lr.width / 2, rr = R0.getBoundingClientRect();
+    const room = (R0.children.length ? Math.min(rr.left - cx, cx - (innerWidth - rr.right)) : innerWidth / 2 - 10) - 6, half = lr.width / 2;
+    if (half > room && room > 20) h1.style.fontSize = (parseFloat(getComputedStyle(h1).fontSize) * room / half).toFixed(1) + 'px'; }
+  // 오른쪽 줄이 아래 모험 카드에 닿으면 작게, 그래도 넘치면 비율로 줄임
   const lim = $('#tbtns').getBoundingClientRect().top - 6;
-  for (const S of [$('#tsideR'), $('#tsideL')]) {
-    S.style.transform = ''; S.classList.remove('tight'); if (S.getBoundingClientRect().bottom > lim) S.classList.add('tight');
-    // 작게 해도 넘치면(프로필에 칭호·직업이 붙어 길어진 경우 등) 줄 전체를 비율로 줄임
-    const b = S.getBoundingClientRect(); if (b.bottom > lim && b.height > 0) { S.style.transformOrigin = S.id === 'tsideR' ? 'top right' : 'top left'; S.style.transform = `scale(${Math.max(0.55, (lim - b.top) / b.height).toFixed(3)})`; }
-  }
+  if (R0.getBoundingClientRect().bottom > lim) R0.classList.add('tight');
+  const b = R0.getBoundingClientRect(); if (b.bottom > lim && b.height > 0) { R0.style.transformOrigin = 'top right'; R0.style.transform = `scale(${Math.max(0.55, (lim - b.top) / b.height).toFixed(3)})`; }
 }
 // 타일 글이 바뀌어 높이가 달라질 때(방치 보상 시간·회차 보상 등)도 다시 맞춤
 let TL_RAF = 0;
-if (typeof ResizeObserver === 'function') { const ro = new ResizeObserver(() => { cancelAnimationFrame(TL_RAF); TL_RAF = requestAnimationFrame(() => { try { titleLayout(); } catch (e) { } }); }); for (const id of ['#tbar', '#tbtns', '#tsideR', '#tsideL']) { const el = $(id); if (el) ro.observe(el); } }
+if (typeof ResizeObserver === 'function') { const ro = new ResizeObserver(() => { cancelAnimationFrame(TL_RAF); TL_RAF = requestAnimationFrame(() => { try { titleLayout(); } catch (e) { } }); }); for (const id of ['#tbar', '#tbtns', '#tsideR']) { const el = $(id); if (el) ro.observe(el); } }
 addEventListener('resize', () => { try { titleLayout(); } catch (e) { } });
+
+/** 로비 시트: 아래 탭(도전·상점·거래·소셜)·⚙ 설정·보상함. 로비 위 창을 닫고 돌아오면 열려 있던 시트를 다시 엶 */
+let TSHEET = '';
+const NAV_HI = { play: 'play', shop: 'shop', soc: 'soc' };
+function sheetShow(k) {
+  TSHEET = k; const sh = $('#tsheet'); if (!sh) return; sh.hidden = !k;
+  for (const p of sh.querySelectorAll('.tsp')) /** @type {HTMLElement} */ (p).hidden = /** @type {HTMLElement} */ (p).dataset.nav !== k;
+  for (const b of document.querySelectorAll('#tnav .tnv')) b.classList.toggle('on', /** @type {HTMLElement} */ (b).dataset.nav === (NAV_HI[k] || 'home'));
+}
+const sheetToggle = k => { sfx('select'); sheetShow(TSHEET === k ? '' : k); };
+/** 받을 보상 수 (출석·미션 + 방치 + 회차 이정표) */
+const rewCount = pd => pd ? dailyClaimable(pd) + (idleReady(pd) ? 1 : 0) + msReady(pd).length : 0;
+/** 보상함 「모두 받기」: 출석·미션·방치·회차를 한 번에 */
+function rewAll() {
+  const pd = loadGame(); if (!pd) return;
+  const b = { gold: pd.gold, stones: pd.stones || 0, auto: pd.autoBonus || 0 }, what = [], extra = [];
+  if (dailyTakeAll(pd).length) what.push(tt('ui/lobby.40'));
+  const ir = idleTake(pd); if (ir) { what.push(tt('ui/lobby.41')); if (ir.up.lv) extra.push(tt('features/idle.10', { lv: ir.up.lv })); if (ir.up.aw) extra.push(tt('features/idle.11', { aw: ir.up.aw })); }
+  const mr = msTake(pd); if (mr) { what.push(tt('ui/lobby.42')); extra.push(...mr.extra); }
+  if (!what.length) { toast(tt('ui/lobby.43'), 'sub'); return; }
+  G.pd = pd; saveGame(); setTitlePd(pd); sfx('lvl');
+  const cards = [{ kind: 'gold', amount: pd.gold - b.gold }, { kind: 'xp', amount: ir ? ir.r.xp : 0 }, { kind: 'stones', amount: (pd.stones || 0) - b.stones }, { kind: 'auto', amount: (pd.autoBonus || 0) - b.auto }].filter(c => c.amount > 0);
+  $('#seasonModalBody').innerHTML = `<div class="sgot"><div class="sbig">${PXI('chest')}</div><h2>${tt('ui/lobby.44')}<br><em>${what.join(' · ')}</em></h2>`
+    + (extra.length ? `<p class="smsub">${extra.join('<br>')}</p>` : '') + rewardCards(cards, true) + '</div>';
+  setSmNext(() => showTitle()); seasonModalShow();
+}
 export function showTitle() {
+  if (G.state !== 'title') TSHEET = ''; // 게임·메뉴에서 돌아오면 시트는 닫힌 채로
   if (typeof rankSync === 'function') { rankSync(); entryRegister(); dailyAutoOpen(); }
   if (G.plaza) plazaLeave(true);
   if (typeof accGateShow === 'function') setTimeout(accGateShow, 0);
@@ -74,7 +94,7 @@ export function showTitle() {
   let e2s = null; try { e2s = JSON.parse(localStorage.getItem(E2KEY) || 'null'); } catch (e) { }
   const e2n = e2s ? (e2s.stars || []).reduce((a, b) => a + (b || 0), 0) : 0;
   if (FORCE_EASY) {
-    $('#tbar').innerHTML = $('#tsideL').innerHTML = $('#tsideR').innerHTML = '';
+    $('#tbar').innerHTML = $('#tsideR').innerHTML = $('#tnav').innerHTML = $('#tsheet').innerHTML = ''; $('#tsheet').hidden = true;
     $('#tbtns').innerHTML = tt('ui/lobby.33', { v1: e2s ? tt('ui/lobby.1') : tt('ui/lobby.2'), v2: e2s ? tt('ui/lobby.3') + e2n + '/24' : tt('ui/lobby.4'), v3: SND.on ? tt('ui/lobby.5') : tt('ui/lobby.6') });
     $('#tEp2').onclick = () => { audioInit(); e2Open(); };
     $('#tSnd').onclick = () => { audioInit(); setSound(!SND.on); showTitle(); };
@@ -82,41 +102,69 @@ export function showTitle() {
   }
   if (saved) { packSeen(saved); pack2Seen(saved); }
   TITLE_PD = saved; const I = (k, ic) => `<img src="${iconURL('i_' + k, ICONS[ic || k])}" alt="">`;
-  // 상단: 내 희수 정보 + 소리
+  // 상단: 내 희수(누르면 내 정보) · ⚙ 설정 / 골드·강화석
   let prof = '';
   if (saved) { let pw = 0; const keep = G.pd; try { G.pd = saved; pw = pvpSnap().power; } catch (e) { } G.pd = keep; G.st = null;
     const nick = (typeof PV !== 'undefined' && PV.me && PV.me.nickname) || tt('ui/lobby.7');
     prof = tt('ui/lobby.34', { v1: pvpFaceURL(visEq(saved), saved.look && saved.look.hair), v2: saved.title && (saved.ach || {})[saved.title] ? achTag(saved.title) : '', v3: jobTag(jobOf(saved)), v4: esc(nick), lv: saved.lv, v5: saved.aw ? ' ★' + saved.aw : '', v6: saved.cleared ? ' · ' + (saved.cleared + 1) + tt('ui/lobby.8') : '', v7: pw.toLocaleString() }); }
-  $('#tbar').innerHTML = prof + (saved ? packTileHtml(saved) + jobTileHtml(saved) : '') + tt('ui/lobby.35', { v1: SND.on ? '' : ' off', v2: I('sound'), v3: SND.on ? tt('ui/lobby.9') : tt('ui/lobby.10') });
-  // 왼쪽 세로 아이콘
+  $('#tbar').innerHTML = prof + `<button class="ticon tgear" id="tGear" aria-label="${tt('ui/lobby.45')}">${I('gear')}</button>`
+    + (saved ? `<div class="tcur"><span>${I('gcoin')}${fmtGold(saved.gold)}</span><span>${I('stone')}${(saved.stones || 0).toLocaleString()}</span></div>` : '');
+  // 오른쪽: 기간 한정(패키지·전직 가능) + 보상함
+  const rn = rewCount(saved);
+  $('#tsideR').innerHTML = saved ? packTileHtml(saved) + jobTileHtml(saved) + `<button class="ticon trew" id="tRew">${I('chest')}<small>${tt('ui/lobby.44')}</small>${rn ? `<em class="dot n">${rn}</em>` : ''}</button>` : '';
+  // 아래: 장 고르기 + 모험 계속하기 (한 카드)
+  $('#tbtns').innerHTML = saved ? `<div class="tadv">${chapterPickHtml(saved)}<button class="btn pk tstart" id="tCont"><span>${tt('ui/lobby.46')}</span><small>${zoneCh(curZone(saved)) === 2 ? tt('ui/lobby.24') : ''}${zoneTitle(saved, curZone(saved))} · Lv.${saved.lv}</small></button></div>` : tt('ui/lobby.25');
+  // 맨 아래 탭
   const bagDot = saved && ((saved.lv >= JOB_LV && !JOBS[saved.job]) || saved.sp > 0 || saved.newItem || saved.newBori || saved.achNew || (saved.ap || 0) > 0);
-  $('#tsideL').innerHTML = (saved ? tt('ui/lobby.11', { v1: I('bag'), v2: bagDot ? '<em class="dot"></em>' : '' }) : '') + (saved ? tt('ui/lobby.12', { v1: I('cal'), v2: dailyClaimable(saved) ? '<em class="dot"></em>' : '' }) : '')
-    + tt('ui/lobby.13', { v1: I('trophy') })
-    + (saved ? tt('ui/lobby.14', { v1: I('camera') }) : '')
-    + (saved ? tt('ui/lobby.15', { v1: I('auc') }) : '')
-    + tt('ui/lobby.16', { v1: I('phone') })
-    + `<button class="ticon tlang" id="tLang"><b class="tlg">${langNext().code}</b><small>${langNext().name}</small></button>`;
-  // 오른쪽: 방치 보상·회차 보상 (미니게임 「보리 주세요」는 11/27 메인에서 뺌 — 원터치판에만, 나중에 새로 만들 예정)
-  $('#tsideR').innerHTML = saved ? idleTileHtml(saved) + msTileHtml(saved) : '';
-  // 하단: 모드 타일 + 시작
+  const nv = (k, id, ic, name, dot) => `<button class="tnv" data-nav="${k}" id="${id}">${I(ic)}<small>${name}</small>${dot ? '<em class="dot"></em>' : ''}</button>`;
+  $('#tnav').innerHTML = nv('home', 'tHome', 'house', tt('ui/lobby.47')) + (saved ? nv('grow', 'tBag', 'bag', tt('ui/lobby.48'), bagDot) + nv('play', 'tPlay', 'swords', tt('ui/lobby.49')) + nv('shop', 'tShop', 'auc', tt('ui/lobby.50')) : '') + nv('soc', 'tSoc', 'chat', tt('ui/lobby.51'));
+  // 시트 (도전·상점·거래·소셜·설정·보상함)
+  const row = (id, img, b, sm, right = '<i class="tget off">›</i>') => `<button class="trow" id="${id}">${img}<span><b>${b}</b><small>${sm}</small></span>${right}</button>`;
+  const head = (b, sm = '') => `<div class="tsh"><b>${b}</b>${sm ? `<small>${sm}</small>` : ''}</div>`;
   const rb = (typeof RAID !== 'undefined' && RAID.info && RAID.info.boss) || 'boss4';
-  $('#tbtns').innerHTML = (saved ? `<div class="tmodes">`
-    + tt('ui/lobby.36', { v1: I('pumpkin'), v2: saved.infBest ? tt('ui/lobby.17') + saved.infBest : tt('ui/lobby.18') })
-    + tt('ui/lobby.19', { v1: I('swords') })
-    + tt('ui/lobby.20', { v1: raidBossURL(rb) })
-    + tt('ui/lobby.37', { v1: I('tower'), v2: towerBest(saved) ? tt('ui/lobby.21') + towerBest(saved) + tt('ui/lobby.22') : tt('ui/lobby.23') }) : '')
-    + (saved ? chapterPickHtml(saved) + tt('ui/lobby.38', { v1: I('chat'), v2: zoneCh(curZone(saved)) === 2 ? tt('ui/lobby.24') : '', v3: zoneTitle(saved, curZone(saved)), lv: saved.lv })
-      : tt('ui/lobby.25'));
+  const dn = saved ? dailyClaimable(saved) : 0;
+  $('#tsheet').innerHTML = `<div class="tsh-bg"></div><div class="tsh-box"><i class="tsh-grab"></i>`
+    + (saved ? `<div class="tsp" data-nav="play" hidden>${head(tt('ui/lobby.49'), tt('ui/lobby.52'))}<div class="tmodes">`
+      + tt('ui/lobby.36', { v1: I('pumpkin'), v2: saved.infBest ? tt('ui/lobby.17') + saved.infBest : tt('ui/lobby.18') })
+      + tt('ui/lobby.19', { v1: I('swords') })
+      + tt('ui/lobby.20', { v1: raidBossURL(rb) })
+      + tt('ui/lobby.37', { v1: I('tower'), v2: towerBest(saved) ? tt('ui/lobby.21') + towerBest(saved) + tt('ui/lobby.22') : tt('ui/lobby.23') }) + '</div>'
+      + `<div class="tsp" data-nav="shop" hidden>${head(tt('ui/lobby.50'))}`
+      + row('tXch', I('stone'), tt('ui/lobby.53'), tt('ui/lobby.54'))
+      + row('tAuc', I('auc'), tt('ui/lobby.55'), tt('ui/lobby.56'))
+      + row('tXc', I('swords'), tt('ui/lobby.57'), tt('ui/lobby.58')) + '</div>' : '')
+    + `<div class="tsp" data-nav="soc" hidden>${head(tt('ui/lobby.51'))}`
+    + row('tRank', I('trophy'), tt('ui/lobby.59'), tt('ui/lobby.60'))
+    + (saved ? row('tPlaza', I('chat'), tt('ui/lobby.61'), tt('ui/lobby.62')) + row('tShare', I('camera'), tt('ui/lobby.63'), tt('ui/lobby.64')) : '') + '</div>'
+    + `<div class="tsp" data-nav="set" hidden>${head(tt('ui/lobby.45'))}`
+    + row('tSnd', I('sound'), tt('ui/lobby.65'), tt('ui/lobby.66'), `<i class="tget${SND.on ? '' : ' off'}">${SND.on ? 'ON' : 'OFF'}</i>`)
+    + `<button class="trow" id="tLang"><b class="tlg">${langNext().code}</b><span><b>${langNext().name}</b><small>${tt('ui/lobby.67')}</small></span><i class="tget off">›</i></button>`
+    + row('tCloud', I('phone'), tt('ui/lobby.68'), tt('ui/lobby.69'))
+    + (saved ? row('tInfo', I('cal'), tt('ui/lobby.70'), tt('ui/lobby.71')) : '') + '</div>'
+    + (saved ? `<div class="tsp" data-nav="rew" hidden>${head(tt('ui/lobby.44'), rn ? tt('ui/lobby.72', { rn }) : '')}`
+      + row('tDaily', I('cal'), tt('ui/lobby.73'), dn ? tt('ui/lobby.74', { dn }) : tt('ui/lobby.75'), dn ? `<i class="tget">${tt('ui/lobby.76')}</i>` : undefined)
+      + idleTileHtml(saved) + msTileHtml(saved)
+      + `<button class="btn pk trall" id="tRewAll"${rn ? '' : ' disabled'}>${rn ? tt('ui/lobby.77', { rn }) : tt('ui/lobby.78')}</button></div>` : '')
+    + '</div>';
+  sheetShow(TSHEET && $(`#tsheet .tsp[data-nav="${TSHEET}"]`) ? TSHEET : '');
+  $('#tsheet .tsh-bg').onclick = () => sheetShow('');
+  for (const b of document.querySelectorAll('#tnav .tnv')) { const k = /** @type {HTMLElement} */ (b).dataset.nav;
+    /** @type {HTMLElement} */ (b).onclick = () => { audioInit(); if (k === 'home') { sfx('select'); sheetShow(''); } else if (k === 'grow') { sfx('select'); sheetShow(''); lobbyMenu(); } else sheetToggle(k); }; }
+  $('#tGear').onclick = () => { audioInit(); sheetToggle('set'); };
+  if ($('#tRew')) $('#tRew').onclick = () => { audioInit(); sheetToggle('rew'); };
+  if ($('#tRewAll')) $('#tRewAll').onclick = () => { audioInit(); rewAll(); };
   if ($('#tPack')) $('#tPack').onclick = () => { audioInit(); packOpen(); };
   if ($('#tJob')) $('#tJob').onclick = () => { audioInit(); lobbyMenu('job'); };
   if ($('#tPack2')) $('#tPack2').onclick = () => { audioInit(); pack2Open(); };
   if ($('#tIdle')) $('#tIdle').onclick = () => { audioInit(); idleClaim(); };
   if ($('#tGoal')) $('#tGoal').onclick = () => { audioInit(); sfx('select'); msOpen(); };
   if ($('#tTower')) $('#tTower').onclick = () => { audioInit(); towerOpen(); };
+  if ($('#tXch')) $('#tXch').onclick = () => { audioInit(); sfx('select'); lobbyMenu('shop'); };
+  if ($('#tXc')) $('#tXc').onclick = () => { audioInit(); aucOpen('xchg'); };
+  if ($('#tInfo')) $('#tInfo').onclick = () => { audioInit(); sfx('select'); lobbyMenu('info'); };
   if (saved) { $('#tRaid').onclick = () => { audioInit(); raidOpen(); }; $('#tPvp').onclick = () => { audioInit(); pvpOpen(); }; $('#tInf').onclick = () => { audioInit(); fadeTo(startInfinite, tt('ui/lobby.26')); };
     $('#tShare').onclick = () => { audioInit(); shareOpen(); };
-    $('#tBag').onclick = () => { audioInit(); sfx('select'); lobbyMenu(); };
-    $('.tprof').onclick = () => { audioInit(); sfx('select'); lobbyMenu('info'); };
+    $('.tprof').onclick = () => { audioInit(); sfx('select'); lobbyMenu('look'); };
     $('#tCont').onclick = () => { audioInit(); adventureGo(loadGame() || saved); };
     for (const b of document.querySelectorAll('.tch')) /** @type {HTMLElement} */ (b).onclick = () => { audioInit(); chapterPick(+b.getAttribute('data-ch')); }; }
   $('#tRank').onclick = () => { audioInit(); rankOpen('title'); };

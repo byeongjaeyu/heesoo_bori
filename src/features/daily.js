@@ -87,6 +87,13 @@ function dailyClaimAll(pd, day = todayKey()) {
   d.all = true; return rewardApply(pd, DAILY_ALL);
 }
 
+/** 출석·다 깬 미션·전부 보상을 한 번에 세이브에 반영. 받은 보상 글 목록 */
+export function dailyTakeAll(pd, day = todayKey()) {
+  const out = [], a = dailyAttend(pd, day); if (a) out.push(a.text);
+  for (const id of dailyState(pd, day).picks.slice()) { const r = dailyClaim(pd, id, day); if (r) out.push(r); }
+  const all = dailyClaimAll(pd, day); if (all) out.push(all);
+  return out;
+}
 // ---------- 화면 (메뉴 '미션' 탭과 타이틀 창이 같은 HTML) ----------
 export function dailyHtml(pd) {
   const day = todayKey(), d = dailyState(pd, day), att = pd.att || { last: '', n: 0 }, todayDone = att.last === day;

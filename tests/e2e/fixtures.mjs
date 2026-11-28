@@ -111,3 +111,15 @@ export async function openTab(page, tab) {
   await page.evaluate(t => { if (G.state === 'menu') { MTAB = t; renderMenu(true); } else openMenu(t); }, tab);
   await page.locator('#menu').waitFor({ state: 'visible' });
 }
+
+/** 로비 버튼 누르기: 시트(도전·상점·거래·소셜·설정·보상함) 안에 있으면 그 시트를 먼저 엶 */
+export async function tap(page, sel) {
+  await page.waitForSelector(sel, { state: 'attached' });
+  const st = await page.evaluate(s => { const el = document.querySelector(s), p = el && el.closest('.tsp'), sh = document.querySelector('#tsheet');
+    const open = sh && !sh.hidden ? ([...sh.querySelectorAll('.tsp')].find(x => !x.hidden) || {}).dataset?.nav : null; return { need: p ? p.dataset.nav : null, open }; }, sel);
+  if (st.need && st.need !== st.open) {
+    if (st.open && (st.need === 'set' || st.need === 'rew')) await page.click('#tsheet .tsh-bg', { position: { x: 20, y: 20 } });
+    await page.click(st.need === 'set' ? '#tGear' : st.need === 'rew' ? '#tRew' : `#tnav [data-nav="${st.need}"]`);
+  }
+  await page.click(sel);
+}

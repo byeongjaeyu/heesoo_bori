@@ -1,4 +1,4 @@
-import { test, expect, URL_MAIN, MOCK_SB, withSave, enterZone } from './fixtures.mjs';
+import { test, expect, URL_MAIN, MOCK_SB, withSave, enterZone, tap } from './fixtures.mjs';
 
 test('게임 저장 시 서버에 백업 (1탄 + 2탄)', async ({ page }) => {
   await withSave(page, URL_MAIN, { lv: 17, gold: 4321, zone: 1 });
@@ -16,7 +16,7 @@ test('게임 저장 시 서버에 백업 (1탄 + 2탄)', async ({ page }) => {
 test('옛 기기: 옮기기 코드 만들기', async ({ page }) => {
   await withSave(page, URL_MAIN, { lv: 30 });
   await page.evaluate(MOCK_SB);
-  await page.click('#tCloud');
+  await tap(page, '#tCloud');
   await page.click('#cloudMk');
   await expect(page.locator('#cloudCodeV')).toHaveText('ABCD 2345');
   await expect(page.locator('#cloudCodeT')).toContainText('남음');
@@ -28,7 +28,7 @@ test('새 기기: 코드로 불러오면 세이브가 바뀌고 새로고침', a
   await page.evaluate(MOCK_SB);
   await page.evaluate(() => { __rpc.hb_use_transfer_code = ({ p_code }) => p_code === 'ABCD2345'
     ? { ok: true, nickname: '원조희수', data: Object.assign(newPD(), { lv: 50, gold: 123456, cleared: 49, boriJoined: true }), ep2: { mode: 'normal', stars: [3, 2, 3], unlocked: 3, prologue: true, cleared: false, own: {}, cloth: null, toy: null } } : { ok: false, reason: 'invalid' }; });
-  await page.click('#tCloud');
+  await tap(page, '#tCloud');
   await page.fill('#cloudIn', 'abcd 2344'); await page.click('#cloudUse');
   await expect(page.locator('#confirm')).toBeVisible(); await page.click('#cfYes');
   await expect(page.locator('#cloudUseMsg')).toHaveText('코드가 틀렸거나 만료됐어요');

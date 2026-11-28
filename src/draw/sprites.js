@@ -1043,6 +1043,18 @@ export const ICONS = {
 "..KAAK.....",
 "..KAK......",
 "..KK......."],
+  gear:[
+"....KKK....",
+"..KKKGKKK..",
+".KGGKGKGGK.",
+".KGGGGGGGK.",
+"KKGGKKKGGKK",
+"KGGGK.KGGGK",
+"KKGGKKKGGKK",
+".KGGGGGGGK.",
+".KGGKGKGGK.",
+"..KKKGKKK..",
+"....KKK...."],
   sound:[
 "..K.....K..",
 ".K..KKK..K.",

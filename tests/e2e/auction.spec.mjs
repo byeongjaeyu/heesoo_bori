@@ -1,4 +1,4 @@
-import { test, expect, URL_MAIN, MOCK_SB, withSave } from './fixtures.mjs';
+import { test, expect, URL_MAIN, MOCK_SB, withSave, tap } from './fixtures.mjs';
 
 test('경매장: 둘러보기 입찰·즉시 구매, 판매하기로 올리기, 내 경매', async ({ page }) => {
   await withSave(page, URL_MAIN, { lv: 40, gold: 1000000, inv: { fist: 1, cap_grey: 1, fleece: 1, sneakers: 1, silverbag: 1, cap_tiara: 1, 'cap_tiara#ab12': 1, umbrella: 1 }, enh: { 'cap_tiara#ab12': 7 },
@@ -11,7 +11,7 @@ test('경매장: 둘러보기 입찰·즉시 구매, 판매하기로 올리기, 
       { id: 'x1', def: 'starstick', rar: 5, slot: 'weapon', enh: 15, ilv: 2, ref: { lines: [{ k: 'atkP', v: 12, g: 2 }] }, start: 100000, buyout: 500000, bid: null, bids: 0, min: 100000, ends: end, seller: '원조희수' },
       { id: 'x2', def: 'wingshoes', rar: 5, slot: 'shoes', enh: 3, ilv: 0, ref: null, start: 50000, buyout: 80000, bid: 60000, bids: 2, min: 63000, ends: end, seller: '안녀엉' }];
   });
-  await page.click('#tAuc');
+  await tap(page, '#tAuc');
   await expect(page.locator('#auc')).toBeVisible();
   // 모달 여백: 헤더 아래 첫 줄(탭)과 본문 좌우가 테두리에 붙지 않게
   const gap = await page.evaluate(() => { const h = document.querySelector('#auc .mhead').getBoundingClientRect(), t = document.querySelector('#auc .auctabs .btn').getBoundingClientRect(), p = document.querySelector('#auc .panel').getBoundingClientRect(); return [t.top - h.bottom, t.left - p.left]; });
@@ -50,7 +50,7 @@ test('경매장: 둘러보기 입찰·즉시 구매, 판매하기로 올리기, 
 test('경매장: 닉네임 없으면 못 들어감', async ({ page }) => {
   await withSave(page, URL_MAIN, { lv: 10 });
   await page.evaluate(MOCK_SB);
-  await page.click('#tAuc');
+  await tap(page, '#tAuc');
   await expect(page.locator('#toasts')).toContainText('랭킹에 닉네임을 등록한 희수만');
   await expect(page.locator('#auc')).toBeHidden();
 });
@@ -78,7 +78,7 @@ test('1:1 교환: 받은 제안 수락, 새 제안 보내기, 자격 안내', as
       { id: 'in1', dir: 'in', state: 'open', who: '원조희수', msg: '신발 주세요', give: [{ def: 'starstick', rar: 5, enh: 12, ilv: 0, ref: null }], gold: 20000, want: [{ id: 'w1', key: 'wingshoes', def: 'wingshoes', rar: 5, enh: 0 }], want_gold: 50000, expires: exp }],
       partner: { nick: '안녀엉', lv: 45, items: [{ id: 'p1', def: 'starstick', rar: 5, enh: 3, ilv: 0, ref: null }] } };
   });
-  await page.click('#tAuc');
+  await tap(page, '#tAuc');
   await page.click('[data-auc-tab="xchg"]');
   const card = page.locator('#aucBody .xccard', { hasText: '원조희수' });
   await expect(card).toContainText('단단한 맥북프로 +12'); await expect(card).toContainText('20,000G'); await expect(card).toContainText('50,000G');

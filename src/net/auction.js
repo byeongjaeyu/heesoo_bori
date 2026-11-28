@@ -42,12 +42,12 @@ export const numVal = (/** @type {string} */ sel) => { const v = String((/** @ty
 /** 시작가 추천 (등급별) */
 const aucSuggest = rar => [0, 0, 0, 10000, 50000, 200000][rar] || 10000;
 
-export async function aucOpen() {
+export async function aucOpen(tab = 'browse') {
   if (FORCE_EASY) return; const pd = aucPd(); if (!pd) return;
   await sbInit().catch(() => null);
   if (!PV.me) await pvpLoadMe().catch(() => null);
   if (!PV.me) { toast(AUC_ERR.nick, 'warn'); return; }
-  AUC.tab = 'browse'; AUC.sel = null; AUC.bidFor = null; AUC.err = '';
+  AUC.tab = tab; AUC.sel = null; AUC.bidFor = null; AUC.err = '';
   $('#auc').hidden = false; aucLoad();
 }
 export function aucClose() { $('#auc').hidden = true; if (!G.pd && G.state === 'title' && !$('#title').hidden) showTitle(); }

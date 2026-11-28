@@ -35,6 +35,9 @@ import { tt } from '../sys/i18n.js';
 
 export let MTAB = 'skill';
 export function setMTab(t) { MTAB = t; }
+/** 메뉴 묶음: [id, 이름, 탭들] (음식은 플레이 중에만) */
+/** @type {[string, string, string[]][]} */
+const MGROUPS = [['grow', tt('ui/menu.151'), ['equip', 'bori', 'skill', 'job']], ['me', tt('ui/menu.152'), ['look', 'book', 'achv', 'story']], ['shop', tt('ui/menu.153'), ['food', 'shop']], ['etc', tt('ui/menu.154'), ['daily', 'info']]];
 const TABS = [['skill', tt('ui/menu.1')], ['equip', tt('ui/menu.2')], ['bori', tt('ui/menu.3')], ['daily', tt('ui/menu.4')], ['book', tt('ui/menu.5')], ['achv', tt('ui/menu.6')], ['job', tt('ui/menu.7')], ['look', tt('ui/menu.8')], ['food', tt('ui/menu.9')], ['shop', tt('ui/menu.10')], ['story', tt('ui/menu.11')], ['info', tt('ui/menu.12')]];
 export function openMenu(tab) { if (G.state !== 'play') return; G.state = 'menu'; INP.atk = false; INP.joy.on = false; hideJoy(); if (tab) MTAB = tab; else if (G.pd.sp > 0) MTAB = 'skill'; else if (G.pd.newItem) MTAB = 'equip'; else if (G.pd.newBori) MTAB = 'bori'; $('#menu').hidden = false; renderMenu(true); sfx('select'); }
 /** 로비(타이틀)에서 메뉴 열기 — 음식 탭 빼고 장비·스킬·강화·도감·칭호·꾸미기 등 */
@@ -48,8 +51,13 @@ export function closeMenu() { if (G.state === 'lobbyMenu') { $('#menu').hidden =
 export function renderMenu(top) {
   const pd = G.pd;
   if (G.state === 'lobbyMenu' && MTAB === 'food') MTAB = 'equip';
-  $('#tabs').innerHTML = TABS.filter(([k]) => !(G.state === 'lobbyMenu' && k === 'food')).map(([k, n]) => `<button class="tab ${k === MTAB ? 'on' : ''}" data-m="tab" data-v="${k}">${n}${k === 'skill' && pd.sp > 0 ? `<em>${pd.sp}</em>` : ''}${k === 'equip' && pd.newItem ? '<em>N</em>' : ''}${k === 'job' && pd.lv >= JOB_LV && !JOBS[pd.job] ? '<em>!</em>' : ''}${k === 'bori' && pd.newBori ? '<em>N</em>' : ''}${k === 'achv' && pd.achNew ? '<em>N</em>' : ''}${k === 'daily' && dailyClaimable(pd) ? `<em>${dailyClaimable(pd)}</em>` : ''}</button>`).join('');
-  { const on = $('#tabs .tab.on'); if (on && top) try { on.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) { } }
+  // 위 줄 = 묶음 4개(성장·내 희수·상점·미션·도움말), 아래 줄 = 그 묶음의 탭. 탭이 하나뿐인 묶음은 아래 줄 없이 묶음 버튼이 바로 그 탭
+  const name = Object.fromEntries(TABS), shown = k => !(G.state === 'lobbyMenu' && k === 'food');
+  const badge = k => k === 'skill' && pd.sp > 0 ? `<em>${pd.sp}</em>` : k === 'equip' && pd.newItem ? '<em>N</em>' : k === 'job' && pd.lv >= JOB_LV && !JOBS[pd.job] ? '<em>!</em>' : k === 'bori' && pd.newBori ? '<em>N</em>' : k === 'achv' && pd.achNew ? '<em>N</em>' : k === 'daily' && dailyClaimable(pd) ? `<em>${dailyClaimable(pd)}</em>` : '';
+  const grp = MGROUPS.find(g => g[2].includes(MTAB)) || MGROUPS[0], subs = grp[2].filter(shown);
+  $('#tabs').innerHTML = `<div class="mgrp">${MGROUPS.map(([g, n, ks]) => { const vis = ks.filter(shown), one = vis.length === 1;
+      return `<button class="mg${g === grp[0] ? ' on' : ''}" data-m="${one ? 'tab' : 'grp'}" data-g="${g}"${one ? ` data-v="${vis[0]}"` : ''}>${n}${vis.some(badge) ? '<i class="mdot"></i>' : ''}</button>`; }).join('')}</div>`
+    + (subs.length > 1 ? `<div class="msub">${subs.map(k => `<button class="tab ${k === MTAB ? 'on' : ''}" data-m="tab" data-v="${k}">${name[k]}${badge(k)}</button>`).join('')}</div>` : '');
   const b = $('#mbody'), sc = b.scrollTop; b.innerHTML = (MTAB === 'equip' || MTAB === 'bori' ? walletHtml(pd) : '') + MREN[MTAB](); b.scrollTop = top ? 0 : sc;
   if (MTAB === 'equip' && pd.newItem) { pd.newItem = false; }
   if (MTAB === 'bori' && pd.newBori) { pd.newBori = false; }
@@ -57,6 +65,8 @@ export function renderMenu(top) {
 /** 장비·보리 탭 맨 위: 보유 골드·강화석 */
 const walletHtml = pd => tt('ui/menu.13', { v1: iconURL('i_coin', ICONS.coin), v2: pd.gold.toLocaleString(), v3: iconURL('i_stone', ICONS.stone), v4: (pd.stones || 0).toLocaleString() });
 const ilvTag = id => ilvOf(id) ? ` Lv.${ilvOf(id)}` : '';
+/** 가방 정리 (일괄 분해·중복 보관) — 접어 둠 */
+const tidyHtml = inner => tt('ui/menu.155', { v1: EQ_TIDY ? ' open' : '', v2: EQ_TIDY ? '▲' : '▼', v3: EQ_TIDY ? `<div class="eqtb">${inner}</div>` : '' });
 /** 같은 장비가 또 나오면: 강화석(기본) / 등급 이상 가방에 보관 */
 function keepDupHtml(/** @type {SaveData} */ pd) {
   const cur = pd.keepDup == null ? -1 : pd.keepDup, n = Object.keys(pd.inv).length;
@@ -82,17 +92,41 @@ function awkPanel() {
   return tt('ui/menu.30', { aw, pct, ap, v1: spent ? '' : 'disabled', rows });
 }
 export let ENH_SEL = { h: 'weapon', b: 'btoy' };
+/** 장비 카드 아래 탭: 강화(+25면 한계 돌파) / 재련 */
+const ENH_MODE = { h: 'enh', b: 'enh' };
+let ENH_STONE = false, EQ_TIDY = false;
+/** 강화석 쓰기 스위치 + 강화하기 버튼 하나 */
+function enhGoHtml(sl, goldOk, stoneOk, sc, stn) {
+  const on = ENH_STONE && stoneOk;
+  return tt('ui/menu.163', { v1: on ? ' on' : '', v2: stoneOk ? '' : ' disabled', sc, v3: stoneOk ? tt('ui/menu.156', { v1: stn.toLocaleString() }) : tt('ui/menu.157', { v1: stn.toLocaleString() }) })
+    + `<button class="btn pk egbtn" data-m="${on ? 'enhanceS' : 'enhance'}" data-v="${sl}"${goldOk ? '' : ' disabled'}>${on ? tt('ui/menu.158') : tt('ui/menu.159')}</button></div>`;
+}
+/** 부위 고르기 (누르면 아래 카드가 그 부위 장비) */
+function eqPickHtml(slots) {
+  const pd = G.pd, grp = slots === BSLOTS ? 'b' : 'h', bori = grp === 'b'; let sl = ENH_SEL[grp]; if (!slots.includes(sl)) sl = slots[0];
+  return `<div class="eqpick${bori ? ' b' : ''}">${slots.map(s => { const id = bori ? pd.beq[s] : pd.eq[s], it = ITEMS[id], en = id ? (pd.enh || {})[id] || 0 : 0;
+    const img = !it ? '' : id === 'fist' ? iconURL('sk_fist', ICONS.fist) : itemURL(id);
+    return `<button class="eqp${s === sl ? ' on' : ''}${en >= 25 ? ' g25' : en >= 20 ? ' g20' : ''}" data-m="enhSel" data-v="${grp}:${s}">${img ? `<img src="${img}" alt="">` : '<i class="eqe">-</i>'}<small>${SLOTNAME[s]}</small><b class="r${it ? it.rar : 0}">${en ? '+' + en : it ? '+0' : ''}</b></button>`; }).join('')}</div>`;
+}
+/** 고른 부위 카드: 위에 [강화 | 재련] 탭 + 장비 바꾸기 */
+function eqDetailHtml(slots) {
+  const pd = G.pd, grp = slots === BSLOTS ? 'b' : 'h', bori = grp === 'b'; let sl = ENH_SEL[grp]; if (!slots.includes(sl)) sl = slots[0];
+  const id = bori ? pd.beq[sl] : pd.eq[sl], it = ITEMS[id], en = id ? (pd.enh || {})[id] || 0 : 0, canRef = it && !it.start;
+  const mode = canRef ? ENH_MODE[grp] : 'enh';
+  const seg = it ? tt('ui/menu.164', { v1: mode === 'enh' ? 'on' : '', grp, v2: en >= ENH_MAX ? tt('ui/menu.160') : tt('ui/menu.161'), v3: canRef ? tt('ui/menu.162', { v1: mode === 'ref' ? 'on' : '', grp }) : '', sl }) : '';
+  return `<div class="eqdet">${seg}${mode === 'ref' ? refCardHtml(pd, slots) : enhCard(slots)}</div>`;
+}
 function enhCard(slots) {
   const pd = G.pd, grp = slots === BSLOTS ? 'b' : 'h', bori = grp === 'b';
   let sl = ENH_SEL[grp]; if (!slots.includes(sl)) sl = slots[0];
   const eqOf = s => bori ? pd.beq[s] : pd.eq[s];
-  const chips = `<div class="enhsel">${slots.map(s => { const id = eqOf(s), en = id ? (pd.enh || {})[id] || 0 : 0; return `<button class="${s === sl ? 'on' : ''}" data-m="enhSel" data-v="${grp}:${s}">${SLOTNAME[s]}${en ? ` <b>+${en}</b>` : ''}</button>`; }).join('')}</div>`;
+  const chips = '';
   const id = eqOf(sl), it = ITEMS[id];
   if (!it) return tt('ui/menu.133', { chips, v1: SLOTNAME[sl], v2: bori ? tt('ui/menu.31') : '' });
   const en = (pd.enh || {})[id] || 0, cost = enhCost(en), max = en >= ENH_MAX, sc = enhStoneCost(en), stn = pd.stones || 0, o = max ? null : enhOdds(en, false), pct = x => Math.round(x * 100) + '%';
   const img = id === 'fist' ? iconURL('sk_fist', ICONS.fist) : itemURL(id);
   if (max) return brkCardHtml(pd, sl, id, it, en, img, chips);
-  return tt('ui/menu.149', { chips, v1: en >= 20 ? ' glow20' : '', img, v2: SLOTNAME[sl], rar: it.rar, name: it.name, v3: en ? ' +' + en : '', v4: ENH_FX[sl].txt(en), v5: max ? '' : tt('ui/menu.134', { en, v1: en + 1, v2: pct(o.p), v3: o.dn ? tt('ui/menu.32', { v1: pct(o.dn) }) : '', v4: o.ds ? tt('ui/menu.33', { v1: pct(o.ds), v2: enhReset(en) }) : '' }), v6: max ? tt('ui/menu.34', { ENH_MAX }) : tt('ui/menu.35', { v1: cost.toLocaleString(), v2: pd.gold.toLocaleString(), stn }), v7: max ? '<button class="btn pk" disabled>MAX</button>' : tt('ui/menu.36', { sl, v1: pd.gold >= cost ? '' : 'disabled', v2: pd.gold >= cost && stn >= sc ? '' : 'disabled', sc }) });
+  return tt('ui/menu.149', { chips, v1: en >= 20 ? ' glow20' : '', img, v2: SLOTNAME[sl], rar: it.rar, name: it.name, v3: en ? ' +' + en : '', v4: ENH_FX[sl].txt(en), v5: max ? '' : tt('ui/menu.134', { en, v1: en + 1, v2: pct(o.p), v3: o.dn ? tt('ui/menu.32', { v1: pct(o.dn) }) : '', v4: o.ds ? tt('ui/menu.33', { v1: pct(o.ds), v2: enhReset(en) }) : '' }), v6: max ? tt('ui/menu.34', { ENH_MAX }) : tt('ui/menu.35', { v1: cost.toLocaleString(), v2: pd.gold.toLocaleString() }), v7: max ? '<button class="btn pk" disabled>MAX</button>' : enhGoHtml(sl, pd.gold >= cost, stn >= sc, sc, stn) });
 }
 /** +20 이상 강화·한계 돌파 성공 연출 (메뉴 위 화면 전체) */
 function enhFx(kind, big, sub) {
@@ -159,15 +193,13 @@ const MREN = {
   equip() {
     const pd = G.pd, st = G.st;
     let h = tt('ui/menu.60', { atk: st.atk, def: st.def, v1: Math.round(st.crit * 100), hp: st.hp, mp: st.mp, v2: Math.round(st.spd * 100) });
-    h += enhCard(SLOTS); h += refCardHtml(pd, SLOTS);
-    h += `<div class="slots">${SLOTS.map(sl => { const it = ITEMS[pd.eq[sl]]; return `<div class="slot"><img src="${itemURL(pd.eq[sl])}">${SLOTNAME[sl]}<br><b class="r${it.rar}">${it.name}${ilvTag(pd.eq[sl])}${(pd.enh || {})[pd.eq[sl]] ? ' +' + pd.enh[pd.eq[sl]] : ''}</b></div>`; }).join('')}</div>`;
+    h += eqPickHtml(SLOTS) + eqDetailHtml(SLOTS);
     h += eqSetHtml(pd);
     h += tt('ui/menu.61');
-    h += tt('ui/menu.62') + tt('ui/menu.63', { v1: pd.stones || 0 });
-    h += keepDupHtml(pd);
+    h += tt('ui/menu.62') + tidyHtml(tt('ui/menu.63', { v1: pd.stones || 0 }) + keepDupHtml(pd));
     for (const sl of SLOTS) {
       const ids = Object.keys(pd.inv).filter(id => ITEMS[id] && ITEMS[id].slot === sl).sort((a, b) => (ITEMS[a].rar - ITEMS[b].rar) || ((ITEMS[a].tier || 0) - (ITEMS[b].tier || 0)));
-      h += tt('ui/menu.64', { v1: SLOTNAME[sl], length: ids.length });
+      h += `<a id="eqsl-${sl}"></a>` + tt('ui/menu.64', { v1: SLOTNAME[sl], length: ids.length });
       for (const id of ids) {
         const it = ITEMS[id], eq = pd.eq[sl] === id;
         h += `<div class="card"><div class="ic"><img src="${itemURL(id)}"></div><div class="mid"><div class="nm"><span class="r${it.rar}">${it.name}${ilvTag(id)}${(pd.enh || {})[id] ? ' +' + pd.enh[id] : ''}</span><span class="tag">${RARITY[it.rar]}</span></div><div class="ds">${statStr(it)}${ilvLine(id, eq)}${refLine(id)}${it.desc ? `<br><small>${it.desc}</small>` : ''}</div></div>${eq ? tt('ui/menu.65') : tt('ui/menu.138', { id, v1: it.start ? '' : tt('ui/menu.66', { id, v1: sellPrice(id) }), v2: canDismantle(id) ? tt('ui/menu.67', { id, v1: stoneYield(id) }) : '' })}</div>`;
@@ -180,12 +212,12 @@ const MREN = {
     if (!pd.boriJoined) h += tt('ui/menu.68');
     else {
       h += eqSetHtml(pd);
-      h += tt('ui/menu.139', { v1: boriPreviewURL(), v2: Math.round((st.boriMul - 1) * 100), v3: BSLOTS.map(sl => { const id = pd.beq[sl], it = ITEMS[id]; return `<div class="slot">${it ? `<img src="${itemURL(id)}">` : tt('ui/menu.69')}${SLOTNAME[sl]}<br><b class="r${it ? it.rar : 0}">${it ? it.name + ilvTag(id) : '-'}${it && (pd.enh || {})[id] ? ' +' + pd.enh[id] : ''}</b></div>`; }).join('') });
-      h += enhCard(BSLOTS) + refCardHtml(pd, BSLOTS);
-      h += tt('ui/menu.63', { v1: pd.stones || 0 });
+      h += tt('ui/menu.139', { v1: boriPreviewURL(), v2: Math.round((st.boriMul - 1) * 100), v3: '' });
+      h += eqPickHtml(BSLOTS) + eqDetailHtml(BSLOTS);
+      h += tidyHtml(tt('ui/menu.63', { v1: pd.stones || 0 }));
       for (const sl of BSLOTS) {
         const ids = Object.keys(pd.inv).filter(id => ITEMS[id] && ITEMS[id].slot === sl).sort((a, b) => ITEMS[a].rar - ITEMS[b].rar);
-        h += tt('ui/menu.140', { v1: SLOTNAME[sl], length: ids.length, v2: sl === 'btoy' ? tt('ui/menu.70') : '' });
+        h += `<a id="eqsl-${sl}"></a>` + tt('ui/menu.140', { v1: SLOTNAME[sl], length: ids.length, v2: sl === 'btoy' ? tt('ui/menu.70') : '' });
         if (!ids.length) h += tt('ui/menu.71');
         for (const id of ids) { const it = ITEMS[id], eq = pd.beq[sl] === id, ten = (pd.enh || {})[id] || 0; h += tt('ui/menu.150', { v1: itemURL(id), rar: it.rar, name: it.name, v2: ilvTag(id), v3: ten ? ' +' + ten : '', v4: RARITY[it.rar], v5: Math.round(it.bdmg * 100), v6: ten ? tt('ui/menu.72', { v1: 3 * ten }) : '', v7: ilvLine(id, eq), v8: refLine(id), desc: it.desc, v9: eq ? tt('ui/menu.65') : tt('ui/menu.141', { id, v1: sellPrice(id), v2: canDismantle(id) ? tt('ui/menu.67', { id, v1: stoneYield(id) }) : '' }) }); }
       }
@@ -224,6 +256,7 @@ export function menuClick(e) {
   const m = t.dataset.m, v = t.dataset.v, pd = G.pd;
   if (m === 'close') { closeMenu(); return; }
   if (m === 'tab') { MTAB = v; renderMenu(true); sfx('select'); return; }
+  if (m === 'grp') { const g = MGROUPS.find(x => x[0] === t.dataset.g); if (g) { MTAB = g[2].find(k => !(G.state === 'lobbyMenu' && k === 'food')) || g[2][0]; renderMenu(true); sfx('select'); } return; }
   if (m === 'job') { jobAsk(v); return; }
   if (m === 'replay') { replayPlay(v); return; }
   if (m === 'xch') {
@@ -246,7 +279,11 @@ export function menuClick(e) {
   if (m === 'eat') { G.P.eatCd = 0; eatFood(v); G.P.eatCd = 0; renderMenu(); return; }
   if (m === 'buy') { const f = FOODS[v]; if (pd.gold < f.price) return; pd.gold -= f.price; pd.foods[v] = (pd.foods[v] || 0) + 1; sfx('coin'); renderMenu(); return; }
   if (m === 'buyItem') { const it = ITEMS[v]; if (pd.gold < it.price || ownsDef(pd, v)) return; const isNewBook = !(pd.book || {})[v]; pd.gold -= it.price; const k = addItem(pd, v); sfx('ding'); if (isNewBook) bookNotify(v); if (it.bori) { pd.beq[it.slot] = k; calcStats(); toast(tt('ui/menu.146', { name: it.name, v1: it.slot === 'btoy' ? tt('ui/menu.94') : tt('ui/menu.95') }), 'item r' + it.rar); if (G.bori) bubble(G.bori, tt('ui/menu.92'), 1.4); } else toast(tt('ui/menu.96', { name: it.name }), 'item r' + it.rar); renderMenu(); saveGame(); return; }
-  if (m === 'enhSel') { const [g, s2] = v.split(':'); ENH_SEL[g] = s2; renderMenu(); return; }
+  if (m === 'enhSel') { const [g, s2] = v.split(':'); ENH_SEL[g] = s2; sfx('select'); renderMenu(); return; }
+  if (m === 'enhMode') { const [g, md] = v.split(':'); ENH_MODE[g] = md; sfx('select'); renderMenu(); return; }
+  if (m === 'enhStone') { ENH_STONE = !ENH_STONE; sfx('select'); renderMenu(); return; }
+  if (m === 'tidy') { EQ_TIDY = !EQ_TIDY; sfx('select'); renderMenu(); return; }
+  if (m === 'eqJump') { const a = $('#eqsl-' + v); if (a) try { a.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (e) { } return; }
   if (m === 'brk') {
     const toy = BSLOTS.includes(v), r = tryBreak(v || 'weapon'); if (!r) return; const nm = ITEMS[r.id].name, P = toy && G.bori ? G.bori : G.P;
     if (r.res === 'up') { sfx('lvl'); G.shake = 6; enhFx('brk', tt('ui/menu.97', { to: r.to }), nm); toast(tt('ui/menu.98', { nm, to: r.to }), 'lvl'); if (P) { G.fx.push({ k: 'lvl', x: P.x, y: P.y, t: 0, dur: 1.2 }); bubble(P, toy ? tt('ui/menu.99') : choice([tt('ui/menu.100'), tt('ui/menu.101')]), 1.5); } }

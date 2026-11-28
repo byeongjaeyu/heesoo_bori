@@ -1,4 +1,4 @@
-import { test, expect, URL_MAIN, URL_ONETOUCH, MOCK_SB, withSave, enterZone, openTab } from './fixtures.mjs';
+import { test, expect, URL_MAIN, URL_ONETOUCH, MOCK_SB, withSave, enterZone, openTab, tap } from './fixtures.mjs';
 
 test('타이틀이 뜨고 폰트가 로드됨', async ({ page }) => {
   await page.goto(URL_MAIN);
@@ -26,6 +26,22 @@ test('메뉴 탭이 모두 열리고 강화 버튼이 동작', async ({ page }) 
   expect(await page.evaluate(() => G.pd.gold)).toBeLessThan(before);
 });
 
+test('장비 화면: 부위 고르기 → 강화석 스위치 켜면 강화석 쓰는 강화, 재련 탭·가방 정리는 접힘', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 30, gold: 1e6, stones: 200, zone: 1, enh: { fist: 21 } });
+  await enterZone(page, 1);
+  await openTab(page, 'equip');
+  await expect(page.locator('.eqp.on')).toContainText('+21');
+  await expect(page.locator('.eqtidy [data-m="bulk"]')).toHaveCount(0);
+  await expect(page.locator('.egbtn')).toHaveAttribute('data-m', 'enhance');
+  await page.click('[data-m="enhStone"]');
+  await expect(page.locator('.egbtn')).toHaveAttribute('data-m', 'enhanceS');
+  await page.click('.egbtn');
+  expect(await page.evaluate(() => G.pd.stones)).toBe(120); // +21 → 강화석 80개
+  await page.evaluate(() => { G.pd.stones = 50; renderMenu(); }); // 모자라면 스위치가 꺼지고 막힘
+  await expect(page.locator('[data-m="enhStone"]')).toBeDisabled(); await expect(page.locator('.egbtn')).toHaveAttribute('data-m', 'enhance');
+  await page.click('[data-m="tidy"]'); await expect(page.locator('.eqtidy [data-m="bulk"]')).toHaveCount(3);
+});
+
 test('Lv50 각성 패널에서 포인트 투자', async ({ page }) => {
   await withSave(page, URL_MAIN, { lv: 50, aw: 3, ap: 3, zone: 1 });
   await enterZone(page, 1);
@@ -39,7 +55,7 @@ test('랭킹: 미등록이면 "내 희수도 올리기" → 닉네임 등록 후
   await withSave(page, URL_MAIN, { lv: 12, zone: 1 });
   await page.evaluate(MOCK_SB);
   await page.evaluate(() => { __rows.push({ user_id: 'u-other', nickname: '원조희수', snap: { lv: 50, eq: newPD().eq }, power: 4000, rating: 1000, wins: 0, losses: 0 }); });
-  await page.click('#tRank');
+  await tap(page, '#tRank');
   await page.click('.rjoin button');
   await page.fill('#pvpNickIn', '테스트희수'); await page.click('#pvpNickOk');
   await expect(page.locator('.rjoin')).toHaveCount(0);
@@ -78,7 +94,7 @@ test('랭킹 등록: 다른 기기로 옮겨진 희수면 안내 문구', async 
   await withSave(page, URL_MAIN, { lv: 12 });
   await page.evaluate(MOCK_SB);
   await page.evaluate(() => { __rpc.hb_submit_fighter = () => ({ ok: false, reason: 'moved' }); });
-  await page.click('#tRank');
+  await tap(page, '#tRank');
   await page.click('.rjoin button');
   await page.fill('#pvpNickIn', '옛기기희수'); await page.click('#pvpNickOk');
   await expect(page.locator('#pvpNickMsg')).toContainText('다른 기기로 옮겨졌어요');
@@ -110,7 +126,7 @@ test('PvP 시즌: 랭킹 PvP 탭에 남은 시간·지난 시즌 TOP·내 기록
   await withSave(page, URL_MAIN, { lv: 30 });
   await page.evaluate(MOCK_SB);
   await page.evaluate(() => { __rows.push({ user_id: 'u-me', nickname: '나', snap: { lv: 30, eq: newPD().eq }, power: 900, rating: 1010, wins: 1, losses: 0 }); });
-  await page.click('#tRank');
+  await tap(page, '#tRank');
   await page.click('#rankTabs [data-rt=pvp]');
   const bar = page.locator('#rankList .season');
   await expect(bar).toContainText('월요일 0시까지 2일 5시간');
@@ -177,7 +193,7 @@ test('내 카드 공유: 카드 이미지 생성 + 초대 링크', async ({ page
   await withSave(page, URL_MAIN, { lv: 30, look: { hair: 'pink' } });
   await page.evaluate(MOCK_SB);
   await page.evaluate(() => { __rows.push({ user_id: 'u-me', nickname: '공유희수', snap: {}, power: 900, rating: 1010, wins: 1, losses: 0 }, { user_id: 'x', nickname: '1등', snap: {}, power: 99999, rating: 1000, wins: 0, losses: 0 }); });
-  await page.click('#tRank');
+  await tap(page, '#tRank');
   await page.click('#rankShare');
   await expect(page.locator('#shareImg')).toHaveAttribute('src', /^data:image\/png/, { timeout: 15000 });
   const size = await page.evaluate(() => { const i = document.querySelector('#shareImg'); return [i.naturalWidth, i.naturalHeight]; });
@@ -211,7 +227,7 @@ test('랭킹: 플레이 안 한 Lv1 은 안 보임', async ({ page }) => {
   await page.evaluate(MOCK_SB);
   await page.evaluate(() => { __rows.push({ user_id: 'u-me', nickname: '나', snap: { lv: 20, eq: newPD().eq }, power: 800, rating: 1000, wins: 0, losses: 0 },
     { user_id: 'z', nickname: '구경만함', snap: { lv: 1, eq: newPD().eq }, power: 100, rating: 1000, wins: 0, losses: 0 }); PV.notReg = false; });
-  await page.click('#tRank');
+  await tap(page, '#tRank');
   await expect(page.locator('#rankList')).toContainText('나');
   await expect(page.locator('#rankList')).not.toContainText('구경만함');
 });
@@ -220,7 +236,7 @@ test('월드 보스: 로비 → 도전 → 60초 전투 피해 집계 → 서버
   await withSave(page, URL_MAIN, { lv: 30 });
   await page.evaluate(MOCK_SB);
   await page.evaluate(() => { __rows.push({ user_id: 'u-me', nickname: '나', snap: { lv: 30 }, power: 1500, rating: 1000, wins: 0, losses: 0 }); });
-  await page.click('#tRaid');
+  await tap(page, '#tRaid');
   await expect(page.locator('.rdboss')).toContainText('폭주 회전컵');
   await expect(page.locator('[data-rd=go]')).toContainText('3/3');
   await page.click('[data-rd=go]');
@@ -240,7 +256,7 @@ test('월드 보스: 로비 → 도전 → 60초 전투 피해 집계 → 서버
 test('월드 보스: 미등록이면 도전 대신 등록 안내', async ({ page }) => {
   await withSave(page, URL_MAIN, { lv: 30 });
   await page.evaluate(MOCK_SB);
-  await page.click('#tRaid');
+  await tap(page, '#tRaid');
   await expect(page.locator('[data-rd=go]')).toBeDisabled();
   await expect(page.locator('[data-rd=join]')).toBeVisible();
 });
@@ -318,6 +334,8 @@ test('로비에서 장비·스킬 메뉴 열기 (음식 탭 없음), 닫으면 �
   expect(await page.evaluate(() => G.state)).toBe('title');
   await page.click('.tprof');
   await expect(page.locator('#menu')).toBeVisible();
+  await expect(page.locator('#tabs .mg.on')).toHaveText('내 희수'); await expect(page.locator('#tabs .tab.on')).toHaveText('꾸미기');
+  await page.click('#tabs [data-g="etc"]'); await page.click('#tabs [data-v="info"]');
   await page.click('#menu [data-m="title"]');
   await expect(page.locator('#tCont')).toBeVisible();
 });
@@ -343,7 +361,7 @@ test('베타 기간 자동사냥 무제한: 쿠폰을 다 써도 켜지고, 시�
 test('방치 보상: 로비에서 받기 → 골드·강화석 증가, 다시 0부터', async ({ page }) => {
   await withSave(page, URL_MAIN, { lv: 20, gold: 0, stones: 0, idleT: Date.now() - 3 * 3600e3 });
   await expect(page.locator('#tIdle')).toContainText('3시간');
-  await page.click('#tIdle');
+  await tap(page, '#tIdle');
   await expect(page.locator('#seasonModal')).toContainText('방치 보상');
   const pd = await page.evaluate(() => loadGame());
   expect(pd.gold).toBeGreaterThan(0); expect(pd.stones).toBeGreaterThan(0);
@@ -351,10 +369,23 @@ test('방치 보상: 로비에서 받기 → 골드·강화석 증가, 다시 0�
   await expect(page.locator('#tIdle')).toContainText('모으는 중');
 });
 
+test('보상함: 받을 수 = 출석·미션 + 방치 + 회차 이정표, 「모두 받기」로 한 번에 받고 시트는 그대로', async ({ page }) => {
+  await withSave(page, URL_MAIN, { lv: 30, gold: 0, stones: 0, cleared: 6, idleT: Date.now() - 3 * 3600e3 });
+  await expect(page.locator('#tRew .dot')).toHaveText('3'); // 방치 1 + 회차 3·5 이정표 2 (출석은 받음)
+  await tap(page, '#tRewAll');
+  await expect(page.locator('#seasonModal')).toContainText('방치 보상 · 회차 보상');
+  const pd = await page.evaluate(() => loadGame());
+  expect(pd.gold).toBeGreaterThan(0); expect(pd.stones).toBeGreaterThan(0); expect(Object.keys(pd.ms || {}).sort()).toEqual(['3', '5']);
+  expect(Date.now() - pd.idleT).toBeLessThan(60e3);
+  await page.click('#seasonModal .btn');
+  await expect(page.locator('#tsheet [data-nav="rew"]')).toBeVisible();
+  await expect(page.locator('#tRewAll')).toBeDisabled(); await expect(page.locator('#tRew .dot')).toHaveCount(0);
+});
+
 test('방치 보상: 첫 걸음 가이드 전 세이브는 며칠 지나도 잠김', async ({ page }) => {
   await withSave(page, URL_MAIN, { lv: 1, guide: 0, idleT: Date.now() - 3 * 864e5 });
   await expect(page.locator('#tIdle')).toContainText('잠김');
-  await page.click('#tIdle');
+  await tap(page, '#tIdle');
   await expect(page.locator('#toasts')).toContainText('첫 걸음 가이드를 끝내면');
   expect(await page.evaluate(() => loadGame().lv)).toBe(1);
 });
@@ -420,10 +451,11 @@ test('재련·교환소: 장비 탭에서 재련, 배달앱에서 강화석 교�
   await withSave(page, URL_MAIN, { lv: 50, gold: 10000000, stones: 0, inv: { starstick: 1 }, eq: { weapon: 'starstick' } });
   await enterZone(page, 0);
   await page.evaluate(() => openMenu('equip'));
+  await page.click('[data-m="enhMode"][data-v="h:ref"]');
   await page.click('[data-m="refine"]');
   await expect(page.locator('.refc .refl:not(.none)')).toHaveCount(3);
   await page.evaluate(() => { G.pd.ach = Object.fromEntries(ACH.map(a => [a.id, 1])); saveGame(); }); // 업적 보상이 끼어들지 않게
-  await page.click('#tabs [data-v="shop"]');
+  await page.click('#tabs [data-g="shop"]'); await page.click('#tabs [data-v="shop"]');
   const s0 = await page.evaluate(() => loadGame().stones);
   await page.click('[data-m="xch"][data-v="10"]');
   expect(await page.evaluate(() => [loadGame().stones, loadGame().gold])).toEqual([s0 + 10, 10000000 - 1500000 - 30000]);
@@ -473,7 +505,7 @@ test('3장 마지막 보스 → 엔딩 → 3장 클리어 기록', async ({ page
 test('회차 보상: 로비 타일 → 한 번에 받기 → 강화석·자동사냥, 다시 못 받음', async ({ page }) => {
   await withSave(page, URL_MAIN, { lv: 50, cleared: 5, stones: 0, ch2: { zone: 4, cleared: 5, intro: 1 } });
   await expect(page.locator('#tGoal')).toContainText('총 10회차');
-  await page.click('#tGoal');
+  await tap(page, '#tGoal');
   await expect(page.locator('#seasonModal')).toBeVisible();
   await page.click('.msall');
   const pd = await page.evaluate(() => loadGame());
@@ -484,7 +516,7 @@ test('회차 보상: 로비 타일 → 한 번에 받기 → 강화석·자동�
 
 test('보스 타워: 1층 도전 → 보스 처치 → 돌파 기록·보상, 2층 시간 초과면 기록 그대로', async ({ page }) => {
   await withSave(page, URL_MAIN, { lv: 50, cleared: 1, stones: 0 });
-  await page.click('#tTower');
+  await tap(page, '#tTower');
   await expect(page.locator('#towerBody')).toContainText('1층');
   await page.click('[data-tw="go"]');
   await page.waitForFunction(() => G.state === 'play' && G.tower && G.tower.f === 1 && G.boss, null, { timeout: 8000 });
@@ -505,7 +537,7 @@ test('보스 타워: 1층 도전 → 보스 처치 → 돌파 기록·보상, 2�
 
 test('보스 타워는 1장을 깨야 열림', async ({ page }) => {
   await withSave(page, URL_MAIN, { lv: 10, cleared: 0 });
-  await page.click('#tTower');
+  await tap(page, '#tTower');
   await expect(page.locator('#tower')).toBeHidden();
 });
 
@@ -515,7 +547,7 @@ test('월드 보스: 이번 주 이미 처치됐으면 「처치 완료 · 피�
   await page.evaluate(() => { __rows.push({ user_id: 'u-me', nickname: '나', snap: { lv: 30 }, power: 1500, rating: 1000, wins: 0, losses: 0 }); });
   // 1) 남은 체력이 적을 때 내가 쓰러뜨림
   await page.evaluate(() => { window.__raid = undefined; });
-  await page.click('#tRaid'); await page.evaluate(() => { __raid.hp = 3000; });
+  await tap(page, '#tRaid'); await page.evaluate(() => { __raid.hp = 3000; });
   await page.click('[data-rd=go]');
   await page.waitForFunction(() => G.state === 'play' && G.raid);
   await page.evaluate(() => { G.boss.hp = 3000; for (let i = 0; i < 5; i++) dealDamage(G.boss, 5000, {}); });
@@ -546,11 +578,11 @@ test('광장: 등록된 희수만 입장 → 다른 희수 접속·이동·채�
   await withSave(page, URL_MAIN, { lv: 20, cleared: 2 });
   await page.evaluate(MOCK_SB);
   // 1) 닉네임 등록 전엔 못 들어감
-  await page.click('#tPlaza');
+  await tap(page, '#tPlaza');
   await page.waitForTimeout(1000); expect(await page.evaluate(() => !!G.plaza)).toBe(false);
   // 2) 등록 후 입장
   await page.evaluate(() => { __rows.push({ user_id: 'u-me', nickname: '나', snap: { lv: 20 }, power: 900, rating: 1000, wins: 0, losses: 0 }); PV.me = null; });
-  await page.click('#tPlaza');
+  await tap(page, '#tPlaza');
   await page.waitForFunction(() => G.plaza && G.plaza.ok && G.state === 'play', null, { timeout: 8000 });
   await expect(page.locator('#plazaUI')).toBeVisible();
   await expect(page.locator('#ctrl')).toBeHidden();
@@ -591,14 +623,14 @@ test('광장 자동 분리: 1번 광장이 30명 이상이면 2번 광장으로,
   await withSave(page, URL_MAIN, { lv: 20, cleared: 2 });
   await page.evaluate(MOCK_SB);
   await page.evaluate(() => { __rows.push({ user_id: 'u-me', nickname: '나', snap: { lv: 20 }, power: 900, rating: 1000, wins: 0, losses: 0 }); window.__prefill = { 'plaza-1': 30 }; });
-  await page.click('#tPlaza');
+  await tap(page, '#tPlaza');
   await page.waitForFunction(() => G.plaza && G.plaza.ok, null, { timeout: 8000 });
   expect(await page.evaluate(() => [G.plaza.no, __chan.name])).toEqual([2, 'plaza-2']);
   await expect(page.locator('#zoneT')).toContainText('희수 광장 2');
   await page.click('#plazaExit'); await expect(page.locator('#tCont')).toBeVisible();
   // 신고 누적으로 정지된 희수
   await page.evaluate(() => { __rpc.hb_plaza_status = () => ({ ok: false, banned: true, until: new Date(Date.now() + 3600e3).toISOString() }); });
-  await page.waitForTimeout(900); await page.click('#tPlaza'); await page.waitForTimeout(800);
+  await page.waitForTimeout(900); await tap(page, '#tPlaza'); await page.waitForTimeout(800);
   expect(await page.evaluate(() => !!G.plaza)).toBe(false);
   await expect(page.locator('#toasts')).toContainText('광장을 이용할 수 없어요');
 });
@@ -635,6 +667,7 @@ test('개별 장비: 같은 맥북프로 두 개(+0·+20)를 따로 갖고 골�
   await page.locator('#menu .card:not(.col)', { hasText: '단단한 맥북프로 +20' }).locator('[data-m="equip"]').click();
   expect(await page.evaluate(() => [G.pd.eq.weapon, G.st.enh])).toEqual(['starstick#ab12', 20]);
   expect(await page.evaluate(() => G.st.atk)).toBeGreaterThan(atk0);
+  await page.click('#menu [data-m="tidy"]');
   await page.click('#menu [data-m="keepDup"][data-v="5"]');
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem(SAVEKEY)).keepDup)).toBe(5);
   await expect(page.locator('#menu .kdup .btn.on')).toHaveText('초월만 보관');
@@ -643,7 +676,7 @@ test('개별 장비: 같은 맥북프로 두 개(+0·+20)를 따로 갖고 골�
 test('계정 연결: 익명 희수에 구글 연결 → 돌아오면 완료 안내', async ({ page }) => {
   await withSave(page, URL_MAIN, { lv: 12 });
   await page.evaluate(MOCK_SB);
-  await page.click('#tCloud');
+  await tap(page, '#tCloud');
   await expect(page.locator('#accBtns .acc-google', { hasText: '구글 계정 연결' })).toBeVisible();
   await expect(page.locator('#accBtns .acc-kakao', { hasText: '카카오로 로그인해서 불러오기' })).toBeVisible();
   await page.locator('#accBtns .acc-google', { hasText: '구글 계정 연결' }).click();
@@ -685,7 +718,7 @@ test('계정 로그인: 연결된 희수가 없는 계정이면 원래 희수 �
 
 test('토스트는 로비·팝업 위에 보임 (계정 연결 완료 안내 등)', async ({ page }) => {
   await withSave(page, URL_MAIN, { lv: 12 });
-  await page.click('#tCloud');
+  await tap(page, '#tCloud');
   await page.evaluate(() => toast('카카오 계정 연결 완료!', 'lvl'));
   const t = page.locator('.toast', { hasText: '연결 완료' });
   await expect(t).toBeVisible();
@@ -803,13 +836,18 @@ test('4장: 컷신·스테이지·보스 패턴이 오류 없이 돎', async ({ 
   expect(errs).toEqual([]);
 });
 
-test('로비: 낮은 화면(360×660)·4장까지 열려도 양옆 버튼이 모드 타일과 안 겹침', async ({ page }) => {
+test('로비: 낮은 화면(360×660)·4장까지 열려도 오른쪽 버튼·로고·모험 카드·아래 탭이 안 겹침', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 660 });
   await withSave(page, URL_MAIN, { lv: 50, aw: 161, cleared: 51, job: 'career', title: 'eall', ach: { eall: 1 }, idleT: Date.now() - 6000e3, boriJoined: true, infBest: 54, tower: { best: 50 }, chap: 4, ch2: { zone: 4, cleared: 3, intro: 1 }, ch3: { zone: 8, cleared: 8, intro: 1 }, ch4: { zone: 13, cleared: 0, intro: 1 } });
   await page.waitForTimeout(800);
-  const r = await page.evaluate(() => { const b = id => document.querySelector(id).getBoundingClientRect(); return { L: b('#tsideL').bottom, R: b('#tsideR').bottom, modes: b('.tmodes').top, tbtns: b('#tbtns').top, Lt: b('#tsideL').top, Rtop: b('#tsideR').top, logoR: b('.ttl h1').right, logoL: b('.ttl h1').left, Lr: b('#tsideL').right, Rl: b('#tsideR').left }; });
-  expect(r.Rtop).toBe(r.Lt); expect(r.logoR).toBeLessThanOrEqual(r.Rl); expect(r.logoL).toBeGreaterThanOrEqual(r.Lr);
-  expect(r.L).toBeLessThanOrEqual(r.modes); expect(r.R).toBeLessThanOrEqual(r.modes);
+  const r = await page.evaluate(() => { const b = id => document.querySelector(id).getBoundingClientRect(); return { bar: b('#tbar').bottom, R: b('#tsideR'), adv: b('#tbtns'), nav: b('#tnav').top, logoR: b('.ttl h1').right, logoB: b('.ttl h1').bottom }; });
+  expect(r.R.top).toBeGreaterThanOrEqual(r.bar); expect(r.R.bottom).toBeLessThanOrEqual(r.adv.top);
+  expect(r.logoR).toBeLessThanOrEqual(r.R.left); expect(r.logoB).toBeLessThanOrEqual(r.adv.top); expect(r.adv.bottom).toBeLessThanOrEqual(r.nav);
+  // 시트를 열면 아래 탭은 그대로 보이고, 시트는 탭 위에서 끝남
+  await page.click('#tnav [data-nav="play"]'); await page.waitForTimeout(300);
+  const s = await page.evaluate(() => ({ box: document.querySelector('.tsh-box').getBoundingClientRect().bottom, nav: document.querySelector('#tnav').getBoundingClientRect().top, hd: document.querySelector('.tsh').getBoundingClientRect().top - document.querySelector('.tsh-box').getBoundingClientRect().top }));
+  expect(s.box).toBeLessThanOrEqual(s.nav + 1); expect(s.hd).toBeGreaterThanOrEqual(8);
+  await page.click('#tnav [data-nav="home"]'); await expect(page.locator('#tsheet')).toBeHidden();
 });
 
 test('2배 도트: 희수·오빠·보리 화면 크기는 그대로, 장비마다 모양이 다름', async ({ page }) => {
