@@ -15,6 +15,7 @@ import { itemURL } from '../draw/render.js';
 import { TITLE_PD, showTitle } from '../ui/lobby.js';
 import { PXI, rewardCards } from '../net/rank.js';
 import { achTag } from './achv.js';
+import { tt } from '../sys/i18n.js';
 
 const PACK_MS = 24 * 3600 * 1000, PACK = { auto: 3 * 3600, stones: 300, hair: 'lavender', title: 'beta', price: '₩1,000' };
 ICONS.gift = ['..KK...KK..', '.KQQK.KQQK.', '.KQQQKQQQK.', 'KKKKKKKKKKK', 'KQQQQRQQQQK', 'KKKKKRKKKKK', '.KQQQRQQQK.', '.KQQQRQQQK.', '.KQQQRQQQK.', '.KKKKKKKKK.'];
@@ -28,17 +29,17 @@ export function packSeen(saved) {
   try { localStorage.setItem(SAVEKEY, JSON.stringify(saved)); } catch (e) { }
   if (G.pd && G.pd !== saved && G.pd.sid === saved.sid) G.pd.pack = Object.assign({}, saved.pack);
 }
-export function packTileHtml(pd) { const ms = packLeft(pd); if (ms <= 0) return pack2TileHtml(pd); return ms > 0 ? `<button class="ticon tpack" id="tPack">${`<img src="${iconURL('px_gift', ICONS.gift)}" alt="">`}<small>뉴비 패키지</small><b class="tpt">${packLeftTxt(ms)}</b><em class="dot"></em></button>` : ''; }
+export function packTileHtml(pd) { const ms = packLeft(pd); if (ms <= 0) return pack2TileHtml(pd); return ms > 0 ? tt('features/pack.1', { v1: `<img src="${iconURL('px_gift', ICONS.gift)}" alt="">`, v2: packLeftTxt(ms) }) : ''; }
 function packItemsHtml() {
   const hr = HAIRS.find(h => h.k === PACK.hair);
   return rewardCards([{ kind: 'auto', amount: PACK.auto }, { kind: 'stones', amount: PACK.stones }], true)
-    + `<div class="rwcs big pkx"><div class="rwc"><i class="hsw" style="background:linear-gradient(135deg,${hr.h},${hr.H})"></i><b>${hr.name}</b><small>한정 헤어</small></div>`
-    + `<div class="rwc"><span class="pkt">${achTag(PACK.title)}</span><b>칭호</b><small>한정 레전드</small></div></div>`;
+    + tt('features/pack.2', { h: hr.h, H: hr.H, name: hr.name })
+    + tt('features/pack.3', { v1: achTag(PACK.title) });
 }
 export function packOpen() {
   const pd = loadGame(), ms = packLeft(pd); if (!pd || ms <= 0) { showTitle(); return; }
-  $('#packBody').innerHTML = `<div class="sgot"><div class="sbig">${PXI('gift')}</div><h2>뉴비 패키지 <em>BETA</em></h2><p class="smsub">처음 오신 희수님께 드리는 24시간 한정 패키지<br>남은 시간 <b>${packLeftTxt(ms)}</b></p>${packItemsHtml()}`
-    + `<div class="pkprice"><s>${PACK.price}</s><b>베타 기간 무료!</b></div><button class="btn pk" id="packGo">무료로 받기</button></div>`;
+  $('#packBody').innerHTML = tt('features/pack.4', { v1: PXI('gift'), v2: packLeftTxt(ms), v3: packItemsHtml() })
+    + tt('features/pack.5', { price: PACK.price });
   $('#packGo').onclick = packClaim; $('#pack').hidden = false; sfx('select');
 }
 function packClaim() {
@@ -47,7 +48,7 @@ function packClaim() {
   pd.pack = Object.assign({}, pd.pack, { got: Date.now() }); pd.ach = Object.assign({}, pd.ach, { [PACK.title]: Date.now() });
   if (!pd.title) pd.title = PACK.title;
   G.pd = pd; saveGame(); sfx('lvl');
-  $('#packBody').innerHTML = `<div class="sgot"><div class="sbig">${PXI('gift')}</div><h2>뉴비 패키지<br><em>받았어요!</em></h2>${packItemsHtml()}<p class="smsub">헤어는 메뉴 「꾸미기」, 칭호는 「칭호」에서 바꿀 수 있어요</p></div>`;
+  $('#packBody').innerHTML = tt('features/pack.6', { v1: PXI('gift'), v2: packItemsHtml() });
 }
 export function packBoot() {
   if (FORCE_EASY) return;
@@ -66,16 +67,16 @@ export function pack2Seen(saved) {
   try { localStorage.setItem(SAVEKEY, JSON.stringify(saved)); } catch (e) { }
   if (G.pd && G.pd !== saved && G.pd.sid === saved.sid) G.pd.pack2 = Object.assign({}, saved.pack2);
 }
-function pack2TileHtml(pd) { const ms = pack2Left(pd); return ms > 0 ? `<button class="ticon tpack" id="tPack2"><img src="${iconURL('px_gift', ICONS.gift)}" alt=""><small>성장 패키지</small><b class="tpt">${packLeftTxt(ms)}</b><em class="dot"></em></button>` : ''; }
+function pack2TileHtml(pd) { const ms = pack2Left(pd); return ms > 0 ? tt('features/pack.7', { v1: iconURL('px_gift', ICONS.gift), v2: packLeftTxt(ms) }) : ''; }
 function pack2ItemsHtml() {
   const it = ITEMS[PACK2.weapon];
-  return `<div class="rwcs big pkx"><div class="rwc"><img src="${itemURL(PACK2.weapon)}" alt=""><b class="r${it.rar}">${it.name} +${PACK2.enh}</b><small>영웅 무기</small></div></div>`
+  return tt('features/pack.8', { v1: itemURL(PACK2.weapon), rar: it.rar, name: it.name, enh: PACK2.enh })
     + rewardCards([{ kind: 'stones', amount: PACK2.stones }, { kind: 'gold', amount: PACK2.gold }], true);
 }
 export function pack2Open() {
   const pd = loadGame(), ms = pack2Left(pd); if (!pd || ms <= 0) { showTitle(); return; }
-  $('#packBody').innerHTML = `<div class="sgot"><div class="sbig">${PXI('gift')}</div><h2>성장 패키지 <em>BETA</em></h2><p class="smsub">막히기 시작할 때 힘이 되는 48시간 한정 패키지<br>남은 시간 <b>${packLeftTxt(ms)}</b></p>${pack2ItemsHtml()}`
-    + `<div class="pkprice"><s>${PACK2.price}</s><b>베타 기간 무료!</b></div><button class="btn pk" id="packGo">무료로 받기</button></div>`;
+  $('#packBody').innerHTML = tt('features/pack.9', { v1: PXI('gift'), v2: packLeftTxt(ms), v3: pack2ItemsHtml() })
+    + tt('features/pack.5', { price: PACK2.price });
   $('#packGo').onclick = pack2Claim; $('#pack').hidden = false; sfx('select');
 }
 function pack2Claim() {
@@ -85,5 +86,5 @@ function pack2Claim() {
   pd.stones = (pd.stones || 0) + PACK2.stones; pd.gold += PACK2.gold;
   pd.pack2 = Object.assign({}, pd.pack2, { got: Date.now() });
   G.pd = pd; saveGame(); sfx('lvl');
-  $('#packBody').innerHTML = `<div class="sgot"><div class="sbig">${PXI('gift')}</div><h2>성장 패키지<br><em>받았어요!</em></h2>${pack2ItemsHtml()}<p class="smsub">${defOf(pd.eq.weapon) === id ? '무기는 바로 착용했어요!' : '무기는 메뉴 「장비」에 있어요'}</p></div>`;
+  $('#packBody').innerHTML = tt('features/pack.12', { v1: PXI('gift'), v2: pack2ItemsHtml(), v3: defOf(pd.eq.weapon) === id ? tt('features/pack.10') : tt('features/pack.11') });
 }

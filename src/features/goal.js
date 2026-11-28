@@ -18,6 +18,7 @@ import { toast } from '../ui/dialog.js';
 import { setTitlePd, showTitle } from '../ui/lobby.js';
 import { PXI, fmtGold, rewardCards, seasonModalShow, setSmNext } from '../net/rank.js';
 import { achTag } from './achv.js';
+import { tt } from '../sys/i18n.js';
 
 export const loopsTotal = pd => (pd.cleared || 0) + ((pd.ch2 && pd.ch2.cleared) || 0) + ((pd.ch3 && pd.ch3.cleared) || 0) + ((pd.ch4 && pd.ch4.cleared) || 0);
 /** @type {{n:number, r:[string, any][], ttl?:string}[]} */
@@ -54,26 +55,26 @@ export function applyRewards(pd, r) {
     if (k === 'stones') { pd.stones = (pd.stones || 0) + v; cards.push({ kind: 'stones', amount: v }); }
     else if (k === 'auto') { pd.autoBonus = (pd.autoBonus || 0) + v; cards.push({ kind: 'auto', amount: v }); }
     else if (k === 'gold') { pd.gold += v; cards.push({ kind: 'gold', amount: v }); }
-    else if (k === 'tr') { const id = giveTr(pd); extra.push(id ? `초월 장비 <b>${ITEMS[id].name}</b> 획득!` : `초월 장비를 다 가지고 있어서 강화석 ${TR_DUP}개로 받았어요`); if (!id) cards.push({ kind: 'stones', amount: TR_DUP }); }
-    else if (k === 'hair') { const h = HAIRS.find(x => x.k === v); if (h) extra.push(`한정 헤어 <b>${h.name}</b> 해금! (메뉴 → 꾸미기)`); }
+    else if (k === 'tr') { const id = giveTr(pd); extra.push(id ? tt('features/goal.1', { name: ITEMS[id].name }) : tt('features/goal.2', { TR_DUP })); if (!id) cards.push({ kind: 'stones', amount: TR_DUP }); }
+    else if (k === 'hair') { const h = HAIRS.find(x => x.k === v); if (h) extra.push(tt('features/goal.3', { name: h.name })); }
   }
   return { cards, extra };
 }
-export const rwLabel = r => r.map(([k, v]) => k === 'stones' ? `강화석 ${v.toLocaleString()}` : k === 'auto' ? `자동사냥 ${Math.round(v / 3600)}시간` : k === 'gold' ? `${fmtGold(v)}G` : k === 'tr' ? '초월 장비 확정' : k === 'hair' ? `헤어 「${(HAIRS.find(x => x.k === v) || { name: v }).name}」` : '').filter(Boolean).join(' · ');
+export const rwLabel = r => r.map(([k, v]) => k === 'stones' ? tt('features/goal.4', { v1: v.toLocaleString() }) : k === 'auto' ? tt('features/goal.5', { v1: Math.round(v / 3600) }) : k === 'gold' ? `${fmtGold(v)}G` : k === 'tr' ? tt('features/goal.6') : k === 'hair' ? tt('features/goal.7', { name: (HAIRS.find(x => x.k === v) || { name: v }).name }) : '').filter(Boolean).join(' · ');
 
 // ---------- 로비 타일 · 창 ----------
 export function msTileHtml(pd) {
   const ready = msReady(pd).length, nx = msNext(pd);
-  return `<button class="tidle tgoal${ready ? ' ready' : ''}" id="tGoal"><em>회차 보상</em><img src="${iconURL('px_rosette', ICONS.rosette)}" alt=""><b>총 ${loopsTotal(pd)}회차</b><small>${ready ? `받기! (${ready})` : nx ? `다음 ${nx.n}회차` : ''}</small>${ready ? '<em class="dot"></em>' : ''}</button>`;
+  return tt('features/goal.18', { v1: ready ? ' ready' : '', v2: iconURL('px_rosette', ICONS.rosette), v3: loopsTotal(pd), v4: ready ? tt('features/goal.8', { ready }) : nx ? tt('features/goal.9', { n: nx.n }) : '', v5: ready ? '<em class="dot"></em>' : '' });
 }
 export function msOpen() {
   const pd = loadGame(); if (!pd) return; const t = loopsTotal(pd), L = msList(pd), nx = msNext(pd);
   const rows = L.map(m => { const got = msGot(pd, m.n), ok = t >= m.n;
-    return `<div class="msrow${got ? ' got' : ok ? ' ok' : ''}"><i>${m.n}</i><div><b>${rwLabel(m.r)}</b>${m.ttl ? `<small>칭호 ${achTag(m.ttl)}</small>` : ''}</div>${got ? '<span>받음</span>' : ok ? `<button class="btn sm pk" onclick="msClaim(${m.n})">받기</button>` : `<span>${m.n - t}회차 남음</span>`}</div>`; }).join('');
+    return `<div class="msrow${got ? ' got' : ok ? ' ok' : ''}"><i>${m.n}</i><div><b>${rwLabel(m.r)}</b>${m.ttl ? tt('features/goal.10', { v1: achTag(m.ttl) }) : ''}</div>${got ? tt('features/goal.11') : ok ? tt('features/goal.12', { n: m.n }) : tt('features/goal.13', { v1: m.n - t })}</div>`; }).join('');
   const pct = nx ? Math.min(100, Math.round(t / nx.n * 100)) : 100;
-  $('#seasonModalBody').innerHTML = `<h2>회차 보상</h2><p class="smsub">1장·2장·3장을 클리어한 횟수를 모두 더해요<br>지금 <b>총 ${t}회차</b>${nx ? ` · 다음 보상까지 ${nx.n - t}회차` : ''}</p>`
+  $('#seasonModalBody').innerHTML = tt('features/goal.19', { t, v1: nx ? tt('features/goal.14', { v1: nx.n - t }) : '' })
     + `<div class="msbar"><i style="width:${pct}%"></i></div>`
-    + (msReady(pd).length > 1 ? `<button class="btn pk msall" onclick="msClaim(0)">한 번에 받기 (${msReady(pd).length}개)</button>` : '')
+    + (msReady(pd).length > 1 ? tt('features/goal.15', { length: msReady(pd).length }) : '')
     + `<div class="mslist">${rows}</div>`;
   setSmNext(() => showTitle()); seasonModalShow();
 }
@@ -85,7 +86,7 @@ function msClaim(n) {
   for (const m of list) { pd.ms[m.n] = Date.now(); const r = applyRewards(pd, m.r); cards = cards.concat(r.cards); extra = extra.concat(r.extra); }
   const sum = {}; for (const c of cards) sum[c.kind] = (sum[c.kind] || 0) + c.amount;
   G.pd = pd; saveGame(); setTitlePd(pd); sfx('lvl');
-  $('#seasonModalBody').innerHTML = `<div class="sgot"><div class="sbig">${PXI('rosette')}</div><h2>회차 보상<br><em>${list.map(m => m.n + '회차').join(' · ')}</em></h2>`
+  $('#seasonModalBody').innerHTML = tt('features/goal.20', { v1: PXI('rosette'), v2: list.map(m => m.n + tt('features/goal.16')).join(' · ') })
     + (extra.length ? `<p class="smsub">${extra.join('<br>')}</p>` : '') + rewardCards(Object.entries(sum).map(([kind, amount]) => ({ kind, amount })), true) + '</div>';
   setSmNext(() => msOpen()); seasonModalShow();
 }
@@ -93,6 +94,6 @@ function msClaim(n) {
 function msWatch() {
   const pd = G.pd; if (!pd || FORCE_EASY) return; const t = loopsTotal(pd);
   if (pd.msSeen === undefined) { pd.msSeen = t; return; }
-  if (t > pd.msSeen) { const hit = msList(pd).filter(m => m.n > pd.msSeen && m.n <= t); pd.msSeen = t; if (hit.length) { toast(`총 ${hit[hit.length - 1].n}회차 달성! 로비 「회차 보상」에서 받으세요`, 'lvl'); sfx('lvl'); } }
+  if (t > pd.msSeen) { const hit = msList(pd).filter(m => m.n > pd.msSeen && m.n <= t); pd.msSeen = t; if (hit.length) { toast(tt('features/goal.17', { n: hit[hit.length - 1].n }), 'lvl'); sfx('lvl'); } }
 }
 export function goalBoot() { if (FORCE_EASY) return; setInterval(() => { try { if (G.state === 'play' || G.state === 'cut' || G.state === 'end') msWatch(); } catch (e) { } }, 1000); }

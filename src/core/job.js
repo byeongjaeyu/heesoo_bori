@@ -4,22 +4,23 @@ import { emit } from './events.js';
 import { ITEMS, SLOTS, defOf } from './data.js';
 import { G } from './state.js';
 import { addItem, ownsDef } from './items.js';
+import { tt } from '../sys/i18n.js';
 
 export const JOB_LV = 50, JOB_COST = { stones: 2000, gold: 10000000 };
 /** 베타 기간에는 직업 바꾸기 무료(11/25 사용자 요청). 정식 때 free: false → JOB_COST */
 export const JOB_BETA = { free: true };
 /** @type {Record<string, {name: string, full: string, color: string, icon: string, flavor: string, always: string, sigTxt: string, sig: string[]}>} */
 export const JOBS = {
-  dev: { name: '개발자', full: '개발자 희수', color: '#3a6ac0', icon: 'laptop', flavor: '야근은 싫지만 버그는 못 참아',
-    always: '스킬 위력 +15%', sigTxt: '단단한 맥북프로를 끼면 공격 +20%, 신화 무기도 맥북 장비 레벨 재료가 돼요', sig: ['starstick'] },
-  career: { name: '커리어우먼', full: '커리어우먼 희수', color: '#c0306a', icon: 'idcard', flavor: '칼퇴는 능력이다',
-    always: '골드 +20%', sigTxt: '그리팅 사원증을 끼면 공격 속도 +20% · 카드가 3마리까지 관통 / 핸드백을 들면 치명 +5%', sig: ['goldpan', 'limitbag', 'clutch'] },
-  cheer: { name: '응원단장', full: '응원단장 희수', color: '#e8414f', icon: 'bat', flavor: '9회말 2아웃에도 목은 안 쉰다',
-    always: '보리 공격 +20% · 동료 희수 공격 +30%', sigTxt: '응원 장비 1개마다 공격 +4% (최대 5개, +20%)', sig: ['bat', 'lightstick', 'uniform', 'cheercap', 'spike', 'cheerbag'] },
-  bride: { name: '새신부', full: '새신부 희수', color: '#d88ab0', icon: 'bouquet', flavor: '오빠, 평생 잘해',
-    always: '최대 HP +15% · 방어 +10%', sigTxt: '웨딩 장비 1개마다 HP·방어 +7% / 3개 다 끼면 5초마다 HP 3% 회복 · 보리 공격 +10%', sig: ['bouquet', 'wdress', 'veil'] },
-  fish: { name: '낚시왕', full: '낚시왕 희수', color: '#2f8a8a', icon: 'net', flavor: '12시간? 이제 시작인데?',
-    always: '보스 피해 +15%', sigTxt: '낚시 장비 1개마다 공격 +4% · 강화석·장비 드롭 +6% (최대 5개)', sig: ['net', 'vest', 'bucket', 'rainboot', 'wingshoes', 'tackle'] }
+  dev: { name: tt('core/job.1'), full: tt('core/job.2'), color: '#3a6ac0', icon: 'laptop', flavor: tt('core/job.3'),
+    always: tt('core/job.4'), sigTxt: tt('core/job.5'), sig: ['starstick'] },
+  career: { name: tt('core/job.6'), full: tt('core/job.7'), color: '#c0306a', icon: 'idcard', flavor: tt('core/job.8'),
+    always: tt('core/job.9'), sigTxt: tt('core/job.10'), sig: ['goldpan', 'limitbag', 'clutch'] },
+  cheer: { name: tt('core/job.11'), full: tt('core/job.12'), color: '#e8414f', icon: 'bat', flavor: tt('core/job.13'),
+    always: tt('core/job.14'), sigTxt: tt('core/job.15'), sig: ['bat', 'lightstick', 'uniform', 'cheercap', 'spike', 'cheerbag'] },
+  bride: { name: tt('core/job.16'), full: tt('core/job.17'), color: '#d88ab0', icon: 'bouquet', flavor: tt('core/job.18'),
+    always: tt('core/job.19'), sigTxt: tt('core/job.20'), sig: ['bouquet', 'wdress', 'veil'] },
+  fish: { name: tt('core/job.21'), full: tt('core/job.22'), color: '#2f8a8a', icon: 'net', flavor: tt('core/job.23'),
+    always: tt('core/job.24'), sigTxt: tt('core/job.25'), sig: ['net', 'vest', 'bucket', 'rainboot', 'wingshoes', 'tackle'] }
 };
 /** 직업 장비 보정 (11/25): 내 직업의 대표 장비는 기본 능력치가 그 부위 초월 장비 수준으로 올라감
  * (대표 장비가 신화·전설이라 끼면 오히려 약해지던 문제). 능력치마다 max(원래 값, 그 부위 초월 장비 값). 무기 모양(사거리·속도)은 그대로 */

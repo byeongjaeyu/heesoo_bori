@@ -1,0 +1,5 @@
+{
+ "story/replay.1": "<small>아직 안 본 이야기</small>",
+ "story/replay.2": "<p class=\"ds\" style=\"margin:0 2px 8px\">지금까지 본 이야기 <b>{n}</b>편을 다시 볼 수 있어요. 대사는 화면을 누르면 넘어가고, 건너뛰기도 돼요.</p>",
+ "story/story.1": "출구 봉쇄"
+}

@@ -37,6 +37,7 @@ import { towerOpen } from '../play/tower.js';
 import { plazaLeave, plazaOpen } from '../net/plaza.js';
 import { endCut, playCut } from '../story/story.js';
 import { E2KEY, e2Go, e2HideAll, e2MenuClick, e2Open, e2Pause, e2PauseClick, e2ResClick } from '../minigame/ep2core.js';
+import { tt } from '../sys/i18n.js';
 
 export let TITLE_PD = /** @type {any} */ (null);
 export function setTitlePd(pd) { TITLE_PD = pd; }
@@ -74,7 +75,7 @@ export function showTitle() {
   const e2n = e2s ? (e2s.stars || []).reduce((a, b) => a + (b || 0), 0) : 0;
   if (FORCE_EASY) {
     $('#tbar').innerHTML = $('#tsideL').innerHTML = $('#tsideR').innerHTML = '';
-    $('#tbtns').innerHTML = `<button class="btn e2new" id="tEp2">${e2s ? '이어하기' : '시작하기'}<small>${e2s ? '별 ' + e2n + '/24' : '탭 한 번이면 끝!'}</small></button><div class="tsmall"><button class="btn wh" id="tSnd">소리 ${SND.on ? '켜짐 ♪' : '꺼짐'}</button></div><div class="tsub">♥ 희수 & 보리 ♥</div>`;
+    $('#tbtns').innerHTML = tt('ui/lobby.33', { v1: e2s ? tt('ui/lobby.1') : tt('ui/lobby.2'), v2: e2s ? tt('ui/lobby.3') + e2n + '/24' : tt('ui/lobby.4'), v3: SND.on ? tt('ui/lobby.5') : tt('ui/lobby.6') });
     $('#tEp2').onclick = () => { audioInit(); e2Open(); };
     $('#tSnd').onclick = () => { audioInit(); setSound(!SND.on); showTitle(); };
     playBgm('story'); return;
@@ -84,34 +85,34 @@ export function showTitle() {
   // 상단: 내 희수 정보 + 소리
   let prof = '';
   if (saved) { let pw = 0; const keep = G.pd; try { G.pd = saved; pw = pvpSnap().power; } catch (e) { } G.pd = keep; G.st = null;
-    const nick = (typeof PV !== 'undefined' && PV.me && PV.me.nickname) || '희수';
-    prof = `<div class="tprof"><img src="${pvpFaceURL(visEq(saved), saved.look && saved.look.hair)}" alt=""><span>${saved.title && (saved.ach || {})[saved.title] ? achTag(saved.title) : ''}<b class="tpnm">${jobTag(jobOf(saved))}${esc(nick)}</b><small>Lv.${saved.lv}${saved.aw ? ' ★' + saved.aw : ''}${saved.cleared ? ' · ' + (saved.cleared + 1) + '회차' : ''}</small><small class="tpw">전투력 ${pw.toLocaleString()}</small></span></div>`; }
-  $('#tbar').innerHTML = prof + (saved ? packTileHtml(saved) + jobTileHtml(saved) : '') + `<button class="ticon tsnd${SND.on ? '' : ' off'}" id="tSnd" aria-label="소리">${I('sound')}<small>${SND.on ? '소리 ON' : '소리 OFF'}</small></button>`;
+    const nick = (typeof PV !== 'undefined' && PV.me && PV.me.nickname) || tt('ui/lobby.7');
+    prof = tt('ui/lobby.34', { v1: pvpFaceURL(visEq(saved), saved.look && saved.look.hair), v2: saved.title && (saved.ach || {})[saved.title] ? achTag(saved.title) : '', v3: jobTag(jobOf(saved)), v4: esc(nick), lv: saved.lv, v5: saved.aw ? ' ★' + saved.aw : '', v6: saved.cleared ? ' · ' + (saved.cleared + 1) + tt('ui/lobby.8') : '', v7: pw.toLocaleString() }); }
+  $('#tbar').innerHTML = prof + (saved ? packTileHtml(saved) + jobTileHtml(saved) : '') + tt('ui/lobby.35', { v1: SND.on ? '' : ' off', v2: I('sound'), v3: SND.on ? tt('ui/lobby.9') : tt('ui/lobby.10') });
   // 왼쪽 세로 아이콘
   const bagDot = saved && ((saved.lv >= JOB_LV && !JOBS[saved.job]) || saved.sp > 0 || saved.newItem || saved.newBori || saved.achNew || (saved.ap || 0) > 0);
-  $('#tsideL').innerHTML = (saved ? `<button class="ticon tbag" id="tBag">${I('bag')}<small>장비·스킬</small>${bagDot ? '<em class="dot"></em>' : ''}</button>` : '') + (saved ? `<button class="ticon" id="tDaily">${I('cal')}<small>출석·미션</small>${dailyClaimable(saved) ? '<em class="dot"></em>' : ''}</button>` : '')
-    + `<button class="ticon" id="tRank">${I('trophy')}<small>랭킹</small></button>`
-    + (saved ? `<button class="ticon" id="tShare">${I('camera')}<small>카드 공유</small></button>` : '')
-    + (saved ? `<button class="ticon" id="tAuc">${I('auc')}<small>경매장</small></button>` : '')
-    + `<button class="ticon" id="tCloud">${I('phone')}<small>기기 이동</small></button>`;
+  $('#tsideL').innerHTML = (saved ? tt('ui/lobby.11', { v1: I('bag'), v2: bagDot ? '<em class="dot"></em>' : '' }) : '') + (saved ? tt('ui/lobby.12', { v1: I('cal'), v2: dailyClaimable(saved) ? '<em class="dot"></em>' : '' }) : '')
+    + tt('ui/lobby.13', { v1: I('trophy') })
+    + (saved ? tt('ui/lobby.14', { v1: I('camera') }) : '')
+    + (saved ? tt('ui/lobby.15', { v1: I('auc') }) : '')
+    + tt('ui/lobby.16', { v1: I('phone') });
   // 오른쪽: 방치 보상·회차 보상 (미니게임 「보리 주세요」는 11/27 메인에서 뺌 — 원터치판에만, 나중에 새로 만들 예정)
   $('#tsideR').innerHTML = saved ? idleTileHtml(saved) + msTileHtml(saved) : '';
   // 하단: 모드 타일 + 시작
   const rb = (typeof RAID !== 'undefined' && RAID.info && RAID.info.boss) || 'boss4';
   $('#tbtns').innerHTML = (saved ? `<div class="tmodes">`
-    + `<button class="tmode m-inf" id="tInf">${I('pumpkin')}<b>할로윈파티</b><small>${saved.infBest ? '최고 WAVE ' + saved.infBest : '무한던전'}</small></button>`
-    + `<button class="tmode m-pvp" id="tPvp">${I('swords')}<b>PvP 아레나</b><small>주간 시즌</small></button>`
-    + `<button class="tmode m-raid" id="tRaid"><img src="${raidBossURL(rb)}" alt=""><b>월드 보스</b><small>하루 3번</small></button>`
-    + `<button class="tmode m-tower" id="tTower">${I('tower')}<b>보스 타워</b><small>${towerBest(saved) ? '최고 ' + towerBest(saved) + '층' : '도전 모드'}</small></button></div>` : '')
-    + (saved ? chapterPickHtml(saved) + `<div class="tstartRow"><button class="btn tplaza" id="tPlaza">${I('chat')}<b>광장</b><small>온라인</small></button><button class="btn pk tstart" id="tCont"><span>▶ 모험 계속하기</span><small>${zoneCh(curZone(saved)) === 2 ? '2장 · ' : ''}${zoneTitle(saved, curZone(saved))} · Lv.${saved.lv}</small></button></div>`
-      : `<button class="btn pk tstart" id="tNew"><span>▶ 모험 시작</span><small>에버랜드 대탈출 · 도트 액션 RPG</small></button>`);
+    + tt('ui/lobby.36', { v1: I('pumpkin'), v2: saved.infBest ? tt('ui/lobby.17') + saved.infBest : tt('ui/lobby.18') })
+    + tt('ui/lobby.19', { v1: I('swords') })
+    + tt('ui/lobby.20', { v1: raidBossURL(rb) })
+    + tt('ui/lobby.37', { v1: I('tower'), v2: towerBest(saved) ? tt('ui/lobby.21') + towerBest(saved) + tt('ui/lobby.22') : tt('ui/lobby.23') }) : '')
+    + (saved ? chapterPickHtml(saved) + tt('ui/lobby.38', { v1: I('chat'), v2: zoneCh(curZone(saved)) === 2 ? tt('ui/lobby.24') : '', v3: zoneTitle(saved, curZone(saved)), lv: saved.lv })
+      : tt('ui/lobby.25'));
   if ($('#tPack')) $('#tPack').onclick = () => { audioInit(); packOpen(); };
   if ($('#tJob')) $('#tJob').onclick = () => { audioInit(); lobbyMenu('job'); };
   if ($('#tPack2')) $('#tPack2').onclick = () => { audioInit(); pack2Open(); };
   if ($('#tIdle')) $('#tIdle').onclick = () => { audioInit(); idleClaim(); };
   if ($('#tGoal')) $('#tGoal').onclick = () => { audioInit(); sfx('select'); msOpen(); };
   if ($('#tTower')) $('#tTower').onclick = () => { audioInit(); towerOpen(); };
-  if (saved) { $('#tRaid').onclick = () => { audioInit(); raidOpen(); }; $('#tPvp').onclick = () => { audioInit(); pvpOpen(); }; $('#tInf').onclick = () => { audioInit(); fadeTo(startInfinite, '에버랜드: 할로윈파티'); };
+  if (saved) { $('#tRaid').onclick = () => { audioInit(); raidOpen(); }; $('#tPvp').onclick = () => { audioInit(); pvpOpen(); }; $('#tInf').onclick = () => { audioInit(); fadeTo(startInfinite, tt('ui/lobby.26')); };
     $('#tShare').onclick = () => { audioInit(); shareOpen(); };
     $('#tBag').onclick = () => { audioInit(); sfx('select'); lobbyMenu(); };
     $('.tprof').onclick = () => { audioInit(); sfx('select'); lobbyMenu('info'); };
@@ -128,11 +129,11 @@ export function showTitle() {
   playBgm('story');
 }
 export function newGame() { G.pd = newPD(); saveGame(); $('#title').hidden = true; G.world = null; calcStats(); playCut(INTRO, () => startZone(0)); }
-export function showDeath() { $('#death p').innerHTML = G.inf ? '할로윈파티에선 병원비 없이<br>바로 다시 일어나요!' : '폰 배터리도 0%...<br>병원비로 골드 10%를 내고 다시 일어나요.'; $('#death').hidden = false; }
+export function showDeath() { $('#death p').innerHTML = G.inf ? tt('ui/lobby.27') : tt('ui/lobby.28'); $('#death').hidden = false; }
 function showEnd() {
-  G.state = 'end'; $('#endScr h2').textContent = '희수와 보리의 에버랜드 대탈출'; const s = G.pd.stats; showHUD(false);
-  $('#endStats').innerHTML = `최종 레벨 <b>Lv.${G.pd.lv}</b><br>처치한 몬스터 <b>${s.kills}</b>마리<br>멘헤라 공격 <b>${s.ults}</b>회<br>먹은 음식 <b>${s.eaten}</b>개 · 기절 <b>${s.deaths}</b>회<br>플레이 시간 <b>${fmtTime(s.time)}</b>`;
-  $('#endBtns').innerHTML = `<button class="btn pk" id="eAgain">${G.pd.cleared + 1}회차 시작<small>${G.pd.cleared >= 2 ? '더 강한 몬스터 · 신화·초월 장비가 더 자주!' : (G.pd.cleared >= 1 ? '더 강하고 더 많은 몬스터 · 신화·초월 장비 등장!' : '')}</small></button><button class="btn wh" id="eTitle">타이틀로</button><div class="tsub">다음 이야기: 낚시터 대모험...?</div>`;
+  G.state = 'end'; $('#endScr h2').textContent = tt('ui/lobby.29'); const s = G.pd.stats; showHUD(false);
+  $('#endStats').innerHTML = tt('ui/lobby.30', { lv: G.pd.lv, kills: s.kills, ults: s.ults, eaten: s.eaten, deaths: s.deaths, v1: fmtTime(s.time) });
+  $('#endBtns').innerHTML = tt('ui/lobby.39', { v1: G.pd.cleared + 1, v2: G.pd.cleared >= 2 ? tt('ui/lobby.31') : (G.pd.cleared >= 1 ? tt('ui/lobby.32') : '') });
   $('#endScr').hidden = false;
   $('#eAgain').onclick = () => { $('#endScr').hidden = true; setCurZone(G.pd, 0); saveGame(); fadeTo(() => startZone(0)); };
   $('#eTitle').onclick = () => { $('#endScr').hidden = true; setCurZone(G.pd, 0); saveGame(); showTitle(); };

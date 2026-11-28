@@ -13,6 +13,7 @@ import { bubble, dealDamage } from '../play/player.js';
 import { toast } from '../ui/dialog.js';
 import { PV, SB, esc, pvErr, pvpFaceURL, pvpLoadMe, sbInit } from './pvp.js';
 import { achTag } from '../features/achv.js';
+import { tt } from '../sys/i18n.js';
 
 const BUDDY_TIME = 900, BUDDY_MUL = 0.5;
 const BUDDY = { list: /** @type {any[]} */ ([]), busy: false, paused: false };
@@ -26,7 +27,7 @@ export function buddySpawn() {
 }
 export function buddyUpdate(dt) {
   const B = G.buddy, pd = G.pd; if (!B || !G.P) return;
-  if (!buddyActive(pd)) { toast(`${B.nick}의 희수가 돌아갔어요. 내일 또 데려와요!`, 'sub'); G.buddy = null; return; }
+  if (!buddyActive(pd)) { toast(tt('net/buddy.1', { nick: B.nick }), 'sub'); G.buddy = null; return; }
   pd.buddy.left = Math.max(0, pd.buddy.left - dt); B.t += dt; B.atkCd -= dt; if (B.spawnT > 0) { B.spawnT -= dt; return; }
   const S = B.snap || {}, w = S.w || { reach: 16, rate: 1.5, mul: 1, arc: 100 }, P = G.P, sp = 74 * Math.min(1.4, S.spd || 1);
   let tgt = null, best = 1e9;
@@ -50,29 +51,29 @@ export async function buddyOpen() {
   if (G.state === 'play') { G.state = 'menu'; BUDDY.paused = true; INP.atk = false; }
   const box = $('#buddy'); box.hidden = false; const pd = G.pd;
   if (buddyUsedToday(pd)) {
-    $('#buddyBody').innerHTML = `<div class="bdnow"><img src="${pvpFaceURL(pd.buddy.snap.vis || pd.buddy.snap.eq, pd.buddy.snap.hair)}"><div><b>${esc(pd.buddy.nick)}의 희수</b><small>${buddyActive(pd) ? `함께하는 중 · 남은 시간 ${buddyLeftTxt(pd.buddy.left)}` : '오늘은 이미 함께했어요. 내일 또 데려올 수 있어요!'}</small></div></div>`;
+    $('#buddyBody').innerHTML = tt('net/buddy.17', { v1: pvpFaceURL(pd.buddy.snap.vis || pd.buddy.snap.eq, pd.buddy.snap.hair), v2: esc(pd.buddy.nick), v3: buddyActive(pd) ? tt('net/buddy.2', { v1: buddyLeftTxt(pd.buddy.left) }) : tt('net/buddy.3') });
     return;
   }
-  $('#buddyBody').innerHTML = '<div class="pvmsg">친구 목록을 불러오는 중...</div>';
+  $('#buddyBody').innerHTML = tt('net/buddy.4');
   try {
     await sbInit(); if (!PV.me) await pvpLoadMe().catch(() => { });
-    if (!PV.me) { $('#buddyBody').innerHTML = `<div class="pvmsg">랭킹에 내 희수를 올려야 친구를 데려올 수 있어요</div><button class="btn pk" onclick="buddyClose(); rankJoin();">랭킹에 내 희수 올리기</button>`; return; }
+    if (!PV.me) { $('#buddyBody').innerHTML = tt('net/buddy.5'); return; }
     const { data, error } = await SB.from('hb_fighters').select('user_id,nickname,snap,power').eq('played', true).order('power', { ascending: false }).limit(30); if (error) throw error;
     BUDDY.list = (data || []).filter(f => f.user_id !== PV.uid);
-    $('#buddyBody').innerHTML = `<p class="smsub">하루 한 번, 친구의 희수가 ${BUDDY_TIME / 60}분 동안 같이 싸워줘요 (공격력 ${BUDDY_MUL * 100}%)<br>데려간 친구는 강화석 3개를 받아요</p>`
-      + (BUDDY.list.length ? BUDDY.list.map((f, i) => { const s = f.snap || {}; return `<div class="bdrow"><img src="${pvpFaceURL(s.vis || s.eq, s.hair)}"><span><em>${achTag(s.ttl)}${esc(f.nickname)}</em><small>Lv.${s.lv || '?'}${s.aw ? '★' + s.aw : ''} · 전투력 ${Number(f.power).toLocaleString()}</small></span><button class="btn pk sm" data-bd="${i}">데려가기</button></div>`; }).join('')
-        : '<div class="pvmsg">아직 데려올 친구가 없어요. 카드 공유로 친구를 불러보세요!</div>');
-  } catch (e) { $('#buddyBody').innerHTML = `<div class="pvmsg">불러오지 못했어요: ${esc(pvErr(e))}</div>`; }
+    $('#buddyBody').innerHTML = tt('net/buddy.6', { v1: BUDDY_TIME / 60, v2: BUDDY_MUL * 100 })
+      + (BUDDY.list.length ? BUDDY.list.map((f, i) => { const s = f.snap || {}; return tt('net/buddy.7', { v1: pvpFaceURL(s.vis || s.eq, s.hair), v2: achTag(s.ttl), v3: esc(f.nickname), v4: s.lv || '?', v5: s.aw ? '★' + s.aw : '', v6: Number(f.power).toLocaleString(), i }); }).join('')
+        : tt('net/buddy.8'));
+  } catch (e) { $('#buddyBody').innerHTML = tt('net/buddy.9', { v1: esc(pvErr(e)) }); }
 }
 async function buddyPick(i) {
   const f = BUDDY.list[i]; if (!f || BUDDY.busy) return; BUDDY.busy = true;
   try {
     const { data, error } = await SB.rpc('hb_borrow_friend', { p_friend: f.user_id }); if (error) throw error;
-    if (!data || !data.ok) { toast(data && data.reason === 'used' ? '오늘은 이미 친구를 데려왔어요' : '지금은 데려올 수 없어요', 'warn'); return; }
+    if (!data || !data.ok) { toast(data && data.reason === 'used' ? tt('net/buddy.10') : tt('net/buddy.11'), 'warn'); return; }
     G.pd.buddy = { day: todayKey(), uid: f.user_id, nick: data.nickname, snap: data.snap || f.snap, left: BUDDY_TIME }; saveGame();
-    buddyClose(); buddySpawn(); toast(`🤝 ${data.nickname}의 희수가 함께해요! (${BUDDY_TIME / 60}분)`, 'lvl'); sfx('lvl');
-    if (G.buddy) bubble(G.P, choice(['든든하다!', '같이 가자!', '고마워 친구야~']), 1.4);
-  } catch (e) { toast('데려오지 못했어요: ' + pvErr(e), 'warn'); } finally { BUDDY.busy = false; }
+    buddyClose(); buddySpawn(); toast(tt('net/buddy.12', { nickname: data.nickname, v1: BUDDY_TIME / 60 }), 'lvl'); sfx('lvl');
+    if (G.buddy) bubble(G.P, choice([tt('net/buddy.13'), tt('net/buddy.14'), tt('net/buddy.15')]), 1.4);
+  } catch (e) { toast(tt('net/buddy.16') + pvErr(e), 'warn'); } finally { BUDDY.busy = false; }
 }
 function buddyClose() { $('#buddy').hidden = true; if (BUDDY.paused && G.state === 'menu' && $('#menu').hidden) G.state = 'play'; BUDDY.paused = false; }
 export function buddyBoot() {

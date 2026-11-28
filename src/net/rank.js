@@ -24,6 +24,7 @@ import { GUIDE_DONE } from '../features/guide.js';
 import { raidGotOpen } from './raid.js';
 import { achTag } from '../features/achv.js';
 import { RULES, seasonLabel } from '../core/rules.js';
+import { tt } from '../sys/i18n.js';
 
 export const RK = { tab: 'power', cache: {}, from: 'title' };
 const validEq = eq => (eq && SLOTS.every(sl => eq[sl] && ITEMS[eq[sl]])) ? eq : newPD().eq;
@@ -47,7 +48,7 @@ export function rankOpen(from) {
 export function rankClose() { $('#rank').hidden = true; if (location.hash === '#ranking') history.replaceState(null, '', location.pathname); showTitle(); }
 export async function rankTab(t) {
   RK.tab = t; for (const b of document.querySelectorAll(/** @type {'button'} */ ('#rankTabs button'))) b.classList.toggle('on', b.dataset.rt === t);
-  $('#rankSum').innerHTML = ''; $('#rankList').innerHTML = '<div class="pvmsg">랭킹을 불러오는 중...</div>';
+  $('#rankSum').innerHTML = ''; $('#rankList').innerHTML = tt('net/rank.1');
   try {
     await sbInit(); if (!RK.synced) { RK.synced = true; await Promise.race([rankSync(true), new Promise(r => setTimeout(r, 4000))]); }
     if (!FORCE_EASY && !PV.me && !PV.notReg) await pvpLoadMe().catch(() => { });
@@ -58,29 +59,29 @@ export async function rankTab(t) {
     if (error) throw error;
     const { count } = await SB.from('hb_fighters').select('user_id', { count: 'exact', head: true }).eq('played', true);
     rankRender(data || [], count || (data || []).length);
-  } catch (e) { $('#rankList').innerHTML = `<div class="pvmsg">랭킹을 불러오지 못했어요: ${esc(pvErr(e))}</div>`; }
+  } catch (e) { $('#rankList').innerHTML = tt('net/rank.2', { v1: esc(pvErr(e)) }); }
 }
-export function rankJoin() { RK.joining = true; pvpNickBox(true); $('#pvpNickMsg').textContent = '랭킹·PvP에서 쓸 닉네임을 정해주세요 (2~10자)'; }
+export function rankJoin() { RK.joining = true; pvpNickBox(true); $('#pvpNickMsg').textContent = tt('net/rank.3'); }
 function rankJoinBar() {
   if (FORCE_EASY || PV.me || !PV.notReg) return '';
   const has = !!(G.pd || loadGame());
-  return `<div class="rjoin">${has ? `<span>내 희수는 아직 랭킹에 없어요</span><button class="btn pk" onclick="rankJoin()">내 희수도 올리기</button>` : '<span>모험을 시작하면 내 희수도 랭킹에 올릴 수 있어요</span>'}</div>`;
+  return `<div class="rjoin">${has ? tt('net/rank.4') : tt('net/rank.5')}</div>`;
 }
 function rankRender(rows, total) {
-  const t = RK.tab, val = f => t === 'power' ? f.power.toLocaleString() : f.rating.toLocaleString(), unit = t === 'power' ? '전투력' : '이번 주 점수';
+  const t = RK.tab, val = f => t === 'power' ? f.power.toLocaleString() : f.rating.toLocaleString(), unit = t === 'power' ? tt('net/rank.6') : tt('net/rank.7');
   const top = rows[0], avg = rows.length ? Math.round(rows.reduce((a, f) => a + f.power, 0) / rows.length) : 0;
   const maxEnh = rows.reduce((a, f) => Math.max(a, (f.snap && f.snap.enh) || 0), 0), games = rows.reduce((a, f) => a + f.wins + f.losses, 0);
   $('#rankSum').innerHTML = [
-    ['등록된 희수', total.toLocaleString() + '명'],
-    t === 'power' ? ['최고 전투력', top ? top.power.toLocaleString() : '-'] : ['최고 PvP 점수', top ? top.rating.toLocaleString() : '-'],
-    t === 'power' ? ['평균 전투력', avg.toLocaleString()] : ['총 대결 수', Math.round(games / 2).toLocaleString() + '판+'],
-    ['최고 무기 강화', maxEnh ? '+' + maxEnh : '-']
+    [tt('net/rank.8'), total.toLocaleString() + tt('net/rank.9')],
+    t === 'power' ? [tt('net/rank.10'), top ? top.power.toLocaleString() : '-'] : [tt('net/rank.11'), top ? top.rating.toLocaleString() : '-'],
+    t === 'power' ? [tt('net/rank.12'), avg.toLocaleString()] : [tt('net/rank.13'), Math.round(games / 2).toLocaleString() + tt('net/rank.14')],
+    [tt('net/rank.15'), maxEnh ? '+' + maxEnh : '-']
   ].map(([k, v]) => `<div><small>${k}</small><b>${v}</b></div>`).join('');
-  if (!rows.length) { $('#rankList').innerHTML = rankJoinBar() + '<div class="pvmsg">아직 등록된 희수가 없어요.<br>닉네임을 등록하면 랭킹에 올라가요!</div>'; return; }
+  if (!rows.length) { $('#rankList').innerHTML = rankJoinBar() + tt('net/rank.16'); return; }
   const me = PV.uid;
-  const pod = rows.slice(0, 3).map((f, i) => `<div class="rpod p${i + 1}${f.user_id === me ? ' mine' : ''}"><i>${i + 1}</i><img src="${fighterURL(f.snap || {}, 5)}"><em>${achTag((f.snap || {}).ttl)}${jobTag((f.snap || {}).job)}${esc(f.nickname)}</em><b>${val(f)}</b><small>${unit} · Lv.${(f.snap && f.snap.lv) || '?'}${f.snap && f.snap.aw ? '★' + f.snap.aw : ''}${t === 'pvp' ? ` · ${f.wins}승 ${f.losses}패` : ''}</small></div>`);
+  const pod = rows.slice(0, 3).map((f, i) => `<div class="rpod p${i + 1}${f.user_id === me ? ' mine' : ''}"><i>${i + 1}</i><img src="${fighterURL(f.snap || {}, 5)}"><em>${achTag((f.snap || {}).ttl)}${jobTag((f.snap || {}).job)}${esc(f.nickname)}</em><b>${val(f)}</b><small>${unit} · Lv.${(f.snap && f.snap.lv) || '?'}${f.snap && f.snap.aw ? '★' + f.snap.aw : ''}${t === 'pvp' ? tt('net/rank.17', { wins: f.wins, losses: f.losses }) : ''}</small></div>`);
   const order = pod.length === 3 ? [pod[1], pod[0], pod[2]] : pod;
-  const list = rows.slice(3).map((f, i) => { const s = f.snap || {}; return `<div class="rrow${f.user_id === me ? ' mine' : ''}"><i>${i + 4}</i><img src="${fighterURL(s, 3)}"><span><em>${achTag(s.ttl)}${jobTag(s.job)}${esc(f.nickname)}</em><small>Lv.${s.lv || '?'}${s.aw ? '★' + s.aw : ''}${s.enh ? ' · 무기 +' + s.enh : ''}${s.book ? ' · 도감 ' + s.book : ''}${s.tenh ? ' · 장난감 +' + s.tenh : ''}${t === 'pvp' ? ` · ${f.wins}승 ${f.losses}패` : ` · PvP ${f.rating}`}</small></span><b>${val(f)}</b></div>`; }).join('');
+  const list = rows.slice(3).map((f, i) => { const s = f.snap || {}; return `<div class="rrow${f.user_id === me ? ' mine' : ''}"><i>${i + 4}</i><img src="${fighterURL(s, 3)}"><span><em>${achTag(s.ttl)}${jobTag(s.job)}${esc(f.nickname)}</em><small>Lv.${s.lv || '?'}${s.aw ? '★' + s.aw : ''}${s.enh ? tt('net/rank.18') + s.enh : ''}${s.book ? tt('net/rank.19') + s.book : ''}${s.tenh ? tt('net/rank.20') + s.tenh : ''}${t === 'pvp' ? tt('net/rank.17', { wins: f.wins, losses: f.losses }) : ` · PvP ${f.rating}`}</small></span><b>${val(f)}</b></div>`; }).join('');
   $('#rankList').innerHTML = rankJoinBar() + (t === 'pvp' ? seasonBar() : '') + `<div class="rpodium">${order.join('')}</div>${list}`;
 }
 // 서버에 내 희수가 등록돼 있으면 최신 스펙을 올림 (게임 중 자동 저장 때 1분에 한 번, 타이틀·랭킹 열 때)
@@ -110,7 +111,7 @@ export async function entryRegister() {
   try {
     await sbInit(); const me = PV.me || await pvpLoadMe(); if (me) return;
     if (G.state === 'play' || G.state === 'menu' || G.state === 'dlg') { entryRegDone = false; return; } // 게임 중이면 다음 타이틀에서
-    RK.joining = 'entry'; pvpNickBox(true); $('#pvpNickMsg').textContent = '어서 오세요! 랭킹에 쓸 닉네임을 정해주세요 (2~10자)';
+    RK.joining = 'entry'; pvpNickBox(true); $('#pvpNickMsg').textContent = tt('net/rank.21');
   } catch (e) { }
 }
 
@@ -140,32 +141,32 @@ export async function claimGifts(pd) {
       if (g.kind === 'stones') tgt.stones = (tgt.stones || 0) + n; else if (g.kind === 'gold') tgt.gold = (tgt.gold || 0) + n; else tgt.autoBonus = (tgt.autoBonus || 0) + n;
       continue;
     }
-    const lead = /데려갔어요/.test(note) ? `🤝 ${note}!` : '🎁 선물 도착!';
+    const lead = /데려갔어요/.test(note) ? `🤝 ${note}!` : tt('net/rank.22');
     if (g.kind === 'auto') {
       const sec = Number(g.amount) || 0; if (!sec) continue;
       tgt.autoBonus = (tgt.autoBonus || 0) + sec;
-      const h = sec / 3600, txt = h >= 1 ? `${Math.round(h * 10) / 10}시간` : `${Math.round(sec / 60)}분`;
-      toast(`${lead} 자동사냥 ${txt} 충전 (자정에도 안 사라져요)`, 'lvl'); sfx('lvl');
+      const h = sec / 3600, txt = h >= 1 ? tt('net/rank.23', { v1: Math.round(h * 10) / 10 }) : tt('net/rank.24', { v1: Math.round(sec / 60) });
+      toast(tt('net/rank.25', { lead, txt }), 'lvl'); sfx('lvl');
     } else if (g.kind === 'stage') {
       // amount = 누적 스테이지 번호 (1회차 STAGE 1 = 1, 회차당 CH1_N(4)개, 1장만). 지금보다 앞일 때만 이동
       const n = Math.max(1, Number(g.amount) || 1) - 1, Z = CH1_N, cl = Math.floor(n / Z), z = n % Z;
       const cur = (tgt.cleared || 0) * Z + (tgt.zone || 0);
-      if (n > cur) { tgt.cleared = cl; tgt.zone = z; toast(`${lead} ${cl + 1}회차 ${ZONES[z].sub}(으)로 이동했어요`, 'lvl'); sfx('lvl'); }
+      if (n > cur) { tgt.cleared = cl; tgt.zone = z; toast(tt('net/rank.26', { lead, v1: cl + 1, sub: ZONES[z].sub }), 'lvl'); sfx('lvl'); }
     } else if (g.kind === 'awaken') {
       // amount = 목표 각성 단계. 올라간 만큼 각성 포인트도 지급
       const to = Number(g.amount) || 0, from = tgt.aw || 0;
-      if (to > from) { tgt.aw = to; tgt.ap = (tgt.ap || 0) + (to - from); if ((tgt.lv || 1) < MAX_LV) { tgt.sp = (tgt.sp || 0) + (MAX_LV - tgt.lv); tgt.lv = MAX_LV; tgt.xp = 0; } toast(`${lead} 각성 ★${to} · 각성 포인트 +${to - from}`, 'lvl'); sfx('lvl'); }
+      if (to > from) { tgt.aw = to; tgt.ap = (tgt.ap || 0) + (to - from); if ((tgt.lv || 1) < MAX_LV) { tgt.sp = (tgt.sp || 0) + (MAX_LV - tgt.lv); tgt.lv = MAX_LV; tgt.xp = 0; } toast(tt('net/rank.27', { lead, to, v1: to - from }), 'lvl'); sfx('lvl'); }
     } else if (g.kind === 'level') {
       // amount = 목표 레벨 (최대 MAX_LV). 올라간 만큼 스킬 포인트도 지급
       const to = Math.min(MAX_LV, Number(g.amount) || 0), from = tgt.lv || 1;
-      if (to > from) { tgt.lv = to; tgt.xp = 0; tgt.sp = (tgt.sp || 0) + (to - from); toast(`${lead} Lv${to} 달성 · 스킬 포인트 +${to - from}`, 'lvl'); sfx('lvl'); }
+      if (to > from) { tgt.lv = to; tgt.xp = 0; tgt.sp = (tgt.sp || 0) + (to - from); toast(tt('net/rank.28', { lead, to, v1: to - from }), 'lvl'); sfx('lvl'); }
     } else if (g.kind === 'items') {
       // amount = 등급(5 = 초월). 그 등급 장비(보스 전용 제외) 전 부위 지급, 지금 것보다 높은 등급이면 착용
       const r = Math.min(5, Number(g.amount) || 0), ids = giftItems(tgt, r);
-      if (ids.length) { toast(`${lead} ${RARITY[r]} 장비 ${ids.length}종 · 자동 착용`, 'lvl'); sfx('lvl'); }
+      if (ids.length) { toast(tt('net/rank.29', { lead, v1: RARITY[r], length: ids.length }), 'lvl'); sfx('lvl'); }
     } else if (g.kind === 'stones') {
       const n = Number(g.amount) || 0; if (!n) continue;
-      tgt.stones = (tgt.stones || 0) + n; toast(`${lead} 강화석 ${n}개`, 'lvl'); sfx('ding');
+      tgt.stones = (tgt.stones || 0) + n; toast(tt('net/rank.30', { lead, n }), 'lvl'); sfx('ding');
     } else if (g.kind === 'gold') {
       const n = Number(g.amount) || 0; if (!n) continue;
       tgt.gold = (tgt.gold || 0) + n; toast(`${lead} ${n.toLocaleString()}G`, 'lvl'); sfx('coin');
@@ -192,7 +193,7 @@ export async function seasonLoad() {
 function seasonLeft() {
   if (!SEASON || !SEASON.ends_at) return ''; const s = Math.max(0, (new Date(SEASON.ends_at).getTime() - Date.now()) / 1000);
   const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
-  return d ? `${d}일 ${h}시간` : h ? `${h}시간 ${m}분` : `${m}분`;
+  return d ? tt('net/rank.31', { d, h }) : h ? tt('net/rank.32', { h, m }) : tt('net/rank.33', { m });
 }
 /** 시즌 보상표 — core/rules.js RULES.season (서버 hb_season_rollover 도 같은 표에서 만들어짐). k = 그 줄의 첫 순위 */
 const SEASON_REWARDS = RULES.season.map((t, i) => ({ k: i ? RULES.season[i - 1].to + 1 : 1, label: seasonLabel(i), s: t.s, g: t.g, a: t.a }));
@@ -208,11 +209,11 @@ ICONS.rosette = ['..KK.K.KK..', '.KQQKQKQQK.', 'KQQQQQQQQQK', '.KQQeeeQQK.', 'KQ
 /** 픽셀 아이콘 <img> (medal1~4·rosette·trophy 등) */
 export const PXI = (k, cls) => `<img class="pxi${cls ? ' ' + cls : ''}" src="${iconURL('px_' + k, ICONS[k])}" alt="">`;
 export const MEDAL = r => PXI(r === 1 ? 'medal1' : r === 2 ? 'medal2' : r === 3 ? 'medal3' : 'medal4');
-export const fmtGold = n => n >= 10000 ? `${(n / 10000).toLocaleString()}만` : n.toLocaleString();
-const fmtAuto = s => s >= 3600 ? `${Math.round(s / 360) / 10}시간` : `${Math.round(s / 60)}분`;
+export const fmtGold = n => n >= 10000 ? tt('net/rank.34', { v1: (n / 10000).toLocaleString() }) : n.toLocaleString();
+const fmtAuto = s => s >= 3600 ? tt('net/rank.23', { v1: Math.round(s / 360) / 10 }) : tt('net/rank.24', { v1: Math.round(s / 60) });
 /** 보상 아이콘 카드 HTML. items: [{kind:'stones'|'gold'|'auto', amount}] */
 export function rewardCards(items, big) {
-  const def = { stones: ['stone', '강화석', n => n + '개'], gold: ['gcoin', '골드', n => fmtGold(n) + 'G'], auto: ['alarm', '자동사냥', fmtAuto], xp: ['bolt', '경험치', n => fmtGold(n)] };
+  const def = { stones: ['stone', tt('net/rank.35'), n => n + tt('net/rank.36')], gold: ['gcoin', tt('net/rank.37'), n => fmtGold(n) + 'G'], auto: ['alarm', tt('net/rank.38'), fmtAuto], xp: ['bolt', tt('net/rank.39'), n => fmtGold(n)] };
   return `<div class="rwcs${big ? ' big' : ''}">` + items.filter(it => def[it.kind] && it.amount > 0).map((it, i) => { const [ic, nm, f] = def[it.kind];
     return `<div class="rwc" style="animation-delay:${i * 0.12}s"><img src="${iconURL('i_' + ic, ICONS[ic])}"><b>${f(Number(it.amount))}</b><small>${nm}</small></div>`; }).join('') + '</div>';
 }
@@ -220,19 +221,19 @@ export const rwItems = r => [{ kind: 'stones', amount: r.s }, { kind: 'gold', am
 export function seasonBar() {
   if (!SEASON) return '';
   const top = (SEASON.top || []).map(t => `${MEDAL(t.rank)} ${esc(t.nickname)}`).join(' · ');
-  const mine = SEASON.mine ? `<small class="smine">내 지난 시즌: ${MEDAL(SEASON.mine.rank)} ${SEASON.mine.rank}위</small>` : '';
-  return `<div class="season"><div><b>${PXI('trophy', 'in')} 이번 주 PvP 시즌</b><span>월요일 0시까지 ${seasonLeft()}</span></div>`
-    + `<div class="srow">${top ? `<small>지난 시즌 ${top}</small>` : '<small>첫 시즌 진행 중!</small>'}<button class="btn pk sm" onclick="seasonRewardsOpen()">보상 보기</button></div>` + mine + '</div>';
+  const mine = SEASON.mine ? tt('net/rank.40', { v1: MEDAL(SEASON.mine.rank), rank: SEASON.mine.rank }) : '';
+  return tt('net/rank.41', { v1: PXI('trophy', 'in'), v2: seasonLeft() })
+    + tt('net/rank.46', { v1: top ? tt('net/rank.42', { top }) : tt('net/rank.43') }) + mine + '</div>';
 }
 /** 순위별 보상 모달 */
 function seasonRewardsOpen() {
-  $('#seasonModalBody').innerHTML = `<h2>주간 PvP 시즌 보상</h2><p class="smsub">매주 월요일 0시에 순위대로 선물함으로 지급돼요<br>(그 주에 PvP를 1판 이상 한 희수만)</p>`
+  $('#seasonModalBody').innerHTML = tt('net/rank.44')
     + SEASON_REWARDS.map(r => `<div class="srw"><div class="srk"><i>${r.k <= 4 ? MEDAL(r.k) : PXI('rosette')}</i><b>${r.label}</b></div>${rewardCards(rwItems(r))}</div>`).join('');
   seasonModalShow();
 }
 /** 받은 시즌 보상 모달 */
 function seasonGotOpen(rank, items) {
-  $('#seasonModalBody').innerHTML = `<div class="sgot"><div class="sbig">${MEDAL(rank)}</div><h2>지난 주 PvP 시즌<br><em>${rank}위</em> 달성!</h2><p class="smsub">보상이 도착했어요</p>${rewardCards(items, true)}</div>`;
+  $('#seasonModalBody').innerHTML = tt('net/rank.45', { v1: MEDAL(rank), rank, v2: rewardCards(items, true) });
   seasonModalShow(); sfx('lvl');
 }
 let SM_PAUSED = false;

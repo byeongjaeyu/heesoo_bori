@@ -27,6 +27,7 @@ import { raidBossURL } from '../net/raid.js';
 import { buddySpawn } from '../net/buddy.js';
 import { achTag } from '../features/achv.js';
 import { applyRewards, rwLabel } from '../features/goal.js';
+import { tt } from '../sys/i18n.js';
 
 const TOWER_TIME = 90;
 const TOWER_BOSSES = ['boss1', 'boss2', 'boss3', 'boss4', 'truck', 'breamking', 'bassgen', 'grouper', 'cutking', 'chickboss', 'cheerleader', 'raincloud'];
@@ -54,7 +55,7 @@ const TOWER = { busy: false };
 // ---------- 로비 ----------
 export function towerOpen() {
   const saved = loadGame(); if (!saved) return;
-  if (!(saved.cleared >= 1)) { toast('보스 타워는 1장(에버랜드 대탈출)을 한 번 깨면 열려요', 'warn'); return; }
+  if (!(saved.cleared >= 1)) { toast(tt('play/tower.1'), 'warn'); return; }
   G.pd = saved; G.P = null; calcStats(); G.pvp = null; G.raid = null; G.inf = null; G.tower = null;
   $('#title').hidden = true; showHUD(false); G.state = 'towerLobby'; playBgm('boss');
   towerRender(); $('#tower').hidden = false;
@@ -62,18 +63,18 @@ export function towerOpen() {
 function towerRender() {
   const pd = G.pd, best = towerBest(pd), f = best + 1, b = towerBoss(f), m = MONS[b];
   const marks = [5, 10, 20, 30, 40, 50].filter(n => n > best).slice(0, 3);
-  const next = marks.map(n => `<div class="twm"><i>${n}층</i><span>${rwLabel(towerReward(n))}${n === 10 ? ' · 칭호 ' + achTag('tw10') : n === 30 ? ' · 칭호 ' + achTag('tw30') : n === 50 ? ' · 칭호 ' + achTag('tw50') : ''}</span></div>`).join('');
-  $('#towerBody').innerHTML = `<div class="twtop"><div class="twfl"><small>도전할 층</small><b>${f}<em>층</em></b><span>최고 기록 ${best}층</span></div>`
-    + `<div class="twboss"><img src="${raidBossURL(b)}" alt=""><b>${f % 10 === 0 ? '대장 · ' : ''}${esc(m.name)}</b><small>난이도 ${Math.round(towerL(f)) + 1}단계 · 제한 ${TOWER_TIME}초</small></div></div>`
-    + `<h3>${f}층 첫 돌파 보상</h3>${rewardCards(towerReward(f).filter(([k]) => k !== 'tr' && k !== 'hair').map(([kind, amount]) => ({ kind, amount })))}`
+  const next = marks.map(n => tt('play/tower.20', { n, v1: rwLabel(towerReward(n)), v2: n === 10 ? tt('play/tower.2') + achTag('tw10') : n === 30 ? tt('play/tower.2') + achTag('tw30') : n === 50 ? tt('play/tower.2') + achTag('tw50') : '' })).join('');
+  $('#towerBody').innerHTML = tt('play/tower.3', { f, best })
+    + tt('play/tower.21', { v1: raidBossURL(b), v2: f % 10 === 0 ? tt('play/tower.4') : '', v3: esc(m.name), v4: Math.round(towerL(f)) + 1, TOWER_TIME })
+    + tt('play/tower.5', { f, v1: rewardCards(towerReward(f).filter(([k]) => k !== 'tr' && k !== 'hair').map(([kind, amount]) => ({ kind, amount }))) })
     + (towerReward(f).some(([k]) => k === 'tr' || k === 'hair') ? `<p class="twx">+ ${rwLabel(towerReward(f).filter(([k]) => k === 'tr' || k === 'hair'))}</p>` : '')
-    + `<button class="btn pk twgo" data-tw="go">${f}층 도전하기</button>`
-    + `<p class="twtip">보스를 ${TOWER_TIME}초 안에 쓰러뜨리면 다음 층이 열려요. 막히면 강화·재련·각성으로 더 강해져서 다시!</p>`
-    + (next ? `<h3>다가오는 특별 보상</h3>${next}` : '');
+    + tt('play/tower.6', { f })
+    + tt('play/tower.7', { TOWER_TIME })
+    + (next ? tt('play/tower.8', { next }) : '');
 }
 function towerGo() {
   if (TOWER.busy) return; TOWER.busy = true; setTimeout(() => { TOWER.busy = false; }, 800);
-  const f = towerBest(G.pd) + 1; $('#tower').hidden = true; fadeTo(() => startTower(f), `보스 타워 ${f}층`);
+  const f = towerBest(G.pd) + 1; $('#tower').hidden = true; fadeTo(() => startTower(f), tt('play/tower.9', { f }));
 }
 
 // ---------- 전투 ----------
@@ -89,14 +90,14 @@ function startTower(f) {
   const LM = loopMul(), k = towerK(f); e.maxHp = Math.round(TOWER_REF.hp * k * (1 + 0.6 * towerHpL(f)) * towerHpMul(f)); e.hp = e.maxHp;
   e.atk = TOWER_REF.atk * Math.min(1, 0.6 + f * 0.03) * (1 + 0.35 * LM.L); e.def = Math.round(TOWER_REF.def * k + LM.def); e.spawnT = 1.3; e.elite = false;
   if (f % 10 === 0) { e.sc *= 1.2; e.w *= 1.2; e.h *= 1.2; e.r = Math.round(e.r * 1.15); }
-  e.m = Object.assign({}, m0, { name: `${f}층 · ${f % 10 === 0 ? '대장 ' : ''}${m0.name}`, drops: [] }); G.boss = e;
+  e.m = Object.assign({}, m0, { name: tt('play/tower.22', { f, v1: f % 10 === 0 ? tt('play/tower.10') : '', name: m0.name }), drops: [] }); G.boss = e;
   G.cam.x = clamp(G.P.x - VW / 2, 0, Math.max(0, W.W - VW)); G.cam.y = clamp(G.P.y - 60 - VH / 2, 0, Math.max(0, W.H - VH));
-  G.state = 'play'; showHUD(true); playBgm('boss'); banner(`보스 타워 ${f}층`, m0.name, 'boss'); sfx('boss');
-  bubble(G.P, choice(['한 층 더!', '위로 올라가자!', '이번 층도 접수!']), 1.6);
+  G.state = 'play'; showHUD(true); playBgm('boss'); banner(tt('play/tower.9', { f }), m0.name, 'boss'); sfx('boss');
+  bubble(G.P, choice([tt('play/tower.11'), tt('play/tower.12'), tt('play/tower.13')]), 1.6);
 }
 export function towerUpdate(dt) {
   const V = G.tower; if (!V || V.over || G.state !== 'play') return;
-  V.t -= dt; if (V.t <= 0) { V.t = 0; towerEnd(false, '시간 초과!'); }
+  V.t -= dt; if (V.t <= 0) { V.t = 0; towerEnd(false, tt('play/tower.14')); }
 }
 export function towerEnd(win, why) {
   const V = G.tower; if (!V || V.over) return; V.over = true; INP.atk = false; if (typeof autoOff === 'function') autoOff();
@@ -107,20 +108,20 @@ export function towerEnd(win, why) {
     const first = f > towerBest(pd); pd.tower = Object.assign({}, pd.tower || {}, { best: Math.max(towerBest(pd), f) });
     if (first) { const r = applyRewards(pd, towerReward(f)); body = (r.extra.length ? `<p class="smsub">${r.extra.join('<br>')}</p>` : '') + rewardCards(r.cards, true); }
     sfx('lvl'); G.shake = 6; saveGame();
-    $('#towerResT').innerHTML = `${f}층 돌파!`;
-    $('#towerResS').innerHTML = `<span class="twtime">${used}초 만에 클리어</span>${body}`;
+    $('#towerResT').innerHTML = tt('play/tower.15', { f });
+    $('#towerResS').innerHTML = tt('play/tower.16', { used, body });
   } else {
     G.state = 'towerEnd'; saveGame();
     const hp = G.boss && !G.boss.dead ? Math.max(0, G.boss.hp / G.boss.maxHp) : 0;
     $('#towerResT').textContent = why;
-    $('#towerResS').innerHTML = `<span class="twtime">${f}층 보스 남은 체력 ${Math.ceil(hp * 100)}%</span><span class="twtip">강화·재련·각성으로 더 강해져서 다시 도전해요!</span>`;
+    $('#towerResS').innerHTML = tt('play/tower.17', { f, v1: Math.ceil(hp * 100) });
   }
-  $('#towerRes').querySelector('[data-tr="next"]').textContent = win ? `${f + 1}층 도전` : '다시 도전';
+  $('#towerRes').querySelector('[data-tr="next"]').textContent = win ? tt('play/tower.18', { v1: f + 1 }) : tt('play/tower.19');
   setTimeout(() => { $('#towerRes').hidden = false; }, win ? 900 : 300);
 }
 function towerResAct(a) {
   $('#towerRes').hidden = true; G.tower = null; G.enemies = []; G.boss = null; G.bori = null; showHUD(false);
-  if (a === 'next') { const f = towerBest(G.pd) + 1; fadeTo(() => startTower(f), `보스 타워 ${f}층`); }
+  if (a === 'next') { const f = towerBest(G.pd) + 1; fadeTo(() => startTower(f), tt('play/tower.9', { f })); }
   else if (a === 'lobby') { G.state = 'towerLobby'; towerRender(); $('#tower').hidden = false; playBgm('boss'); }
   else showTitle();
 }

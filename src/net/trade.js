@@ -16,12 +16,13 @@ import { toast } from '../ui/dialog.js';
 import { SB, sbInit } from './pvp.js';
 import { claimGifts } from './rank.js';
 import { cloudSync } from './cloud.js';
+import { tt } from '../sys/i18n.js';
 
 const TRADE_MIN_RAR = 3; // 전설 이상 (supabase/item_defs.sql 의 tradable 과 같아야 함 — 테스트로 고정)
 export const tradableKey = k => { const it = ITEMS[k]; return !!it && !it.start && !it.job && (it.rar || 0) >= TRADE_MIN_RAR; };
-export const TRADE_ERR = { balance: '가진 것보다 많아요', equipped: '착용 중인 장비는 맡길 수 없어요', unregistered: '아직 서버에 등록되지 않은 장비예요. 잠시 뒤 다시 해주세요',
-  missing: '서버 기록에 없는 장비예요. 잠시 뒤 다시 해주세요', too_many: '맡긴 게 너무 많아요 (최대 50개)', amount: '수량이 이상해요', no_save: '서버에 저장된 기록이 없어요', sync: '서버 저장에 실패했어요', kind: '맡길 수 없는 종류예요' };
-const tradeErr = r => TRADE_ERR[r && r.reason] || '거래 처리에 실패했어요';
+export const TRADE_ERR = { balance: tt('net/trade.1'), equipped: tt('net/trade.2'), unregistered: tt('net/trade.3'),
+  missing: tt('net/trade.4'), too_many: tt('net/trade.5'), amount: tt('net/trade.6'), no_save: tt('net/trade.7'), sync: tt('net/trade.8'), kind: tt('net/trade.9') };
+const tradeErr = r => TRADE_ERR[r && r.reason] || tt('net/trade.10');
 
 /** 지금 쓰는 세이브에 바꾼 내용을 반영 (게임 중이면 G.pd, 로비면 localStorage) */
 export function tradeWithPd(fn) {
@@ -74,7 +75,7 @@ export async function tradeClaim() {
       if (it.iexp) (pd.iexp = pd.iexp || {})[k] = it.iexp;
       if (it.ref) (pd.ref = pd.ref || {})[k] = it.ref;
       if (ITEMS[k].bori) pd.newBori = true; else pd.newItem = true;
-      toast(`받은 장비: ${ITEMS[k].name}${it.enh ? ' +' + it.enh : ''} 받음`, 'item r' + ITEMS[k].rar); n++;
+      toast(tt('net/trade.11', { name: ITEMS[k].name, v1: it.enh ? ' +' + it.enh : '' }), 'item r' + ITEMS[k].rar); n++;
     }
   });
   if (n) { sfx('ding'); cloudSync(true); }

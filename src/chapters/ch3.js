@@ -17,6 +17,7 @@ import { bubble, burst, hurtPlayer, moveToward } from '../play/player.js';
 import { aimDash, dashStep, shootAt, spawnEnemy } from '../play/enemies.js';
 import { CUTK, cloud, fr, pc, skyBands } from '../draw/render.js';
 import { A_, CUT, clearA } from '../story/story.js';
+import { tt } from '../sys/i18n.js';
 
 /** 다이아몬드 기하: 홈(hx,hy), 1·3루 가로 거리 w, 2루까지 세로 d2, 외야 펜스 wallY */
 function bbGeo(hx, hy, w, d2, wallY) { return { hx, hy, w, d2, wallY, b1: [hx + w, hy - d2 / 2], b2: [hx, hy - d2], b3: [hx - w, hy - d2 / 2], m: [hx, hy - d2 * 0.48] }; }
@@ -125,71 +126,71 @@ const CH3_PROLOGUE = [
   { scene: 'pgate', bgm: 'story',
     init(A) { clearA(A); Object.assign(A, { hee: { x: -24, pose: 'idle', dir: 'down' }, bori: { x: -46, pose: 'sit', face: 1, y: 2 }, hus: { x: 22 } }); },
     delay: 0.8, lines: [
-      { who: 'sys', text: '약속한 다음 데이트 날.\n희수는 오빠 손을 끌고 사직 야구장에 왔다.' },
-      { who: 'hee', text: '오늘은 내 마음대로 하는 날이다!!\n롯데 응원하러 가자!', do() { A_().sparkle = true; sfx('ding'); } },
-      { who: 'hus', text: '야구…? 나 룰 잘 모르는데….', do() { A_().sparkle = false; } },
-      { who: 'hee', text: '괜찮아, 내가 다 알려줄게.\n대신 응원 안 하면 알지?' },
-      { who: 'hus', text: '…넵.' },
-      { who: 'sys', text: '그런데 매표소 앞 줄이 수상하게 꿈틀거린다…!', do() { const t = G.time; A_().mons = [{ type: 'cutter', x: 60, y: 4, t0: t }, { type: 'scalper', x: 84, y: 8, t0: t + 0.3 }, { type: 'pigeon', x: -70, y: -30, t0: t + 0.5 }]; sfx('pop'); } },
-      { who: 'mon', text: '실례~ 나 원래 여기 있었어~' },
-      { who: 'hee', text: '뭐?????!!!!!!\n지금 새치기한 거야?!', do() { A_().hee.shake = true; A_().hee.alert = true; } },
-      { who: 'hee', text: '…표 사려고 얼마나 기다렸는데. 비켜.', do() { A_().hee.shake = false; A_().hee.alert = false; A_().aura = true; sfx('ult'); } }] },
+      { who: 'sys', text: tt('chapters/ch3.1') },
+      { who: 'hee', text: tt('chapters/ch3.2'), do() { A_().sparkle = true; sfx('ding'); } },
+      { who: 'hus', text: tt('chapters/ch3.3'), do() { A_().sparkle = false; } },
+      { who: 'hee', text: tt('chapters/ch3.4') },
+      { who: 'hus', text: tt('chapters/ch3.5') },
+      { who: 'sys', text: tt('chapters/ch3.6'), do() { const t = G.time; A_().mons = [{ type: 'cutter', x: 60, y: 4, t0: t }, { type: 'scalper', x: 84, y: 8, t0: t + 0.3 }, { type: 'pigeon', x: -70, y: -30, t0: t + 0.5 }]; sfx('pop'); } },
+      { who: 'mon', text: tt('chapters/ch3.7') },
+      { who: 'hee', text: tt('chapters/ch3.8'), do() { A_().hee.shake = true; A_().hee.alert = true; } },
+      { who: 'hee', text: tt('chapters/ch3.9'), do() { A_().hee.shake = false; A_().hee.alert = false; A_().aura = true; sfx('ult'); } }] },
   { dur: 0.4 }
 ];
 const CH3_FOOD = [
   { scene: 'pfood', bgm: 'story',
     init(A) { clearA(A); Object.assign(A, { hee: { x: -26, pose: 'idle', dir: 'down' }, bori: { x: -50, pose: 'sit', face: 1, y: 2 }, hus: { x: 26 }, chick: true }); },
     delay: 0.6, lines: [
-      { who: 'sys', text: '겨우 입장! 먹거리 존은 치킨 냄새로 가득했다.' },
-      { who: 'hus', text: '자기야 나 치킨 하나만… 아니 두 마리만.' },
-      { who: 'hee', text: '경기 시작하는데 지금 밥 생각밖에 없어?', do() { A_().hee.sweat = true; } },
-      { who: 'hus', text: '야구장은 원래 먹으러 오는 데라던데…?' },
-      { who: 'hee', text: '…진짜 이 남자가.', do() { A_().hee.sweat = false; A_().aura = true; } },
-      { who: 'sys', text: '그때, 치킨 박스들이 날개를 퍼덕이며 날아올랐다!', do() { const t = G.time; A_().aura = false; A_().mons = [{ type: 'chickbox', x: 70, y: -26, t0: t }, { type: 'tteok', x: -80, y: 8, t0: t + 0.3 }, { type: 'soda', x: 96, y: 8, t0: t + 0.5 }]; sfx('pop'); } },
-      { who: 'hee', text: '오빠 먹는 것만 쫓아다니면\n진짜 오늘 끝이야.', do() { A_().hee.fist = true; sfx('smash'); } }] },
+      { who: 'sys', text: tt('chapters/ch3.10') },
+      { who: 'hus', text: tt('chapters/ch3.11') },
+      { who: 'hee', text: tt('chapters/ch3.12'), do() { A_().hee.sweat = true; } },
+      { who: 'hus', text: tt('chapters/ch3.13') },
+      { who: 'hee', text: tt('chapters/ch3.14'), do() { A_().hee.sweat = false; A_().aura = true; } },
+      { who: 'sys', text: tt('chapters/ch3.15'), do() { const t = G.time; A_().aura = false; A_().mons = [{ type: 'chickbox', x: 70, y: -26, t0: t }, { type: 'tteok', x: -80, y: 8, t0: t + 0.3 }, { type: 'soda', x: 96, y: 8, t0: t + 0.5 }]; sfx('pop'); } },
+      { who: 'hee', text: tt('chapters/ch3.16'), do() { A_().hee.fist = true; sfx('smash'); } }] },
   { dur: 0.4 }
 ];
 const CH3_STAND = [
   { scene: 'pstand', bgm: 'story',
     init(A) { clearA(A); Object.assign(A, { hee: { x: -24, pose: 'idle', dir: 'down' }, bori: { x: -48, pose: 'sit', face: 1, y: 2 }, hus: { x: 24 } }); },
     delay: 0.6, lines: [
-      { who: 'sys', text: '드디어 1루 응원석. 경기가 한창이다!' },
-      { who: 'hus', text: '근데 지금 몇 회야? 공 어디 갔어?' },
-      { who: 'hee', text: '…진짜 모르는구나.', do() { A_().hee.sweat = true; } },
-      { who: 'sys', text: '딱—!! 그 순간, 상대팀이 홈런을 쳤다.', do() { A_().hee.sweat = false; A_().hr = G.time; A_().big = G.time + 2.2; A_().bigText = '상대팀 홈런…'; A_().bigCol = '#7ec8ff'; setTimeout(() => { G.shake = 4; sfx('slam'); }, 350); } },
+      { who: 'sys', text: tt('chapters/ch3.17') },
+      { who: 'hus', text: tt('chapters/ch3.18') },
+      { who: 'hee', text: tt('chapters/ch3.19'), do() { A_().hee.sweat = true; } },
+      { who: 'sys', text: tt('chapters/ch3.20'), do() { A_().hee.sweat = false; A_().hr = G.time; A_().big = G.time + 2.2; A_().bigText = tt('chapters/ch3.21'); A_().bigCol = '#7ec8ff'; setTimeout(() => { G.shake = 4; sfx('slam'); }, 350); } },
       { who: 'hee', text: '…………….', do() { A_().aura = true; sfx('ult'); } },
-      { who: 'sys', text: '희수의 멘헤라 게이지가 차오른다…' },
-      { who: 'bori', text: '멍…(눈치)' },
-      { who: 'hee', text: '오빠. 지금부터 소리 안 지르면\n집에 혼자 가. 표 값 아까우니까.' },
-      { who: 'hus', text: '롯데 화이팅!!!!! 이겨라!!!!!', do() { A_().hus.rodUp = true; A_().aura = false; sfx('ding'); } },
-      { who: 'sys', text: '그러자 상대팀 응원단이 막대풍선을 들고 몰려왔다!', do() { const t = G.time; A_().mons = [{ type: 'stick', x: 70, y: 6, t0: t }, { type: 'flag', x: 96, y: 4, t0: t + 0.3 }, { type: 'foul', x: -80, y: -20, t0: t + 0.5 }]; sfx('pop'); } }] },
+      { who: 'sys', text: tt('chapters/ch3.22') },
+      { who: 'bori', text: tt('chapters/ch3.23') },
+      { who: 'hee', text: tt('chapters/ch3.24') },
+      { who: 'hus', text: tt('chapters/ch3.25'), do() { A_().hus.rodUp = true; A_().aura = false; sfx('ding'); } },
+      { who: 'sys', text: tt('chapters/ch3.26'), do() { const t = G.time; A_().mons = [{ type: 'stick', x: 70, y: 6, t0: t }, { type: 'flag', x: 96, y: 4, t0: t + 0.3 }, { type: 'foul', x: -80, y: -20, t0: t + 0.5 }]; sfx('pop'); } }] },
   { dur: 0.4 }
 ];
 const CH3_RAIN = [
   { scene: 'prain', bgm: 'story',
     init(A) { clearA(A); Object.assign(A, { hee: { x: -22, pose: 'idle', dir: 'down' }, bori: { x: -46, pose: 'sit', face: 1, y: 2 }, hus: { x: 24 }, mons: [{ type: 'cloud', x: 60, y: -46, t0: G.time }] }); },
     delay: 0.6, lines: [
-      { who: 'sys', text: '9회말. 한 점 차로 지고 있는데…\n하늘이 시커멓게 변했다.', do() { G.shake = 3; } },
-      { who: 'mon', text: '우르르 쾅!! 오늘 경기는…\n우천취소다~!' },
-      { who: 'hee', text: '뭐?????!!!!!!\n9회말인데?!', do() { A_().hee.shake = true; A_().hee.alert = true; } },
-      { who: 'hus', text: '자기야… 비 오니까 그냥 집에 갈까…?' },
-      { who: 'hee', text: '오빠, 우산 들고 있어.\n내가 저 구름 치우고 올게.', do() { A_().hee.shake = false; A_().hee.alert = false; A_().hee.fist = true; A_().aura = true; sfx('smash'); } }] },
+      { who: 'sys', text: tt('chapters/ch3.27'), do() { G.shake = 3; } },
+      { who: 'mon', text: tt('chapters/ch3.28') },
+      { who: 'hee', text: tt('chapters/ch3.29'), do() { A_().hee.shake = true; A_().hee.alert = true; } },
+      { who: 'hus', text: tt('chapters/ch3.30') },
+      { who: 'hee', text: tt('chapters/ch3.31'), do() { A_().hee.shake = false; A_().hee.alert = false; A_().hee.fist = true; A_().aura = true; sfx('smash'); } }] },
   { dur: 0.4 }
 ];
 const CH3_ENDING = [
   { scene: 'pwin', bgm: 'story',
     init(A) { clearA(A); Object.assign(A, { hee: { x: -22, pose: 'idle', dir: 'down' }, bori: { x: -46, pose: 'sit', face: 1, y: 2 }, hus: { x: 24 } }); },
     delay: 0.8, lines: [
-      { who: 'sys', text: '먹구름이 걷히고, 경기가 다시 시작됐다.\n9회말 투아웃, 주자 2루…' },
-      { who: 'sys', text: '딱—!!! 역전 끝내기 안타!!\n사직이 들썩였다!', do() { A_().walk = G.time; A_().big = G.time + 1.6; A_().bigText = '끝내기 역전승!!'; setTimeout(() => { G.shake = 6; sfx('lvl'); }, 350); } },
-      { who: 'hee', text: '이겼다!!! 오빠 봤어?! 봤냐고!!!', do() { A_().sparkle = true; A_().bori.jump = true; } },
-      { who: 'hus', text: '어… 근데 방금 뭐가 된 거야?' },
-      { who: 'hee', text: '…진짜 이 남자가.', do() { A_().sparkle = false; A_().aura = true; } },
-      { who: 'hus', text: '그래도… 자기가 이렇게 좋아하니까\n나도 좋다.', do() { A_().aura = false; } },
-      { who: 'hee', text: '…흥. 그럼 다음에도 같이 오는 거다?', do() { A_().sparkle = true; sfx('ding'); } },
-      { who: 'hus', text: '응. 근데 자기야… 다음에\n낚시터에서 꼭 할 말이 있어.' },
-      { who: 'hee', text: '…또 낚시야?', do() { A_().sparkle = false; A_().hee.sweat = true; } },
-      { who: 'bori', text: '멍멍!! 멍멍멍!!', do() { A_().bori.jump = true; sfx('bark'); } }] },
+      { who: 'sys', text: tt('chapters/ch3.32') },
+      { who: 'sys', text: tt('chapters/ch3.33'), do() { A_().walk = G.time; A_().big = G.time + 1.6; A_().bigText = tt('chapters/ch3.34'); setTimeout(() => { G.shake = 6; sfx('lvl'); }, 350); } },
+      { who: 'hee', text: tt('chapters/ch3.35'), do() { A_().sparkle = true; A_().bori.jump = true; } },
+      { who: 'hus', text: tt('chapters/ch3.36') },
+      { who: 'hee', text: tt('chapters/ch3.14'), do() { A_().sparkle = false; A_().aura = true; } },
+      { who: 'hus', text: tt('chapters/ch3.37'), do() { A_().aura = false; } },
+      { who: 'hee', text: tt('chapters/ch3.38'), do() { A_().sparkle = true; sfx('ding'); } },
+      { who: 'hus', text: tt('chapters/ch3.39') },
+      { who: 'hee', text: tt('chapters/ch3.40'), do() { A_().sparkle = false; A_().hee.sweat = true; } },
+      { who: 'bori', text: tt('chapters/ch3.41'), do() { A_().bori.jump = true; sfx('bark'); } }] },
   { dur: 1.0 }
 ];
 
@@ -288,34 +289,34 @@ function decorField(X) {
 }
 
 regChapter({
-  c: 3, name: '사직 야구장', title: '3장 · 사직 야구장 직관 대소동', pick: ['야구장', '야구장'], lv: 50, baseL: 20, // 1장 9회차 수준 위
+  c: 3, name: tt('chapters/ch3.42'), title: tt('chapters/ch3.43'), pick: [tt('chapters/ch3.44'), tt('chapters/ch3.44')], lv: 50, baseL: 20, // 1장 9회차 수준 위
   zones: [
-    { name: '사직 야구장 매표소', sub: 'STAGE 9', quota: 34, max: 12, spawnInt: 1.2, mons: [['cutter', 5], ['scalper', 3], ['pigeon', 4]], boss: 'cutking', theme: 'gate', next: '먹거리 존' },
-    { name: '야구장 먹거리 존', sub: 'STAGE 10', quota: 36, max: 12, spawnInt: 1.15, mons: [['chickbox', 5], ['tteok', 4], ['soda', 3]], boss: 'chickboss', theme: 'food', next: '1루 응원석' },
-    { name: '1루 응원석', sub: 'STAGE 11', quota: 38, max: 13, spawnInt: 1.1, mons: [['foul', 4], ['stick', 5], ['flag', 3]], boss: 'cheerleader', theme: 'stand', next: '9회말 그라운드' },
-    { name: '9회말 그라운드', sub: 'FINAL STAGE', quota: 40, max: 13, spawnInt: 1.1, mons: [['foul', 4], ['stick', 3], ['flag', 3], ['pigeon', 2]], boss: 'raincloud', theme: 'field', next: '' },
+    { name: tt('chapters/ch3.45'), sub: 'STAGE 9', quota: 34, max: 12, spawnInt: 1.2, mons: [['cutter', 5], ['scalper', 3], ['pigeon', 4]], boss: 'cutking', theme: 'gate', next: tt('chapters/ch3.46') },
+    { name: tt('chapters/ch3.47'), sub: 'STAGE 10', quota: 36, max: 12, spawnInt: 1.15, mons: [['chickbox', 5], ['tteok', 4], ['soda', 3]], boss: 'chickboss', theme: 'food', next: tt('chapters/ch3.48') },
+    { name: tt('chapters/ch3.48'), sub: 'STAGE 11', quota: 38, max: 13, spawnInt: 1.1, mons: [['foul', 4], ['stick', 5], ['flag', 3]], boss: 'cheerleader', theme: 'stand', next: tt('chapters/ch3.49') },
+    { name: tt('chapters/ch3.49'), sub: 'FINAL STAGE', quota: 40, max: 13, spawnInt: 1.1, mons: [['foul', 4], ['stick', 3], ['flag', 3], ['pigeon', 2]], boss: 'raincloud', theme: 'field', next: '' },
   ],
   mons: {
-    cutter:   { name: '새치기 아저씨',   spr: 'cutter',   hp: 950,  atk: 72, def: 14, spd: 34, xp: 130, gold: [30, 44], r: 6, ai: 'chase', col: '#3a78c0' },
-    scalper:  { name: '수상한 암표상',   spr: 'scalper',  hp: 820,  atk: 76, def: 12, spd: 30, xp: 130, gold: [30, 44], r: 6, ai: 'ranged', proj: 'ticket', col: '#2b2b34' },
-    pigeon:   { name: '사직 비둘기 떼',  spr: 'pigeon',   hp: 620,  atk: 64, def: 8,  spd: 50, xp: 110, gold: [26, 38], r: 5, ai: 'float', col: '#8a919e', fly: 1 },
-    chickbox: { name: '날아다니는 치킨', spr: 'chickbox', hp: 900,  atk: 74, def: 12, spd: 46, xp: 140, gold: [32, 46], r: 6, ai: 'float', col: '#d9822b', fly: 1 },
-    tteok:    { name: '떡볶이 컵',       spr: 'tteok',    hp: 1150, atk: 80, def: 14, spd: 30, xp: 140, gold: [32, 46], r: 6, ai: 'hop', col: '#e8414f' },
-    soda:     { name: '거품 음료 컵',    spr: 'soda',     hp: 980,  atk: 78, def: 12, spd: 28, xp: 140, gold: [32, 46], r: 6, ai: 'ranged', proj: 'water', col: '#ffd84a' },
-    foul:     { name: '파울볼',          spr: 'foul',     hp: 760,  atk: 92, def: 10, spd: 52, xp: 150, gold: [34, 50], r: 5, ai: 'charge', col: '#f7f3ea' },
-    stick:    { name: '막대풍선',        spr: 'stick',    hp: 1250, atk: 84, def: 15, spd: 32, xp: 150, gold: [34, 50], r: 6, ai: 'hop', col: '#e8414f' },
-    flag:     { name: '상대팀 응원깃발', spr: 'flag',     hp: 1700, atk: 88, def: 18, spd: 26, xp: 160, gold: [36, 52], r: 7, ai: 'chase', col: '#3a5ab0' },
-    cutking:     { name: '새치기 대마왕',    spr: 'cutter',   scale: 3.2, crown: 1, hp: 26000, atk: 80,  def: 18, spd: 30, xp: 6000,  gold: [1400, 1700], r: 22, ai: 'cutking', boss: 1, col: '#3a78c0', drops: ['bat', 'cheercap'] },
-    chickboss:   { name: '통닭 대장',        spr: 'chickbox', scale: 3.6, crown: 1, hp: 32000, atk: 88,  def: 20, spd: 28, xp: 7200,  gold: [1600, 1900], r: 22, ai: 'chickboss', boss: 1, col: '#d9822b', drops: ['uniform', 'b_cheer'] },
-    cheerleader: { name: '상대팀 응원단장',  spr: 'leader',   scale: 3.2, crown: 1, hp: 38000, atk: 96,  def: 22, spd: 30, xp: 8600,  gold: [1800, 2100], r: 22, ai: 'cheerleader', boss: 1, col: '#3a5ab0', drops: ['spike', 'cheerbag'] },
-    raincloud:   { name: '우천취소 먹구름',  spr: 'cloud',    scale: 4.2, crown: 1, hp: 45000, atk: 108, def: 24, spd: 24, xp: 14000, gold: [0, 0],       r: 28, ai: 'raincloud', boss: 1, col: '#5a5a6e', fly: 1, drops: ['toy_ball'] },
+    cutter:   { name: tt('chapters/ch3.50'),   spr: 'cutter',   hp: 950,  atk: 72, def: 14, spd: 34, xp: 130, gold: [30, 44], r: 6, ai: 'chase', col: '#3a78c0' },
+    scalper:  { name: tt('chapters/ch3.51'),   spr: 'scalper',  hp: 820,  atk: 76, def: 12, spd: 30, xp: 130, gold: [30, 44], r: 6, ai: 'ranged', proj: 'ticket', col: '#2b2b34' },
+    pigeon:   { name: tt('chapters/ch3.52'),  spr: 'pigeon',   hp: 620,  atk: 64, def: 8,  spd: 50, xp: 110, gold: [26, 38], r: 5, ai: 'float', col: '#8a919e', fly: 1 },
+    chickbox: { name: tt('chapters/ch3.53'), spr: 'chickbox', hp: 900,  atk: 74, def: 12, spd: 46, xp: 140, gold: [32, 46], r: 6, ai: 'float', col: '#d9822b', fly: 1 },
+    tteok:    { name: tt('chapters/ch3.54'),       spr: 'tteok',    hp: 1150, atk: 80, def: 14, spd: 30, xp: 140, gold: [32, 46], r: 6, ai: 'hop', col: '#e8414f' },
+    soda:     { name: tt('chapters/ch3.55'),    spr: 'soda',     hp: 980,  atk: 78, def: 12, spd: 28, xp: 140, gold: [32, 46], r: 6, ai: 'ranged', proj: 'water', col: '#ffd84a' },
+    foul:     { name: tt('chapters/ch3.56'),          spr: 'foul',     hp: 760,  atk: 92, def: 10, spd: 52, xp: 150, gold: [34, 50], r: 5, ai: 'charge', col: '#f7f3ea' },
+    stick:    { name: tt('chapters/ch3.57'),        spr: 'stick',    hp: 1250, atk: 84, def: 15, spd: 32, xp: 150, gold: [34, 50], r: 6, ai: 'hop', col: '#e8414f' },
+    flag:     { name: tt('chapters/ch3.58'), spr: 'flag',     hp: 1700, atk: 88, def: 18, spd: 26, xp: 160, gold: [36, 52], r: 7, ai: 'chase', col: '#3a5ab0' },
+    cutking:     { name: tt('chapters/ch3.59'),    spr: 'cutter',   scale: 3.2, crown: 1, hp: 26000, atk: 80,  def: 18, spd: 30, xp: 6000,  gold: [1400, 1700], r: 22, ai: 'cutking', boss: 1, col: '#3a78c0', drops: ['bat', 'cheercap'] },
+    chickboss:   { name: tt('chapters/ch3.60'),        spr: 'chickbox', scale: 3.6, crown: 1, hp: 32000, atk: 88,  def: 20, spd: 28, xp: 7200,  gold: [1600, 1900], r: 22, ai: 'chickboss', boss: 1, col: '#d9822b', drops: ['uniform', 'b_cheer'] },
+    cheerleader: { name: tt('chapters/ch3.61'),  spr: 'leader',   scale: 3.2, crown: 1, hp: 38000, atk: 96,  def: 22, spd: 30, xp: 8600,  gold: [1800, 2100], r: 22, ai: 'cheerleader', boss: 1, col: '#3a5ab0', drops: ['spike', 'cheerbag'] },
+    raincloud:   { name: tt('chapters/ch3.62'),  spr: 'cloud',    scale: 4.2, crown: 1, hp: 45000, atk: 108, def: 24, spd: 24, xp: 14000, gold: [0, 0],       r: 28, ai: 'raincloud', boss: 1, col: '#5a5a6e', fly: 1, drops: ['toy_ball'] },
   },
   ai: {
     // 새치기 대마왕: 희수 앞에 예고 원 → 순간이동해 끼어들며 밀치기, 화나면 새치기 아저씨 호출
     cutking(e, dt, sp, dP) {
       const enr = e.hp < e.maxHp * 0.5; e.stT -= dt;
       if (e.st === 'idle') { e.st = 'roam'; e.stT = 1.6; }
-      if (e.st === 'roam') { moveToward(e, G.P.x, G.P.y, sp, dt); e.face = G.P.x > e.x ? -1 : 1; if (e.stT <= 0) { e.st = 'cut'; e.stT = enr ? 0.7 : 0.9; e.tx = G.P.x; e.ty = G.P.y; G.fx.push({ k: 'circle', x: e.tx, y: e.ty, r: 46, t: 0, dur: e.stT }); bubble(e, choice(['잠깐만~ 일행이 있어서~', '나 원래 여기 있었는데?', '줄이 왜 이렇게 길어!']), 1.2); } }
+      if (e.st === 'roam') { moveToward(e, G.P.x, G.P.y, sp, dt); e.face = G.P.x > e.x ? -1 : 1; if (e.stT <= 0) { e.st = 'cut'; e.stT = enr ? 0.7 : 0.9; e.tx = G.P.x; e.ty = G.P.y; G.fx.push({ k: 'circle', x: e.tx, y: e.ty, r: 46, t: 0, dur: e.stT }); bubble(e, choice([tt('chapters/ch3.63'), tt('chapters/ch3.64'), tt('chapters/ch3.65')]), 1.2); } }
       else if (e.st === 'cut') { if (e.stT <= 0) { burst(e.x, e.y, '#c0c6d0', 12, 70); e.x = e.tx; e.y = e.ty; burst(e.x, e.y, '#ffffff', 16, 90); G.shake = 6; sfx('slam'); G.fx.push({ k: 'ring', x: e.x, y: e.y - 4, r: 46, col: '#6fb8ff', t: 0, dur: 0.4 }); if (Math.hypot(G.P.x - e.x, G.P.y - e.y) < 50) hurtPlayer(e.atk * 1.3, e); e.cuts = (e.cuts || 0) + 1; if (enr || e.cuts % 3 === 0) { spawnEnemy('cutter', e.x - 30, e.y + 8); spawnEnemy('cutter', e.x + 30, e.y + 8); } e.st = 'rest'; e.stT = 0.7; } }
       else if (e.st === 'rest') { if (e.stT <= 0) { e.st = 'roam'; e.stT = enr ? 1.3 : 2.0; } }
     },
@@ -323,7 +324,7 @@ regChapter({
     chickboss(e, dt, sp, dP) {
       const enr = e.hp < e.maxHp * 0.5; e.stT -= dt;
       if (e.st === 'idle') { e.st = 'roam'; e.stT = 1.8; e.cyc = 0; }
-      if (e.st === 'roam') { moveToward(e, G.P.x, G.P.y, sp, dt); e.face = G.P.x > e.x ? -1 : 1; if (e.stT <= 0) { e.cyc++; if (e.cyc % 2) { e.st = 'tele'; e.stT = 0.75; aimDash(e, 280, e.r * 1.3, choice(['바삭바삭!!', '양념 반 후라이드 반!'])); } else { e.st = 'throw'; e.stT = 0.5; bubble(e, '치킨은 살 안 쪄!', 1.1); } } }
+      if (e.st === 'roam') { moveToward(e, G.P.x, G.P.y, sp, dt); e.face = G.P.x > e.x ? -1 : 1; if (e.stT <= 0) { e.cyc++; if (e.cyc % 2) { e.st = 'tele'; e.stT = 0.75; aimDash(e, 280, e.r * 1.3, choice([tt('chapters/ch3.66'), tt('chapters/ch3.67')])); } else { e.st = 'throw'; e.stT = 0.5; bubble(e, tt('chapters/ch3.68'), 1.1); } } }
       else if (e.st === 'tele') { if (e.stT <= 0) { e.st = 'dash'; e.stT = 1.2; } }
       else if (e.st === 'dash') { e.hopY = Math.abs(Math.sin(e.t * 18)) * 4; if (dashStep(e, 240, dt) || e.stT <= 0) { e.hopY = 0; e.st = 'roam'; e.stT = enr ? 1.1 : 1.8; G.shake = 4; } }
       else if (e.st === 'throw') { if (e.stT <= 0) { const a0 = Math.atan2(G.P.y - e.y, G.P.x - e.x), n = enr ? 9 : 7; for (let i = 0; i < n; i++) shootAt(e, 'churro', a0 + (i - (n - 1) / 2) * 0.2, 86); sfx('pop'); spawnEnemy('chickbox', e.x - 30, e.y); if (enr) spawnEnemy('chickbox', e.x + 30, e.y); e.st = 'roam'; e.stT = enr ? 1.2 : 2.0; } }
@@ -334,9 +335,9 @@ regChapter({
       if (e.st === 'idle') { e.st = 'roam'; e.stT = 1.6; e.cyc = 0; }
       if (e.st === 'roam') { moveToward(e, G.P.x, G.P.y, sp * 0.9, dt); e.face = G.P.x > e.x ? -1 : 1;
         if (e.stT <= 0) { e.cyc++; const pat = ['shout', 'song', 'shout', 'call'][e.cyc % 4]; e.st = pat; e.shT = 0; e.sa = rand(0, 6.28);
-          if (pat === 'shout') { e.stT = enr ? 0.7 : 0.9; e.sa = Math.atan2(G.P.y - e.y, G.P.x - e.x); G.fx.push({ k: 'line', x: e.x, y: e.y - 6, a: e.sa, len: 170, w: 70, t: 0, dur: e.stT }); bubble(e, choice(['소리 질러~!!', '원정 응원 간다!!']), 1.1); }
-          if (pat === 'song') { e.stT = 2.6; bubble(e, '우리 팀 이겨라~♪', 1.3); }
-          if (pat === 'call') { e.stT = 0.6; for (let i = 0; i < (enr ? 4 : 3); i++) spawnEnemy('stick', e.x + rand(-40, 40), e.y + rand(10, 30)); bubble(e, '막대풍선 부대, 출동!', 1.2); } } return; }
+          if (pat === 'shout') { e.stT = enr ? 0.7 : 0.9; e.sa = Math.atan2(G.P.y - e.y, G.P.x - e.x); G.fx.push({ k: 'line', x: e.x, y: e.y - 6, a: e.sa, len: 170, w: 70, t: 0, dur: e.stT }); bubble(e, choice([tt('chapters/ch3.69'), tt('chapters/ch3.70')]), 1.1); }
+          if (pat === 'song') { e.stT = 2.6; bubble(e, tt('chapters/ch3.71'), 1.3); }
+          if (pat === 'call') { e.stT = 0.6; for (let i = 0; i < (enr ? 4 : 3); i++) spawnEnemy('stick', e.x + rand(-40, 40), e.y + rand(10, 30)); bubble(e, tt('chapters/ch3.72'), 1.2); } } return; }
       if (e.st === 'shout' && e.stT <= 0) { const d = Math.hypot(G.P.x - e.x, G.P.y - e.y), da = Math.abs(((Math.atan2(G.P.y - e.y, G.P.x - e.x) - e.sa + Math.PI * 3) % (Math.PI * 2)) - Math.PI); G.shake = 5; sfx('slam'); burst(e.x + Math.cos(e.sa) * 40, e.y + Math.sin(e.sa) * 40, '#ffd84a', 14, 110); if (d < 175 && da < 0.42) hurtPlayer(e.atk * 1.5, e); }
       if (e.st === 'song') { e.shT -= dt; if (e.shT <= 0) { e.shT = enr ? 0.1 : 0.14; e.sa += 0.4; shootAt(e, 'note', e.sa, 66); } }
       if (e.stT <= 0) { e.st = 'roam'; e.stT = enr ? 1.2 : 1.9; }
@@ -347,8 +348,8 @@ regChapter({
       if (e.st === 'idle') { e.st = 'float'; e.stT = 2; e.cyc = 0; }
       if (e.st === 'float') { moveToward(e, G.P.x, G.P.y - 30, sp, dt);
         if (e.stT <= 0) { e.cyc++; const pat = ['storm', 'pour', 'storm', 'call'][e.cyc % 4]; e.st = pat; e.shT = 0;
-          if (pat === 'storm') { e.stT = 1.1; e.bolts = []; const n = enr ? 6 : 4; for (let i = 0; i < n; i++) { const b = { x: G.P.x + (i ? rand(-70, 70) : 0), y: G.P.y + (i ? rand(-50, 50) : 0) }; e.bolts.push(b); G.fx.push({ k: 'circle', x: b.x, y: b.y, r: 26, t: 0, dur: 1.1 }); } bubble(e, choice(['우르르 쾅!!', '오늘 경기는 우천취소다~!']), 1.2); }
-          if (pat === 'pour') { e.stT = 2.6; bubble(e, '비 온다~ 집에 가라~', 1.2); }
+          if (pat === 'storm') { e.stT = 1.1; e.bolts = []; const n = enr ? 6 : 4; for (let i = 0; i < n; i++) { const b = { x: G.P.x + (i ? rand(-70, 70) : 0), y: G.P.y + (i ? rand(-50, 50) : 0) }; e.bolts.push(b); G.fx.push({ k: 'circle', x: b.x, y: b.y, r: 26, t: 0, dur: 1.1 }); } bubble(e, choice([tt('chapters/ch3.73'), tt('chapters/ch3.74')]), 1.2); }
+          if (pat === 'pour') { e.stT = 2.6; bubble(e, tt('chapters/ch3.75'), 1.2); }
           if (pat === 'call') { e.stT = 0.6; spawnEnemy('foul', e.x - 30, e.y + 20); spawnEnemy('foul', e.x + 30, e.y + 20); if (enr) spawnEnemy('pigeon', e.x, e.y + 30); } } return; }
       if (e.st === 'storm' && e.stT <= 0) { G.flashT = 0.35; G.shake = 7; sfx('slam'); for (const b of e.bolts || []) { G.fx.push({ k: 'ring', x: b.x, y: b.y, r: 28, col: '#fff6a0', t: 0, dur: 0.35 }); burst(b.x, b.y, '#fff6a0', 10, 80); if (Math.hypot(G.P.x - b.x, G.P.y - b.y) < 28) hurtPlayer(e.atk * 1.4, e); } }
       if (e.st === 'pour') { e.shT -= dt; if (e.shT <= 0) { e.shT = enr ? 0.07 : 0.1; shootAt(e, 'water', Math.PI / 2 + rand(-1.1, 1.1), 80); } }
@@ -363,22 +364,22 @@ regChapter({
     field: { bg: '#10182c', hedge: ['#3a3a48', '#55556a', '#262632'], tint: [10, 14, 40, 0.34], glow: 0.6, wall: 1, rain: 1, ground: groundField, decor: decorField },
   },
   items: {
-    bat:      { slot: 'weapon', name: '응원 야구 배트', rar: 4, atk: 48, crit: 0.07, icon: 'bat', tier: 6, bossOnly: 1, ch: 3, w: { reach: 28, arc: 130, mul: 1.15, rate: 1.7, kb: 150, style: 'swing' }, desc: '9회말 투아웃의 기운이 깃든 배트' },
-    uniform:  { slot: 'armor', name: '홈 유니폼', rar: 4, def: 28, hp: 260, color: '#f7f3ea', icon: 'jacket', tier: 6, bossOnly: 1, ch: 3, desc: '등번호는 오빠 생일. 이름은 희수' },
-    cheercap: { slot: 'hat', name: '응원 야구모자', rar: 4, def: 15, mp: 100, crit: 0.06, color: '#3a5ab0', icon: 'hat', tier: 6, bossOnly: 1, ch: 3, desc: '파울볼도 막아줄 것 같은 챙' },
-    spike:    { slot: 'shoes', name: '야구 스파이크', rar: 4, def: 9, spd: 0.28, color: '#2b2b34', icon: 'boots', tier: 6, bossOnly: 1, ch: 3, desc: '도루하듯 빠르게 매표소 줄로' },
-    cheerbag: { slot: 'bag', name: '응원 도구 가방', rar: 4, atk: 13, mp: 100, crit: 0.06, color: '#e8414f', icon: 'bag', tier: 6, bossOnly: 1, ch: 3, desc: '막대풍선·비닐 봉지·간식이 한가득' },
-    b_cheer:  { slot: 'bcloth', bori: 1, name: '보리 응원 조끼', rar: 4, bdmg: 0.75, color: '#3a5ab0', pat: 'pad', icon: 'bpad', tier: 6, bossOnly: 1, ch: 3, desc: '보리도 오늘은 열혈 팬' },
-    toy_ball: { slot: 'btoy', bori: 1, name: '보리 야구공 장난감', rar: 4, bdmg: 0.85, icon: 'ball', tier: 6, bossOnly: 1, ch: 3, desc: '끝내기 홈런볼(이라고 오빠가 우김)' },
+    bat:      { slot: 'weapon', name: tt('chapters/ch3.76'), rar: 4, atk: 48, crit: 0.07, icon: 'bat', tier: 6, bossOnly: 1, ch: 3, w: { reach: 28, arc: 130, mul: 1.15, rate: 1.7, kb: 150, style: 'swing' }, desc: tt('chapters/ch3.77') },
+    uniform:  { slot: 'armor', name: tt('chapters/ch3.78'), rar: 4, def: 28, hp: 260, color: '#f7f3ea', icon: 'jacket', tier: 6, bossOnly: 1, ch: 3, desc: tt('chapters/ch3.79') },
+    cheercap: { slot: 'hat', name: tt('chapters/ch3.80'), rar: 4, def: 15, mp: 100, crit: 0.06, color: '#3a5ab0', icon: 'hat', tier: 6, bossOnly: 1, ch: 3, desc: tt('chapters/ch3.81') },
+    spike:    { slot: 'shoes', name: tt('chapters/ch3.82'), rar: 4, def: 9, spd: 0.28, color: '#2b2b34', icon: 'boots', tier: 6, bossOnly: 1, ch: 3, desc: tt('chapters/ch3.83') },
+    cheerbag: { slot: 'bag', name: tt('chapters/ch3.84'), rar: 4, atk: 13, mp: 100, crit: 0.06, color: '#e8414f', icon: 'bag', tier: 6, bossOnly: 1, ch: 3, desc: tt('chapters/ch3.85') },
+    b_cheer:  { slot: 'bcloth', bori: 1, name: tt('chapters/ch3.86'), rar: 4, bdmg: 0.75, color: '#3a5ab0', pat: 'pad', icon: 'bpad', tier: 6, bossOnly: 1, ch: 3, desc: tt('chapters/ch3.87') },
+    toy_ball: { slot: 'btoy', bori: 1, name: tt('chapters/ch3.88'), rar: 4, bdmg: 0.85, icon: 'ball', tier: 6, bossOnly: 1, ch: 3, desc: tt('chapters/ch3.89') },
   },
-  book: { k: 'park', name: '3장 응원 장비', txt: '공격·방어 +5%', mul: 1.05 },
-  hair: { k: 'cheer', name: '응원 레드', H: '#a8222e', h: '#ff5a6a', need: 'ch3', cond: '3장 클리어' },
+  book: { k: 'park', name: tt('chapters/ch3.90'), txt: tt('chapters/ch3.91'), mul: 1.05 },
+  hair: { k: 'cheer', name: tt('chapters/ch3.92'), H: '#a8222e', h: '#ff5a6a', need: 'ch3', cond: tt('chapters/ch3.93') },
   ach: [
-    { id: 'c3r', t: '우천 극복', d: '3장 9회말 그라운드 도착', tier: 2, v: pd => pd.ch3 && (pd.ch3.cleared || pd.ch3.zone >= 11) ? 1 : 0, g: 1 },
-    { id: 'c3', t: '9회말의 기적', d: '3장 클리어 (역전승)', tier: 3, v: pd => (pd.ch3 && pd.ch3.cleared) || 0, g: 1 },
-    { id: 'c3x5', t: '사직 개근러', d: '3장 5번 클리어', tier: 4, v: pd => (pd.ch3 && pd.ch3.cleared) || 0, g: 5 },
+    { id: 'c3r', t: tt('chapters/ch3.94'), d: tt('chapters/ch3.95'), tier: 2, v: pd => pd.ch3 && (pd.ch3.cleared || pd.ch3.zone >= 11) ? 1 : 0, g: 1 },
+    { id: 'c3', t: tt('chapters/ch3.96'), d: tt('chapters/ch3.97'), tier: 3, v: pd => (pd.ch3 && pd.ch3.cleared) || 0, g: 1 },
+    { id: 'c3x5', t: tt('chapters/ch3.98'), d: tt('chapters/ch3.99'), tier: 4, v: pd => (pd.ch3 && pd.ch3.cleared) || 0, g: 5 },
   ],
   cut: { scenes: ['pgate', 'pfood', 'pstand', 'prain', 'pwin'], draw: drawParkCut, actors: drawParkActors },
-  story: { prologue: ['프롤로그 · 매표소', CH3_PROLOGUE], stages: { 1: ['STAGE 10 · 먹거리 존', CH3_FOOD], 2: ['STAGE 11 · 1루 응원석', CH3_STAND], 3: ['FINAL · 9회말 우천취소', CH3_RAIN] }, ending: ['엔딩 · 끝내기 역전', CH3_ENDING] },
-  end: { stats: lv => `9회말 역전승 <b>1</b>번<br>${lv}<br><br><b>오빠가 낚시터에서 할 말이 있대…!</b><br><small>4장에서 계속…</small>`, again: '다음 경기가 기다려요' }
+  story: { prologue: [tt('chapters/ch3.100'), CH3_PROLOGUE], stages: { 1: [tt('chapters/ch3.101'), CH3_FOOD], 2: [tt('chapters/ch3.102'), CH3_STAND], 3: [tt('chapters/ch3.103'), CH3_RAIN] }, ending: [tt('chapters/ch3.104'), CH3_ENDING] },
+  end: { stats: lv => tt('chapters/ch3.105', { lv }), again: tt('chapters/ch3.106') }
 });

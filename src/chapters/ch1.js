@@ -16,23 +16,24 @@ import { G } from '../core/state.js';
 import { bubble, burst, hurtPlayer, moveToward } from '../play/player.js';
 import { shootAt, spawnEnemy } from '../play/enemies.js';
 import { A_, CUT, clearA } from '../story/story.js';
+import { tt } from '../sys/i18n.js';
 
 export const INTRO = [
   { scene: 'park', bgm: 'story',
     init(A) { clearA(A); Object.assign(A, { hee: { x: -140, pose: 'walk', dir: 'right' }, bori: { x: -122, pose: 'run', face: 1, y: 2 }, leash: true, dark: 0 }); },
     update(A, dt, t) { A.hee.x = Math.min(-14, -140 + t * 50); if (A.bori.pose === 'run') A.bori.x = A.hee.x + 18; if (A.hee.x >= -14 && A.hee.pose === 'walk') { A.hee.pose = 'idle'; A.hee.dir = 'down'; A.bori.pose = 'sit'; A.bori.pant = true; } },
     delay: 2.4, lines: [
-      { who: 'sys', text: '어느 화창한 주말 오후.' },
-      { who: 'sys', text: '희수는 강아지 보리와 함께 에버랜드에 놀러 왔다.' },
-      { who: 'hee', text: '보리야~ 오늘 사진 백 장 찍자!' },
-      { who: 'bori', text: '멍! 멍!' }] },
-  { init(A) { A.hee.pose = 'phone'; }, delay: 0.5, lines: [{ who: 'heePh', text: '잠깐만 보리야~ 인스타에 올리고...\n#에버랜드 #보리 #행복 #주말' }] },
+      { who: 'sys', text: tt('chapters/ch1.1') },
+      { who: 'sys', text: tt('chapters/ch1.2') },
+      { who: 'hee', text: tt('chapters/ch1.3') },
+      { who: 'bori', text: tt('chapters/ch1.4') }] },
+  { init(A) { A.hee.pose = 'phone'; }, delay: 0.5, lines: [{ who: 'heePh', text: tt('chapters/ch1.5') }] },
   { init(A) { A.balloon = { x: -90, y: -34 }; },
     update(A, dt, t) { A.balloon.x += dt * 38; A.balloon.y = -34 + Math.sin(t * 3) * 4 - t * 4; if (t > 0.9) { A.leash = false; A.bori.pose = 'run'; A.bori.pant = false; A.bori.face = 1; A.bori.x += dt * (80 + t * 30); } if (t > 1.1 && !A.bk) { A.bk = 1; sfx('bark'); } }, dur: 3.0 },
   { init(A) { A.bori.x = 999; A.balloon = null; }, delay: 0.3, lines: [
-      { who: 'sys', text: '...희수가 폰을 보는 사이, 보리가 사라졌다!' },
-      { who: 'hee', text: '...응? 보리야?', do() { A_().hee.pose = 'idle'; A_().hee.alert = true; } },
-      { who: 'hee', text: '보리야아아아아!!!!', do() { A_().hee.shake = true; } }] },
+      { who: 'sys', text: tt('chapters/ch1.6') },
+      { who: 'hee', text: tt('chapters/ch1.7'), do() { A_().hee.pose = 'idle'; A_().hee.alert = true; } },
+      { who: 'hee', text: tt('chapters/ch1.8'), do() { A_().hee.shake = true; } }] },
   { bgm: 'dark', init(A) { A.hee.alert = false; A.hee.shake = false; A.mons = []; },
     update(A, dt, t) {
       A.dark = Math.min(1, t / 1.8);
@@ -41,15 +42,15 @@ export const INTRO = [
       if (t > 2.0 && t < 2.9 && Math.random() < dt * 4) sfx('pop');
     }, dur: 3.2 },
   { delay: 0, lines: [
-      { who: 'sys', text: '그 순간, 하늘이 보랏빛으로 물들더니...' },
-      { who: 'sys', text: '놀이공원 곳곳에서 몬스터들이 쏟아져 나왔다!' },
-      { who: 'mon', text: '뿌루루룽~ 끼에에에엑!!' },
-      { who: 'hee', text: '꺄악! 이게 다 뭐야?!', do() { A_().hee.alert = true; } }] },
+      { who: 'sys', text: tt('chapters/ch1.9') },
+      { who: 'sys', text: tt('chapters/ch1.10') },
+      { who: 'mon', text: tt('chapters/ch1.11') },
+      { who: 'hee', text: tt('chapters/ch1.12'), do() { A_().hee.alert = true; } }] },
   { scene: 'gate', init(A) { A.mons = []; A.hee.x = -40; A.hee.dir = 'right'; A.hee.pose = 'idle'; A.hee.alert = false; A.dark = 1; A.sign = true; }, delay: 0.6, lines: [
-      { who: 'hee', text: '출구가... 막혔잖아?!' },
-      { who: 'sys', text: '출구는 몬스터들에게 봉쇄됐다.\n구역마다 있는 보스를 쓰러뜨려야 길이 열릴 것 같다.' },
-      { who: 'hee', text: '무기도 없고... 가방엔 폰밖에 없는데...', do() { A_().hee.dir = 'down'; } },
-      { who: 'hee', text: '좋아. 맨주먹으로라도 보리 찾아서\n여기서 탈출한다!!', do() { A_().hee.fist = true; sfx('smash'); } }] },
+      { who: 'hee', text: tt('chapters/ch1.13') },
+      { who: 'sys', text: tt('chapters/ch1.14') },
+      { who: 'hee', text: tt('chapters/ch1.15'), do() { A_().hee.dir = 'down'; } },
+      { who: 'hee', text: tt('chapters/ch1.16'), do() { A_().hee.fist = true; sfx('smash'); } }] },
   { scene: 'stars', init(A) { A.hee = null; A.sign = false; A.dark = 0; $('#mission').hidden = false; $('#skip').hidden = true; }, dur: 3.6 }
 ];
 
@@ -58,22 +59,22 @@ export const ENDING = [
     init(A) { clearA(A); Object.assign(A, { hee: { x: -150, pose: 'walk', dir: 'right' }, bori: { x: -132, pose: 'run', face: 1, y: 2 } }); },
     update(A, dt, t) { A.hee.x = Math.min(10, -150 + t * 52); if (A.bori.pose === 'run') A.bori.x = A.hee.x + 18; if (A.hee.x >= 10 && A.hee.pose === 'walk') { A.hee.pose = 'idle'; A.hee.dir = 'down'; A.bori.pose = 'sit'; A.bori.pant = true; } },
     delay: 2.2, lines: [
-      { who: 'sys', text: '퍼레이드 대왕이 쓰러지자, 하늘이 다시 맑아졌다.' },
-      { who: 'sys', text: '희수와 보리는 마침내 에버랜드를 탈출했다!' },
-      { who: 'hee', text: '보리야, 집에 가자!\n오빠가 엄청 걱정하고 있을 거야ㅠㅠ' },
-      { who: 'bori', text: '멍멍!' }] },
+      { who: 'sys', text: tt('chapters/ch1.17') },
+      { who: 'sys', text: tt('chapters/ch1.18') },
+      { who: 'hee', text: tt('chapters/ch1.19') },
+      { who: 'bori', text: tt('chapters/ch1.20') }] },
   { scene: 'home', bgm: 'home',
     init(A) { clearA(A); Object.assign(A, { hus: { x: 30 }, hee: { x: -86, pose: 'walk', dir: 'right' }, bori: { x: -102, pose: 'run', face: 1, y: 3 }, door: true }); },
     update(A, dt, t) { A.hee.x = Math.min(-22, -86 + t * 44); A.bori.x = Math.min(-40, A.hee.x - 16); if (A.hee.x >= -22 && A.hee.pose === 'walk') { A.hee.pose = 'idle'; A.bori.pose = 'sit'; A.door = false; } },
     delay: 1.8, lines: [
-      { who: 'hee', text: '오빠!!! 나 살아왔어!!!' },
-      { who: 'hee', text: '에버랜드에 몬스터가 막 쏟아져 나오고,\n보리도 잃어버리고, 나 진짜 죽을 뻔했...' },
-      { who: 'hus', text: '오 왔어? 같이 낚시터 가자!', do() { A_().hus.rodUp = true; A_().sparkle = true; sfx('ding'); } },
-      { who: 'hus', text: '자기 오면 바로 출발하려고\n채비 다 해놨지~ 오늘 물때 좋대!' },
+      { who: 'hee', text: tt('chapters/ch1.21') },
+      { who: 'hee', text: tt('chapters/ch1.22') },
+      { who: 'hus', text: tt('chapters/ch1.23'), do() { A_().hus.rodUp = true; A_().sparkle = true; sfx('ding'); } },
+      { who: 'hus', text: tt('chapters/ch1.24') },
       { who: 'hee', text: '..........', do() { A_().hee.sweat = true; } },
-      { who: 'hee', text: '......지금 낚시터라고 했어?' },
-      { who: 'sys', text: '희수의 멘헤라 게이지가 차오르기 시작했다...', do() { A_().aura = true; sfx('ult'); } },
-      { who: 'bori', text: '멍! 멍멍! (낚시터 신난다!)', do() { A_().bori.jump = true; sfx('bark'); } }] },
+      { who: 'hee', text: tt('chapters/ch1.25') },
+      { who: 'sys', text: tt('chapters/ch1.26'), do() { A_().aura = true; sfx('ult'); } },
+      { who: 'bori', text: tt('chapters/ch1.27'), do() { A_().bori.jump = true; sfx('bark'); } }] },
   { dur: 1.0 }
 ];
 
@@ -256,26 +257,26 @@ function decorCobble(X) {
 }
 
 regChapter({
-  c: 1, name: '에버랜드', title: '1장 · 에버랜드 대탈출', pick: ['에버랜드', '에버랜드'], lv: 1, baseL: 0,
+  c: 1, name: tt('chapters/ch1.28'), title: tt('chapters/ch1.29'), pick: [tt('chapters/ch1.28'), tt('chapters/ch1.28')], lv: 1, baseL: 0,
   zones: [
-    { name: '정문 광장',          sub: 'STAGE 1',     quota: 20, max: 9,  spawnInt: 1.4, mons: [['slime', 6], ['balloon', 4]], boss: 'boss1', theme: 'plaza',  next: '매직랜드' },
-    { name: '매직랜드',           sub: 'STAGE 2',     quota: 30, max: 10, spawnInt: 1.3, mons: [['horse', 5], ['soldier', 4], ['balloon', 2]], boss: 'boss2', theme: 'pastel', next: '사파리 월드' },
-    { name: '사파리 월드',        sub: 'STAGE 3',     quota: 34, max: 11, spawnInt: 1.25, mons: [['raccoon', 5], ['bear', 4]], boss: 'boss3', theme: 'grass',  next: '유러피언 어드벤처' },
-    { name: '유러피언 어드벤처',  sub: 'FINAL STAGE', quota: 38, max: 12, spawnInt: 1.2, mons: [['coaster', 5], ['clown', 4], ['bear', 1]], boss: 'boss4', theme: 'cobble', next: '탈출구' },
+    { name: tt('chapters/ch1.30'),          sub: 'STAGE 1',     quota: 20, max: 9,  spawnInt: 1.4, mons: [['slime', 6], ['balloon', 4]], boss: 'boss1', theme: 'plaza',  next: tt('chapters/ch1.31') },
+    { name: tt('chapters/ch1.31'),           sub: 'STAGE 2',     quota: 30, max: 10, spawnInt: 1.3, mons: [['horse', 5], ['soldier', 4], ['balloon', 2]], boss: 'boss2', theme: 'pastel', next: tt('chapters/ch1.32') },
+    { name: tt('chapters/ch1.32'),        sub: 'STAGE 3',     quota: 34, max: 11, spawnInt: 1.25, mons: [['raccoon', 5], ['bear', 4]], boss: 'boss3', theme: 'grass',  next: tt('chapters/ch1.33') },
+    { name: tt('chapters/ch1.33'),  sub: 'FINAL STAGE', quota: 38, max: 12, spawnInt: 1.2, mons: [['coaster', 5], ['clown', 4], ['bear', 1]], boss: 'boss4', theme: 'cobble', next: tt('chapters/ch1.34') },
   ],
   mons: {
-    slime:   { name: '솜사탕 슬라임', spr: 'slime',   hp: 45,  atk: 9,  def: 0,  spd: 26, xp: 10, gold: [2, 4],   r: 6, ai: 'hop',    col: '#ffb3d9' },
-    balloon: { name: '풍선 유령',     spr: 'balloon', hp: 34,  atk: 11, def: 0,  spd: 30, xp: 11, gold: [2, 5],   r: 5, ai: 'float',  col: '#b45cff', fly: 1 },
-    horse:   { name: '폭주 목마',     spr: 'horse',   hp: 200, atk: 22, def: 4,  spd: 34, xp: 26, gold: [6, 10],  r: 7, ai: 'charge', col: '#ffffff' },
-    soldier: { name: '츄러스 병정',   spr: 'soldier', hp: 190, atk: 21, def: 5,  spd: 24, xp: 26, gold: [6, 10],  r: 5, ai: 'ranged', proj: 'churro', col: '#e8414f' },
-    raccoon: { name: '성난 너구리',   spr: 'raccoon', hp: 420, atk: 38, def: 7,  spd: 44, xp: 50, gold: [12, 20], r: 6, ai: 'chase',  col: '#a0a6b0' },
-    bear:    { name: '가출한 곰인형', spr: 'bear',    hp: 650, atk: 44, def: 10, spd: 22, xp: 62, gold: [15, 24], r: 7, ai: 'chase',  col: '#8a5a3a' },
-    coaster: { name: '폭주 열차',     spr: 'coaster', hp: 900, atk: 70, def: 12, spd: 38, xp: 90, gold: [22, 34], r: 8, ai: 'charge', col: '#e8414f' },
-    clown:   { name: '광대 인형',     spr: 'clown',   hp: 800, atk: 64, def: 10, spd: 30, xp: 88, gold: [22, 34], r: 6, ai: 'ranged', proj: 'confetti', col: '#b45cff' },
-    boss1: { name: '왕풍선 유령',   spr: 'balloon', scale: 3, crown: 1, hp: 900,   atk: 16, def: 2,  spd: 22, xp: 200,  gold: [90, 110],  r: 15, ai: 'boss1', boss: 1, col: '#b45cff', fly: 1, drops: ['churros', 'cap_pink', 'toy_melon'] },
-    boss2: { name: '폭주 회전컵',   spr: 'teacup',  scale: 2, hp: 3200,  atk: 28, def: 6,  spd: 40, xp: 600,  gold: [250, 300], r: 17, ai: 'boss2', boss: 1, col: '#ffb3d9', drops: ['selfie', 'ugly', 'b_knit'] },
-    boss3: { name: '거대 곰인형',   spr: 'bear',    scale: 3, crown: 1, hp: 9000,  atk: 42, def: 12, spd: 20, xp: 1300, gold: [500, 600], r: 19, ai: 'boss3', boss: 1, col: '#8a5a3a', drops: ['handbag', 'coat', 'toy_bone'] },
-    boss4: { name: '퍼레이드 대왕', spr: 'clown',   scale: 4, crown: 1, hp: 20000, atk: 70, def: 14, spd: 24, xp: 3000, gold: [0, 0],     r: 21, ai: 'boss4', boss: 1, col: '#b45cff' },
+    slime:   { name: tt('chapters/ch1.35'), spr: 'slime',   hp: 45,  atk: 9,  def: 0,  spd: 26, xp: 10, gold: [2, 4],   r: 6, ai: 'hop',    col: '#ffb3d9' },
+    balloon: { name: tt('chapters/ch1.36'),     spr: 'balloon', hp: 34,  atk: 11, def: 0,  spd: 30, xp: 11, gold: [2, 5],   r: 5, ai: 'float',  col: '#b45cff', fly: 1 },
+    horse:   { name: tt('chapters/ch1.37'),     spr: 'horse',   hp: 200, atk: 22, def: 4,  spd: 34, xp: 26, gold: [6, 10],  r: 7, ai: 'charge', col: '#ffffff' },
+    soldier: { name: tt('chapters/ch1.38'),   spr: 'soldier', hp: 190, atk: 21, def: 5,  spd: 24, xp: 26, gold: [6, 10],  r: 5, ai: 'ranged', proj: 'churro', col: '#e8414f' },
+    raccoon: { name: tt('chapters/ch1.39'),   spr: 'raccoon', hp: 420, atk: 38, def: 7,  spd: 44, xp: 50, gold: [12, 20], r: 6, ai: 'chase',  col: '#a0a6b0' },
+    bear:    { name: tt('chapters/ch1.40'), spr: 'bear',    hp: 650, atk: 44, def: 10, spd: 22, xp: 62, gold: [15, 24], r: 7, ai: 'chase',  col: '#8a5a3a' },
+    coaster: { name: tt('chapters/ch1.41'),     spr: 'coaster', hp: 900, atk: 70, def: 12, spd: 38, xp: 90, gold: [22, 34], r: 8, ai: 'charge', col: '#e8414f' },
+    clown:   { name: tt('chapters/ch1.42'),     spr: 'clown',   hp: 800, atk: 64, def: 10, spd: 30, xp: 88, gold: [22, 34], r: 6, ai: 'ranged', proj: 'confetti', col: '#b45cff' },
+    boss1: { name: tt('chapters/ch1.43'),   spr: 'balloon', scale: 3, crown: 1, hp: 900,   atk: 16, def: 2,  spd: 22, xp: 200,  gold: [90, 110],  r: 15, ai: 'boss1', boss: 1, col: '#b45cff', fly: 1, drops: ['churros', 'cap_pink', 'toy_melon'] },
+    boss2: { name: tt('chapters/ch1.44'),   spr: 'teacup',  scale: 2, hp: 3200,  atk: 28, def: 6,  spd: 40, xp: 600,  gold: [250, 300], r: 17, ai: 'boss2', boss: 1, col: '#ffb3d9', drops: ['selfie', 'ugly', 'b_knit'] },
+    boss3: { name: tt('chapters/ch1.45'),   spr: 'bear',    scale: 3, crown: 1, hp: 9000,  atk: 42, def: 12, spd: 20, xp: 1300, gold: [500, 600], r: 19, ai: 'boss3', boss: 1, col: '#8a5a3a', drops: ['handbag', 'coat', 'toy_bone'] },
+    boss4: { name: tt('chapters/ch1.46'), spr: 'clown',   scale: 4, crown: 1, hp: 20000, atk: 70, def: 14, spd: 24, xp: 3000, gold: [0, 0],     r: 21, ai: 'boss4', boss: 1, col: '#b45cff' },
   },
   ai: {
     boss1(e, dt, sp, dP) {
@@ -284,13 +285,13 @@ regChapter({
       if (e.pat <= 0) {
         const enr = e.hp < e.maxHp * 0.5; e.pat = enr ? 2.6 : 3.6; e.pc = (e.pc || 0) + 1;
         if (e.pc % 2) { const n = enr ? 14 : 10, off = rand(0, 6.28); for (let i = 0; i < n; i++) shootAt(e, 'balloon', off + i / n * 6.283, 58); sfx('pop'); }
-        else { for (let i = 0; i < (enr ? 3 : 2); i++) { const a = rand(0, 6.28); spawnEnemy('balloon', e.x + Math.cos(a) * 26, e.y + Math.sin(a) * 16); } bubble(e, '풍선 친구들 나와라~!', 1.4); }
+        else { for (let i = 0; i < (enr ? 3 : 2); i++) { const a = rand(0, 6.28); spawnEnemy('balloon', e.x + Math.cos(a) * 26, e.y + Math.sin(a) * 16); } bubble(e, tt('chapters/ch1.47'), 1.4); }
       }
     },
     boss2(e, dt, sp, dP) {
       const enr = e.hp < e.maxHp * 0.5, W = G.world; e.stT -= dt;
       if (e.st === 'idle') { e.st = 'roam'; e.stT = 2.2; }
-      if (e.st === 'roam') { moveToward(e, G.P.x, G.P.y, sp, dt); if (e.stT <= 0) { e.st = 'tele'; e.stT = 0.8; const a = Math.atan2(G.P.y - e.y, G.P.x - e.x); e.dx = Math.cos(a); e.dy = Math.sin(a); G.fx.push({ k: 'line', x: e.x, y: e.y - 8, a, len: 200, w: e.r * 1.6, t: 0, dur: 0.8 }); bubble(e, '빙글빙글~!', 1); } }
+      if (e.st === 'roam') { moveToward(e, G.P.x, G.P.y, sp, dt); if (e.stT <= 0) { e.st = 'tele'; e.stT = 0.8; const a = Math.atan2(G.P.y - e.y, G.P.x - e.x); e.dx = Math.cos(a); e.dy = Math.sin(a); G.fx.push({ k: 'line', x: e.x, y: e.y - 8, a, len: 200, w: e.r * 1.6, t: 0, dur: 0.8 }); bubble(e, tt('chapters/ch1.48'), 1); } }
       else if (e.st === 'tele') { if (e.stT <= 0) { e.st = 'dash'; e.stT = 1.1; } }
       else if (e.st === 'dash') { e.x += e.dx * 220 * dt; e.y += e.dy * 220 * dt; if (e.x < 30 || e.x > W.W - 30) e.dx *= -1; if (e.y < (W.top || 34) + 16 || e.y > W.H - 30) e.dy *= -1; if (Math.random() < dt * 30) G.parts.push({ x: e.x + rand(-10, 10), y: e.y, vx: 0, vy: -10, life: 0.4, max: 0.4, col: '#ffd1e6', sz: 2, grav: 0 }); if (e.stT <= 0) { e.st = 'spin'; e.stT = 1.3; e.burst = 0; e.burstT = 0; } }
       else if (e.st === 'spin') { e.burstT -= dt; if (e.burstT <= 0 && e.burst < (enr ? 3 : 2)) { e.burst++; e.burstT = 0.42; const n = 12, off = e.burst * 0.26; for (let i = 0; i < n; i++) shootAt(e, 'tea', off + i / n * 6.283, 78); sfx('pop'); } if (e.stT <= 0) { e.st = 'roam'; e.stT = enr ? 1.5 : 2.3; } }
@@ -305,7 +306,7 @@ regChapter({
           e.hopY = 0; e.st = 'land'; e.stT = 0.6; G.shake = 7; sfx('slam');
           G.fx.push({ k: 'ring', x: e.x, y: e.y - 2, r: e.slamR, col: '#d9a560', t: 0, dur: 0.4 }); burst(e.x, e.y, '#c9b08a', 16, 90);
           if (Math.hypot(G.P.x - e.x, G.P.y - e.y) < e.slamR + 4) hurtPlayer(e.atk * 1.5, e);
-          e.jumps = (e.jumps || 0) + 1; if (e.jumps % 3 === 0) { for (let i = 0; i < 2; i++) spawnEnemy('bear', e.x + (i ? 30 : -30), e.y + 10); bubble(e, '친구들아 도와줘!', 1.4); }
+          e.jumps = (e.jumps || 0) + 1; if (e.jumps % 3 === 0) { for (let i = 0; i < 2; i++) spawnEnemy('bear', e.x + (i ? 30 : -30), e.y + 10); bubble(e, tt('chapters/ch1.49'), 1.4); }
         } return;
       }
       if (e.st === 'land') { e.stT -= dt; if (e.stT <= 0) { e.st = 'walk'; e.stT = enr ? 1.6 : 2.6; } return; }
@@ -322,8 +323,8 @@ regChapter({
         if (e.stT <= 0) {
           e.cyc++; const pat = ['spiral', 'burst', 'summon', 'spiral', 'march'][e.cyc % 5];
           e.st = pat; e.stT = { spiral: 3.2, burst: 1.9, summon: 1.0, march: 1.6 }[pat]; e.shT = 0; e.sa = rand(0, 6.28);
-          if (pat === 'summon') { spawnEnemy('clown', e.x - 30, e.y + 8); spawnEnemy('clown', e.x + 30, e.y + 8); if (enr) spawnEnemy('coaster', e.x, e.y + 26); bubble(e, '퍼레이드를 시작하지!', 1.5); }
-          if (pat === 'march') { bubble(e, '행진하라!!', 1.2); for (const k of [-1, 0, 1]) { const ly = clamp(G.P.y - 8 + k * 34, 50, G.world.H - 30); G.fx.push({ k: 'line', x: 22, y: ly, a: 0, len: G.world.W - 44, w: 12, t: 0, dur: 0.95, onEnd: () => { for (let x = 30; x < G.world.W - 30; x += 12) G.parts.push({ x, y: ly, vx: rand(-20, 20), vy: rand(-40, -10), life: 0.5, max: 0.5, col: choice(['#ff7ab8', '#ffd84a', '#6fb8ff', '#b45cff']), sz: 2, grav: 80 }); if (Math.abs(G.P.y - 8 - ly) < 10) hurtPlayer(e.atk * 1.3, null); sfx('slam'); } }); } }
+          if (pat === 'summon') { spawnEnemy('clown', e.x - 30, e.y + 8); spawnEnemy('clown', e.x + 30, e.y + 8); if (enr) spawnEnemy('coaster', e.x, e.y + 26); bubble(e, tt('chapters/ch1.50'), 1.5); }
+          if (pat === 'march') { bubble(e, tt('chapters/ch1.51'), 1.2); for (const k of [-1, 0, 1]) { const ly = clamp(G.P.y - 8 + k * 34, 50, G.world.H - 30); G.fx.push({ k: 'line', x: 22, y: ly, a: 0, len: G.world.W - 44, w: 12, t: 0, dur: 0.95, onEnd: () => { for (let x = 30; x < G.world.W - 30; x += 12) G.parts.push({ x, y: ly, vx: rand(-20, 20), vy: rand(-40, -10), life: 0.5, max: 0.5, col: choice(['#ff7ab8', '#ffd84a', '#6fb8ff', '#b45cff']), sz: 2, grav: 80 }); if (Math.abs(G.P.y - 8 - ly) < 10) hurtPlayer(e.atk * 1.3, null); sfx('slam'); } }); } }
         } return;
       }
       if (e.st === 'spiral') { e.shT -= dt; if (e.shT <= 0) { e.shT = enr ? 0.085 : 0.115; e.sa += 0.38; shootAt(e, 'note', e.sa, 68); if (enr) shootAt(e, 'note', e.sa + Math.PI, 68); } }
@@ -337,5 +338,5 @@ regChapter({
     grass: { bg: '#2f6a26', hedge: ['#2f7a2a', '#4f9a3f', '#1f5a1c'], tint: [40, 20, 90, 0.16], glow: 0.2, winding: 1, ground: groundGrass, decor: decorGrass },
     cobble: { bg: '#2a2a36', hedge: ['#36603a', '#4f7f4a', '#22402a'], tint: [30, 8, 70, 0.34], glow: 0.32, ground: groundCobble, decor: decorCobble },
   },
-  story: { prologue: ['프롤로그 · 에버랜드 가는 날', INTRO], stages: {}, ending: ['엔딩 · 대탈출 성공', ENDING] }
+  story: { prologue: [tt('chapters/ch1.52'), INTRO], stages: {}, ending: [tt('chapters/ch1.53'), ENDING] }
 });

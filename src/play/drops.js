@@ -10,6 +10,7 @@ import { addItem, bookStats, calcStats, feedEquip, keepDupOf, ownsDef } from '..
 import { addText, bubble, moveToward } from './player.js';
 import { dupStones } from '../core/enhance.js';
 import { toast } from '../ui/dialog.js';
+import { tt } from '../sys/i18n.js';
 
 export function spawnDrop(kind, id, amt, x, y) { const a = rand(0, 6.28), s = rand(15, 45); G.drops.push({ kind, id, amt, x, y, z: 4, vz: rand(40, 70), vx: Math.cos(a) * s, vy: Math.sin(a) * s * 0.6, t: 0 }); }
 export function updateDrops(dt) {
@@ -27,21 +28,21 @@ export function updateDrops(dt) {
 function pickup(d) {
   const pd = G.pd, P = G.P;
   if (d.kind === 'gold') { pd.gold += d.amt; addText(P.x, P.y - 28, '+' + d.amt + 'G', 'gold'); sfx('coin'); }
-  else if (d.kind === 'stone') { pd.stones = (pd.stones || 0) + d.amt; addText(P.x, P.y - 32, '강화석 +' + d.amt, 'mana'); sfx('ding'); }
-  else if (d.kind === 'food') { pd.foods[d.id] = (pd.foods[d.id] || 0) + 1; addText(P.x, P.y - 30, '+' + FOODS[d.id].name, 'food'); sfx('ding'); if (PREMIUM.includes(d.id)) toast(`${FOODS[d.id].name} 획득! 최고급 보양식`, 'lvl'); }
+  else if (d.kind === 'stone') { pd.stones = (pd.stones || 0) + d.amt; addText(P.x, P.y - 32, tt('play/drops.1') + d.amt, 'mana'); sfx('ding'); }
+  else if (d.kind === 'food') { pd.foods[d.id] = (pd.foods[d.id] || 0) + 1; addText(P.x, P.y - 30, '+' + FOODS[d.id].name, 'food'); sfx('ding'); if (PREMIUM.includes(d.id)) toast(tt('play/drops.2', { name: FOODS[d.id].name }), 'lvl'); }
   else if (d.kind === 'item') {
     const it = ITEMS[d.id], own = ownsDef(pd, d.id), keep = own && keepDupOf(pd, it);
     const fed = !keep && feedEquip(it), isNewBook = !(pd.book || {})[d.id];
-    if (keep) { addItem(pd, d.id); if (it.bori) pd.newBori = true; else pd.newItem = true; toast(`${it.name} (중복) → 가방에 보관 (메뉴 → ${it.bori ? '보리' : '장비'})`, 'item r' + it.rar); sfx('ding'); }
-    else if (own) { if (fed) return; const s = dupStones(d.id); pd.stones = (pd.stones || 0) + s; toast(s ? `${it.name} (중복) → 강화석 ${s}개` : `${it.name} (중복) → 강화석은 꽝...`, 'sub'); if (s) sfx('coin'); }
-    else if (it.bori) { const k = addItem(pd, d.id); if (!pd.beq[it.slot]) { pd.beq[it.slot] = k; calcStats(); toast(`${it.name} 획득! 보리가 바로 ${it.slot === 'btoy' ? '물었어요' : '입었어요'}`, 'item r' + it.rar); if (G.bori) bubble(G.bori, '멍멍! (신남)', 1.4); } else { pd.newBori = true; toast(`보리 장비 획득: ${it.name}! (메뉴 → 보리)`, 'item r' + it.rar); } sfx('ding'); }
-    else { addItem(pd, d.id); pd.newItem = true; toast(`새 장비 획득: ${it.name}! (메뉴 → 장비)`, 'item r' + it.rar); sfx('ding'); }
+    if (keep) { addItem(pd, d.id); if (it.bori) pd.newBori = true; else pd.newItem = true; toast(tt('play/drops.14', { name: it.name, v1: it.bori ? tt('play/drops.3') : tt('play/drops.4') }), 'item r' + it.rar); sfx('ding'); }
+    else if (own) { if (fed) return; const s = dupStones(d.id); pd.stones = (pd.stones || 0) + s; toast(s ? tt('play/drops.5', { name: it.name, s }) : tt('play/drops.6', { name: it.name }), 'sub'); if (s) sfx('coin'); }
+    else if (it.bori) { const k = addItem(pd, d.id); if (!pd.beq[it.slot]) { pd.beq[it.slot] = k; calcStats(); toast(tt('play/drops.15', { name: it.name, v1: it.slot === 'btoy' ? tt('play/drops.7') : tt('play/drops.8') }), 'item r' + it.rar); if (G.bori) bubble(G.bori, tt('play/drops.9'), 1.4); } else { pd.newBori = true; toast(tt('play/drops.10', { name: it.name }), 'item r' + it.rar); } sfx('ding'); }
+    else { addItem(pd, d.id); pd.newItem = true; toast(tt('play/drops.11', { name: it.name }), 'item r' + it.rar); sfx('ding'); }
     if (isNewBook) bookNotify(d.id);
   }
 }
 /** 도감 새로 등록 알림 + 세트 완성 축하 */
 export function bookNotify(id) {
   const pd = G.pd, before = bookStats(pd).done; pd.book[id] = 1; calcStats(); const after = bookStats(pd);
-  toast(`📖 도감 등록! ${ITEMS[id].name} (${after.n}/${BOOK_ALL.length})`, 'sub');
-  for (const s of BOOK_SETS) if (after.done[s.k] && !before[s.k]) { toast(`📖 ${s.name} 도감 완성! ${s.txt}`, 'lvl'); sfx('lvl'); }
+  toast(tt('play/drops.12', { name: ITEMS[id].name, n: after.n, length: BOOK_ALL.length }), 'sub');
+  for (const s of BOOK_SETS) if (after.done[s.k] && !before[s.k]) { toast(tt('play/drops.13', { name: s.name, txt: s.txt }), 'lvl'); sfx('lvl'); }
 }

@@ -18,6 +18,7 @@ import { TITLE_PD } from '../ui/lobby.js';
 import { drawRival } from '../net/pvp.js';
 import { ACH_BY, ACH_COL } from '../features/achv.js';
 import { plazaDrawLayer, plazaOverlay } from '../net/plaza.js';
+import { tt } from '../sys/i18n.js';
 
 export const FONT = '"HB", "Galmuri11", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif';
 export function txt(s, x, y, size, fill, stroke, align, bold) {
@@ -280,8 +281,8 @@ function renderScreen() {
   if (G.P && G.P.hp < G.st.hp * 0.25 && G.state === 'play') { const pa = 0.25 + Math.sin(G.time * 6) * 0.12; const lg = ctx.createRadialGradient(cw / 2, ch / 2, Math.min(cw, ch) * 0.3, cw / 2, ch / 2, Math.max(cw, ch) * 0.7); lg.addColorStop(0, 'rgba(255,0,40,0)'); lg.addColorStop(1, `rgba(255,0,40,${pa})`); ctx.fillStyle = lg; ctx.fillRect(0, 0, cw, ch); }
   const U = S;
   // gate label
-  if (!G.tower && !G.raid && !G.plaza) { const [x, y] = W2S(W.gate.x, W.gate.y - 49); if (y > -20 && y < ch + 20) txt(!isChLast(G.zone) ? '→ ' + ZONES[G.zone].next : '탈출구', x, y, U * 4.2, G.exitOpen ? '#7a3a1a' : '#9a8a8a', null, 'center'); }
-  if (W.mainGate) { const [x, y] = W2S(W.mainGate.x, W.mainGate.y - 49); if (y < ch + 20) txt('정문 (봉쇄됨)', x, y, U * 4, '#a03040'); }
+  if (!G.tower && !G.raid && !G.plaza) { const [x, y] = W2S(W.gate.x, W.gate.y - 49); if (y > -20 && y < ch + 20) txt(!isChLast(G.zone) ? '→ ' + ZONES[G.zone].next : tt('draw/render.1'), x, y, U * 4.2, G.exitOpen ? '#7a3a1a' : '#9a8a8a', null, 'center'); }
+  if (W.mainGate) { const [x, y] = W2S(W.mainGate.x, W.mainGate.y - 49); if (y < ch + 20) txt(tt('draw/render.2'), x, y, U * 4, '#a03040'); }
   // texts
   for (const t of G.texts) {
     const p = t.t / t.dur; const [x, y0] = W2S(t.x, t.y); const y = y0 - p * 14 * U * (t.kind === 'crit' ? 1.2 : 1);
@@ -304,7 +305,7 @@ function renderScreen() {
   // enemy status
   for (const e of G.enemies) if (e.rival && !e.dead && e.spawnT <= 0) { const [x, y] = W2S(e.x, e.y - 30); txt(e.nick, x, y, U * 3.6, '#ffd1e6', '#2b1b24'); achNameTag(e.snap, x, y, U); }
   if (G.buddy && G.buddy.spawnT <= 0) { const [x, y] = W2S(G.buddy.x, G.buddy.y - 30); txt('🤝' + G.buddy.nick, x, y, U * 3.4, '#d6f5ff', '#2b1b24'); achNameTag(G.buddy.snap, x, y, U); }
-  for (const e of G.enemies) { if (e.dead || e.spawnT > 0) continue; const [x, y] = W2S(e.x, e.y - (e.hopY || 0) - e.h - 6); if (e.mental > 0 || e.confuse > 0) txt(Math.floor(G.time * 3) % 2 ? '@_@' : '?!', x, y, U * 4, '#ff7ab8', '#2b1b24'); else if (e.panic > 0) { txt(Math.floor(G.time * 4) % 2 ? '헉!' : '당황', x, y - Math.abs(Math.sin(G.time * 10)) * U * 2, U * 4.2, '#7ec8ff', '#2b1b24'); const [sx, sy] = W2S(e.x + e.w * 0.4, e.y - e.h * 0.8); ctx.fillStyle = '#9fe8ff'; ctx.fillRect(sx, sy + ((G.time * 30) % 6) * U * 0.5, U * 1.4, U * 2); } else if (e.fear > 0) txt('!!', x, y, U * 4.5, '#ffd84a', '#2b1b24'); }
+  for (const e of G.enemies) { if (e.dead || e.spawnT > 0) continue; const [x, y] = W2S(e.x, e.y - (e.hopY || 0) - e.h - 6); if (e.mental > 0 || e.confuse > 0) txt(Math.floor(G.time * 3) % 2 ? '@_@' : '?!', x, y, U * 4, '#ff7ab8', '#2b1b24'); else if (e.panic > 0) { txt(Math.floor(G.time * 4) % 2 ? tt('draw/render.3') : tt('draw/render.4'), x, y - Math.abs(Math.sin(G.time * 10)) * U * 2, U * 4.2, '#7ec8ff', '#2b1b24'); const [sx, sy] = W2S(e.x + e.w * 0.4, e.y - e.h * 0.8); ctx.fillStyle = '#9fe8ff'; ctx.fillRect(sx, sy + ((G.time * 30) % 6) * U * 0.5, U * 1.4, U * 2); } else if (e.fear > 0) txt('!!', x, y, U * 4.5, '#ffd84a', '#2b1b24'); }
   if (G.plaza) plazaOverlay(U);
   // speech bubbles
   for (const b of G.bubbles) {
@@ -315,7 +316,7 @@ function renderScreen() {
   }
   // indicator
   let tgt = null, lab = '';
-  if (G.boss && !G.boss.dead) { tgt = G.boss; lab = 'BOSS'; } else if (G.exitOpen) { tgt = { x: W.gate.x, y: W.gate.y - 10 }; lab = '출구'; }
+  if (G.boss && !G.boss.dead) { tgt = G.boss; lab = 'BOSS'; } else if (G.exitOpen) { tgt = { x: W.gate.x, y: W.gate.y - 10 }; lab = tt('draw/render.5'); }
   if (tgt && G.state === 'play') {
     const [x, y] = W2S(tgt.x, tgt.y - 10); const m = 26 * DPR;
     const top = (G.boss ? 160 : 130) * DPR, bot = ch - 200 * DPR;
@@ -340,7 +341,7 @@ function drawUlt() {
   const [hx, hy] = W2S(G.P.x, G.P.y - 12); const rr = S * 70 * (0.7 + Math.sin(t * 12) * 0.08) * Math.min(1, t * 3);
   const rg = ctx.createRadialGradient(hx, hy, 0, hx, hy, rr); rg.addColorStop(0, `rgba(255,120,200,${0.55 * Math.min(1, (U.dur - t) * 2)})`); rg.addColorStop(1, 'rgba(255,120,200,0)'); ctx.fillStyle = rg; ctx.fillRect(hx - rr, hy - rr, rr * 2, rr * 2);
   const base = Math.min(cw, ch);
-  if (t < 1.7) { const s = t < 0.22 ? 2.6 - 7 * t : 1; ctx.save(); ctx.globalAlpha = t > 1.35 ? Math.max(0, (1.7 - t) / 0.35) : 1; ctx.translate(cw / 2, ch * 0.3); ctx.scale(s, s); ctx.rotate(-0.06); txt('멘헤라 공격', 0, 0, base * 0.11, '#ff7ab8', '#2a0838'); txt('♥ MENHERA ATTACK ♥', 0, base * 0.085, base * 0.042, '#ffd1e6', '#2a0838'); ctx.restore(); }
+  if (t < 1.7) { const s = t < 0.22 ? 2.6 - 7 * t : 1; ctx.save(); ctx.globalAlpha = t > 1.35 ? Math.max(0, (1.7 - t) / 0.35) : 1; ctx.translate(cw / 2, ch * 0.3); ctx.scale(s, s); ctx.rotate(-0.06); txt(tt('draw/render.6'), 0, 0, base * 0.11, '#ff7ab8', '#2a0838'); txt('♥ MENHERA ATTACK ♥', 0, base * 0.085, base * 0.042, '#ffd1e6', '#2a0838'); ctx.restore(); }
   for (const L of U.lines) {
     const lt = t - L.d; if (lt < 0) continue;
     const fade = t > U.dur - 0.5 ? Math.max(0, (U.dur - t) / 0.5) : 1;

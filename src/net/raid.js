@@ -25,52 +25,53 @@ import { autoOff } from '../play/auto.js';
 import { MEDAL, PXI, rankJoin, rewardCards, rwItems, seasonModalShow } from './rank.js';
 import { buddySpawn } from './buddy.js';
 import { RULES } from '../core/rules.js';
+import { tt } from '../sys/i18n.js';
 
 const RAID_TIME = 60;
 export const RAID = { info: /** @type {any} */ (null), busy: false };
 /** 레이드 보상표 — core/rules.js RULES.raid (서버 hb_raid_settle 도 같은 값에서 만들어짐) */
 const RR = RULES.raid;
-const RAID_REWARDS = [{ k: 1, label: '피해량 1위', ...RR.top1 }, { k: 2, label: '2~3위', ...RR.top3 }, { k: 4, label: '처치 성공 시 참가자 전원', ...RR.kill }, { k: 5, label: '처치 실패 시 참가자', ...RR.fail }];
+const RAID_REWARDS = [{ k: 1, label: tt('net/raid.1'), ...RR.top1 }, { k: 2, label: tt('net/raid.2'), ...RR.top3 }, { k: 4, label: tt('net/raid.3'), ...RR.kill }, { k: 5, label: tt('net/raid.4'), ...RR.fail }];
 
 async function raidLoad() {
   try { await sbInit(); const { data, error } = await SB.rpc('hb_raid_info'); if (error) throw error; RAID.info = data; } catch (e) { RAID.info = null; throw e; }
   return RAID.info;
 }
 export const raidBossURL = boss => { try { const m = MONS[boss], s = monSpr(m.spr), k = 6, c = mkCanvas(s.W * k, s.H * k), g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(s.n, 0, 0, s.W * k, s.H * k); return c.toDataURL(); } catch (e) { return ''; } };
-const raidLeft = I => { const s = Math.max(0, (new Date(I.ends_at).getTime() - Date.now()) / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600); return d ? `${d}일 ${h}시간` : `${h}시간 ${Math.floor(s % 3600 / 60)}분`; };
+const raidLeft = I => { const s = Math.max(0, (new Date(I.ends_at).getTime() - Date.now()) / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600); return d ? tt('net/raid.5', { d, h }) : tt('net/raid.6', { h, v1: Math.floor(s % 3600 / 60) }); };
 
 export function raidOpen() {
-  if (FORCE_EASY) return; const saved = loadGame(); if (!saved) { toast('모험을 먼저 시작해야 레이드에 갈 수 있어요', 'warn'); return; }
+  if (FORCE_EASY) return; const saved = loadGame(); if (!saved) { toast(tt('net/raid.7'), 'warn'); return; }
   G.pd = saved; G.P = null; calcStats(); G.pvp = null; G.raid = null;
   $('#title').hidden = true; showHUD(false); G.state = 'raidLobby'; playBgm('boss');
-  $('#raid').hidden = false; $('#raidBody').innerHTML = '<div class="pvmsg">서버에 연결하는 중...</div>';
-  (async () => { try { await raidLoad(); if (!PV.me) await pvpLoadMe().catch(() => { }); raidRender(); } catch (e) { $('#raidBody').innerHTML = `<div class="pvmsg">연결 실패: ${esc(pvErr(e))}</div>`; } })();
+  $('#raid').hidden = false; $('#raidBody').innerHTML = tt('net/raid.8');
+  (async () => { try { await raidLoad(); if (!PV.me) await pvpLoadMe().catch(() => { }); raidRender(); } catch (e) { $('#raidBody').innerHTML = tt('net/raid.9', { v1: esc(pvErr(e)) }); } })();
 }
 function raidRender() {
   const I = RAID.info; if (!I) return; const m = MONS[I.boss] || MONS.boss4, pct = I.max_hp ? Math.max(0, I.hp) / I.max_hp : 0, my = I.my || { damage: 0, tries_today: 0 };
   const left = Math.max(0, (I.max_tries || RR.tries) - (my.tries_today || 0)), killed = !!I.killed_at;
-  const top = (I.top || []).map((t, i) => `<div class="rdrow${t.mine ? ' mine' : ''}"><i>${i < 3 ? MEDAL(i + 1) : i + 1}</i><em>${esc(t.nickname)}</em><b>${Number(t.damage).toLocaleString()}</b></div>`).join('') || '<div class="pvmsg">아직 아무도 도전하지 않았어요. 첫 타를 날려보세요!</div>';
+  const top = (I.top || []).map((t, i) => `<div class="rdrow${t.mine ? ' mine' : ''}"><i>${i < 3 ? MEDAL(i + 1) : i + 1}</i><em>${esc(t.nickname)}</em><b>${Number(t.damage).toLocaleString()}</b></div>`).join('') || tt('net/raid.10');
   const can = PV.me && left > 0;
-  $('#raidBody').innerHTML = `<div class="rdboss"><img src="${raidBossURL(I.boss)}"><div><small>이번 주 월드 보스</small><b>${esc(m.name)}</b><span>${killed ? '처치 완료! 남은 기간은 피해량 경쟁' : `월요일 0시까지 ${raidLeft(I)}`}</span></div></div>`
-    + `<div class="rdhp${killed ? ' dead' : ''}"><i style="width:${(pct * 100).toFixed(2)}%"></i><span>${killed ? '처치 완료!' : `${Math.max(0, I.hp).toLocaleString()} / ${Number(I.max_hp).toLocaleString()}`}</span></div>`
-    + `<div class="rdmine"><span>내 누적 피해 <b>${Number(my.damage || 0).toLocaleString()}</b></span><span>참가 ${I.participants || 0}명</span></div>`
-    + `<div class="row rdbtns"><button class="btn pk" data-rd="go" ${can ? '' : 'disabled'}>${PV.me ? `도전하기 <small>오늘 남은 도전 ${left}/${I.max_tries || RR.tries}</small>` : '랭킹 등록 후 도전할 수 있어요'}</button><button class="btn wh sm" data-rd="rw">보상 보기</button></div>`
-    + (PV.me ? '' : `<button class="btn wh" data-rd="join">랭킹에 내 희수 올리기</button>`)
-    + `<h3>피해량 순위</h3><div class="rdlist">${top}</div>`;
+  $('#raidBody').innerHTML = tt('net/raid.48', { v1: raidBossURL(I.boss), v2: esc(m.name), v3: killed ? tt('net/raid.11') : tt('net/raid.12', { v1: raidLeft(I) }) })
+    + `<div class="rdhp${killed ? ' dead' : ''}"><i style="width:${(pct * 100).toFixed(2)}%"></i><span>${killed ? tt('net/raid.13') : `${Math.max(0, I.hp).toLocaleString()} / ${Number(I.max_hp).toLocaleString()}`}</span></div>`
+    + tt('net/raid.14', { v1: Number(my.damage || 0).toLocaleString(), v2: I.participants || 0 })
+    + tt('net/raid.49', { v1: can ? '' : 'disabled', v2: PV.me ? tt('net/raid.15', { left, v1: I.max_tries || RR.tries }) : tt('net/raid.16') })
+    + (PV.me ? '' : tt('net/raid.17'))
+    + tt('net/raid.18', { top });
 }
 function raidRewardsOpen() {
-  $('#seasonModalBody').innerHTML = `<h2>월드 보스 보상</h2><p class="smsub">월요일 0시에 선물함으로 지급돼요<br>(그 주에 1번이라도 도전한 희수만)</p>`
+  $('#seasonModalBody').innerHTML = tt('net/raid.19')
     + RAID_REWARDS.map(r => `<div class="srw"><div class="srk"><i>${r.k === 1 ? MEDAL(1) : r.k === 2 ? MEDAL(2) : r.k === 4 ? PXI('trophy') : PXI('rosette')}</i><b>${r.label}</b></div>${rewardCards(rwItems(r))}</div>`).join('')
-    + '<p class="smsub">순위 보상은 처치 성공 보상과 함께 받아요</p>';
+    + tt('net/raid.20');
   seasonModalShow();
 }
 async function raidGo() {
   if (RAID.busy) return; RAID.busy = true;
   try {
     const { data, error } = await SB.rpc('hb_raid_start'); if (error) throw error;
-    if (!data || !data.ok) { toast(data && data.reason === 'tries' ? '오늘 도전은 다 썼어요. 내일 또 와요!' : '지금은 도전할 수 없어요', 'warn'); await raidLoad(); raidRender(); return; }
-    RAID.info = data.info || RAID.info; $('#raid').hidden = true; fadeTo(() => startRaidArena(RAID.info), '월드 보스');
-  } catch (e) { toast('도전 실패: ' + pvErr(e), 'warn'); } finally { RAID.busy = false; }
+    if (!data || !data.ok) { toast(data && data.reason === 'tries' ? tt('net/raid.21') : tt('net/raid.22'), 'warn'); await raidLoad(); raidRender(); return; }
+    RAID.info = data.info || RAID.info; $('#raid').hidden = true; fadeTo(() => startRaidArena(RAID.info), tt('net/raid.23'));
+  } catch (e) { toast(tt('net/raid.24') + pvErr(e), 'warn'); } finally { RAID.busy = false; }
 }
 
 // ---------- 전투 ----------
@@ -85,12 +86,12 @@ function startRaidArena(I) {
   const e = spawnEnemy(I.boss, W.start.x, W.start.y - 120);
   // 거대화 + 내 능력치 기준 위협(한 대에 최대 HP 약 3.5%) + 방어 0(피해는 내 능력치로만), 체력바 = 모두의 남은 HP
   e.raid = true; e.sc *= 1.6; e.w *= 1.6; e.h *= 1.6; e.r = Math.round(e.r * 1.4); e.def = 0; e.elite = false;
-  e.atk = G.st.hp * 0.035 * (60 + G.st.def) / 60; e.m = Object.assign({}, m0, { name: `월드 보스 · ${m0.name}`, drops: [], xp: 0, gold: [0, 0] });
+  e.atk = G.st.hp * 0.035 * (60 + G.st.def) / 60; e.m = Object.assign({}, m0, { name: tt('net/raid.25', { name: m0.name }), drops: [], xp: 0, gold: [0, 0] });
   e.maxHp = Math.max(1, Number(I.max_hp) || 1); e.hp = Math.max(1, Number(I.hp) || 1); G.boss = e;
   const done = !!I.killed_at || Number(I.hp) <= 0; if (done) raidDone(e, false);
   G.cam.x = clamp(G.P.x - VW / 2, 0, Math.max(0, W.W - VW)); G.cam.y = clamp(G.P.y - 60 - VH / 2, 0, Math.max(0, W.H - VH));
-  G.state = 'play'; showHUD(true); playBgm('boss'); banner('월드 보스', done ? '이번 주 보스는 이미 쓰러졌어요 · 월요일까지 피해량 경쟁!' : m0.name, 'boss'); sfx('boss');
-  bubble(G.P, done ? choice(['피해량 1등 가자!', '기록 갱신 간다!']) : choice(['다 같이 잡자!', '내 몫은 확실히!', '희수 출격!']), 1.8);
+  G.state = 'play'; showHUD(true); playBgm('boss'); banner(tt('net/raid.23'), done ? tt('net/raid.26') : m0.name, 'boss'); sfx('boss');
+  bubble(G.P, done ? choice([tt('net/raid.27'), tt('net/raid.28')]) : choice([tt('net/raid.29'), tt('net/raid.30'), tt('net/raid.31')]), 1.8);
 }
 /** dealDamage 에서 호출: 레이드 보스는 죽지 않고 피해만 쌓임 */
 export function raidHit(e, dmg) {
@@ -99,23 +100,23 @@ export function raidHit(e, dmg) {
 }
 /** 이번 주 보스 체력이 0 → 쓰러진 상태(피해량 경쟁). now=true 면 내 도전 중에 쓰러뜨린 순간 */
 function raidDone(e, now) {
-  e.raidDone = true; e.hp = e.maxHp; e.m.name = `${e.m.name} · 처치 완료! 피해량 경쟁`;
-  if (now) { G.shake = 9; sfx('lvl'); burst(e.x, e.y - e.h / 2, '#ffd84a', 40); banner('월드 보스 처치!', '다 같이 쓰러뜨렸어요 · 남은 시간은 피해량 경쟁', 'boss'); bubble(G.P, '쓰러뜨렸다!!', 1.8); }
+  e.raidDone = true; e.hp = e.maxHp; e.m.name = tt('net/raid.32', { name: e.m.name });
+  if (now) { G.shake = 9; sfx('lvl'); burst(e.x, e.y - e.h / 2, '#ffd84a', 40); banner(tt('net/raid.33'), tt('net/raid.34'), 'boss'); bubble(G.P, tt('net/raid.35'), 1.8); }
 }
 export function raidUpdate(dt) {
   const V = G.raid; if (!V || V.over || G.state !== 'play') return;
-  V.t -= dt; if (V.t <= 0) { V.t = 0; raidEnd('시간 종료!'); }
+  V.t -= dt; if (V.t <= 0) { V.t = 0; raidEnd(tt('net/raid.36')); }
 }
 export async function raidEnd(why) {
   const V = G.raid; if (!V || V.over) return; V.over = true; G.state = 'raidEnd'; INP.atk = false; if (typeof autoOff === 'function') autoOff();
   const dmg = Math.round(V.dmg); sfx('lvl'); G.pd.stats.raidBest = Math.max(G.pd.stats.raidBest || 0, dmg); saveGame();
   $('#raidRes').hidden = false; $('#raidResT').textContent = why;
-  $('#raidResS').innerHTML = `이번 도전 피해량<br><b class="rdbig">${dmg.toLocaleString()}</b><span id="raidResM">서버에 반영하는 중...</span>`;
+  $('#raidResS').innerHTML = tt('net/raid.37', { v1: dmg.toLocaleString() });
   try {
     const { data, error } = await SB.rpc('hb_raid_report', { p_damage: dmg }); if (error) throw error;
-    if (data && data.ok) { RAID.info = data.info || RAID.info; const I = RAID.info; $('#raidResM').innerHTML = `<br>내 누적 ${Number(data.total || 0).toLocaleString()}${data.capped ? ' (상한 적용)' : ''}<br>${I && I.killed_at ? '🎉 월드 보스 처치 완료!' : `보스 남은 HP ${Number(I ? I.hp : 0).toLocaleString()}`}`; }
-    else $('#raidResM').textContent = '반영하지 못했어요 (도전 시간이 지났어요)';
-  } catch (e) { $('#raidResM').textContent = '반영 실패: ' + pvErr(e); }
+    if (data && data.ok) { RAID.info = data.info || RAID.info; const I = RAID.info; $('#raidResM').innerHTML = tt('net/raid.50', { v1: Number(data.total || 0).toLocaleString(), v2: data.capped ? tt('net/raid.38') : '', v3: I && I.killed_at ? tt('net/raid.39') : tt('net/raid.40', { v1: Number(I ? I.hp : 0).toLocaleString() }) }); }
+    else $('#raidResM').textContent = tt('net/raid.41');
+  } catch (e) { $('#raidResM').textContent = tt('net/raid.42') + pvErr(e); }
   saveGame();
 }
 function raidResAct(a) {
@@ -132,7 +133,7 @@ export function raidBoot() {
 
 /** 받은 레이드 보상 모달 */
 export function raidGotOpen(rank, killed, items) {
-  const head = rank ? `월드 보스 피해량<br><em>${rank}위</em> 달성!` : killed ? '월드 보스<br><em>처치 성공!</em>' : '월드 보스<br><em>참가 보상</em>';
-  $('#seasonModalBody').innerHTML = `<div class="sgot"><div class="sbig">${rank === 1 ? MEDAL(1) : rank ? MEDAL(rank <= 3 ? rank : 4) : killed ? PXI('trophy') : PXI('rosette')}</div><h2>지난 주 ${head}</h2><p class="smsub">${killed ? '다 같이 보스를 쓰러뜨렸어요!' : '아쉽게 못 잡았지만 함께해줘서 고마워요'}</p>${rewardCards(items, true)}</div>`;
+  const head = rank ? tt('net/raid.43', { rank }) : killed ? tt('net/raid.44') : tt('net/raid.45');
+  $('#seasonModalBody').innerHTML = tt('net/raid.51', { v1: rank === 1 ? MEDAL(1) : rank ? MEDAL(rank <= 3 ? rank : 4) : killed ? PXI('trophy') : PXI('rosette'), head, v2: killed ? tt('net/raid.46') : tt('net/raid.47'), v3: rewardCards(items, true) });
   seasonModalShow(); sfx('lvl');
 }

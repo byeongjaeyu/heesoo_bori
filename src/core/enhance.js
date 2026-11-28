@@ -8,6 +8,7 @@ import { BSLOTS, ITEMS } from './data.js';
 import { G } from './state.js';
 import { saveGame } from './save.js';
 import { calcStats, dropItem, ilvOf } from './items.js';
+import { tt } from '../sys/i18n.js';
 
 export const ENH_MAX = 25;
 const ENH_P    = [1, .95, .9, .85, .8, .75, .7, .65, .6, .55, .5, .45, .4, .38, .35, .33, .31, .3, .29, .28, .27, .26, .25, .24, .22];
@@ -20,13 +21,13 @@ const ENH_STONE_HIGH = [50, 80, 120, 160, 200];
 export const enhStoneCost = lv => lv < 10 ? 1 : lv < 15 ? 3 : lv < 18 ? 6 : lv < 20 ? 10 : ENH_STONE_HIGH[lv - 20] || 200;
 // 부위별 강화 1단계 효과
 export const ENH_FX = {
-  weapon: { atk: 2.5, crit: 0.01, txt: en => `공격 +${+(2.5 * en).toFixed(1)} · 치명 +${en}%` },
-  hat:    { def: 1, hp: 12, txt: en => `방어 +${en} · HP +${12 * en}` },
-  armor:  { def: 1.5, hp: 20, txt: en => `방어 +${+(1.5 * en).toFixed(1)} · HP +${20 * en}` },
-  shoes:  { spd: 0.008, def: 0.5, txt: en => `이속 +${+(0.8 * en).toFixed(1)}% · 방어 +${+(0.5 * en).toFixed(1)}` },
-  bag:    { mp: 6, crit: 0.003, txt: en => `MP +${6 * en} · 치명 +${+(0.3 * en).toFixed(1)}%` },
-  bcloth: { boriMul: 0.03, txt: en => `보리 공격 +${3 * en}%` },
-  btoy:   { boriMul: 0.03, txt: en => `보리 공격 +${3 * en}%` }
+  weapon: { atk: 2.5, crit: 0.01, txt: en => tt('core/enhance.1', { v1: +(2.5 * en).toFixed(1), en }) },
+  hat:    { def: 1, hp: 12, txt: en => tt('core/enhance.2', { en, v1: 12 * en }) },
+  armor:  { def: 1.5, hp: 20, txt: en => tt('core/enhance.3', { v1: +(1.5 * en).toFixed(1), v2: 20 * en }) },
+  shoes:  { spd: 0.008, def: 0.5, txt: en => tt('core/enhance.4', { v1: +(0.8 * en).toFixed(1), v2: +(0.5 * en).toFixed(1) }) },
+  bag:    { mp: 6, crit: 0.003, txt: en => tt('core/enhance.5', { v1: 6 * en, v2: +(0.3 * en).toFixed(1) }) },
+  bcloth: { boriMul: 0.03, txt: en => tt('core/enhance.6', { v1: 3 * en }) },
+  btoy:   { boriMul: 0.03, txt: en => tt('core/enhance.6', { v1: 3 * en }) }
 };
 // 분해 강화석 (등급별, 화면에 숫자로 보임)
 const STONE_YIELD = [1, 2, 4, 10, 25, 60];

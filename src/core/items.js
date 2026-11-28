@@ -14,6 +14,7 @@ import { ILV_BONUS, ILV_NEED, sk } from './save.js';
 import { ENH_FX, brkMul } from './enhance.js';
 import { awkLv, msGot, towerBest } from './progress.js';
 import { jobApply, jobFeedOk, jobSigDef } from './job.js';
+import { tt } from '../sys/i18n.js';
 
 export const BAG_MAX = 300;
 export const keysOf = (/** @type {SaveData} */ pd, id) => Object.keys(pd.inv || {}).filter(k => defOf(k) === id);
@@ -37,9 +38,9 @@ export function feedEquip(it) {
   pd.ilv = pd.ilv || {}; pd.iexp = pd.iexp || {}; const n = (pd.iexp[cur] || 0) + 1;
   if (n >= ILV_NEED) {
     pd.iexp[cur] = 0; pd.ilv[cur] = (pd.ilv[cur] || 0) + 1; calcStats(); sfx('lvl');
-    emit('toast', `장비 레벨업! ${ci.name} Lv.${pd.ilv[cur]} (기본 스탯 +${Math.round(ILV_BONUS * 100 * pd.ilv[cur])}%)`, 'lvl');
-    const who = it.bori ? G.bori : G.P; if (who) { G.fx.push({ k: 'lvl', x: who.x, y: who.y, t: 0, dur: 1.0 }); emit('bubble', who, it.bori ? '멍멍!! (더 좋아졌다)' : '장비가 손에 착 붙는다!', 1.3); }
-  } else { pd.iexp[cur] = n; emit('toast', `${it.name} → ${ci.name} 경험치 ${n}/${ILV_NEED}`, 'sub'); sfx('coin'); }
+    emit('toast', tt('core/items.1', { name: ci.name, v1: pd.ilv[cur], v2: Math.round(ILV_BONUS * 100 * pd.ilv[cur]) }), 'lvl');
+    const who = it.bori ? G.bori : G.P; if (who) { G.fx.push({ k: 'lvl', x: who.x, y: who.y, t: 0, dur: 1.0 }); emit('bubble', who, it.bori ? tt('core/items.2') : tt('core/items.3'), 1.3); }
+  } else { pd.iexp[cur] = n; emit('toast', tt('core/items.4', { name: it.name, name2: ci.name, n, ILV_NEED }), 'sub'); sfx('coin'); }
   return true;
 }
 /** 실제 착용 장비 이름 (개별 키 → 장비 이름) */

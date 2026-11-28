@@ -26,11 +26,11 @@
     </div>
   </div>
   <div id="buffHud" hidden></div>
-  <div id="boriHud" hidden><img id="boriImg" alt=""><span>보리</span><b>귀여워서 무적</b></div>
+  <div id="boriHud" hidden><img id="boriImg" alt=""><span data-tt="html.1"></span><b data-tt="html.2"></b></div>
   <div id="hudR">
     <div id="gold"><img id="coinImg" alt=""><span id="goldT">0</span></div>
     <button id="sndBtn" class="hb">♪</button>
-    <button id="menuBtn" class="hb">메뉴<em id="spBadge" hidden>!</em></button>
+    <button id="menuBtn" class="hb" data-tt="html.3"></button>
   </div>
   <div id="quest"><b id="zoneT"></b><span id="questT"></span></div>
   <div id="guide" hidden></div>
@@ -38,17 +38,17 @@
 </div>
 
 <div id="ctrl" hidden>
-  <button class="sk" id="bS1" data-act="s1" data-key="K"><img alt=""><i class="cd"></i><span class="cdT"></span><b class="lock"></b><small>스매싱</small></button>
-  <button class="sk" id="bS2" data-act="s2" data-key="L"><img alt=""><i class="cd"></i><span class="cdT"></span><b class="lock"></b><small>잔소리</small></button>
-  <button class="sk" id="bS3" data-act="s3" data-key=";"><img alt=""><i class="cd"></i><span class="cdT"></span><b class="lock"></b><small>집에 갈래</small></button>
-  <button class="sk" id="bULT" data-act="ult" data-key="U"><img alt=""><i class="cd"></i><span class="cdT"></span><b class="lock"></b><small>멘헤라</small></button>
+  <button class="sk" id="bS1" data-act="s1" data-key="K"><img alt=""><i class="cd"></i><span class="cdT"></span><b class="lock"></b><small data-tt="html.4"></small></button>
+  <button class="sk" id="bS2" data-act="s2" data-key="L"><img alt=""><i class="cd"></i><span class="cdT"></span><b class="lock"></b><small data-tt="html.5"></small></button>
+  <button class="sk" id="bS3" data-act="s3" data-key=";"><img alt=""><i class="cd"></i><span class="cdT"></span><b class="lock"></b><small data-tt="html.6"></small></button>
+  <button class="sk" id="bULT" data-act="ult" data-key="U"><img alt=""><i class="cd"></i><span class="cdT"></span><b class="lock"></b><small data-tt="html.7"></small></button>
   <button class="atk" data-act="atk" data-key="J"><img id="atkImg" alt=""></button>
   <button class="food auto" id="bAuto" data-act="auto" data-key="O"><b>AUTO</b><span>30:00</span></button>
-  <button class="food buddyb" id="bBuddy" data-act="buddy"><b>동료</b><span>친구</span></button>
+  <button class="food buddyb" id="bBuddy" data-act="buddy"><b data-tt="html.8"></b><span data-tt="html.9"></span></button>
   <button class="food" id="bHP" data-act="hp" data-key="Q"><img alt=""><small>HP</small><span>0</span></button>
   <button class="food" id="bMP" data-act="mp" data-key="E"><img alt=""><small>MP</small><span>0</span></button>
 </div>
-<div id="keyHint" hidden><b>키보드</b> 이동 WASD·방향키 · 공격 J/Space<br>스킬 K L ; · 궁극기 U · 음식 Q/E<br>자동사냥 O · 메뉴 I · 광장 채팅 Enter</div>
+<div id="keyHint" hidden data-tt="html.10"></div>
 
 <div id="ctrl2" hidden>
   <button class="atk" id="c2atk" data-act="atk"><img alt=""><small></small></button>
@@ -59,10 +59,10 @@
 <button id="e2pause" class="hb" hidden>Ⅱ</button>
 <div id="toasts"></div>
 <div id="banner" hidden><small></small><b></b></div>
-<div id="mission" class="ovl" hidden><small>MISSION</small><b>몬스터를 사냥해 강해지고<br>에버랜드를 탈출하라!</b><p>왼쪽 화면을 드래그해서 이동 · 주먹 버튼으로 공격<br>가만히 있으면 희수는 폰을 봐요 (HP·MP 회복 UP)</p></div>
+<div id="mission" class="ovl" hidden><small>MISSION</small><b data-tt="html.11"></b><p data-tt="html.12"></p></div>
 
 <div id="dlg" hidden><div class="face"><img id="dlgFace" alt=""></div><div class="body"><div id="dlgName"></div><div id="dlgText"></div><i class="next">▼</i></div></div>
-<button id="skip" hidden>건너뛰기 ▶▶</button>
+<button id="skip" hidden data-tt="html.13"></button>
 
 <div id="menu" class="ovl" hidden>
   <div class="panel">
@@ -73,40 +73,40 @@
 
 <div id="title" class="ovl">
   <div class="tbar" id="tbar"></div>
-  <div class="ttl"><h1><span>희수</span>와 <em>보리</em>의<br>대모험</h1></div>
+  <div class="ttl"><h1 data-tt="html.14"></h1></div>
   <div class="tside tl" id="tsideL"></div><div class="tside tr" id="tsideR"></div>
   <div class="tbtns" id="tbtns"></div>
 </div>
 
-<div id="death" class="ovl" hidden><div class="dbox"><h2>희수가 기절했다...</h2><p>폰 배터리도 0%...<br>병원비로 골드 10%를 내고 다시 일어나요.</p><button class="btn pk" id="reviveBtn">다시 일어나기</button></div></div>
-<div id="endScr" class="ovl" hidden><h1>THE END</h1><h2>희수와 보리의 에버랜드 대탈출</h2><div class="est" id="endStats"></div><div class="tbtns" id="endBtns"></div></div>
-<div id="e2menu" class="ovl" hidden><div class="panel e2panel"><div class="mhead e2head"><b>미니게임 · 보리 주세요</b><span id="e2info"></span></div><div id="e2list"></div><div class="row e2foot"><button class="btn" data-e="wardrobe">보리 옷장</button><button class="btn wh" data-e="prologue">프롤로그</button><button class="btn wh" data-e="ending" id="e2endBtn">엔딩</button><button class="btn wh" data-e="title">타이틀</button></div></div></div>
-<div id="e2card" class="ovl" hidden><div class="dbox e2box"><small id="e2cSub"></small><h2 id="e2cName"></h2><p id="e2cHow"></p><button class="btn pk" id="e2start">시작!</button></div></div>
+<div id="death" class="ovl" hidden><div class="dbox"><h2 data-tt="html.15"></h2><p data-tt="html.16"></p><button class="btn pk" id="reviveBtn" data-tt="html.17"></button></div></div>
+<div id="endScr" class="ovl" hidden><h1>THE END</h1><h2 data-tt="html.18"></h2><div class="est" id="endStats"></div><div class="tbtns" id="endBtns"></div></div>
+<div id="e2menu" class="ovl" hidden><div class="panel e2panel"><div class="mhead e2head"><b data-tt="html.19"></b><span id="e2info"></span></div><div id="e2list"></div><div class="row e2foot"><button class="btn" data-e="wardrobe" data-tt="html.20"></button><button class="btn wh" data-e="prologue" data-tt="html.21"></button><button class="btn wh" data-e="ending" id="e2endBtn" data-tt="html.22"></button><button class="btn wh" data-e="title" data-tt="html.23"></button></div></div></div>
+<div id="e2card" class="ovl" hidden><div class="dbox e2box"><small id="e2cSub"></small><h2 id="e2cName"></h2><p id="e2cHow"></p><button class="btn pk" id="e2start" data-tt="html.24"></button></div></div>
 <div id="e2res" class="ovl" hidden><div class="dbox e2box"><h2 id="e2rTitle"></h2><div class="e2stars" id="e2rStars"></div><p id="e2rText"></p><div class="tbtns" id="e2rBtns" style="width:100%"></div></div></div>
-<div id="e2pauseBox" class="ovl" hidden><div class="dbox e2box"><h2>잠깐 쉬기</h2><div class="tbtns" style="width:100%"><button class="btn pk" data-p="resume">계속하기</button><button class="btn wh" data-p="retry">처음부터 다시</button><button class="btn wh" data-p="menu">스테이지 목록</button></div></div></div>
-<div id="rank" class="ovl" hidden><div class="panel rankpanel"><div class="mhead rkhead"><b>희수 랭킹</b><button class="btn pk sm" id="rankShare" onclick="shareOpen()">내 카드 공유</button><button class="btn wh" id="rankClose">닫기</button></div><div class="e2mode" id="rankTabs" style="padding:8px 10px 0"><button data-rt="power">총 전투력</button><button data-rt="pvp">PvP</button></div><div id="rankSum"></div><div id="rankList"></div></div></div>
-<div id="pvp" class="ovl" hidden><div class="panel e2panel pvpanel"><div class="mhead e2head"><b>희수 PvP 아레나</b><span id="pvpInfo"></span></div><div class="e2mode" id="pvpTabs" style="padding:8px 10px 0"><button data-t="find">상대 찾기</button><button data-t="rank">랭킹</button><button data-t="log">대결 기록</button></div><div id="pvpSeason"></div><div id="pvpList"></div><div class="row e2foot"><button class="btn" data-pv="sync">내 희수 갱신</button><button class="btn wh" data-pv="nick">닉네임</button><button class="btn wh" data-pv="adv">모험으로</button><button class="btn wh" data-pv="title">타이틀</button></div></div></div>
-<div id="pvpNick" class="ovl" hidden><div class="dbox e2box"><h2>닉네임</h2><p id="pvpNickMsg"></p><input id="pvpNickIn" maxlength="10" autocomplete="off" placeholder="예: 원조희수"><div class="tbtns" style="width:100%"><button class="btn pk" id="pvpNickOk">확인</button><button class="btn wh" id="pvpNickNo">취소</button></div><button class="linkbtn" id="pvpNickCloud" hidden>다른 기기에서 하던 희수 불러오기 →</button></div></div>
-<div id="pack" class="ovl" hidden><div class="dbox e2box smodal"><div id="packBody"></div><button class="btn wh" id="packX">닫기</button></div></div>
-<div id="buddy" class="ovl" hidden><div class="dbox e2box bdbox"><h2>친구 희수 데려가기</h2><div id="buddyBody"></div><button class="btn wh" id="buddyX">닫기</button></div></div>
-<div id="raid" class="ovl" hidden><div class="panel rdpanel"><div class="mhead rkhead"><b>월드 보스 레이드</b><button class="btn wh" data-rd="close">닫기</button></div><div id="raidBody"></div></div></div>
-<div id="plazaUI" hidden><div id="plazaLog" data-raw></div><div id="plazaBar"><button id="plazaPeople" class="hb">접속 1</button><input id="plazaIn" maxlength="60" placeholder="메시지 입력 (매너 채팅!)" autocomplete="off" enterkeyhint="send"><button id="plazaSend" class="btn pk sm">보내기</button><button id="plazaExit" class="hb">나가기</button></div></div>
-<div id="plazaList" class="ovl" hidden><div class="dbox e2box"><h2>광장에 있는 희수</h2><div id="plazaListBody"></div><button class="btn wh" id="plazaListX">닫기</button></div></div>
-<div id="auc" class="ovl" hidden><div class="panel rdpanel aucpanel"><div class="mhead rkhead"><b>경매장</b><span id="aucGold" class="aucgold"></span><button class="btn wh" data-auc="close">닫기</button></div><div class="auctabs"><button class="btn sm on" data-auc-tab="browse">둘러보기</button><button class="btn sm" data-auc-tab="sell">판매하기</button><button class="btn sm" data-auc-tab="mine">내 경매</button><button class="btn sm" data-auc-tab="xchg">1:1 교환</button></div><div id="aucBody"></div></div></div>
-<div id="tower" class="ovl" hidden><div class="panel rdpanel twpanel"><div class="mhead rkhead"><b>보스 타워</b><button class="btn wh" data-tw="close">닫기</button></div><div id="towerBody"></div></div></div>
-<div id="towerRes" class="ovl" hidden><div class="dbox e2box"><h2 id="towerResT"></h2><div id="towerResS" style="text-align:center"></div><div class="tbtns" style="width:100%"><button class="btn pk" data-tr="next">다음 층</button><button class="btn wh" data-tr="lobby">타워 로비</button><button class="btn wh" data-tr="title">타이틀로</button></div></div></div>
-<div id="raidRes" class="ovl" hidden><div class="dbox e2box"><h2 id="raidResT"></h2><p id="raidResS" style="text-align:center"></p><div class="tbtns" style="width:100%"><button class="btn pk" data-rr="lobby">레이드 로비로</button><button class="btn wh" data-rr="title">타이틀로</button></div></div></div>
-<div id="share" class="ovl" hidden><div class="dbox e2box sharebox"><h2>내 희수 카드</h2><img id="shareImg" alt="내 희수 카드"><p id="shareMsg"></p><div class="tbtns" style="width:100%"><button class="btn pk" id="shareGo">공유하기</button><button class="btn wh" id="shareSave">이미지 저장</button><button class="btn wh" id="shareCopy">링크 복사</button></div><button class="btn wh" id="shareX">닫기</button></div></div>
-<div id="seasonModal" class="ovl" hidden><div class="dbox e2box smodal"><div id="seasonModalBody"></div><button class="btn pk" onclick="seasonModalClose()">확인</button></div></div>
-<div id="daily" class="ovl" hidden><div class="dbox e2box dailybox"><h2>출석·미션</h2><div id="dailyBody"></div><button class="btn wh" id="dailyX">닫기</button></div></div>
-<div id="accGate" class="ovl" hidden><div class="dbox e2box accgate"><h2>계정 연결</h2><p id="agMsg"></p><div id="agBtns"></div><p id="agErr" class="cmsg"></p></div></div>
-<div id="cloud" class="ovl" hidden><div class="dbox e2box cloudbox"><h2>계정 · 기기 옮기기</h2>
-<div class="csec" id="accSec"><b>계정 연결 (구글·카카오)</b><p id="accMsg"></p><div class="accb" id="accBtns"></div></div>
-<div class="csec"><b>이 기기 → 다른 기기</b><p id="cloudMkMsg"></p><button class="btn pk" id="cloudMk">옮기기 코드 만들기</button><div id="cloudCode" hidden><div class="ccode" id="cloudCodeV" data-raw></div><small id="cloudCodeT"></small></div></div>
-<div class="csec"><b>다른 기기 → 이 기기</b><p>옛 기기에서 만든 8자리 코드를 입력하세요</p><input id="cloudIn" maxlength="9" autocomplete="off" autocapitalize="characters" placeholder="ABCD 2345"><button class="btn pk" id="cloudUse">코드로 불러오기</button><p id="cloudUseMsg" class="cmsg"></p></div>
-<button class="btn wh" id="cloudX">닫기</button></div></div>
-<div id="pvpRes" class="ovl" hidden><div class="dbox e2box"><h2 id="pvpResT"></h2><p id="pvpResS" style="text-align:center"></p><div class="tbtns" style="width:100%"><button class="btn pk" data-pr="again">다시 도전</button><button class="btn wh" data-pr="lobby">아레나 로비</button></div></div></div>
-<div id="confirm" class="ovl" hidden><div class="dbox"><p id="confirmT"></p><div class="row" style="justify-content:center"><button class="btn wh" id="cfNo">취소</button><button class="btn pk" id="cfYes">확인</button></div></div></div>
+<div id="e2pauseBox" class="ovl" hidden><div class="dbox e2box"><h2 data-tt="html.25"></h2><div class="tbtns" style="width:100%"><button class="btn pk" data-p="resume" data-tt="html.26"></button><button class="btn wh" data-p="retry" data-tt="html.27"></button><button class="btn wh" data-p="menu" data-tt="html.28"></button></div></div></div>
+<div id="rank" class="ovl" hidden><div class="panel rankpanel"><div class="mhead rkhead"><b data-tt="html.29"></b><button class="btn pk sm" id="rankShare" onclick="shareOpen()" data-tt="html.30"></button><button class="btn wh" id="rankClose" data-tt="html.31"></button></div><div class="e2mode" id="rankTabs" style="padding:8px 10px 0"><button data-rt="power" data-tt="html.32"></button><button data-rt="pvp">PvP</button></div><div id="rankSum"></div><div id="rankList"></div></div></div>
+<div id="pvp" class="ovl" hidden><div class="panel e2panel pvpanel"><div class="mhead e2head"><b data-tt="html.33"></b><span id="pvpInfo"></span></div><div class="e2mode" id="pvpTabs" style="padding:8px 10px 0"><button data-t="find" data-tt="html.34"></button><button data-t="rank" data-tt="html.35"></button><button data-t="log" data-tt="html.36"></button></div><div id="pvpSeason"></div><div id="pvpList"></div><div class="row e2foot"><button class="btn" data-pv="sync" data-tt="html.37"></button><button class="btn wh" data-pv="nick" data-tt="html.38"></button><button class="btn wh" data-pv="adv" data-tt="html.39"></button><button class="btn wh" data-pv="title" data-tt="html.40"></button></div></div></div>
+<div id="pvpNick" class="ovl" hidden><div class="dbox e2box"><h2 data-tt="html.41"></h2><p id="pvpNickMsg"></p><input id="pvpNickIn" maxlength="10" autocomplete="off" data-tta="placeholder=html.42"><div class="tbtns" style="width:100%"><button class="btn pk" id="pvpNickOk" data-tt="html.43"></button><button class="btn wh" id="pvpNickNo" data-tt="html.44"></button></div><button class="linkbtn" id="pvpNickCloud" hidden data-tt="html.45"></button></div></div>
+<div id="pack" class="ovl" hidden><div class="dbox e2box smodal"><div id="packBody"></div><button class="btn wh" id="packX" data-tt="html.46"></button></div></div>
+<div id="buddy" class="ovl" hidden><div class="dbox e2box bdbox"><h2 data-tt="html.47"></h2><div id="buddyBody"></div><button class="btn wh" id="buddyX" data-tt="html.48"></button></div></div>
+<div id="raid" class="ovl" hidden><div class="panel rdpanel"><div class="mhead rkhead"><b data-tt="html.49"></b><button class="btn wh" data-rd="close" data-tt="html.50"></button></div><div id="raidBody"></div></div></div>
+<div id="plazaUI" hidden><div id="plazaLog" data-raw></div><div id="plazaBar"><button id="plazaPeople" class="hb" data-tt="html.51"></button><input id="plazaIn" maxlength="60" autocomplete="off" enterkeyhint="send" data-tta="placeholder=html.52"><button id="plazaSend" class="btn pk sm" data-tt="html.53"></button><button id="plazaExit" class="hb" data-tt="html.54"></button></div></div>
+<div id="plazaList" class="ovl" hidden><div class="dbox e2box"><h2 data-tt="html.55"></h2><div id="plazaListBody"></div><button class="btn wh" id="plazaListX" data-tt="html.56"></button></div></div>
+<div id="auc" class="ovl" hidden><div class="panel rdpanel aucpanel"><div class="mhead rkhead"><b data-tt="html.57"></b><span id="aucGold" class="aucgold"></span><button class="btn wh" data-auc="close" data-tt="html.58"></button></div><div class="auctabs"><button class="btn sm on" data-auc-tab="browse" data-tt="html.59"></button><button class="btn sm" data-auc-tab="sell" data-tt="html.60"></button><button class="btn sm" data-auc-tab="mine" data-tt="html.61"></button><button class="btn sm" data-auc-tab="xchg" data-tt="html.62"></button></div><div id="aucBody"></div></div></div>
+<div id="tower" class="ovl" hidden><div class="panel rdpanel twpanel"><div class="mhead rkhead"><b data-tt="html.63"></b><button class="btn wh" data-tw="close" data-tt="html.64"></button></div><div id="towerBody"></div></div></div>
+<div id="towerRes" class="ovl" hidden><div class="dbox e2box"><h2 id="towerResT"></h2><div id="towerResS" style="text-align:center"></div><div class="tbtns" style="width:100%"><button class="btn pk" data-tr="next" data-tt="html.65"></button><button class="btn wh" data-tr="lobby" data-tt="html.66"></button><button class="btn wh" data-tr="title" data-tt="html.67"></button></div></div></div>
+<div id="raidRes" class="ovl" hidden><div class="dbox e2box"><h2 id="raidResT"></h2><p id="raidResS" style="text-align:center"></p><div class="tbtns" style="width:100%"><button class="btn pk" data-rr="lobby" data-tt="html.68"></button><button class="btn wh" data-rr="title" data-tt="html.69"></button></div></div></div>
+<div id="share" class="ovl" hidden><div class="dbox e2box sharebox"><h2 data-tt="html.70"></h2><img id="shareImg" data-tta="alt=html.71"><p id="shareMsg"></p><div class="tbtns" style="width:100%"><button class="btn pk" id="shareGo" data-tt="html.72"></button><button class="btn wh" id="shareSave" data-tt="html.73"></button><button class="btn wh" id="shareCopy" data-tt="html.74"></button></div><button class="btn wh" id="shareX" data-tt="html.75"></button></div></div>
+<div id="seasonModal" class="ovl" hidden><div class="dbox e2box smodal"><div id="seasonModalBody"></div><button class="btn pk" onclick="seasonModalClose()" data-tt="html.76"></button></div></div>
+<div id="daily" class="ovl" hidden><div class="dbox e2box dailybox"><h2 data-tt="html.77"></h2><div id="dailyBody"></div><button class="btn wh" id="dailyX" data-tt="html.78"></button></div></div>
+<div id="accGate" class="ovl" hidden><div class="dbox e2box accgate"><h2 data-tt="html.79"></h2><p id="agMsg"></p><div id="agBtns"></div><p id="agErr" class="cmsg"></p></div></div>
+<div id="cloud" class="ovl" hidden><div class="dbox e2box cloudbox"><h2 data-tt="html.80"></h2>
+<div class="csec" id="accSec"><b data-tt="html.81"></b><p id="accMsg"></p><div class="accb" id="accBtns"></div></div>
+<div class="csec"><b data-tt="html.82"></b><p id="cloudMkMsg"></p><button class="btn pk" id="cloudMk" data-tt="html.83"></button><div id="cloudCode" hidden><div class="ccode" id="cloudCodeV" data-raw></div><small id="cloudCodeT"></small></div></div>
+<div class="csec"><b data-tt="html.84"></b><p data-tt="html.85"></p><input id="cloudIn" maxlength="9" autocomplete="off" autocapitalize="characters" placeholder="ABCD 2345"><button class="btn pk" id="cloudUse" data-tt="html.86"></button><p id="cloudUseMsg" class="cmsg"></p></div>
+<button class="btn wh" id="cloudX" data-tt="html.87"></button></div></div>
+<div id="pvpRes" class="ovl" hidden><div class="dbox e2box"><h2 id="pvpResT"></h2><p id="pvpResS" style="text-align:center"></p><div class="tbtns" style="width:100%"><button class="btn pk" data-pr="again" data-tt="html.88"></button><button class="btn wh" data-pr="lobby" data-tt="html.89"></button></div></div></div>
+<div id="confirm" class="ovl" hidden><div class="dbox"><p id="confirmT"></p><div class="row" style="justify-content:center"><button class="btn wh" id="cfNo" data-tt="html.90"></button><button class="btn pk" id="cfYes" data-tt="html.91"></button></div></div></div>
 <div id="fade"></div>
 <script>
 /*@@JS@@*/

@@ -11,10 +11,10 @@
 - 로컬 크롬으로 e2e: `CHROME_PATH=/usr/bin/google-chrome npm run test:e2e` (없으면 `npx playwright install chromium`)
 
 ## 코드 구조 (중요)
-- **층(폴더) 구조**(11/27 구조 개편 ①~③, 11/28 ④ 공용 숫자·서버 SQL 생성). 실행 순서는 `build/hb-build.mjs`의 `ORDER`.
+- **층(폴더) 구조**(11/27 구조 개편 ①~③, 11/28 ④ 공용 숫자·서버 SQL 생성, ⑤ 화면 문구 json). 실행 순서는 `build/hb-build.mjs`의 `ORDER`.
   | 폴더 | 내용 | 가져다 쓸 수 있는 층 |
   |---|---|---|
-  | `sys/` | 바탕: `dom.js`($·캔버스 cv/ctx·숫자 쉼표) · `audio.js`(sfx·bgm) · `input.js`(조이스틱·키보드) | sys·core |
+  | `sys/` | 바탕: `i18n.js`(tt·화면 문구) · `dom.js`($·캔버스 cv/ctx·숫자 쉼표) · `audio.js`(sfx·bgm) · `input.js`(조이스틱·키보드) | sys·core |
   | `core/` | **규칙·세이브·계산 (화면 없이 돎)**: `util`(clamp·rand·todayKey…) · `rules`(게임·서버 공용 숫자 `RULES`·`powerOf`) · `events`(emit/on) · `data`(장비·스킬·몬스터 표) · `chapter`(장 등록부·진행도) · `state`(G) · `save`(newPD·loadGame·saveGame·헤어) · `items`(개별 장비·도감·calcStats) · `loop`(회차 난이도·드롭 확률) · `enhance`(강화·돌파) · `progress`(경험치·각성·msGot·towerBest) · `refine`(교환소 값·재련 표) · `job`(전직 규칙) | core·sys |
   | `draw/` | 그리기: `sprites`/`sprites2`(도트 표) · `sprite`(makeSpr·sprHi·monSpr) · `hee2`(희수·오빠·보리 2배 도트) · `world`(buildWorld·THEME·공용 소품) · `render`(한 프레임 합성·HUD 캔버스·컷신 무대) | draw·core·sys (+render 예외) |
   | `play/` | 필드: `player`·`skills`·`bori`·`enemies`(AI)·`drops`(줍기)·`food`·`zone`(소환·보스·출구·회차 대사·오빠 구조)·`fx`·`chapter-flow`(장 고르기·프롤로그·엔딩 화면)·`auto`·`inf`(할로윈)·`tower` | 아무 층 |
@@ -32,6 +32,11 @@
   - `tests/unit/modules.test.mjs`: 두 파일에 같은 최상위 이름 금지(이어 붙이면 덮어씀)·src 파일 전부 ORDER에 있는지·빌드가 모듈 문법을 걷어내는지·층 규칙.
   - 진짜 번들러(Vite/esbuild 모듈 번들)로 바꾸려면 먼저 onclick 문자열을 addEventListener 로 바꾸고, e2e 가 쓰는 전역은 `window`에 따로 연결할 것.
   - 파일을 `.ts`로 바꿔도 됨(빌드 시 타입만 제거).
+- **화면 문구 = `texts/ko/*.json`**(11/28 구조 개편 ⑤ 다국어 준비): 코드·index.html 에 화면용 한글이 없음. 문구 약 2,270개가 키 `파일경로.번호`(예 `net/raid.5` = "{d}일 {h}시간")로 묶음 파일에 있음 — 장 파일(대사·장비·몬스터 이름)은 `ch1~ch4.json`, 나머지는 폴더별(`core`·`ui`·`net`·`play`·`features`·`story`·`minigame`·`draw`·`main`), index.html 은 `html.json`.
+  - 코드: `tt('net/raid.5', { d, h })`(`src/sys/i18n.js`, ORDER 맨 앞). 빌드가 texts 를 `__TEXTS`로 맨 앞에 넣음(폰트 서브셋도 이 글자로). index.html 은 `data-tt="html.3"`(안쪽 HTML)·`data-tta="alt=html.4"`(속성) → i18n.js 가 시작할 때 채움(그래서 그런 요소 안의 id 요소도 그때 만들어짐).
+  - **문구 고치기 = json 만 고치면 됨.** 새 기능에서 한글을 코드에 그냥 써도 되고 `npm run texts`(build/i18n.mjs)가 json 으로 옮겨 tt(…)로 바꿔 줌(`-n` = 목록만). 안 옮기면 `tests/unit/i18n.test.mjs`가 실패. 로직에 쓰는 한글(비교·키·includes 인자 등)은 자동으로 안 옮김, 그 밖에 남길 건 줄 끝 `// i18n-keep`(예 광장 욕설 단어) / 파일 맨 위 `// i18n-keep-file`(core/rules.js — 서버 SQL 생성기가 node 로 읽음).
+  - 테스트: 남은 화면용 한글 없음·tt 키가 다 있음·넘기는 {이름} = 글의 {이름}·안 쓰는 키 없음·다른 언어 파일 키/이름 검사. 키를 지울 땐 코드와 json 같이.
+  - **다른 언어 추가** = `texts/en/*.json`(같은 키, 없는 키는 ko 로) + localStorage `hb_lang`='en'(`setLang`, 새로고침). 아직 언어 고르는 화면 없음. 주의: 장비·몬스터 이름 일부가 로직 비교에 쓰이는 곳(ep2easy 「고양이 털」 등 i18n.test 의 keep 목록)은 번역 시 같이 볼 것. 빌드 HTML `<title>`·og 문구(`EDITIONS`, hb-build.mjs)는 아직 한국어 고정.
 - `FORCE_EASY` — 빌드가 맨 앞에 주입. `true`면 원터치 에디션(2탄만, 큰 글씨, 서버 기능 없음).
 - 정적 파일(og 이미지, `.nojekyll`, 개인정보처리방침 `privacy.html`)은 `public/` → `dist/`로 그대로 복사.
   - 소개(랜딩) 페이지 `public/landing/index.html` → `/heesoo_bori/landing/` (11/27, 사용자가 만든 한 파일: 도트 이미지·Galmuri·GSAP·Lenis 인라인). 게임 소스와 별개라 장·몬스터·보스가 바뀌어도 자동 반영 안 됨 — 안의 `MONS`·`BOSSES`·`SPR`을 손으로 고칠 것.

@@ -12,6 +12,7 @@ import { bubble, dirOf } from './player.js';
 import { trySkill } from './skills.js';
 import { eatFood, pickQuickFood } from './food.js';
 import { toast } from '../ui/dialog.js';
+import { tt } from '../sys/i18n.js';
 
 const AUTO_DAILY = 1800;
 /** 베타 기간에는 자동사냥 무제한·무료(11/27 사용자 요청). 쿠폰·보너스 시간은 줄지 않고 그대로 쌓임 → 정식 때 free: false */
@@ -22,11 +23,11 @@ export function autoLeft() { const pd = G.pd; if (!pd) return 0; if (!pd.auto ||
 export function autoOff(msg) { G.auto = false; G.autoMove = null; G.autoAtk = false; if (msg) toast(msg, 'sub'); saveGame(); }
 export function autoToggle() {
   if (!G.P || G.state !== 'play') return;
-  if (G.pvp) { toast('PvP에선 자동사냥을 쓸 수 없어요', 'warn'); sfx('warn'); return; }
-  if (G.auto) { autoOff(AUTO_BETA.free ? '자동사냥 OFF' : '자동사냥 OFF · 남은 시간 ' + mmss(autoLeft())); sfx('select'); return; }
-  if (!AUTO_BETA.free && autoLeft() <= 0) { toast('오늘 자동사냥 쿠폰을 다 썼어요! 자정에 30분 다시 충전돼요', 'warn'); sfx('warn'); return; }
+  if (G.pvp) { toast(tt('play/auto.1'), 'warn'); sfx('warn'); return; }
+  if (G.auto) { autoOff(AUTO_BETA.free ? tt('play/auto.2') : tt('play/auto.3') + mmss(autoLeft())); sfx('select'); return; }
+  if (!AUTO_BETA.free && autoLeft() <= 0) { toast(tt('play/auto.4'), 'warn'); sfx('warn'); return; }
   G.auto = true; G.autoManT = 0; G.autoStuck = 0; sfx('ding');
-  toast(AUTO_BETA.free ? '자동사냥 ON · 베타 기간 무제한' : `자동사냥 ON · 남은 시간 ${mmss(autoLeft())}`, 'lvl'); bubble(G.P, choice(['자동으로 털어볼까?', '알아서 할게~', '오토 모드 가동!']), 1.3);
+  toast(AUTO_BETA.free ? tt('play/auto.5') : tt('play/auto.6', { v1: mmss(autoLeft()) }), 'lvl'); bubble(G.P, choice([tt('play/auto.7'), tt('play/auto.8'), tt('play/auto.9')]), 1.3);
 }
 function autoDanger(P) {
   for (const f of G.fx) {
@@ -49,7 +50,7 @@ export function autoTick(dt) {
   if (G.pvp || !G.P) { autoOff(); return; }
   if (!AUTO_BETA.free) {
   autoLeft(); if (G.pd.auto.left > 0) G.pd.auto.left = Math.max(0, G.pd.auto.left - dt); else G.pd.autoBonus = Math.max(0, (G.pd.autoBonus || 0) - dt);
-  if (autoLeft() <= 0) { autoOff(); toast('자동사냥 시간을 다 썼어요! 자정에 30분 다시 충전돼요', 'warn'); sfx('warn'); return; }
+  if (autoLeft() <= 0) { autoOff(); toast(tt('play/auto.10'), 'warn'); sfx('warn'); return; }
   }
   const man = INP.joy.on || INP.k.l || INP.k.r || INP.k.u || INP.k.d;
   if (man) G.autoManT = 1.5; G.autoManT -= dt;
@@ -65,8 +66,8 @@ export function autoTick(dt) {
   // 보스를 잡아 출구가 열리면: 근처 드롭만 줍고 출구로 → 다음 스테이지에서도 자동사냥 계속
   const W = G.world, exitGo = G.exitOpen && !G.inf && !G.raid && !G.tower && W && W.gate;
   if (exitGo) { const go = drop && dd < 140 ? drop : { x: W.gate.x, y: W.gate.y + 4 }, dx = go.x - P.x, dy = go.y - P.y, d = Math.hypot(dx, dy) || 1; if (d > 2) mv = [dx / d, dy / d]; G.autoAtk = !!tgt && td < w.reach + 4;
-    if (go !== drop && !G.autoExitSaid) { G.autoExitSaid = true; bubble(P, choice(['출구로 가자!', '다음 스테이지 고고!', '보리야 따라와~']), 1.2); } }
-  else if (tgt && hpR < 0.25 && td < 60) { const dx = P.x - tgt.x, dy = P.y - tgt.y, d = Math.hypot(dx, dy) || 1; mv = [dx / d, dy / d]; G.autoAtk = td < w.reach + 4; if (Math.random() < dt * 0.6) bubble(P, choice(['잠깐 숨 좀...', '후퇴!']), 1); }
+    if (go !== drop && !G.autoExitSaid) { G.autoExitSaid = true; bubble(P, choice([tt('play/auto.11'), tt('play/auto.12'), tt('play/auto.13')]), 1.2); } }
+  else if (tgt && hpR < 0.25 && td < 60) { const dx = P.x - tgt.x, dy = P.y - tgt.y, d = Math.hypot(dx, dy) || 1; mv = [dx / d, dy / d]; G.autoAtk = td < w.reach + 4; if (Math.random() < dt * 0.6) bubble(P, choice([tt('play/auto.14'), tt('play/auto.15')]), 1); }
   else if (drop && dd < 60 && td > 28) { const dx = drop.x - P.x, dy = drop.y - P.y, d = Math.hypot(dx, dy) || 1; if (d > 3) mv = [dx / d, dy / d]; G.autoAtk = td < w.reach + 6; }
   else if (tgt && (td < 70 || !drop || dd > 160)) {
     const dx = tgt.x - P.x, dy = (tgt.y - 2) - P.y, d = Math.hypot(dx, dy) || 1;

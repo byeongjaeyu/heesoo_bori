@@ -9,6 +9,7 @@
 
 import { BOOK_ALL, BOOK_SETS, EQ_SETS, HAIRS, ITEM_DEFS, MONS, ZONES } from './data.js';
 import { loopEff } from './loop.js';
+import { tt } from '../sys/i18n.js';
 
 /** @typedef {{ c: number, name: string, title: string, pick: string[], lv: number, baseL: number, zones: any[], mons: Record<string, any>, ai?: Record<string, Function>,
  *   themes?: Record<string, any>, items?: Record<string, any>, book?: any, eqSets?: any[], hair?: any, ach?: any[],
@@ -48,4 +49,4 @@ export const zoneL = (pd, z) => CH_BASE_L[zoneCh(z)] + loopEff(chCleared(pd, z))
 /** 「모험 계속하기」로 갈 스테이지 */
 export const curZone = pd => { const c = pd.chap || 1; return c > 1 && chOpen(pd, c) ? chOf(pd, c).zone : (pd.zone || 0); };
 export function setCurZone(pd, z) { const c = zoneCh(z); if (c === 1) pd.zone = z; else chOf(pd, c).zone = z; pd.chap = c; }
-export const zoneTitle = (pd, z) => { const c = chCleared(pd, z); return (c ? `${c + 1}회차 · ` : '') + ZONES[z].name; };
+export const zoneTitle = (pd, z) => { const c = chCleared(pd, z); return (c ? tt('core/chapter.1', { v1: c + 1 }) : '') + ZONES[z].name; };

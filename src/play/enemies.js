@@ -17,6 +17,7 @@ import { pvpEnd } from '../net/pvp.js';
 import { infKill, infWaveMul } from './inf.js';
 import { dailyAdd } from '../features/daily.js';
 import { guideEv } from '../features/guide.js';
+import { tt } from '../sys/i18n.js';
 
 export function spawnEnemy(type, x, y) {
   const m = MONS[type], s = monSpr(m.spr), sc = m.scale || 1;
@@ -76,16 +77,16 @@ export function separateEnemies() {
   for (let i = 0; i < L.length; i++) { const a = L[i]; if (a.dead) continue; for (let j = i + 1; j < L.length; j++) { const b = L[j]; if (b.dead) continue; const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy), m = (a.r + b.r) * 0.8; if (d < m && d > 0.01) { const p = (m - d) / 2, wa = a.boss ? 0.1 : 1, wb = b.boss ? 0.1 : 1; a.x -= dx / d * p * wa; a.y -= dy / d * p * wa; b.x += dx / d * p * wb; b.y += dy / d * p * wb; } } }
 }
 export function killEnemy(e) {
-  if (e.rival) { e.hp = 0; pvpEnd(true, `${e.nick}의 희수 KO!`); return; }
+  if (e.rival) { e.hp = 0; pvpEnd(true, tt('play/enemies.1', { nick: e.nick })); return; }
   e.dead = true; e.deadT = 0.25; e.hp = 0; G.pd.stats.kills++; dailyAdd('kill'); guideEv('kill'); if (e.boss) { dailyAdd('boss'); G.pd.stats.boss = (G.pd.stats.boss || 0) + 1; }
   burst(e.x, e.y - e.h / 2, e.col, e.boss ? 40 : 10, e.boss ? 140 : 80); burst(e.x, e.y - e.h / 2, '#ffffff', 4);
   const LM = loopMul(), em = e.elite ? 1 : 0, RW = infWaveMul().rew;
   sfx('pop'); gainXp(Math.round(e.m.xp * LM.xp * (em ? 3 : 1) * RW));
   const gold = Math.round(randi(e.m.gold[0], e.m.gold[1]) * G.st.goldMul * LM.gold * (em ? 4 : 1) * RW);
-  if (em) { addText(e.x, e.y - e.h - 8, '정예 처치!', 'crit'); G.shake = 3; }
+  if (em) { addText(e.x, e.y - e.h - 8, tt('play/enemies.2'), 'crit'); G.shake = 3; }
   if (gold > 0) { const n = Math.min(e.boss ? 12 : 4, Math.max(1, Math.ceil(gold / 6))); let left = gold; for (let i = 0; i < n; i++) { const a = i === n - 1 ? left : Math.floor(gold / n); left -= a; spawnDrop('gold', null, a, e.x, e.y); } }
   { const ns = killStones(e, LM.L); // 보스는 바로 지급(보스 타워는 처치 즉시 끝나서 땅에 떨어진 건 못 주움)
-    if (ns > 0 && e.boss) { G.pd.stones = (G.pd.stones || 0) + ns; addText(e.x, e.y - e.h - 18, '강화석 +' + ns, 'mana'); } else if (ns > 0) spawnDrop('stone', null, ns, e.x, e.y); }
+    if (ns > 0 && e.boss) { G.pd.stones = (G.pd.stones || 0) + ns; addText(e.x, e.y - e.h - 18, tt('play/enemies.3') + ns, 'mana'); } else if (ns > 0) spawnDrop('stone', null, ns, e.x, e.y); }
   if (e.boss) { spawnDrop('food', 'eel', 1, e.x, e.y); if (G.zone >= 1) spawnDrop('food', G.zone % 2 ? 'banhmi' : 'jjukkumi', 1, e.x, e.y); for (let i = 0; i < 3; i++) spawnDrop('food', rollFood(), 1, e.x, e.y); if (!G.inf) for (const id of (e.m.drops || [])) spawnDrop('item', id, 1, e.x, e.y); { const id = rollDrop(DROP_MUL.boss); if (id) spawnDrop('item', id, 1, e.x, e.y); } }
   else {
     if (Math.random() < 0.14) spawnDrop('food', rollFood(), 1, e.x, e.y);

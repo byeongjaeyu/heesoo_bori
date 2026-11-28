@@ -5,13 +5,14 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { transformWithEsbuild } from 'vite';
 import subsetFont from 'subset-font';
+import { loadTexts } from './i18n.mjs';
 
 export const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const SRC = path.join(ROOT, 'src');
 
 /** 이어 붙이는 순서 (앞 파일의 전역을 뒤 파일이 씀). 확장자 없이, .ts 가 있으면 .ts 우선 */
 export const ORDER = [
-  'draw/sprites', 'draw/sprites2',
+  'sys/i18n', 'draw/sprites', 'draw/sprites2',
   'sys/dom', 'core/util', 'core/rules', 'core/events', 'draw/sprite', 'sys/audio', 'sys/input',
   'draw/hee2', 'core/data', 'core/chapter', 'play/chapter-flow',
   'chapters/ch1', 'chapters/ch2', 'chapters/ch3', 'chapters/ch4',
@@ -56,7 +57,8 @@ export async function buildJs({ exclude = [] } = {}) {
     if (f.endsWith('.ts')) code = (await transformWithEsbuild(code, f, { loader: 'ts', target: 'es2022', format: undefined, sourcemap: false })).code.replace(/\n$/, '');
     parts.push(stripModule(code, f));
   }
-  return "'use strict';\n" + parts.join('\n');
+  // 화면 문구(texts/<언어>/*.json)를 맨 앞에 — sys/i18n.js 의 tt() 가 씀. 폰트 서브셋도 이 글자를 보고 만듦
+  return "'use strict';\nconst __TEXTS = " + JSON.stringify(loadTexts()) + ";\n" + parts.join('\n');
 }
 
 const EXTRA_CHARS = '♥♪★→↑▼▶✕×·…!?ㅋㅎㅠ%';
@@ -125,8 +127,8 @@ export function hbPlugin() {
       pending = {};
     },
     configureServer(server) {
-      server.watcher.add(path.join(SRC, '**'));
-      server.watcher.on('change', f => { if (f.startsWith(SRC)) server.ws.send({ type: 'full-reload' }); });
+      server.watcher.add(path.join(SRC, '**')); server.watcher.add(path.join(ROOT, 'texts', '**'));
+      server.watcher.on('change', f => { if (f.startsWith(SRC) || f.startsWith(path.join(ROOT, 'texts'))) server.ws.send({ type: 'full-reload' }); });
       // dev: 껍데기 대신 완성 HTML 바로 응답
       server.middlewares.use(async (req, res, next) => {
         const u = (req.url || '/').split('?')[0];

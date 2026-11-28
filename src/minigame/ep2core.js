@@ -20,6 +20,7 @@ import { cloudSync } from '../net/cloud.js';
 import { dailyAdd } from '../features/daily.js';
 import { E2STAGES, e2ApplyMode } from './ep2easy.js';
 import { e2Ending, e2Prologue } from './ep2story.js';
+import { tt } from '../sys/i18n.js';
 
 export const E2KEY = FORCE_EASY ? 'heesu_bori_ep2_onetouch_v1' : 'heesu_bori_ep2_v1';
 export const EP2 = { save: null, si: -1, st: null, phase: 'none', useJoy: false, paused: false, ult: null, prevAtk: false };
@@ -38,7 +39,7 @@ export const e2Stars = () => EP2.save.stars.reduce((a, b) => a + (b || 0), 0);
 export function e2Unlock(id, quiet) {
   const s = EP2.save; if (s.own[id]) return; s.own[id] = true; const it = ITEMS[id];
   const slot = it.slot === 'btoy' ? 'toy' : 'cloth'; if (!s[slot]) s[slot] = id;
-  if (!quiet) toast(`${it.name} 획득!`, 'item r' + it.rar); e2SaveNow();
+  if (!quiet) toast(tt('minigame/ep2core.1', { name: it.name }), 'item r' + it.rar); e2SaveNow();
 }
 export function e2Bmul() { let m = 1; for (const id of [EP2.save.cloth, EP2.save.toy]) if (id && ITEMS[id]) m += ITEMS[id].bdmg; return m; }
 
@@ -77,8 +78,8 @@ export function e2Alert(sec, by) {
   const y = by || E2TOP + 22, h = 22, x = 6, w = EW - 12; const blink = Math.floor(performance.now() / 250) % 2;
   fr(x - 1, y - 1, w + 2, h + 2, '#2b1b24'); fr(x, y, w, h, blink ? '#ffd84a' : '#ffe68a'); fr(x, y, w, 2, '#e8414f'); fr(x, y + h - 2, w, 2, '#e8414f');
   pc(x + 11, y + h / 2, 7, '#e8414f'); e2T(x + 11, y + h / 2, '!', 6, '#ffffff');
-  e2T(EW / 2 + 9, y + 7, '경고! 시저 먹는 중', 4.4, '#c0203a', '#ffffff');
-  e2T(EW / 2 + 9, y + 15.5, `보리가 ${Math.max(1, Math.ceil(sec))}초간 말을 듣지 않아요`, 3.8, '#2b1b24', '#ffffff');
+  e2T(EW / 2 + 9, y + 7, tt('minigame/ep2core.2'), 4.4, '#c0203a', '#ffffff');
+  e2T(EW / 2 + 9, y + 15.5, tt('minigame/ep2core.3', { v1: Math.max(1, Math.ceil(sec)) }), 3.8, '#2b1b24', '#ffffff');
 }
 // fishing scene: one dock on the left — 언니(폰) · 오빠(졸면서 낚싯대) · 보리(줄을 입에 물고 당김)
 export function e2FishScene(dy, bobx, boby, tense, bkind, t, boom) {
@@ -87,7 +88,7 @@ export function e2FishScene(dy, bobx, boby, tense, bkind, t, boom) {
   drawHeeAt(hx, dy, 'phone', 'down', t, {});
   const tipx = de + 16, tipy = dy - 40 + Math.round((1 - tense) * 4);
   ctx.strokeStyle = '#2b1b24'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(ux + 5, dy - 7); ctx.lineTo(tipx, tipy); ctx.stroke(); ctx.strokeStyle = '#8a5a2a'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ux + 5, dy - 7); ctx.lineTo(tipx, tipy); ctx.stroke();
-  if (boom) { drawHusRod(ux, dy, t); drawSpr(husSpr(), ux, dy); } else drawHusSleep(ux, dy, t); if (!boom) { zzz(ux + 4, dy - 24, t); e2T(ux + 2, dy - 32, '쿨...', 3.4, '#ffffff', '#2b1b24'); } else e2T(ux + 2, dy - 30, '헉?!', 4, '#ffd84a', '#2b1b24');
+  if (boom) { drawHusRod(ux, dy, t); drawSpr(husSpr(), ux, dy); } else drawHusSleep(ux, dy, t); if (!boom) { zzz(ux + 4, dy - 24, t); e2T(ux + 2, dy - 32, tt('minigame/ep2core.4'), 3.4, '#ffffff', '#2b1b24'); } else e2T(ux + 2, dy - 30, tt('minigame/ep2core.5'), 4, '#ffd84a', '#2b1b24');
   const mx = bx + 6, my = dy - 5;
   ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(tipx, tipy); ctx.lineTo(mx, my); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(mx, my); ctx.quadraticCurveTo((mx + bobx) / 2, my + (1 - tense) * 22, bobx, boby); ctx.stroke();
@@ -102,7 +103,7 @@ export function drawScent(x, y, kind, t, r, label) {
   pc(x, y, w + 1, '#2b1b24'); pc(x, y, w, body); pc(x - w * 0.4, y - w * 0.2, Math.max(1, Math.round(w * 0.38)), hi); pc(x + w * 0.4, y + w * 0.15, Math.max(1, Math.round(w * 0.3)), hi);
   if (cat) { fr(x - w * 0.35 - 1, y - 1, 2, 2, '#2b1b24'); fr(x + w * 0.35 - 1, y - 1, 2, 2, '#2b1b24'); fr(x - 1, y + 1, 2, 1, '#ff7ab8'); }
   else { fr(x - 4, y - 3, 8, 7, '#2b1b24'); fr(x - 3, y - 2, 6, 5, '#e8e8f0'); fr(x - 3, y - 1, 6, 2, '#e8414f'); fr(x - 3, y - 2, 6, 1, '#ffffff'); }
-  if (label !== false) e2T(x, y + w + 5, cat ? '고양이 냄새' : '시저 냄새', 3.4, cat ? '#7ee08a' : '#ff9fc4', '#2b1b24');
+  if (label !== false) e2T(x, y + w + 5, cat ? tt('minigame/ep2core.6') : tt('minigame/ep2core.7'), 3.4, cat ? '#7ee08a' : '#ff9fc4', '#2b1b24');
 }
 export function e2Hearts(n, max, y) { const hs = ispr('heart'); for (let i = 0; i < max; i++) { drawSpr(hs, 10 + i * 9, (y || e2Top() + 9), { alpha: i < n ? 1 : 0.25 }); } }
 export function e2Bar(p, y, col, label) { const w = Math.min(EW - 80, 140), x = (EW - w) / 2; fr(x - 1, y - 1, w + 2, 6, '#2b1b24'); fr(x, y, w, 4, '#5a4a5a'); fr(x, y, Math.round(w * clamp(p, 0, 1)), 4, col || '#ffd84a'); if (label) e2T(EW / 2, y + 10, label, 3.8, '#ffffff', '#2b1b24'); }
@@ -118,22 +119,22 @@ export function e2HideAll() { for (const id of ['#e2menu', '#e2card', '#e2res', 
 export function e2Menu() {
   e2HideAll(); G.state = 'e2menu'; EP2.st = null; playBgm('home'); const s = EP2.save; e2ApplyMode();
   const easy = s.mode === 'easy';
-  const modeRow = `<div class="e2mode"><button class="${easy ? '' : 'on'}" data-e="mode" data-v="normal">원래 버전</button><button class="${easy ? 'on' : ''}" data-e="mode" data-v="easy">원터치모드 (쉬움)</button></div>`;
-  const rows = (FORCE_EASY ? '' : modeRow) + E2STAGES.map((st, i) => { const lock = i > s.unlocked; const n = s.stars[i] || 0; return `<button class="e2st ${lock ? 'lock' : ''}" data-e="play" data-v="${i}" ${lock ? 'disabled' : ''}><b>${i + 1}</b><span><em>${st.name}</em><small>${st.kind}</small></span><i>${lock ? '잠김' : '★'.repeat(n) + '☆'.repeat(3 - n)}</i></button>`; }).join('');
+  const modeRow = tt('minigame/ep2core.8', { v1: easy ? '' : 'on', v2: easy ? 'on' : '' });
+  const rows = (FORCE_EASY ? '' : modeRow) + E2STAGES.map((st, i) => { const lock = i > s.unlocked; const n = s.stars[i] || 0; return `<button class="e2st ${lock ? 'lock' : ''}" data-e="play" data-v="${i}" ${lock ? 'disabled' : ''}><b>${i + 1}</b><span><em>${st.name}</em><small>${st.kind}</small></span><i>${lock ? tt('minigame/ep2core.9') : '★'.repeat(n) + '☆'.repeat(3 - n)}</i></button>`; }).join('');
   $('#e2list').innerHTML = rows;
-  $('#e2info').textContent = `모은 별 ${e2Stars()} / ${E2STAGES.length * 3}`;
+  $('#e2info').textContent = tt('minigame/ep2core.10', { v1: e2Stars(), v2: E2STAGES.length * 3 });
   $('#e2endBtn').hidden = !s.cleared;
   $('#e2menu').hidden = false;
 }
 function e2Wardrobe() {
   const s = EP2.save; const items = ['b_knit', 'b_pad', 'toy_melon', 'toy_doll', 'toy_bone'];
-  const how = { b_knit: '경안천 클리어', b_pad: '용인시장 클리어', toy_bone: '동물병원 클리어', toy_melon: '별 6개', toy_doll: '별 12개' };
-  $('#e2list').innerHTML = `<div class="e2prev"><img src="${e2PreviewURL()}"><div>보리 옷장<br><small>보스전에서 공격 보너스 +${Math.round((e2Bmul() - 1) * 100)}%</small></div></div>` +
-    `<button class="e2st" data-e="wear" data-v="none-cloth"><b>👕</b><span><em>옷 벗기</em><small>복슬복슬 그대로</small></span><i>${!s.cloth ? '착용' : ''}</i></button>` +
-    `<button class="e2st" data-e="wear" data-v="none-toy"><b>🦴</b><span><em>장난감 빼기</em><small>입이 심심해요</small></span><i>${!s.toy ? '착용' : ''}</i></button>` +
-    items.map(id => { const it = ITEMS[id], own = s.own[id], on = s.cloth === id || s.toy === id; return `<button class="e2st ${own ? '' : 'lock'}" data-e="wear" data-v="${id}" ${own ? '' : 'disabled'}><b><img src="${itemURL(id)}"></b><span><em>${it.name}</em><small>${own ? '보리 공격 +' + Math.round(it.bdmg * 100) + '%' : '해금: ' + how[id]}</small></span><i>${on ? '착용' : (own ? '' : '잠김')}</i></button>`; }).join('') +
-    `<button class="btn wh" data-e="menu" style="margin-top:6px">← 스테이지 목록</button>`;
-  $('#e2info').textContent = '보리 옷장';
+  const how = { b_knit: tt('minigame/ep2core.11'), b_pad: tt('minigame/ep2core.12'), toy_bone: tt('minigame/ep2core.13'), toy_melon: tt('minigame/ep2core.14'), toy_doll: tt('minigame/ep2core.15') };
+  $('#e2list').innerHTML = tt('minigame/ep2core.16', { v1: e2PreviewURL(), v2: Math.round((e2Bmul() - 1) * 100) }) +
+    tt('minigame/ep2core.37', { v1: !s.cloth ? tt('minigame/ep2core.17') : '' }) +
+    tt('minigame/ep2core.38', { v1: !s.toy ? tt('minigame/ep2core.17') : '' }) +
+    items.map(id => { const it = ITEMS[id], own = s.own[id], on = s.cloth === id || s.toy === id; return `<button class="e2st ${own ? '' : 'lock'}" data-e="wear" data-v="${id}" ${own ? '' : 'disabled'}><b><img src="${itemURL(id)}"></b><span><em>${it.name}</em><small>${own ? tt('minigame/ep2core.18') + Math.round(it.bdmg * 100) + '%' : tt('minigame/ep2core.19') + how[id]}</small></span><i>${on ? tt('minigame/ep2core.17') : (own ? '' : tt('minigame/ep2core.9'))}</i></button>`; }).join('') +
+    tt('minigame/ep2core.20');
+  $('#e2info').textContent = tt('minigame/ep2core.21');
 }
 function e2PreviewURL() {
   const c = mkCanvas(20, 20); const g = c.getContext('2d');
@@ -175,10 +176,10 @@ export function e2End(res) {
     if (e2Stars() >= 6) e2Unlock('toy_melon'); if (e2Stars() >= 12) e2Unlock('toy_doll');
     e2SaveNow(); sfx('lvl');
   } else sfx('hurt');
-  $('#e2rTitle').textContent = res.ok ? (res.title || 'CLEAR!') : (res.title || '아쉬워요...');
+  $('#e2rTitle').textContent = res.ok ? (res.title || 'CLEAR!') : (res.title || tt('minigame/ep2core.22'));
   $('#e2rStars').innerHTML = res.ok ? [0, 1, 2].map(k => `<i class="${k < res.stars ? 'on' : ''}">★</i>`).join('') : '';
   $('#e2rText').innerHTML = res.text || '';
-  $('#e2rBtns').innerHTML = (res.ok ? `<button class="btn pk" data-r="next">${i + 1 < E2STAGES.length ? '다음 이야기 ▶' : '엔딩 보기 ▶'}</button>` : '') + `<button class="btn wh" data-r="retry">다시 하기</button><button class="btn wh" data-r="menu">스테이지 목록</button>`;
+  $('#e2rBtns').innerHTML = (res.ok ? `<button class="btn pk" data-r="next">${i + 1 < E2STAGES.length ? tt('minigame/ep2core.23') : tt('minigame/ep2core.24')}</button>` : '') + tt('minigame/ep2core.25');
   $('#e2res').hidden = false;
 }
 export function e2ResClick(e) {
@@ -220,7 +221,7 @@ function e2UltRender() {
   const pop = t < 0.3 ? t / 0.3 : 1; const a = t > 2.1 ? (2.5 - t) / 0.4 : 1;
   for (let i = 0; i < 10; i++) { const ang = t * 2 + i * 0.63, r = sc * 14 + Math.sin(t * 6 + i) * sc * 2; ctx.globalAlpha = a; fr(cx + Math.cos(ang) * r, cy - sc * 8 + Math.sin(ang) * r * 0.8, sc / 2, sc / 2, i % 2 ? '#ffd84a' : '#ff9fcf'); }
   drawB2(kind, cx, cy, { scale: Math.max(1, Math.round(sc * pop)), alpha: a });
-  if (t > 0.35) { const s = t < 0.5 ? 1.5 - (t - 0.35) * 3.3 : 1; ctx.globalAlpha = a; e2T(cx, EH * 0.2, '보리 주세요', 15 * s, '#ff7ab8', '#2a0838'); if (t > 1.4) e2T(cx, EH * 0.2 + 16, '(앞발 툭)', 6, '#ffd1e6', '#2a0838'); ctx.globalAlpha = 1; }
+  if (t > 0.35) { const s = t < 0.5 ? 1.5 - (t - 0.35) * 3.3 : 1; ctx.globalAlpha = a; e2T(cx, EH * 0.2, tt('minigame/ep2core.26'), 15 * s, '#ff7ab8', '#2a0838'); if (t > 1.4) e2T(cx, EH * 0.2 + 16, tt('minigame/ep2core.27'), 6, '#ffd1e6', '#2a0838'); ctx.globalAlpha = 1; }
   ctx.globalAlpha = 1;
 }
 
@@ -236,16 +237,16 @@ export function arenaUpdateBori(A, dt, canHit) {
   B.slow -= dt;
   B.x = clamp(B.x, A.x0, A.x1); B.y = clamp(B.y, A.y0, A.y1);
   const T = A.boss;
-  const hitBoss = (dmg, o) => { if (!canHit()) { A.texts.push({ x: T.x, y: T.y - T.h - 4, s: A.noHitMsg || '안 닿아!', t: 0, col: '#9fe8ff' }); return; } const d = Math.round(dmg * bm * rand(0.9, 1.1)); T.hp = Math.max(A.minHp ? A.minHp() : 0, T.hp - d); T.flash = 0.12; A.texts.push({ x: T.x + rand(-4, 4), y: T.y - T.h - 2, s: String(d), t: 0, col: '#ffffff' }); B.gauge = Math.min(100, B.gauge + 5); for (let i = 0; i < 4; i++) A.parts.push({ x: T.x, y: T.y - T.h / 2, vx: rand(-40, 40), vy: rand(-50, 0), life: 0.4, max: 0.4, col: T.col, sz: 1 }); sfx('hit'); if (o && o.stun) T.stun = Math.max(T.stun || 0, o.stun); };
+  const hitBoss = (dmg, o) => { if (!canHit()) { A.texts.push({ x: T.x, y: T.y - T.h - 4, s: A.noHitMsg || tt('minigame/ep2core.28'), t: 0, col: '#9fe8ff' }); return; } const d = Math.round(dmg * bm * rand(0.9, 1.1)); T.hp = Math.max(A.minHp ? A.minHp() : 0, T.hp - d); T.flash = 0.12; A.texts.push({ x: T.x + rand(-4, 4), y: T.y - T.h - 2, s: String(d), t: 0, col: '#ffffff' }); B.gauge = Math.min(100, B.gauge + 5); for (let i = 0; i < 4; i++) A.parts.push({ x: T.x, y: T.y - T.h / 2, vx: rand(-40, 40), vy: rand(-50, 0), life: 0.4, max: 0.4, col: T.col, sz: 1 }); sfx('hit'); if (o && o.stun) T.stun = Math.max(T.stun || 0, o.stun); };
   if (INP.atk && B.biteCd <= 0) {
     B.biteCd = 0.32; B.idle = 0; const d = Math.hypot(T.x - B.x, (T.y - 4) - B.y);
     if (d < 20 + T.r) { B.face = T.x > B.x ? 1 : -1; hitBoss(4); A.fx.push({ k: 'bite', x: T.x, y: T.y - T.h * 0.5, t: 0 }); } else { B.x += B.face * 4; }
   }
-  if ((INP.act.has('b_bark') || INP.act.has('s1')) && B.barkCd <= 0) { B.barkCd = 5; sfx('bark'); A.fx.push({ k: 'ring', x: B.x, y: B.y - 5, r: 42, t: 0, col: '#ffd84a' }); A.say = { s: '멍멍!', t: 0, who: 'b' }; if (Math.hypot(T.x - B.x, T.y - B.y) < 42 + T.r) hitBoss(6, { stun: 1.0 }); }
+  if ((INP.act.has('b_bark') || INP.act.has('s1')) && B.barkCd <= 0) { B.barkCd = 5; sfx('bark'); A.fx.push({ k: 'ring', x: B.x, y: B.y - 5, r: 42, t: 0, col: '#ffd84a' }); A.say = { s: tt('minigame/ep2core.29'), t: 0, who: 'b' }; if (Math.hypot(T.x - B.x, T.y - B.y) < 42 + T.r) hitBoss(6, { stun: 1.0 }); }
   if ((INP.act.has('b_dash') || INP.act.has('s2')) && B.dashCd <= 0) { B.dashCd = 2; B.dashT = 0.24; B.inv = Math.max(B.inv, 0.3); sfx('swing'); if (mag < 0.18) { B.dx = B.face; B.dy = 0; } }
-  if (INP.act.has('b_ult') || INP.act.has('ult')) { if (B.gauge >= 100) { B.gauge = 0; A.onUlt(); } else { A.texts.push({ x: B.x, y: B.y - 18, s: '게이지 부족', t: 0, col: '#ffd1e6' }); } }
+  if (INP.act.has('b_ult') || INP.act.has('ult')) { if (B.gauge >= 100) { B.gauge = 0; A.onUlt(); } else { A.texts.push({ x: B.x, y: B.y - 18, s: tt('minigame/ep2core.30'), t: 0, col: '#ffd1e6' }); } }
 }
-export function arenaHurt(A, n) { const B = A.b; if (B.inv > 0 || EP2.ult) return; B.hp -= n || 1; B.inv = 1.5; B.hitT = 0.15; sfx('hurt'); A.shake = 4; A.texts.push({ x: B.x, y: B.y - 16, s: '깨갱!', t: 0, col: '#ff6b8a' }); if (B.hp <= 0) { B.hp = 0; setTimeout(() => e2End({ ok: false, text: '보리가 지쳐서 엎드려버렸어요...<br>조금 쉬고 다시 해봐요!' }), 600); A.dead = true; } }
+export function arenaHurt(A, n) { const B = A.b; if (B.inv > 0 || EP2.ult) return; B.hp -= n || 1; B.inv = 1.5; B.hitT = 0.15; sfx('hurt'); A.shake = 4; A.texts.push({ x: B.x, y: B.y - 16, s: tt('minigame/ep2core.31'), t: 0, col: '#ff6b8a' }); if (B.hp <= 0) { B.hp = 0; setTimeout(() => e2End({ ok: false, text: tt('minigame/ep2core.32') }), 600); A.dead = true; } }
 export function arenaFx(A, dt) {
   for (const p of A.parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 100 * dt; p.life -= dt; } A.parts = A.parts.filter(p => p.life > 0);
   for (const f of A.fx) f.t += dt; A.fx = A.fx.filter(f => f.t < (f.dur || 0.45));
@@ -267,11 +268,11 @@ export function arenaDrawBori(A) {
 export function arenaHUD(A, bossName) {
   e2Hearts(A.b.hp, A.b.max);
   const T = A.boss, top = e2Top(); e2Bar(T.hp / T.max, top + 16, '#ff5a7a', bossName);
-  const gy = top + 30; const w = 60; fr(EW - w - 11, gy - 1, w + 2, 5, '#2b1b24'); fr(EW - w - 10, gy, w, 3, '#5a3a5a'); fr(EW - w - 10, gy, Math.round(w * A.b.gauge / 100), 3, A.b.gauge >= 100 ? '#ff7ab8' : '#c890ff'); e2T(EW - 10 - w / 2, gy + 8, A.b.gauge >= 100 ? '보리 주세요 준비!' : '애교 게이지', 3.4, '#ffd1e6', '#2b1b24');
+  const gy = top + 30; const w = 60; fr(EW - w - 11, gy - 1, w + 2, 5, '#2b1b24'); fr(EW - w - 10, gy, w, 3, '#5a3a5a'); fr(EW - w - 10, gy, Math.round(w * A.b.gauge / 100), 3, A.b.gauge >= 100 ? '#ff7ab8' : '#c890ff'); e2T(EW - 10 - w / 2, gy + 8, A.b.gauge >= 100 ? tt('minigame/ep2core.33') : tt('minigame/ep2core.34'), 3.4, '#ffd1e6', '#2b1b24');
   for (const t of A.texts) { ctx.globalAlpha = 1 - t.t / 0.8; e2T(t.x, t.y - t.t * 12, t.s, 4.8, t.col, '#2b1b24'); } ctx.globalAlpha = 1;
   if (A.say) { const who = A.say.who === 'b' ? A.b : A.boss; e2Bubble(A.say.s, who.x, who.y - (A.say.who === 'b' ? 15 : who.h + 4)); }
 }
-export const ARENA_BTNS = () => [{ k: 'atk', label: '물기', icon: iconURL('sk_paw', ICONS.paw) }, { k: 'bark', label: '멍멍!', icon: iconURL('sk_sound', ICONS.sound) }, { k: 'dash', label: '우다다', icon: iconURL('sk_bolt', ICONS.bolt) }, { k: 'ult', label: '보리 주세요', icon: iconURL('face_bori2', BORI2.sit, B2PAL) }];
+export const ARENA_BTNS = () => [{ k: 'atk', label: tt('minigame/ep2core.35'), icon: iconURL('sk_paw', ICONS.paw) }, { k: 'bark', label: tt('minigame/ep2core.29'), icon: iconURL('sk_sound', ICONS.sound) }, { k: 'dash', label: tt('minigame/ep2core.36'), icon: iconURL('sk_bolt', ICONS.bolt) }, { k: 'ult', label: tt('minigame/ep2core.26'), icon: iconURL('face_bori2', BORI2.sit, B2PAL) }];
 
 // ---------- menu background ----------
 export function e2RenderMenuBg() {

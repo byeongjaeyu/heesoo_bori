@@ -18,6 +18,7 @@ import { toast } from '../ui/dialog.js';
 import { TITLE_PD, showTitle } from '../ui/lobby.js';
 import { PXI, rewardCards, seasonModalShow, setSmNext } from '../net/rank.js';
 import { GUIDE_DONE } from './guide.js';
+import { tt } from '../sys/i18n.js';
 
 const IDLE_MAX = 12 * 3600, IDLE_MIN = 600, IDLE_KPH = 300, IDLE_STONE = 0.03;
 ICONS.chest = ['..KKKKKKK..', '.KDDDDDDDK.', 'KDdDDDDDdDK', 'KKKKKAKKKKK', 'KDDDKAKDDDK', 'KDdDKKKDdDK', 'KDDDDDDDDDK', 'KDdDDDDDdDK', 'KKKKKKKKKKK'];
@@ -40,19 +41,19 @@ function idleXp(pd, x) {
   if (pd.lv >= MAX_LV && x > 0) { pd.aw = pd.aw || 0; pd.ap = pd.ap || 0; pd.xp += x; while (pd.xp >= awkNeed(pd.aw)) { pd.xp -= awkNeed(pd.aw); pd.aw++; pd.ap++; aw++; } }
   return { lv, aw };
 }
-const idleLabel = s => s >= IDLE_MAX ? '가득 참!' : `${Math.floor(s / 3600)}시간 ${Math.floor(s % 3600 / 60)}분`;
+const idleLabel = s => s >= IDLE_MAX ? tt('features/idle.1') : tt('features/idle.2', { v1: Math.floor(s / 3600), v2: Math.floor(s % 3600 / 60) });
 export function idleTileHtml(pd) {
   const s = idleSec(pd), ok = s >= IDLE_MIN, on = idleOn(pd);
-  return `<button class="tidle${ok ? ' ready' : ''}${s >= IDLE_MAX ? ' full' : ''}" id="tIdle"><em>방치 보상</em><img src="${iconURL('px_chest', ICONS.chest)}" alt=""><b>${ok ? idleLabel(s) : on ? '모으는 중' : '잠김'}</b><small>${ok ? '받기!' : on ? '10분부터' : '첫 걸음 후'}</small>${ok ? '<em class="dot"></em>' : ''}</button>`;
+  return tt('features/idle.13', { v1: ok ? ' ready' : '', v2: s >= IDLE_MAX ? ' full' : '', v3: iconURL('px_chest', ICONS.chest), v4: ok ? idleLabel(s) : on ? tt('features/idle.3') : tt('features/idle.4'), v5: ok ? tt('features/idle.5') : on ? tt('features/idle.6') : tt('features/idle.7'), v6: ok ? '<em class="dot"></em>' : '' });
 }
 export function idleClaim() {
   const pd = loadGame(); if (!pd || G.state !== 'title') return;
-  if (!idleOn(pd)) { toast('방치 보상은 첫 걸음 가이드를 끝내면 쌓이기 시작해요', 'sub'); return; }
-  const s = idleSec(pd); if (s < IDLE_MIN) { toast(`방치 보상은 게임을 쉬는 동안 쌓여요 (10분부터, 최대 12시간)`, 'sub'); return; }
+  if (!idleOn(pd)) { toast(tt('features/idle.8'), 'sub'); return; }
+  const s = idleSec(pd); if (s < IDLE_MIN) { toast(tt('features/idle.9'), 'sub'); return; }
   const r = idleCalc(pd, s); pd.gold += r.gold; pd.stones = (pd.stones || 0) + r.stones; pd.stats.kills += r.kills; const up = idleXp(pd, r.xp); pd.idleT = Date.now();
   G.pd = pd; saveGame(); sfx('lvl');
-  const extra = [up.lv ? `레벨 +${up.lv}` : '', up.aw ? `각성 ★+${up.aw}` : ''].filter(Boolean).join(' · ');
-  $('#seasonModalBody').innerHTML = `<div class="sgot"><div class="sbig">${PXI('chest')}</div><h2>방치 보상<br><em>${idleLabel(s)}</em></h2><p class="smsub">쉬는 동안 희수와 보리가 몬스터 ${r.kills.toLocaleString()}마리를 잡았어요${extra ? '<br><b>' + extra + '</b>' : ''}<br>(최대 12시간까지 쌓여요)</p>`
+  const extra = [up.lv ? tt('features/idle.10', { lv: up.lv }) : '', up.aw ? tt('features/idle.11', { aw: up.aw }) : ''].filter(Boolean).join(' · ');
+  $('#seasonModalBody').innerHTML = tt('features/idle.12', { v1: PXI('chest'), v2: idleLabel(s), v3: r.kills.toLocaleString(), v4: extra ? '<br><b>' + extra + '</b>' : '' })
     + rewardCards([{ kind: 'gold', amount: r.gold }, { kind: 'xp', amount: r.xp }, { kind: 'stones', amount: r.stones }], true) + '</div>';
   setSmNext(() => showTitle()); seasonModalShow();
 }

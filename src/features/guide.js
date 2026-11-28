@@ -15,24 +15,25 @@ import { toast } from '../ui/dialog.js';
 import { confirmBox } from '../ui/menu.js';
 import { PV } from '../net/pvp.js';
 import { PXI, rewardCards, seasonModalShow } from '../net/rank.js';
+import { tt } from '../sys/i18n.js';
 
 /** @typedef {{ kind: string, n: number }} GuideEv */
 const GUIDE = [
-  { text: '몬스터 5마리 잡기', how: '오른쪽 아래 주먹 버튼 (PC: J / Space)', hl: '#ctrl .atk', need: 5, ev: 'kill', r: { g: 300 } },
-  { text: '「등짝 스매싱」 배우기', how: '오른쪽 위 메뉴 → 스킬 탭 → 등짝 스매싱 배우기', hl: '#menuBtn', done: pd => (pd.skills.smash || 0) > 0, r: { f: { persimmon: 3 } } },
-  { text: '등짝 스매싱 써보기', how: '손바닥 버튼을 눌러요 (PC: K)', hl: '#bS1', need: 1, ev: 'skill:smash', r: { g: 300 } },
-  { text: '새 무기 장착하기', how: '메뉴 → 배달앱에서 「츄러스」 사기 → 장비 탭에서 착용', hl: '#menuBtn', done: pd => pd.eq.weapon !== 'fist', r: { g: 500 } },
-  { text: '무기 강화 1번 성공', how: '메뉴 → 장비 탭 → 강화', hl: '#menuBtn', need: 1, ev: 'enh', r: { s: 5 } },
-  { text: 'Lv.3 달성하고 보리 찾기', how: '몬스터를 잡아 레벨을 올려요', hl: '', done: pd => !!pd.boriJoined, r: { f: { persimmon: 2, cornflakes: 2 } } },
-  { text: 'STAGE 1 보스 잡기', how: '몬스터를 20마리 잡으면 보스가 나와요', hl: '', need: 1, ev: 'boss', r: { s: 10, a: 1800 } }
+  { text: tt('features/guide.1'), how: tt('features/guide.2'), hl: '#ctrl .atk', need: 5, ev: 'kill', r: { g: 300 } },
+  { text: tt('features/guide.3'), how: tt('features/guide.4'), hl: '#menuBtn', done: pd => (pd.skills.smash || 0) > 0, r: { f: { persimmon: 3 } } },
+  { text: tt('features/guide.5'), how: tt('features/guide.6'), hl: '#bS1', need: 1, ev: 'skill:smash', r: { g: 300 } },
+  { text: tt('features/guide.7'), how: tt('features/guide.8'), hl: '#menuBtn', done: pd => pd.eq.weapon !== 'fist', r: { g: 500 } },
+  { text: tt('features/guide.9'), how: tt('features/guide.10'), hl: '#menuBtn', need: 1, ev: 'enh', r: { s: 5 } },
+  { text: tt('features/guide.11'), how: tt('features/guide.12'), hl: '', done: pd => !!pd.boriJoined, r: { f: { persimmon: 2, cornflakes: 2 } } },
+  { text: tt('features/guide.13'), how: tt('features/guide.14'), hl: '', need: 1, ev: 'boss', r: { s: 10, a: 1800 } }
 ];
 export const GUIDE_DONE = GUIDE.length;
 /** 진행 중 단계의 사건 수 (세이브 안 함: 단계 바뀌면 0부터) */
 let guideCnt = 0;
 
 function guideRewardText(r) {
-  const t = []; if (r.g) t.push(`${r.g.toLocaleString()}G`); if (r.s) t.push(`강화석 ${r.s}개`); if (r.a) t.push(`자동사냥 ${Math.round(r.a / 60)}분`);
-  if (r.f) for (const id in r.f) t.push(`${FOODS[id].name} ${r.f[id]}개`); return t.join(' + ');
+  const t = []; if (r.g) t.push(`${r.g.toLocaleString()}G`); if (r.s) t.push(tt('features/guide.15', { s: r.s })); if (r.a) t.push(tt('features/guide.16', { v1: Math.round(r.a / 60) }));
+  if (r.f) for (const id in r.f) t.push(tt('features/guide.17', { name: FOODS[id].name, v1: r.f[id] })); return t.join(' + ');
 }
 function guideApply(pd, r) {
   if (r.g) pd.gold += r.g; if (r.s) pd.stones = (pd.stones || 0) + r.s; if (r.a) pd.autoBonus = (pd.autoBonus || 0) + r.a;
@@ -50,7 +51,7 @@ function guideCheck() {
     if (!ok) break;
     guideApply(pd, st.r); pd.guide = (pd.guide || 0) + 1; guideCnt = 0; moved = true;
     if (pd.guide >= GUIDE_DONE) { guideFinish(st.r); break; }
-    toast(`✔ ${st.text} 완료! 보상: ${guideRewardText(st.r)}`, 'lvl'); sfx('lvl');
+    toast(tt('features/guide.18', { text: st.text, v1: guideRewardText(st.r) }), 'lvl'); sfx('lvl');
   }
   if (moved) { calcStats(); saveGame(); }
   guideRender();
@@ -63,14 +64,14 @@ export function guideEv(kind) {
 }
 function guideFinish(last) {
   guideRender();
-  $('#seasonModalBody').innerHTML = `<div class="sgot"><div class="sbig">${PXI('trophy')}</div><h2>첫 걸음 <em>완료!</em></h2><p class="smsub">이제 혼자서도 잘 할 수 있어요!<br>매일 출석·미션도 챙겨보세요</p>`
+  $('#seasonModalBody').innerHTML = tt('features/guide.19', { v1: PXI('trophy') })
     + rewardCards([{ kind: 'stones', amount: last.s || 0 }, { kind: 'auto', amount: last.a || 0 }], true)
-    + (PV.me ? '' : `<button class="btn pvpbtn" onclick="seasonModalClose(); rankJoin();">랭킹에 내 희수 올리기<small>친구들과 전투력·PvP 겨루기</small></button>`) + '</div>';
+    + (PV.me ? '' : tt('features/guide.20')) + '</div>';
   seasonModalShow();
 }
 function guideSkip() {
   const pd = G.pd; if (!pd) return;
-  confirmBox('가이드를 그만 볼까요?\n(남은 단계 보상은 받을 수 없어요)', () => { pd.guide = GUIDE_DONE; saveGame(); guideRender(); });
+  confirmBox(tt('features/guide.21'), () => { pd.guide = GUIDE_DONE; saveGame(); guideRender(); });
 }
 
 // ---------- 화면: 상단 카드 + 눌러야 할 버튼 반짝임 ----------
@@ -81,8 +82,8 @@ function guideRender() {
   document.body.classList.toggle('guiding', on);
   if (!on) { el.hidden = true; guideHighlight(''); return; }
   const i = pd.guide || 0, st = GUIDE[i], prog = st.need && st.need > 1 ? ` (${Math.min(guideCnt, st.need)}/${st.need})` : '';
-  el.innerHTML = `<div class="gtop"><b>첫 걸음 ${i + 1}/${GUIDE_DONE}</b><button class="gx" onclick="guideSkip()" aria-label="가이드 끄기">✕</button></div>`
-    + `<div class="gtxt">▶ ${st.text}${prog}</div><small>${st.how}</small><small class="grw">보상: ${guideRewardText(st.r)}</small>`;
+  el.innerHTML = tt('features/guide.22', { v1: i + 1, GUIDE_DONE })
+    + tt('features/guide.23', { text: st.text, prog, how: st.how, v1: guideRewardText(st.r) });
   el.hidden = false; guideHighlight(st.hl);
 }
 function guideHighlight(sel) {

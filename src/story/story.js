@@ -13,6 +13,7 @@ import { CUTK, cutScale, drawBoriAt, drawEscape, drawHeeAt, drawHome, drawHusRod
 import { DLG, dialog, dlgAuto } from '../ui/dialog.js';
 import { showHUD } from '../ui/hud.js';
 import { e2DrawActors, e2DrawLake } from '../minigame/ep2story.js';
+import { tt } from '../sys/i18n.js';
 
 export const CUT = { steps: null, i: -1, t: 0, st: null, A: {}, scene: 'park', linesDone: true, started: false, onEnd: null, light: 0, autoT: 0 };
 export function playCut(steps, onEnd) {
@@ -78,7 +79,7 @@ export function renderCut() {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   const cw = cv.width, ch = cv.height;
   if (A.dark) { ctx.fillStyle = `rgba(60,10,90,${A.dark * 0.16})`; ctx.fillRect(0, 0, cw, ch); }
-  if (A.sign) { const x = (mid + 36 * CUTK) * CS, y = (gy + 6 - 54 + 5) * CS; txt('출구 봉쇄', x, y, CS * 6, '#e8414f', '#ffffff'); }
+  if (A.sign) { const x = (mid + 36 * CUTK) * CS, y = (gy + 6 - 54 + 5) * CS; txt(tt('story/story.1'), x, y, CS * 6, '#e8414f', '#ffffff'); }
   if (A.hee && A.hee.alert) { const x = (mid + A.hee.x * CUTK) * CS, y = (gy - 28) * CS; txt('!', x, y - Math.abs(Math.sin(G.time * 8)) * CS * 2, CS * 10, '#ff4d6d', '#ffffff'); }
   if (A.aura) { const a = 0.18 + Math.sin(G.time * 4) * 0.08; const vg = ctx.createRadialGradient(cw / 2, ch / 2, Math.min(cw, ch) * 0.25, cw / 2, ch / 2, Math.max(cw, ch) * 0.7); vg.addColorStop(0, 'rgba(120,30,160,0)'); vg.addColorStop(1, `rgba(120,30,160,${a + 0.25})`); ctx.fillStyle = vg; ctx.fillRect(0, 0, cw, ch); }
   if (CUT.light > 0) { ctx.fillStyle = `rgba(255,255,255,${Math.min(0.9, CUT.light)})`; ctx.fillRect(0, 0, cw, ch); }

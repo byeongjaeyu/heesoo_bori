@@ -27,6 +27,7 @@ import { raidEnd } from '../net/raid.js';
 import { buddySpawn } from '../net/buddy.js';
 import { towerEnd } from './tower.js';
 import { playCut } from '../story/story.js';
+import { tt } from '../sys/i18n.js';
 
 export function updateSpawner(dt) {
   const Z = ZONES[G.zone]; if (G.bossDefeated) return;
@@ -57,18 +58,18 @@ function spawnBoss() {
   const b = spawnEnemy(Z.boss, x, y); b.spawnT = 1.3; G.boss = b;
   // 처음 1장을 깨는 중(첫 회차)엔 보스를 조금 약하게 — 처음 시작한 사람이 첫 보스에서 오래 막히지 않게
   if (!G.inf && zoneCh(G.zone) === 1 && !(G.pd.cleared > 0)) { b.maxHp = Math.round(b.maxHp * FIRST_BOSS.hp); b.hp = b.maxHp; b.atk *= FIRST_BOSS.atk; }
-  banner('BOSS', MONS[Z.boss].name + ' 출현!', 'boss'); sfx('boss'); playBgm('boss'); G.shake = 6;
+  banner('BOSS', MONS[Z.boss].name + tt('play/zone.1'), 'boss'); sfx('boss'); playBgm('boss'); G.shake = 6;
   G.fx.push({ k: 'ring', x, y: y - 10, r: 50, col: '#ff4d6d', t: 0, dur: 0.9 });
-  bubble(P, choice(['뭐야 저 거대한 건...!', '보스다! 정신 차리자', '저거 잡으면 나갈 수 있겠지?']), 1.8);
+  bubble(P, choice([tt('play/zone.2'), tt('play/zone.3'), tt('play/zone.4')]), 1.8);
 }
 export function onBossDefeated(e) {
   if (G.tower) { G.boss = null; towerEnd(true); return; }
   G.bossDefeated = true; G.boss = null; G.exitOpen = true; guideEv('boss');
   for (const o of G.enemies) if (!o.dead && o !== e) { o.dead = true; o.deadT = 0.25; burst(o.x, o.y - o.h / 2, o.col, 6); }
   G.projs = G.projs.filter(p => !p.enemy);
-  setTimeout(() => { if (G.state === 'play') banner('CLEAR!', !isChLast(G.zone) ? '출구가 열렸다! 위쪽 출구로 가자' : '탈출구가 열렸다! 위쪽으로 탈출하자!', 'clear'); }, 600);
+  setTimeout(() => { if (G.state === 'play') banner('CLEAR!', !isChLast(G.zone) ? tt('play/zone.5') : tt('play/zone.6'), 'clear'); }, 600);
   sfx('open'); playBgm('field'); G.shake = 8; saveGame();
-  bubble(G.P, choice(['해냈다!!', '나 좀 멋있는 듯?', '보리야 봤어?!']), 1.8);
+  bubble(G.P, choice([tt('play/zone.7'), tt('play/zone.8'), tt('play/zone.9')]), 1.8);
 }
 function goNextZone() {
   if (G.state !== 'play') return;
@@ -77,10 +78,10 @@ function goNextZone() {
   if (zoneCh(G.zone) === 1 && G.zone >= CH1_N - 1) {
     const first = !G.pd.cleared; G.pd.cleared = (G.pd.cleared || 0) + 1;
     // 자동사냥 중이면(첫 클리어 제외) 엔딩 컷신(대사 자동 넘김)을 보여주고 결과 화면 없이 바로 다음 회차 STAGE 1로
-    if (G.auto && !first) { setCurZone(G.pd, 0); saveGame(); fadeTo(() => { showHUD(false); playCut(ENDING, () => fadeTo(() => { G.auto = true; startZone(0); toast(`🎉 ${G.pd.cleared}회차 클리어! 자동사냥으로 ${G.pd.cleared + 1}회차 시작`, 'lvl'); })); }); return; }
+    if (G.auto && !first) { setCurZone(G.pd, 0); saveGame(); fadeTo(() => { showHUD(false); playCut(ENDING, () => fadeTo(() => { G.auto = true; startZone(0); toast(tt('play/zone.10', { cleared: G.pd.cleared, v1: G.pd.cleared + 1 }), 'lvl'); })); }); return; }
     saveGame(); fadeTo(() => startEnding()); return; }
   setCurZone(G.pd, G.zone + 1); const n = 2 + Math.floor(loopLv() / 2); G.pd.foods.gimbap = (G.pd.foods.gimbap || 0) + n; G.pd.foods.drink = (G.pd.foods.drink || 0) + n; saveGame();
-  fadeTo(() => { startZone(G.zone + 1); setTimeout(() => { if (G.state === 'play' || G.state === 'dialog') { toast(`스마트 푸드 센터 재고떨이! 유통기한 임박 김밥 ×${n} · 음료수 ×${n}`, 'item r2'); sfx('coin'); if (G.P) bubble(G.P, '공짜는 못 참지!', 1.4); } }, 2900); });
+  fadeTo(() => { startZone(G.zone + 1); setTimeout(() => { if (G.state === 'play' || G.state === 'dialog') { toast(tt('play/zone.11', { n }), 'item r2'); sfx('coin'); if (G.P) bubble(G.P, tt('play/zone.12'), 1.4); } }, 2900); });
 }
 export function startZone(i) {
   G.pvp = null; G.inf = null; G.raid = null; G.tower = null; G.husUsed = false;
@@ -92,15 +93,15 @@ export function startZone(i) {
   for (let k = 0; k < 5; k++) { const e = spawnAround(wpick(ZONES[i].mons), 140, 260); if (e) e.spawnT = 0; }
   G.cam.x = clamp(G.P.x - VW / 2, 0, Math.max(0, W.W - VW)); G.cam.y = clamp(G.P.y - 12 - VH / 2, 0, Math.max(0, W.H - VH));
   G.state = 'play'; playBgm('field'); showHUD(true); saveGame();
-  { const L = loopLv(), RL = chCleared(G.pd, i); banner(RL ? `${RL + 1}회차 · ${ZONES[i].sub}` : ZONES[i].sub, ZONES[i].name, 'stage'); if (L && i === 0) setTimeout(() => { if (G.state === 'play' && !G.pvp) loopIntro(L); }, 1700); }
+  { const L = loopLv(), RL = chCleared(G.pd, i); banner(RL ? tt('play/zone.13', { v1: RL + 1, sub: ZONES[i].sub }) : ZONES[i].sub, ZONES[i].name, 'stage'); if (L && i === 0) setTimeout(() => { if (G.state === 'play' && !G.pvp) loopIntro(L); }, 1700); }
   { const st = zoneCh(i) > 1 && chStageStory(i); if (st) { saveGame(); playCut(st, () => { G.state = 'play'; showHUD(true); playBgm('field'); }); } }
-  if (!G.pd.boriJoined) { if (G.pd.lv >= 3) G.pendingEvent = 'bori'; else setTimeout(() => { if (G.state === 'play' && !G.pd.boriJoined) bubble(G.P, '보리야... 어디 있어ㅠㅠ', 2.6); }, 1800); }
+  if (!G.pd.boriJoined) { if (G.pd.lv >= 3) G.pendingEvent = 'bori'; else setTimeout(() => { if (G.state === 'play' && !G.pd.boriJoined) bubble(G.P, tt('play/zone.14'), 2.6); }, 1800); }
 }
 export function playerDie() {
   if (!G.pvp && husbandSave()) return;
-  if (G.pvp) { burst(G.P.x, G.P.y - 10, '#ffffff', 20); pvpEnd(false, '내 희수가 쓰러졌어요'); return; }
-  if (G.raid) { burst(G.P.x, G.P.y - 10, '#ffffff', 20); raidEnd('희수가 쓰러졌어요'); return; }
-  if (G.tower) { burst(G.P.x, G.P.y - 10, '#ffffff', 20); towerEnd(false, '희수가 쓰러졌어요'); return; }
+  if (G.pvp) { burst(G.P.x, G.P.y - 10, '#ffffff', 20); pvpEnd(false, tt('play/zone.15')); return; }
+  if (G.raid) { burst(G.P.x, G.P.y - 10, '#ffffff', 20); raidEnd(tt('play/zone.16')); return; }
+  if (G.tower) { burst(G.P.x, G.P.y - 10, '#ffffff', 20); towerEnd(false, tt('play/zone.16')); return; }
   G.state = 'dead'; G.pd.stats.deaths++; INP.atk = false;
   burst(G.P.x, G.P.y - 10, '#ffffff', 20);
   setTimeout(() => showDeath(), 700);
@@ -111,8 +112,8 @@ export function respawn() {
   if (G.bori) { G.bori.x = G.P.x + 14; G.bori.y = G.P.y + 3; G.bori.zoom = null; }
   G.projs = []; for (const e of G.enemies) if (!e.boss && Math.hypot(e.x - G.P.x, e.y - G.P.y) < 140) e.gone = true;
   if (G.boss && !G.inf) { G.boss.hp = G.boss.maxHp; G.boss.st = 'idle'; G.boss.x = W.W / 2; G.boss.y = 290; G.boss.hopY = 0; }
-  G.state = 'play'; if (lost) toast(`병원비로 ${lost}G를 썼어요...`, 'sub');
-  bubble(G.P, '다시 해보자...!', 1.5);
+  G.state = 'play'; if (lost) toast(tt('play/zone.17', { lost }), 'sub');
+  bubble(G.P, tt('play/zone.18'), 1.5);
 }
 
 // ---------- bori event ----------
@@ -122,23 +123,23 @@ export function boriEvent() {
   G.bori = newBori(sx, sy); G.bori.hidden = true;
   G.evt = { t: 0, sx, sy, popped: false, arrived: false, talked: false };
   P.fx = sx > P.x ? 1 : -1; P.fy = 0; P.dir = P.fx > 0 ? 'right' : 'left'; P.idleT = 0; INP.atk = false;
-  bubble(P, '...응? 저 소리는?', 1.6);
+  bubble(P, tt('play/zone.19'), 1.6);
 }
 export function updateEvent(dt) {
   const E = G.evt, B = G.bori, P = G.P; E.t += dt;
-  if (!E.popped && E.t > 1.2) { E.popped = true; B.hidden = false; B.jump = 0.4; sfx('bark'); bubble(B, '멍!', 1.2); burst(E.sx, E.sy - 4, '#4f9a3f', 14, 60); }
+  if (!E.popped && E.t > 1.2) { E.popped = true; B.hidden = false; B.jump = 0.4; sfx('bark'); bubble(B, tt('play/zone.20'), 1.2); burst(E.sx, E.sy - 4, '#4f9a3f', 14, 60); }
   if (E.popped && !E.arrived) { if (E.t > 1.7) { moveToward(B, P.x + (E.sx > P.x ? 11 : -11), P.y + 2, 90, dt); B.run = true; B.t += dt; if (Math.hypot(B.x - P.x, B.y - P.y) < 14) { E.arrived = true; B.run = false; B.jump = 0.5; sfx('ding'); for (let i = 0; i < 10; i++) G.parts.push({ x: P.x + rand(-10, 10), y: P.y - 10, vx: rand(-25, 25), vy: rand(-60, -30), life: 1.2, max: 1.2, col: '#ff7ab8', sz: 3, grav: 30, heart: true }); E.at = E.t; } } }
   if (E.arrived && !E.talked && E.t > E.at + 0.8) {
     E.talked = true;
     dialog([
-      { who: 'bori', text: '멍! 멍멍멍!! (꼬리 프로펠러 가동)' },
-      { who: 'hee', text: '보리야!!! 어디 갔었어ㅠㅠㅠ 언니가 얼마나 찾았는데!!' },
-      { who: 'bori', text: '끼잉~ (얼굴을 비비적비비적)' },
-      { who: 'hee', text: '이제 절대 안 놓쳐. 같이 여기서 나가자!' },
-      { who: 'sys', text: '보리가 동료가 되었습니다!' },
-      { who: 'sys', text: '보리는 알아서 몬스터를 물어요. 너무 귀여워서 몬스터들은 보리를 공격하지 못해요.' },
-      { who: 'sys', text: '보너스 스킬 포인트 +1! 메뉴 → 스킬에서 보리 스킬도 찍을 수 있어요.' }
-    ], () => { G.pd.boriJoined = true; G.pd.sp += 1; G.evt = null; G.state = 'play'; showHUD(true); saveGame(); toast('보리 합류! 스킬 포인트 +1', 'lvl'); });
+      { who: 'bori', text: tt('play/zone.21') },
+      { who: 'hee', text: tt('play/zone.22') },
+      { who: 'bori', text: tt('play/zone.23') },
+      { who: 'hee', text: tt('play/zone.24') },
+      { who: 'sys', text: tt('play/zone.25') },
+      { who: 'sys', text: tt('play/zone.26') },
+      { who: 'sys', text: tt('play/zone.27') }
+    ], () => { G.pd.boriJoined = true; G.pd.sp += 1; G.evt = null; G.state = 'play'; showHUD(true); saveGame(); toast(tt('play/zone.28'), 'lvl'); });
   }
   updateFx(dt); updateCam(dt);
 }
@@ -147,16 +148,16 @@ export function updateEvent(dt) {
 function loopIntro(L) {
   const n = (G.pd.cleared || 0) + 1, LM = loopMul();
   const lines = L === 1 ? [
-    { who: 'sys', text: '다시 에버랜드에 발을 들인 순간...\n공기가 확 달라졌다.' },
-    { who: 'sys', text: '【2회차】 한층 더 강해진 몬스터들이 훨씬 더 많이 몰려온다!\n황금 왕관을 쓴 「정예 몬스터」까지 어슬렁거린다.' },
-    { who: 'sys', text: '대신 이런 소문이 돌고 있다.\n이번 회차부터 아무도 본 적 없는 「신화」 장비가 떨어진다고...' },
-    { who: 'sys', text: '그리고 3회차까지 살아남으면,\n그보다 더 위인 「초월」 장비까지 손에 넣을 수 있다고!' },
-    { who: 'hee', text: '신화...? 초월...?\n그건 못 참지. 싹 다 털어간다!!' },
-    { who: 'bori', text: '멍멍!! (나도 황금 뼈다구 갖고 싶어!)' }
+    { who: 'sys', text: tt('play/zone.29') },
+    { who: 'sys', text: tt('play/zone.30') },
+    { who: 'sys', text: tt('play/zone.31') },
+    { who: 'sys', text: tt('play/zone.32') },
+    { who: 'hee', text: tt('play/zone.33') },
+    { who: 'bori', text: tt('play/zone.34') }
   ] : [
-    { who: 'sys', text: `【${n}회차】 몬스터가 또 한 번 강해졌다!\n체력 ×${LM.hp.toFixed(1)} · 공격 ×${LM.atk.toFixed(2).replace(/0$/, '')} · 정예 출현 ${Math.round(LM.elite * 100)}%` },
-    { who: 'sys', text: L === 2 ? '드디어 「초월」 장비가 풀렸다!\n보상도 골드 ×' + LM.gold.toFixed(1) + ' · 아이템 ×' + LM.item.toFixed(1) + '로 늘었다.' : `보상도 골드 ×${LM.gold.toFixed(1)} · 아이템 ×${LM.item.toFixed(1)}!\n신화·초월 장비가 더 자주, 더 앞 스테이지에서 나온다.` },
-    { who: 'hee', text: choice(['아직 배고프다. 더 강한 걸로 가져와!', '이번엔 초월 풀세트 맞춘다!', '보리야, 오늘도 털러 가자!']) }
+    { who: 'sys', text: tt('play/zone.35', { n, v1: LM.hp.toFixed(1), v2: LM.atk.toFixed(2).replace(/0$/, ''), v3: Math.round(LM.elite * 100) }) },
+    { who: 'sys', text: L === 2 ? tt('play/zone.36') + LM.gold.toFixed(1) + tt('play/zone.37') + LM.item.toFixed(1) + tt('play/zone.38') : tt('play/zone.39', { v1: LM.gold.toFixed(1), v2: LM.item.toFixed(1) }) },
+    { who: 'hee', text: choice([tt('play/zone.40'), tt('play/zone.41'), tt('play/zone.42')]) }
   ];
   dialog(lines);
 }
@@ -165,8 +166,8 @@ function husbandSave() {
   G.husUsed = true; P.hp = Math.round(G.st.hp * (lv >= 2 ? 0.6 : 0.3)); P.inv = lv >= 2 ? 3 : 1.5; P.kbx = P.kby = 0;
   for (const e of G.enemies) if (!e.dead && !e.boss && Math.hypot(e.x - P.x, e.y - P.y) < 50) { const a = Math.atan2(e.y - P.y, e.x - P.x); e.kbx = Math.cos(a) * 160; e.kby = Math.sin(a) * 160; e.stun = Math.max(e.stun, 0.8); }
   G.fx.push({ k: 'hus', x: P.x - 16, y: P.y, t: 0, dur: 1.6 }); G.fx.push({ k: 'ring', x: P.x, y: P.y - 8, r: 50, col: '#7ec8ff', t: 0, dur: 0.6 });
-  G.shake = 5; sfx('lvl'); word(P.x, P.y - 34, '오빠 살려줘!!', '#7ec8ff', 1.6);
-  bubble(P, choice(['오빠아아!!', '살았다...', '역시 우리 오빠']), 1.8);
-  toast(`오빠가 달려와서 희수를 일으켜줬어요! (HP ${lv >= 2 ? 60 : 30}%${lv >= 2 ? ' · 3초 무적' : ''})`, 'lvl');
+  G.shake = 5; sfx('lvl'); word(P.x, P.y - 34, tt('play/zone.43'), '#7ec8ff', 1.6);
+  bubble(P, choice([tt('play/zone.44'), tt('play/zone.45'), tt('play/zone.46')]), 1.8);
+  toast(tt('play/zone.48', { v1: lv >= 2 ? 60 : 30, v2: lv >= 2 ? tt('play/zone.47') : '' }), 'lvl');
   return true;
 }

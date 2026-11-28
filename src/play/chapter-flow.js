@@ -11,6 +11,7 @@ import { fadeTo, toast } from '../ui/dialog.js';
 import { showHUD } from '../ui/hud.js';
 import { showTitle } from '../ui/lobby.js';
 import { playCut } from '../story/story.js';
+import { tt } from '../sys/i18n.js';
 
 /** 로비 챕터 고르기: 2장은 1장을 깨면, 그 뒤 장은 앞 장을 깨면 버튼이 보임 */
 export function chapterPickHtml(pd) {
@@ -18,12 +19,12 @@ export function chapterPickHtml(pd) {
   const cur = chOpen(pd, pd.chap || 1) ? (pd.chap || 1) : 1;
   const shown = chKeys().filter(c => c <= 2 || chClr(pd, c - 1) >= 1), n = shown.length, sep = n >= 4 ? '<br>' : ' ';
   const btn = c => { const def = CHAPTERS[c], open = chOpen(pd, c), fresh = c > 1 && open && !pd[chKey(c)], label = def.pick[n >= 3 ? 1 : 0];
-    return `<button class="tch${cur === c ? ' on' : ''}${open ? '' : ' lock'}" data-ch="${c}"><b>${c}장</b>${sep}${label}${fresh ? ' <em>NEW</em>' : ''}${open ? '' : `${sep}<small>Lv${def.lv}</small>`}</button>`; };
+    return tt('play/chapter-flow.1', { v1: cur === c ? ' on' : '', v2: open ? '' : ' lock', c, sep, label, v3: fresh ? ' <em>NEW</em>' : '', v4: open ? '' : `${sep}<small>Lv${def.lv}</small>` }); };
   return `<div class="tchap${n >= 4 ? ' c4' : n === 3 ? ' c3' : ''}">${shown.map(btn).join('')}</div>`;
 }
 export function chapterPick(c) {
   const pd = loadGame(); if (!pd) return;
-  if (!chOpen(pd, c)) { toast(`${c}장은 Lv${CHAPTERS[c].lv}부터 열려요 (${c - 1}장을 깬 뒤)`, 'sub'); return; }
+  if (!chOpen(pd, c)) { toast(tt('play/chapter-flow.2', { c, lv: CHAPTERS[c].lv, v1: c - 1 }), 'sub'); return; }
   pd.chap = c; G.pd = pd; saveGame(); sfx('select'); showTitle();
 }
 /** 「모험 계속하기」: 2장 이상 처음이면 프롤로그부터 */
@@ -41,15 +42,15 @@ export function chStageStory(z) {
 /** 2장 이상 마지막 보스를 잡고 출구로 */
 export function chFinish(c) {
   const P = chOf(G.pd, c), first = !P.cleared, z0 = CH_Z0[c], END = CHAPTERS[c].story.ending[1]; P.cleared++; P.zone = z0; G.pd.chap = c;
-  if (G.auto && !first) { saveGame(); fadeTo(() => { showHUD(false); playCut(END, () => fadeTo(() => { G.auto = true; startZone(z0); toast(`🎉 ${c}장 ${P.cleared}회차 클리어! 자동사냥으로 ${P.cleared + 1}회차 시작`, 'lvl'); })); }); return; }
+  if (G.auto && !first) { saveGame(); fadeTo(() => { showHUD(false); playCut(END, () => fadeTo(() => { G.auto = true; startZone(z0); toast(tt('play/chapter-flow.3', { c, cleared: P.cleared, v1: P.cleared + 1 }), 'lvl'); })); }); return; }
   saveGame(); fadeTo(() => { showHUD(false); playCut(END, () => showEndCh(c)); });
 }
 function showEndCh(c) {
   const def = CHAPTERS[c], P = chOf(G.pd, c), z0 = CH_Z0[c]; G.state = 'end'; const s = G.pd.stats; showHUD(false);
   $('#endScr h2').textContent = def.title;
-  const lv = `최종 레벨 <b>Lv.${G.pd.lv}</b>${G.pd.aw ? ` ★${G.pd.aw}` : ''}<br>처치한 몬스터 <b>${s.kills.toLocaleString()}</b>마리`;
+  const lv = tt('play/chapter-flow.4', { lv: G.pd.lv, v1: G.pd.aw ? ` ★${G.pd.aw}` : '', v2: s.kills.toLocaleString() });
   $('#endStats').innerHTML = def.end.stats(lv);
-  $('#endBtns').innerHTML = `<button class="btn pk" id="eAgain">${c}장 ${P.cleared + 1}회차 시작<small>${def.end.again}</small></button><button class="btn wh" id="eTitle">로비로</button>`;
+  $('#endBtns').innerHTML = tt('play/chapter-flow.5', { c, v1: P.cleared + 1, again: def.end.again });
   $('#endScr').hidden = false;
   $('#eAgain').onclick = () => { $('#endScr').hidden = true; setCurZone(G.pd, z0); saveGame(); fadeTo(() => startZone(z0)); };
   $('#eTitle').onclick = () => { $('#endScr').hidden = true; setCurZone(G.pd, z0); saveGame(); showTitle(); };

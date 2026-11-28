@@ -23,6 +23,7 @@ import { raidUpdate } from '../net/raid.js';
 import { buddyOpen, buddyUpdate } from '../net/buddy.js';
 import { towerUpdate } from './tower.js';
 import { plazaUpdate } from '../net/plaza.js';
+import { tt } from '../sys/i18n.js';
 
 function updateProjs(dt) {
   const P = G.P;
@@ -57,7 +58,7 @@ function handleActions() {
     if (a === 's1') trySkill('smash'); else if (a === 's2') trySkill('nag'); else if (a === 's3') trySkill('flash'); else if (a === 'ult') trySkill('menhera');
     else if (a === 'auto') autoToggle();
     else if (a === 'buddy') buddyOpen();
-    else if ((a === 'hp' || a === 'mp') && G.pvp) toast('PvP에선 음식을 먹을 수 없어요!', 'warn');
+    else if ((a === 'hp' || a === 'mp') && G.pvp) toast(tt('play/fx.1'), 'warn');
     else if (a === 'hp') quickFood('hp'); else if (a === 'mp') quickFood('mp');
     else if ((a === 'menu' || a === 'esc') && G.pvp) pvpForfeit();
     else if (a === 'menu' || a === 'esc') openMenu();

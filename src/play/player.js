@@ -17,6 +17,7 @@ import { jobTick } from '../core/job.js';
 import { toast } from '../ui/dialog.js';
 import { PVP_MUL } from '../net/pvp.js';
 import { raidHit } from '../net/raid.js';
+import { tt } from '../sys/i18n.js';
 
 export function newPlayer(x, y) { return { x, y, hp: G.st.hp, mp: G.st.mp, fx: 0, fy: 1, dir: 'down', walkT: 0, moving: false, idleT: 1, atkCd: 0, atkAnim: 0, punch: 0, inv: 0, flash: 0, cds: {}, buffs: {}, eatCd: 0, castT: 0, kbx: 0, kby: 0, phoneT: 0.5, wasPhone: false }; }
 export function newBori(x, y) { return { x, y, t: 0, face: 1, biteCd: 0, barkCd: 3, zoomCd: 6, target: null, run: false, zoom: null, jump: 0 }; }
@@ -55,7 +56,7 @@ export function updatePlayer(dt) {
   collide(P, 5);
   P.atkCd -= dt; P.atkAnim -= dt; P.inv -= dt; P.flash -= dt; P.castT -= dt; P.eatCd -= dt;
   for (const k in P.cds) if (P.cds[k] > 0) P.cds[k] -= dt;
-  for (const k in P.buffs) { const b = P.buffs[k]; b.t -= dt; if (Math.random() < dt * 6) G.parts.push({ x: P.x + rand(-6, 6), y: P.y - rand(2, 18), vx: 0, vy: -20, life: 0.5, max: 0.5, col: b.crit ? '#ffd84a' : '#ff6b5a', sz: 1, grav: 0 }); if (b.t <= 0) { delete P.buffs[k]; calcStats(); toast(`${b.name} 보양 효과가 끝났어요`, 'sub'); } }
+  for (const k in P.buffs) { const b = P.buffs[k]; b.t -= dt; if (Math.random() < dt * 6) G.parts.push({ x: P.x + rand(-6, 6), y: P.y - rand(2, 18), vx: 0, vy: -20, life: 0.5, max: 0.5, col: b.crit ? '#ffd84a' : '#ff6b5a', sz: 1, grav: 0 }); if (b.t <= 0) { delete P.buffs[k]; calcStats(); toast(tt('play/player.1', { name: b.name }), 'sub'); } }
   if ((INP.atk || (G.auto && G.autoAtk)) && P.atkCd <= 0 && P.castT <= 0) doAttack();
   const onPhone = isOnPhone();
   if (onPhone && !P.wasPhone) { G.fx.push({ k: 'icon', x: P.x + 6, y: P.y - 14, icon: 'phonePop', t: 0, dur: 0.35 }); }
@@ -113,7 +114,7 @@ export function hurtPlayer(raw, src) {
   P.hp -= dmg; P.inv = 0.5; P.flash = 0.15;
   addText(P.x, P.y - 24, dmg, 'hurt'); G.shake = Math.max(G.shake, 3); sfx('hurt');
   if (src) { const a = Math.atan2(P.y - src.y, P.x - src.x); P.kbx += Math.cos(a) * 70; P.kby += Math.sin(a) * 70; }
-  if (Math.random() < 0.15) bubble(P, choice(['아야!', '아 진짜!', '앗 뜨거', '으악!', '감히 나를?!']), 1);
+  if (Math.random() < 0.15) bubble(P, choice([tt('play/player.2'), tt('play/player.3'), tt('play/player.4'), tt('play/player.5'), tt('play/player.6')]), 1);
   if (P.hp <= 0) { P.hp = 0; playerDie(); }
 }
 

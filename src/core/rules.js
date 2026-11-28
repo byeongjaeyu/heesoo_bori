@@ -1,3 +1,4 @@
+// i18n-keep-file (서버 SQL 생성기가 node 로 바로 읽음 — 시즌 보상 글은 서버 기록에 한국어로 들어감)
 // 게임과 서버(Supabase)가 **같이 쓰는 숫자**를 모아 둔 곳 — 여기만 고치면 양쪽이 같이 바뀜.
 //  - 게임: 이 파일을 import 해서 씀 (전투력 계산·보상표 화면·안내 문구).
 //  - 서버: supabase/fn/*.sql 틀의 {{…}} 자리에 이 값이 들어가고 `npm run sql` 이 supabase/gen/functions.sql 을 만듦.

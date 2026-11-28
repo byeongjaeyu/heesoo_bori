@@ -13,6 +13,7 @@ import { showHUD } from '../ui/hud.js';
 import { lobbyMenu, renderMenu, setMTab } from '../ui/menu.js';
 import { showTitle } from '../ui/lobby.js';
 import { playCut } from './story.js';
+import { tt } from '../sys/i18n.js';
 
 /** 장별 [제목, 장면, 열렸는지(pd)] — 장 파일(src/chapters/chN.js)의 story 에서 만듦: 프롤로그 · 스테이지 입장 이야기 · 엔딩
  * @type {{c: number, name: string, list: [string, () => any[], (pd: any) => boolean][]}[]} */
@@ -27,10 +28,10 @@ export function replayHtml(pd) {
   const body = REPLAY.map(ch => {
     const open = ch.c === 1 || chOpen(pd, ch.c) || ch.list.some(it => it[2](pd)); if (!open) return '';
     const rows = ch.list.map((it, i) => { const ok = it[2](pd); if (ok) n++;
-      return `<button class="rprow${ok ? '' : ' lock'}" data-m="replay" data-v="${ch.c}:${i}" ${ok ? '' : 'disabled'}><b>${ok ? '▶' : '🔒'}</b><span>${it[0]}</span>${ok ? '' : '<small>아직 안 본 이야기</small>'}</button>`; }).join('');
+      return `<button class="rprow${ok ? '' : ' lock'}" data-m="replay" data-v="${ch.c}:${i}" ${ok ? '' : 'disabled'}><b>${ok ? '▶' : '🔒'}</b><span>${it[0]}</span>${ok ? '' : tt('story/replay.1')}</button>`; }).join('');
     return `<h3>${ch.name}</h3><div class="rplist">${rows}</div>`;
   }).join('');
-  return `<p class="ds" style="margin:0 2px 8px">지금까지 본 이야기 <b>${n}</b>편을 다시 볼 수 있어요. 대사는 화면을 누르면 넘어가고, 건너뛰기도 돼요.</p>` + body;
+  return tt('story/replay.2', { n }) + body;
 }
 /** v = "장:번호" */
 export function replayPlay(v) {

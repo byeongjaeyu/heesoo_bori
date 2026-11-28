@@ -17,6 +17,7 @@ import { FINE, faceURL } from './common.js';
 import { INF_WAVE_KILLS } from '../play/inf.js';
 import { AUTO_BETA, autoLeft, mmss } from '../play/auto.js';
 import { buddyActive, buddyLeftTxt, buddyUsedToday } from '../net/buddy.js';
+import { tt } from '../sys/i18n.js';
 
 const HC = {}; let HE = null;
 function hset(k, fn, v) { if (HC[k] === v) return; HC[k] = v; fn(v); }
@@ -40,28 +41,28 @@ export function updateHUD() {
   hset('mpT', v => HE.mpT.textContent = v, Math.floor(P.mp) + '/' + st.mp);
   hset('xpF', v => HE.xpF.style.width = v + '%', Math.round(Math.min(1, pd.xp / (pd.lv >= MAX_LV ? awkNeed(pd.aw || 0) : xpNeed(pd.lv))) * 1000) / 10);
   hset('gold', v => HE.gold.textContent = v, pd.gold.toLocaleString());
-  hset('zone', v => HE.zone.textContent = v, G.pvp ? 'PvP 아레나' : G.plaza ? `희수 광장 ${G.plaza.no}` : G.raid ? '월드 보스 레이드' : G.tower ? `보스 타워 ${G.tower.f}층` : G.inf ? `할로윈파티 · WAVE ${G.inf.wave}` : ZONES[G.zone].name + (chCleared(G.pd, G.zone) ? ` · ${chCleared(G.pd, G.zone) + 1}회차` : ''));
+  hset('zone', v => HE.zone.textContent = v, G.pvp ? tt('ui/hud.1') : G.plaza ? tt('ui/hud.2', { no: G.plaza.no }) : G.raid ? tt('ui/hud.3') : G.tower ? tt('ui/hud.4', { f: G.tower.f }) : G.inf ? tt('ui/hud.5', { wave: G.inf.wave }) : ZONES[G.zone].name + (chCleared(G.pd, G.zone) ? tt('ui/hud.6', { v1: chCleared(G.pd, G.zone) + 1 }) : ''));
   const Z = ZONES[G.zone];
-  const zq = zoneQuota(Z); const q = !G.bossSpawned ? `몬스터 처치 ${Math.min(G.zoneKills, zq)}/${zq}` : (G.boss ? '보스를 쓰러뜨려라!' : (!isChLast(G.zone) ? '↑ 출구로 이동!' : '↑ 탈출구로 탈출!'));
-  hset('quest', v => HE.quest.textContent = v, G.pvp ? `VS ${G.pvp.opp.nickname} · 남은 시간 ${Math.ceil(G.pvp.t)}초` : G.plaza ? (G.plaza.ok ? `${Object.keys(G.plaza.others).length + 1}명 접속 중 · 자유롭게 돌아다녀요` : '광장 서버에 연결하는 중...') : G.raid ? `남은 시간 ${Math.ceil(G.raid.t)}초 · 내 피해 ${Math.round(G.raid.dmg).toLocaleString()}` : G.tower ? `남은 시간 ${Math.ceil(G.tower.t)}초 · 보스를 쓰러뜨려라!` : G.inf ? (G.boss && !G.boss.dead ? `할로윈 보스 등장! · 처치 ${G.inf.kills}` : `처치 ${G.inf.kills} · 다음 웨이브 ${G.inf.waveKills}/${INF_WAVE_KILLS}`) : q);
+  const zq = zoneQuota(Z); const q = !G.bossSpawned ? tt('ui/hud.7', { v1: Math.min(G.zoneKills, zq), zq }) : (G.boss ? tt('ui/hud.8') : (!isChLast(G.zone) ? tt('ui/hud.9') : tt('ui/hud.10')));
+  hset('quest', v => HE.quest.textContent = v, G.pvp ? tt('ui/hud.11', { nickname: G.pvp.opp.nickname, v1: Math.ceil(G.pvp.t) }) : G.plaza ? (G.plaza.ok ? tt('ui/hud.12', { v1: Object.keys(G.plaza.others).length + 1 }) : tt('ui/hud.13')) : G.raid ? tt('ui/hud.14', { v1: Math.ceil(G.raid.t), v2: Math.round(G.raid.dmg).toLocaleString() }) : G.tower ? tt('ui/hud.15', { v1: Math.ceil(G.tower.t) }) : G.inf ? (G.boss && !G.boss.dead ? tt('ui/hud.16', { kills: G.inf.kills }) : tt('ui/hud.17', { kills: G.inf.kills, waveKills: G.inf.waveKills, INF_WAVE_KILLS })) : q);
   const b = G.boss && !G.boss.dead ? G.boss : null;
   hset('bossOn', v => HE.bossBar.hidden = !v, !!b);
   hset('bossDone', v => HE.bossBar.classList.toggle('done', v), !!(b && b.raidDone));
   if (b) { hset('bossName', v => HE.bossName.textContent = v, b.m.name); hset('bossF', v => HE.bossF.style.width = v + '%', Math.round(Math.max(0, b.hp) / b.maxHp * 1000) / 10); }
   hset('badge', v => { HE.badge.hidden = !v; HE.badge.textContent = v; }, pd.sp > 0 ? String(pd.sp) : (pd.newItem || pd.newBori ? 'N' : ''));
   hset('bori', v => HE.boriHud.hidden = !v, !!pd.boriJoined && !G.pvp);
-  const bt = Object.values(P.buffs || {}).map(b => `${b.name} ${Math.ceil(b.t)}초`).join(' · ');
+  const bt = Object.values(P.buffs || {}).map(b => tt('ui/hud.18', { name: b.name, v1: Math.ceil(b.t) })).join(' · ');
   hset('buff', v => { const el = $('#buffHud'); el.hidden = !v; el.textContent = v; }, bt);
   for (const [id, bid] of SKBTN) {
     const S = SKILLS[id], lv = sk(id), cd = Math.max(0, P.cds[id] || 0), tot = lv ? S.cd(lv) : 1;
     const locked = !lv, nomp = !!lv && P.mp < S.mp, ready = id === 'menhera' && lv && cd <= 0 && !nomp;
     hset(bid + 'c', v => $('#' + bid).className = v, 'sk' + (locked ? ' locked' : '') + (nomp ? ' nomp' : '') + (ready ? ' ready' : ''));
-    hset(bid + 'l', v => $('#' + bid + ' .lock').textContent = v, locked ? (pd.lv < S.req ? 'Lv' + S.req : '배우기') : '');
+    hset(bid + 'l', v => $('#' + bid + ' .lock').textContent = v, locked ? (pd.lv < S.req ? 'Lv' + S.req : tt('ui/hud.19')) : '');
     hset(bid + 'd', v => $('#' + bid + ' .cd').style.setProperty('--cd', v), Math.round(cd / tot * 50) / 50);
     hset(bid + 't', v => $('#' + bid + ' .cdT').textContent = v, cd > 0 ? String(Math.ceil(cd)) : '');
   }
-  { const pd2 = G.pd, on = buddyActive(pd2); hset('buddyShow', v => $('#bBuddy').hidden = !v, !G.pvp && !FORCE_EASY); hset('buddyCls', v => $('#bBuddy').className = v, 'food buddyb' + (on ? ' on' : '') + (!on && buddyUsedToday(pd2) ? ' empty' : '')); hset('buddyT', v => $('#bBuddy span').textContent = v, on ? buddyLeftTxt(pd2.buddy.left) : buddyUsedToday(pd2) ? '내일' : '친구'); }
-  { const left = autoLeft(); hset('autoShow', v => $('#bAuto').hidden = !v, !G.pvp); hset('autoCls', v => $('#bAuto').className = v, 'food auto' + (G.auto ? ' on' : '') + (left <= 0 && !AUTO_BETA.free ? ' empty' : '')); hset('autoT', v => $('#bAuto span').textContent = v, AUTO_BETA.free ? '무제한' : mmss(left)); }
+  { const pd2 = G.pd, on = buddyActive(pd2); hset('buddyShow', v => $('#bBuddy').hidden = !v, !G.pvp && !FORCE_EASY); hset('buddyCls', v => $('#bBuddy').className = v, 'food buddyb' + (on ? ' on' : '') + (!on && buddyUsedToday(pd2) ? ' empty' : '')); hset('buddyT', v => $('#bBuddy span').textContent = v, on ? buddyLeftTxt(pd2.buddy.left) : buddyUsedToday(pd2) ? tt('ui/hud.20') : tt('ui/hud.21')); }
+  { const left = autoLeft(); hset('autoShow', v => $('#bAuto').hidden = !v, !G.pvp); hset('autoCls', v => $('#bAuto').className = v, 'food auto' + (G.auto ? ' on' : '') + (left <= 0 && !AUTO_BETA.free ? ' empty' : '')); hset('autoT', v => $('#bAuto span').textContent = v, AUTO_BETA.free ? tt('ui/hud.22') : mmss(left)); }
   hset('qhide', v => { $('#bHP').hidden = v; $('#bMP').hidden = v; }, sk('feed') > 0 && !!pd.boriJoined);
   for (const k of ['hp', 'mp']) {
     const pick = pickQuickFood(k, k === 'hp' ? st.hp - P.hp : st.mp - P.mp);

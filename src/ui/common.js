@@ -10,6 +10,7 @@ import { heeLook } from '../draw/hee2.js';
 import { G } from '../core/state.js';
 import { boriSpr, heeSet, husSpr } from '../draw/render.js';
 import { TITLE_PD } from './lobby.js';
+import { tt } from '../sys/i18n.js';
 
 export const FINE = window.matchMedia && matchMedia('(pointer: fine)').matches;
 /** 2배 도트 캔버스 일부를 정사각 아이콘(64px)으로 */
@@ -30,4 +31,4 @@ export function faceURL(who) {
   if (who === 'nurse') return iconURL('face_nurse', [...HS.headF, ...HS.bodyF.slice(0, 4)], { C: '#ffffff', c: '#e0e0e8', N: '#ff7ab8', W: '#bfe6ff', w: '#9cc8e8', G: '#bfe6ff', g: '#9cc8e8', H: '#5a3a2a' });
   return '';
 }
-export const SPEAK = { bori2: { name: '보리', face: 'bori2' }, cat: { name: '냥갱', face: 'cat' }, nurse: { name: '간호사 선생님', face: 'nurse' }, somi: { name: '솜이', face: 'somi' }, hee: { name: '희수', face: 'hee' }, heePh: { name: '희수', face: 'heePh' }, bori: { name: '보리', face: 'bori' }, hus: { name: '남편', face: 'hus' }, mon: { name: '몬스터', face: 'mon' }, sys: {} };
+export const SPEAK = { bori2: { name: tt('ui/common.1'), face: 'bori2' }, cat: { name: tt('ui/common.2'), face: 'cat' }, nurse: { name: tt('ui/common.3'), face: 'nurse' }, somi: { name: tt('ui/common.4'), face: 'somi' }, hee: { name: tt('ui/common.5'), face: 'hee' }, heePh: { name: tt('ui/common.5'), face: 'heePh' }, bori: { name: tt('ui/common.1'), face: 'bori' }, hus: { name: tt('ui/common.6'), face: 'hus' }, mon: { name: tt('ui/common.7'), face: 'mon' }, sys: {} };

@@ -14,24 +14,25 @@ import { calcStats } from '../core/items.js';
 import { toast } from '../ui/dialog.js';
 import { renderMenu } from '../ui/menu.js';
 import { showTitle } from '../ui/lobby.js';
+import { tt } from '../sys/i18n.js';
 
 /** 출석 7일 주기 (누적, 빠져도 초기화 안 됨). g = 골드 배수(레벨·회차 비례), s = 강화석, a = 자동사냥(초) */
 const ATT_REWARDS = [{ g: 2 }, { s: 10 }, { a: 1800 }, { g: 3 }, { s: 25 }, { a: 3600 }, { g: 5, s: 50, a: 7200 }];
 /** 미션 풀. 매일 kill + 나머지 중 3개 */
 const MISSIONS = {
-  kill: { name: '몬스터 150마리 처치', n: 150, r: { s: 5 } },
-  boss: { name: '보스 1마리 처치', n: 1, r: { s: 10 } },
-  enh: { name: '장비 강화 5번 시도', n: 5, r: { g: 1 } },
-  pvp: { name: 'PvP 아레나 1판', n: 1, r: { s: 8 } },
-  wave: { name: '할로윈파티 웨이브 5개 넘기기', n: 5, r: { g: 2 } },
-  ep2: { name: '미니게임 「보리 주세요」 스테이지 1개 깨기', n: 1, r: { a: 900 } }
+  kill: { name: tt('features/daily.1'), n: 150, r: { s: 5 } },
+  boss: { name: tt('features/daily.2'), n: 1, r: { s: 10 } },
+  enh: { name: tt('features/daily.3'), n: 5, r: { g: 1 } },
+  pvp: { name: tt('features/daily.4'), n: 1, r: { s: 8 } },
+  wave: { name: tt('features/daily.5'), n: 5, r: { g: 2 } },
+  ep2: { name: tt('features/daily.6'), n: 1, r: { a: 900 } }
 };
 const DAILY_ALL = { a: 1800 }; // 4개 다 받으면 보너스
 
 const dailyGold = pd => Math.round(300 + (pd.lv || 1) * 60 * (1 + Math.min(pd.cleared || 0, 10) * 0.3));
 function rewardText(pd, r) {
-  const t = []; if (r.g) t.push(`${(dailyGold(pd) * r.g).toLocaleString()}G`); if (r.s) t.push(`강화석 ${r.s}개`);
-  if (r.a) t.push(`자동사냥 ${r.a >= 3600 ? (r.a / 3600) + '시간' : (r.a / 60) + '분'}`); return t.join(' + ');
+  const t = []; if (r.g) t.push(`${(dailyGold(pd) * r.g).toLocaleString()}G`); if (r.s) t.push(tt('features/daily.7', { s: r.s }));
+  if (r.a) t.push(tt('features/daily.21', { v1: r.a >= 3600 ? (r.a / 3600) + tt('features/daily.8') : (r.a / 60) + tt('features/daily.9') })); return t.join(' + ');
 }
 function rewardApply(pd, r) {
   if (r.g) pd.gold += dailyGold(pd) * r.g; if (r.s) pd.stones = (pd.stones || 0) + r.s; if (r.a) pd.autoBonus = (pd.autoBonus || 0) + r.a;
@@ -67,7 +68,7 @@ export function dailyAdd(kind, n = 1) {
   const d = dailyState(pd); if (!d.picks.includes(kind) || d.got.includes(kind)) return;
   const M = MISSIONS[kind], before = d.prog[kind] || 0; if (before >= M.n) return;
   d.prog[kind] = Math.min(M.n, before + n);
-  if (d.prog[kind] >= M.n) { toast(`미션 완료! ${M.name} · 메뉴 → 미션에서 받기`, 'lvl'); sfx('ding'); }
+  if (d.prog[kind] >= M.n) { toast(tt('features/daily.10', { name: M.name }), 'lvl'); sfx('ding'); }
   if (G.pd !== pd) dailyCommit(pd);
 }
 /** 출석 체크. 반환: 보상 문구 또는 null(오늘 이미 함) */
@@ -91,21 +92,18 @@ export function dailyHtml(pd) {
   const day = todayKey(), d = dailyState(pd, day), att = pd.att || { last: '', n: 0 }, todayDone = att.last === day;
   const cur = todayDone ? (att.n - 1) % 7 : att.n % 7; // 오늘(받을/받은) 칸
   const cells = ATT_REWARDS.map((r, i) => { const got = todayDone ? i <= cur : i < cur, now = i === cur;
-    return `<div class="attc${got ? ' got' : ''}${now && !todayDone ? ' now' : ''}"><b>${i + 1}일</b><small>${rewardText(pd, r)}</small>${got ? '<i>✔</i>' : ''}</div>`; }).join('');
+    return tt('features/daily.11', { v1: got ? ' got' : '', v2: now && !todayDone ? ' now' : '', v3: i + 1, v4: rewardText(pd, r), v5: got ? '<i>✔</i>' : '' }); }).join('');
   const rows = d.picks.map(id => { const M = MISSIONS[id], p = Math.min(M.n, d.prog[id] || 0), done = p >= M.n, got = d.got.includes(id);
-    return `<div class="msn${got ? ' got' : ''}"><span><em>${M.name}</em><i class="mbar"><b style="width:${Math.round(p / M.n * 100)}%"></b></i><small>${p}/${M.n} · ${rewardText(pd, M.r)}</small></span><button class="btn ${done && !got ? 'pk' : 'wh'} sm" data-d="claim" data-v="${id}" ${done && !got ? '' : 'disabled'}>${got ? '받음' : done ? '받기' : '진행 중'}</button></div>`; }).join('');
+    return `<div class="msn${got ? ' got' : ''}"><span><em>${M.name}</em><i class="mbar"><b style="width:${Math.round(p / M.n * 100)}%"></b></i><small>${p}/${M.n} · ${rewardText(pd, M.r)}</small></span><button class="btn ${done && !got ? 'pk' : 'wh'} sm" data-d="claim" data-v="${id}" ${done && !got ? '' : 'disabled'}>${got ? tt('features/daily.12') : done ? tt('features/daily.13') : tt('features/daily.14')}</button></div>`; }).join('');
   const allOk = d.got.length === d.picks.length;
-  return `<div class="daily"><div class="dh"><b>출석 체크</b><small>누적 ${att.n}일 · 7일마다 큰 보상</small></div><div class="attrow">${cells}</div>
-<button class="btn ${todayDone ? 'wh' : 'pk'}" data-d="att" ${todayDone ? 'disabled' : ''}>${todayDone ? '오늘 출석 완료 ✔' : '출석하기'}</button>
-<div class="dh"><b>오늘의 미션</b><small>자정에 바뀌어요</small></div>${rows}
-<div class="msn bonus${d.all ? ' got' : ''}"><span><em>미션 4개 모두 받기 보너스</em><small>${rewardText(pd, DAILY_ALL)}</small></span><button class="btn ${allOk && !d.all ? 'pk' : 'wh'} sm" data-d="all" ${allOk && !d.all ? '' : 'disabled'}>${d.all ? '받음' : '보너스'}</button></div></div>`;
+  return tt('features/daily.22', { n: att.n, cells, v1: todayDone ? 'wh' : 'pk', v2: todayDone ? 'disabled' : '', v3: todayDone ? tt('features/daily.15') : tt('features/daily.16'), rows, v4: d.all ? ' got' : '', v5: rewardText(pd, DAILY_ALL), v6: allOk && !d.all ? 'pk' : 'wh', v7: allOk && !d.all ? '' : 'disabled', v8: d.all ? tt('features/daily.12') : tt('features/daily.17') });
 }
 /** 버튼 처리 (타이틀 창·메뉴 탭 공용). 처리했으면 true */
 function dailyAct(act, v) {
   const pd = dailyPD(); if (!pd) return false; let txt = null;
-  if (act === 'att') { const r = dailyAttend(pd); if (r) txt = `${r.day}일차 출석! ${r.text}`; }
-  else if (act === 'claim') { const r = dailyClaim(pd, v); if (r) txt = `미션 보상: ${r}`; }
-  else if (act === 'all') { const r = dailyClaimAll(pd); if (r) txt = `미션 보너스: ${r}`; }
+  if (act === 'att') { const r = dailyAttend(pd); if (r) txt = tt('features/daily.18', { day: r.day, text: r.text }); }
+  else if (act === 'claim') { const r = dailyClaim(pd, v); if (r) txt = tt('features/daily.19', { r }); }
+  else if (act === 'all') { const r = dailyClaimAll(pd); if (r) txt = tt('features/daily.20', { r }); }
   if (!txt) return false;
   toast(txt, 'lvl'); sfx('lvl'); if (G.pd === pd) calcStats(); dailyCommit(pd); return true;
 }

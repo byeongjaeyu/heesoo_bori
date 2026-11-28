@@ -10,6 +10,7 @@ import { G } from '../core/state.js';
 import { sk } from '../core/save.js';
 import { bubble, collide, dealDamage, isOnPhone, moveToward } from './player.js';
 import { eatFood, pickQuickFood } from './food.js';
+import { tt } from '../sys/i18n.js';
 
 const FEED_TH = [[0, 0], [0.4, 0.3], [0.5, 0.4], [0.6, 0.5]];
 export function autoFeed(dt) {
@@ -20,7 +21,7 @@ export function autoFeed(dt) {
     const cur = k === 'hp' ? P.hp / st.hp : P.mp / st.mp; if (cur >= (k === 'hp' ? th : tm)) continue;
     const id = pickQuickFood(k, k === 'hp' ? st.hp - P.hp : st.mp - P.mp); if (!id || PREMIUM.includes(id)) continue;
     G.fx.push({ k: 'eat', icon: FOODS[id].icon, x: (B.x + P.x) / 2, y: (B.y + P.y) / 2 - 10, t: 0, dur: 0.5 });
-    eatFood(id); G.feedCd = 1.2; bubble(B, choice(['멍! (언니 이거 먹어!)', '언니 줘!', '앙! (배달 왔어요)']), 1.2); return;
+    eatFood(id); G.feedCd = 1.2; bubble(B, choice([tt('play/bori.1'), tt('play/bori.2'), tt('play/bori.3')]), 1.2); return;
   }
 }
 export function updateBori(dt) {
@@ -35,16 +36,16 @@ export function updateBori(dt) {
     collide(B, 3); return;
   }
   const bl = sk('bark');
-  if (bl && B.barkCd <= 0) { const r = 45 + 5 * bl; const ns = G.enemies.filter(e => !e.dead && e.spawnT <= 0 && Math.hypot(e.x - B.x, e.y - B.y) < r + e.r); if (ns.length) { B.barkCd = 9 - 0.6 * (bl - 1); sfx('bark'); bubble(B, '멍멍!', 1); G.fx.push({ k: 'ring', x: B.x, y: B.y - 5, r, col: '#ffd84a', t: 0, dur: 0.45 }); for (const e of ns) dealDamage(e, G.st.atk * (0.6 + 0.2 * bl) * G.st.boriMul, { fear: 1.6, kb: 90, ang: Math.atan2(e.y - B.y, e.x - B.x) }); } }
+  if (bl && B.barkCd <= 0) { const r = 45 + 5 * bl; const ns = G.enemies.filter(e => !e.dead && e.spawnT <= 0 && Math.hypot(e.x - B.x, e.y - B.y) < r + e.r); if (ns.length) { B.barkCd = 9 - 0.6 * (bl - 1); sfx('bark'); bubble(B, tt('play/bori.4'), 1); G.fx.push({ k: 'ring', x: B.x, y: B.y - 5, r, col: '#ffd84a', t: 0, dur: 0.45 }); for (const e of ns) dealDamage(e, G.st.atk * (0.6 + 0.2 * bl) * G.st.boriMul, { fear: 1.6, kb: 90, ang: Math.atan2(e.y - B.y, e.x - B.x) }); } }
   const zl = sk('zoomies');
-  if (zl && B.zoomCd <= 0) { const ns = G.enemies.filter(e => !e.dead && e.spawnT <= 0 && Math.hypot(e.x - P.x, e.y - P.y) < 95); if (ns.length >= 2) { B.zoomCd = 12; ns.sort((a, b) => Math.hypot(a.x - B.x, a.y - B.y) - Math.hypot(b.x - B.x, b.y - B.y)); const pts = ns.slice(0, 6).map(e => ({ x: e.x + rand(-4, 4), y: e.y + rand(-3, 3) })); pts.push({ x: P.x + 10, y: P.y + 3 }); B.zoom = { t: 0, i: 0, pts, hit: new Set(), lv: zl }; bubble(B, '우다다다!', 1.2); } }
+  if (zl && B.zoomCd <= 0) { const ns = G.enemies.filter(e => !e.dead && e.spawnT <= 0 && Math.hypot(e.x - P.x, e.y - P.y) < 95); if (ns.length >= 2) { B.zoomCd = 12; ns.sort((a, b) => Math.hypot(a.x - B.x, a.y - B.y) - Math.hypot(b.x - B.x, b.y - B.y)); const pts = ns.slice(0, 6).map(e => ({ x: e.x + rand(-4, 4), y: e.y + rand(-3, 3) })); pts.push({ x: P.x + 10, y: P.y + 3 }); B.zoom = { t: 0, i: 0, pts, hit: new Set(), lv: zl }; bubble(B, tt('play/bori.5'), 1.2); } }
   let tgt = null;
   if (B.target && !B.target.dead && Math.hypot(B.target.x - P.x, B.target.y - P.y) < 115) tgt = B.target;
   else { tgt = null; let bd = 75; for (const e of G.enemies) { if (e.dead || e.spawnT > 0) continue; if (Math.hypot(e.x - P.x, e.y - P.y) > 105) continue; const d = Math.hypot(e.x - B.x, e.y - B.y); if (d < bd) { bd = d; tgt = e; } } B.target = tgt; }
   if (tgt) {
     const d = Math.hypot(tgt.x - B.x, tgt.y - B.y);
     if (d > tgt.r + 6) { moveToward(B, tgt.x, tgt.y, 100, dt); B.run = true; }
-    else { B.run = false; B.face = tgt.x > B.x ? 1 : -1; if (B.biteCd <= 0) { B.biteCd = 0.75; dealDamage(tgt, G.st.atk * (0.4 + 0.15 * sk('bite')) * G.st.boriMul, { kb: 30, ang: Math.atan2(tgt.y - B.y, tgt.x - B.x) }); G.fx.push({ k: 'bite', x: tgt.x, y: tgt.y - tgt.h * 0.5, t: 0, dur: 0.3 }); if (Math.random() < 0.15) bubble(B, choice(['앙!', '왈!', '으르릉']), 0.8); } }
+    else { B.run = false; B.face = tgt.x > B.x ? 1 : -1; if (B.biteCd <= 0) { B.biteCd = 0.75; dealDamage(tgt, G.st.atk * (0.4 + 0.15 * sk('bite')) * G.st.boriMul, { kb: 30, ang: Math.atan2(tgt.y - B.y, tgt.x - B.x) }); G.fx.push({ k: 'bite', x: tgt.x, y: tgt.y - tgt.h * 0.5, t: 0, dur: 0.3 }); if (Math.random() < 0.15) bubble(B, choice([tt('play/bori.6'), tt('play/bori.7'), tt('play/bori.8')]), 0.8); } }
   } else {
     const side = B.x < P.x ? -1 : 1; const tx = P.x + side * 13, ty = P.y + 3; const d = Math.hypot(tx - B.x, ty - B.y);
     if (d > 5) { moveToward(B, tx, ty, Math.max(G.st.moveSpd * 1.2, d > 60 ? 160 : 75), dt); B.run = d > 7; } else B.run = false;

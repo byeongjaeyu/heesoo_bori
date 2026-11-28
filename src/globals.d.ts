@@ -2,6 +2,8 @@
 
 /** 빌드가 맨 앞에 넣는 상수: true = 원터치 에디션(onetouch/index.html) */
 declare const FORCE_EASY: boolean;
+/** 화면 문구 { 언어: { 키: 글 } } — 빌드가 texts/<언어>/*.json 을 합쳐 맨 앞에 넣음 (sys/i18n.js) */
+declare const __TEXTS: Record<string, Record<string, string>>;
 
 interface Window {
   /** 구형 Safari */

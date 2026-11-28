@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "sql": "node build/gen-sql.mjs",
+    "texts": "node build/i18n.mjs",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
     "test:e2e": "playwright test",

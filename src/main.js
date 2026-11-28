@@ -31,6 +31,7 @@ import { towerBoot } from './play/tower.js';
 import { plazaBoot } from './net/plaza.js';
 import { renderCut, renderTitle, updateCut } from './story/story.js';
 import { e2Frame, e2RenderMenuBg } from './minigame/ep2core.js';
+import { tt } from './sys/i18n.js';
 
 let LAST = performance.now();
 function frame(now) {
@@ -79,6 +80,6 @@ goalBoot();
 towerBoot();
 plazaBoot();
 
-if (FORCE_EASY) { document.documentElement.classList.add('big'); const t = document.querySelector('.ttl'); if (t) t.innerHTML = '<small>희수와 보리 외전 · 원터치</small><h1><em>보리</em><br><span>주세요</span></h1>'; }
+if (FORCE_EASY) { document.documentElement.classList.add('big'); const t = document.querySelector('.ttl'); if (t) t.innerHTML = tt('main.1'); }
 
 if (!FORCE_EASY && location.hash === '#ranking') setTimeout(() => { try { rankOpen('link'); } catch (e) { } }, 400);

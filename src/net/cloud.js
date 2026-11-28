@@ -14,6 +14,7 @@ import { PV, SB, pvErr, pvpNickBox, sbInit } from './pvp.js';
 import { rankSync } from './rank.js';
 import { accRender } from './account.js';
 import { E2KEY } from '../minigame/ep2core.js';
+import { tt } from '../sys/i18n.js';
 
 export const CLOUD = { from: '', t: 0, p: /** @type {Promise<boolean>|null} */ (null), last: '', has: /** @type {boolean|null} */ (null), timer: 0 };
 const CLOUD_LOADED_FLAG = 'heesu_bori_cloud_loaded';
@@ -56,33 +57,33 @@ let cloudCodeT = 0;
 export function cloudOpen(from) {
   if (FORCE_EASY) return;
   CLOUD.from = from; const has = !!loadGame();
-  $('#cloudMk').disabled = !has; $('#cloudMkMsg').textContent = has ? '지금 이 기기의 희수를 다른 기기로 보내요' : '이 기기에는 아직 모험 기록이 없어요';
+  $('#cloudMk').disabled = !has; $('#cloudMkMsg').textContent = has ? tt('net/cloud.1') : tt('net/cloud.2');
   $('#cloudCode').hidden = true; $('#cloudIn').value = ''; $('#cloudUseMsg').textContent = '';
   $('#cloud').hidden = false; accRender();
 }
 function cloudClose() { $('#cloud').hidden = true; clearInterval(cloudCodeT); if (CLOUD.from === 'entry' && !PV.me && PV.notReg) pvpNickBox(true); }
 async function cloudMakeCode() {
-  const b = $('#cloudMk'); b.disabled = true; $('#cloudMkMsg').textContent = '서버에 백업하는 중...';
+  const b = $('#cloudMk'); b.disabled = true; $('#cloudMkMsg').textContent = tt('net/cloud.3');
   try {
     if (!(await cloudSync(true))) throw new Error('백업 실패');
     const { data, error } = await SB.rpc('hb_make_transfer_code'); if (error) throw error;
     const row = Array.isArray(data) ? data[0] : data, end = new Date(row.expires_at).getTime();
     $('#cloudCodeV').textContent = row.code.slice(0, 4) + ' ' + row.code.slice(4); $('#cloudCode').hidden = false;
-    $('#cloudMkMsg').textContent = '새 기기에서 「기기 옮기기 → 코드로 불러오기」에 입력하세요. 옮기고 나면 이 기기의 희수는 랭킹에서 빠져요.';
-    clearInterval(cloudCodeT); const tick = () => { const s = Math.max(0, Math.round((end - Date.now()) / 1000)); $('#cloudCodeT').textContent = s ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')} 남음` : '만료됐어요. 다시 만들어 주세요'; if (!s) clearInterval(cloudCodeT); };
+    $('#cloudMkMsg').textContent = tt('net/cloud.4');
+    clearInterval(cloudCodeT); const tick = () => { const s = Math.max(0, Math.round((end - Date.now()) / 1000)); $('#cloudCodeT').textContent = s ? tt('net/cloud.5', { v1: Math.floor(s / 60), v2: String(s % 60).padStart(2, '0') }) : tt('net/cloud.6'); if (!s) clearInterval(cloudCodeT); };
     tick(); cloudCodeT = setInterval(tick, 1000);
-  } catch (e) { $('#cloudMkMsg').textContent = '코드를 만들지 못했어요: ' + pvErr(e); }
+  } catch (e) { $('#cloudMkMsg').textContent = tt('net/cloud.7') + pvErr(e); }
   b.disabled = false;
 }
 async function cloudUseCode() {
   const code = $('#cloudIn').value.replace(/[\s-]/g, '').toUpperCase(), msg = $('#cloudUseMsg');
-  if (!/^[A-Z0-9]{8}$/.test(code)) { msg.textContent = '8자리 코드를 입력해 주세요'; return; }
+  if (!/^[A-Z0-9]{8}$/.test(code)) { msg.textContent = tt('net/cloud.8'); return; }
   const here = loadGame();
   const go = async () => {
-    msg.textContent = '불러오는 중...';
+    msg.textContent = tt('net/cloud.9');
     try {
       await sbInit(); const { data, error } = await SB.rpc('hb_use_transfer_code', { p_code: code }); if (error) throw error;
-      if (!data || !data.ok) { msg.textContent = data && data.reason === 'same' ? '같은 기기에서 만든 코드예요' : '코드가 틀렸거나 만료됐어요'; return; }
+      if (!data || !data.ok) { msg.textContent = data && data.reason === 'same' ? tt('net/cloud.10') : tt('net/cloud.11'); return; }
       try {
         if (data.data) localStorage.setItem(SAVEKEY, JSON.stringify(data.data));
         if (data.ep2) localStorage.setItem(E2KEY, JSON.stringify(data.ep2));
@@ -90,16 +91,16 @@ async function cloudUseCode() {
         sessionStorage.setItem(CLOUD_LOADED_FLAG, data.nickname || '1');
       } catch (e) { }
       location.reload();
-    } catch (e) { msg.textContent = /too many/.test(String(e && e.message)) ? '너무 많이 틀렸어요. 10분 뒤에 다시 해주세요' : '불러오지 못했어요: ' + pvErr(e); }
+    } catch (e) { msg.textContent = /too many/.test(String(e && e.message)) ? tt('net/cloud.12') : tt('net/cloud.13') + pvErr(e); }
   };
-  if (here) confirmBox(`이 기기의 지금 기록(Lv.${here.lv}${here.cleared ? ' · ' + (here.cleared + 1) + '회차' : ''})은 지워지고\n코드의 희수로 바뀌어요. 계속할까요?`, go); else go();
+  if (here) confirmBox(tt('net/cloud.18', { lv: here.lv, v1: here.cleared ? ' · ' + (here.cleared + 1) + tt('net/cloud.14') : '' }), go); else go();
 }
 export function cloudBoot() {
   if (FORCE_EASY) return;
   let nick = null; try { nick = sessionStorage.getItem(CLOUD_LOADED_FLAG); sessionStorage.removeItem(CLOUD_LOADED_FLAG); } catch (e) { }
   let rv = null; try { rv = sessionStorage.getItem(CLOUD_REVERT_FLAG); sessionStorage.removeItem(CLOUD_REVERT_FLAG); } catch (e) { }
-  if (rv) setTimeout(() => toast('서버 기록과 맞지 않는 값이 있어서 마지막 정상 기록으로 되돌렸어요', 'warn'), 300);
-  if (nick) setTimeout(() => toast(nick === '1' ? '다른 기기의 희수를 불러왔어요!' : `${nick} 희수를 불러왔어요! 어서 와요`, 'lvl'), 300);
+  if (rv) setTimeout(() => toast(tt('net/cloud.15'), 'warn'), 300);
+  if (nick) setTimeout(() => toast(nick === '1' ? tt('net/cloud.16') : tt('net/cloud.17', { nick }), 'lvl'), 300);
   $('#pvpNickCloud').onclick = () => { $('#pvpNick').hidden = true; cloudOpen('entry'); };
   $('#cloudMk').onclick = cloudMakeCode; $('#cloudUse').onclick = cloudUseCode; $('#cloudX').onclick = cloudClose;
   $('#cloudIn').onkeydown = e => { if (e.key === 'Enter') cloudUseCode(); };

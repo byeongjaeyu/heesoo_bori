@@ -18,6 +18,7 @@ import { bubble, burst, hurtPlayer, moveToward } from '../play/player.js';
 import { aimDash, dashStep, shootAt, spawnEnemy } from '../play/enemies.js';
 import { CUTK, fr, ispr, pc, pxLine } from '../draw/render.js';
 import { A_, clearA } from '../story/story.js';
+import { tt } from '../sys/i18n.js';
 
 /** 웨딩드레스·면사포 차림 희수 (컷신) */
 export const WED_PAL = { hat: 'veil', cloth: 'gown', shoe: 'heel', bag: 'none', C: '#fffaf4', c: '#e8dcd0', W: '#fffaf4', w: '#e8dcd0', O: '#fffaf4', o: '#e0d4c8' };
@@ -78,107 +79,107 @@ const CH4_PROLOGUE = [
   { scene: 'seaS', bgm: 'story',
     init(A) { clearA(A); Object.assign(A, { hee: { x: -24, pose: 'idle', dir: 'down' }, bori: { x: -48, pose: 'sit', face: 1, y: 2 }, hus: { x: 22, rodUp: true } }); },
     delay: 0.8, lines: [
-      { who: 'sys', text: '사직에서 역전승을 본 뒤 어느 주말.\n오빠가 또 유료 바다낚시터에 가자고 했다.' },
-      { who: 'hee', text: '…또 낚시? 12시간은 안 돼. 6시간만.', do() { A_().hee.sweat = true; } },
-      { who: 'hus', text: '응! 좋아!', do() { A_().hee.sweat = false; } },
-      { who: 'sys', text: '해 질 녘. 오빠가 찌낚시대를 꼭 쥔 채\n갑자기 진지해졌다.', do() { A_().hus.rodUp = false; } },
-      { who: 'hus', text: '자기야… 그동안 낚시터 따라와 줘서 진짜 고마웠어.\n밤새 모기 물리면서도 옆에 있어 줘서…' },
-      { who: 'hus', text: '나랑… 결혼해 줄래?', do() { A_().ring = true; A_().sparkle = true; sfx('ding'); } },
+      { who: 'sys', text: tt('chapters/ch4.1') },
+      { who: 'hee', text: tt('chapters/ch4.2'), do() { A_().hee.sweat = true; } },
+      { who: 'hus', text: tt('chapters/ch4.3'), do() { A_().hee.sweat = false; } },
+      { who: 'sys', text: tt('chapters/ch4.4'), do() { A_().hus.rodUp = false; } },
+      { who: 'hus', text: tt('chapters/ch4.5') },
+      { who: 'hus', text: tt('chapters/ch4.6'), do() { A_().ring = true; A_().sparkle = true; sfx('ding'); } },
       { who: 'hee', text: '……….', do() { A_().sparkle = false; } },
-      { who: 'hee', text: '지금… 여기서?\n미끼 냄새 나는 데서??', do() { A_().hee.shake = true; A_().hee.alert = true; } },
-      { who: 'hee', text: '반지는 왜 지렁이 통 옆에서 꺼내는데!!!', do() { A_().hee.shake = false; A_().hee.alert = false; A_().aura = true; sfx('ult'); } },
-      { who: 'sys', text: '희수의 멘헤라 게이지가 차오른다…' },
-      { who: 'hus', text: '…어? 싫어…?' },
-      { who: 'hee', text: '…싫다고는 안 했어. 바보야.', do() { A_().aura = false; A_().sparkle = true; } },
-      { who: 'bori', text: '멍멍!! (축하해!)', do() { A_().bori.jump = true; sfx('bark'); } }] },
+      { who: 'hee', text: tt('chapters/ch4.7'), do() { A_().hee.shake = true; A_().hee.alert = true; } },
+      { who: 'hee', text: tt('chapters/ch4.8'), do() { A_().hee.shake = false; A_().hee.alert = false; A_().aura = true; sfx('ult'); } },
+      { who: 'sys', text: tt('chapters/ch4.9') },
+      { who: 'hus', text: tt('chapters/ch4.10') },
+      { who: 'hee', text: tt('chapters/ch4.11'), do() { A_().aura = false; A_().sparkle = true; } },
+      { who: 'bori', text: tt('chapters/ch4.12'), do() { A_().bori.jump = true; sfx('bark'); } }] },
   { scene: 'whall', bgm: 'story',
     init(A) { clearA(A); Object.assign(A, { hee: { x: -24, pose: 'idle', dir: 'down' }, bori: { x: -48, pose: 'sit', face: 1, y: 2 }, hus: { x: 24 } }); },
     delay: 0.6, lines: [
-      { who: 'sys', text: '그렇게 결혼 준비가 시작됐다.\n첫 번째 관문은 웨딩홀 투어.' },
-      { who: 'hee', text: '오빠, 여기 홀 어때? 천장 높고 밝지?' },
-      { who: 'hus', text: '응! 좋아!' },
-      { who: 'hee', text: '…아까 본 데보다 나아?' },
-      { who: 'hus', text: '응! 거기도 좋아!', do() { A_().hee.sweat = true; } },
-      { who: 'sys', text: '그때, 상담 데스크에서 견적서가 날아올랐다!', do() { const t = G.time; A_().hee.sweat = false; A_().mons = [{ type: 'quote', x: 70, y: -26, t0: t }, { type: 'planner', x: 92, y: 6, t0: t + 0.3 }, { type: 'addon', x: -84, y: 8, t0: t + 0.5 }]; sfx('pop'); } },
-      { who: 'mon', text: '식대는 별도~ 꽃장식도 별도~\n주말 저녁은 할증이에요~♪' },
-      { who: 'hee', text: '뭐?????!!!!!!\n처음에 말한 거랑 다르잖아!', do() { A_().hee.shake = true; A_().hee.alert = true; } },
-      { who: 'hee', text: '추가금은 내가 다 잘라버린다.', do() { A_().hee.shake = false; A_().hee.alert = false; A_().hee.fist = true; sfx('smash'); } }] },
+      { who: 'sys', text: tt('chapters/ch4.13') },
+      { who: 'hee', text: tt('chapters/ch4.14') },
+      { who: 'hus', text: tt('chapters/ch4.3') },
+      { who: 'hee', text: tt('chapters/ch4.15') },
+      { who: 'hus', text: tt('chapters/ch4.16'), do() { A_().hee.sweat = true; } },
+      { who: 'sys', text: tt('chapters/ch4.17'), do() { const t = G.time; A_().hee.sweat = false; A_().mons = [{ type: 'quote', x: 70, y: -26, t0: t }, { type: 'planner', x: 92, y: 6, t0: t + 0.3 }, { type: 'addon', x: -84, y: 8, t0: t + 0.5 }]; sfx('pop'); } },
+      { who: 'mon', text: tt('chapters/ch4.18') },
+      { who: 'hee', text: tt('chapters/ch4.19'), do() { A_().hee.shake = true; A_().hee.alert = true; } },
+      { who: 'hee', text: tt('chapters/ch4.20'), do() { A_().hee.shake = false; A_().hee.alert = false; A_().hee.fist = true; sfx('smash'); } }] },
   { dur: 0.4 }
 ];
 const CH4_DRESS = [
   { scene: 'wdress', bgm: 'story',
     init(A) { clearA(A); Object.assign(A, { hee: { x: -22, pose: 'idle', dir: 'down', wed: true }, bori: { x: -48, pose: 'sit', face: 1, y: 2 }, hus: { x: 26 } }); },
     delay: 0.6, lines: [
-      { who: 'sys', text: '다음은 드레스 투어.\n희수는 드레스를 다섯 벌이나 입어봤다.' },
-      { who: 'hee', text: '오빠, 이거 어때? 아까 거랑 비교해서!', do() { A_().sparkle = true; } },
-      { who: 'hus', text: '응! 좋아!', do() { A_().sparkle = false; } },
-      { who: 'hee', text: '…그럼 이건? 라인이 좀 다르지?' },
-      { who: 'hus', text: '너무 좋아!' },
-      { who: 'hee', text: '아까 거랑 이거 중에 뭐가 더 좋은데?' },
-      { who: 'hus', text: '둘 다 좋아! 다 좋아!' },
-      { who: 'sys', text: '오빠는 「좋아」만 말하는\n좋아무새가 되어 버렸다…' },
-      { who: 'hee', text: '…나 지금 진지하게 물어보는 거야.\n의견 좀 내라고.', do() { A_().aura = true; sfx('ult'); } },
-      { who: 'hus', text: '응! 좋아!' },
+      { who: 'sys', text: tt('chapters/ch4.21') },
+      { who: 'hee', text: tt('chapters/ch4.22'), do() { A_().sparkle = true; } },
+      { who: 'hus', text: tt('chapters/ch4.3'), do() { A_().sparkle = false; } },
+      { who: 'hee', text: tt('chapters/ch4.23') },
+      { who: 'hus', text: tt('chapters/ch4.24') },
+      { who: 'hee', text: tt('chapters/ch4.25') },
+      { who: 'hus', text: tt('chapters/ch4.26') },
+      { who: 'sys', text: tt('chapters/ch4.27') },
+      { who: 'hee', text: tt('chapters/ch4.28'), do() { A_().aura = true; sfx('ult'); } },
+      { who: 'hus', text: tt('chapters/ch4.3') },
       { who: 'hee', text: '…………………………', do() { A_().hee.shake = true; } },
-      { who: 'bori', text: '멍…(눈치)' },
-      { who: 'sys', text: '그 순간, 피팅룸 마네킹들이 움직이기 시작했다!', do() { const t = G.time; A_().hee.shake = false; A_().aura = false; A_().mons = [{ type: 'mannequin', x: 70, y: 6, t0: t }, { type: 'ribbon', x: -84, y: -24, t0: t + 0.3 }, { type: 'pin', x: 96, y: 8, t0: t + 0.5 }]; sfx('pop'); } },
-      { who: 'hee', text: '「좋아」 한 번만 더 하면\n오빠도 마네킹이랑 같이 정리한다.', do() { A_().hee.fist = true; sfx('smash'); } }] },
+      { who: 'bori', text: tt('chapters/ch4.29') },
+      { who: 'sys', text: tt('chapters/ch4.30'), do() { const t = G.time; A_().hee.shake = false; A_().aura = false; A_().mons = [{ type: 'mannequin', x: 70, y: 6, t0: t }, { type: 'ribbon', x: -84, y: -24, t0: t + 0.3 }, { type: 'pin', x: 96, y: 8, t0: t + 0.5 }]; sfx('pop'); } },
+      { who: 'hee', text: tt('chapters/ch4.31'), do() { A_().hee.fist = true; sfx('smash'); } }] },
   { dur: 0.4 }
 ];
 const CH4_STUDIO = [
   { scene: 'wstudio', bgm: 'story',
     init(A) { clearA(A); Object.assign(A, { hee: { x: -22, pose: 'idle', dir: 'down', wed: true, bouquet: true }, bori: { x: -48, pose: 'sit', face: 1, y: 2 }, hus: { x: 24, tux: true } }); },
     delay: 0.6, lines: [
-      { who: 'sys', text: '웨딩 촬영 날.\n오빠는 3개월 동안 10kg 빼기로 약속했었다.' },
-      { who: 'hee', text: '오빠, 다이어트 얼마나 했어?' },
-      { who: 'hus', text: '…자기야, 그게…' },
-      { who: 'sys', text: '툭. 턱시도 단추가 튕겨 나갔다.', do() { A_().big = G.time + 0.2; A_().bigText = '단추가… 안 잠겨…'; A_().bigCol = '#ffd84a'; G.shake = 3; sfx('pop'); } },
-      { who: 'hus', text: '야식으로 치킨을 조금… 매일…' },
-      { who: 'hee', text: '……3개월 동안 뭐 했어?', do() { A_().big = 0; A_().hee.alert = true; A_().hee.shake = true; } },
-      { who: 'hee', text: '사진은 평생 남는 거야.\n오빠는 지금부터 숨 참아.', do() { A_().hee.alert = false; A_().hee.shake = false; A_().aura = true; sfx('ult'); } },
-      { who: 'hus', text: '…넵. (흡)' },
-      { who: 'sys', text: '그때 플래시 조명들이 번쩍이며 덤벼들었다!', do() { const t = G.time; A_().aura = false; A_().mons = [{ type: 'flashm', x: 72, y: 4, t0: t }, { type: 'camera', x: -86, y: 8, t0: t + 0.3 }, { type: 'reflector', x: 98, y: 6, t0: t + 0.5 }]; sfx('pop'); } }] },
+      { who: 'sys', text: tt('chapters/ch4.32') },
+      { who: 'hee', text: tt('chapters/ch4.33') },
+      { who: 'hus', text: tt('chapters/ch4.34') },
+      { who: 'sys', text: tt('chapters/ch4.35'), do() { A_().big = G.time + 0.2; A_().bigText = tt('chapters/ch4.36'); A_().bigCol = '#ffd84a'; G.shake = 3; sfx('pop'); } },
+      { who: 'hus', text: tt('chapters/ch4.37') },
+      { who: 'hee', text: tt('chapters/ch4.38'), do() { A_().big = 0; A_().hee.alert = true; A_().hee.shake = true; } },
+      { who: 'hee', text: tt('chapters/ch4.39'), do() { A_().hee.alert = false; A_().hee.shake = false; A_().aura = true; sfx('ult'); } },
+      { who: 'hus', text: tt('chapters/ch4.40') },
+      { who: 'sys', text: tt('chapters/ch4.41'), do() { const t = G.time; A_().aura = false; A_().mons = [{ type: 'flashm', x: 72, y: 4, t0: t }, { type: 'camera', x: -86, y: 8, t0: t + 0.3 }, { type: 'reflector', x: 98, y: 6, t0: t + 0.5 }]; sfx('pop'); } }] },
   { dur: 0.4 }
 ];
 const CH4_SELECT = [
   { scene: 'wselect', bgm: 'story',
     init(A) { clearA(A); Object.assign(A, { hee: { x: -22, pose: 'idle', dir: 'down' }, bori: { x: -48, pose: 'sit', face: 1, y: 2 }, hus: { x: 26 } }); },
     delay: 0.6, lines: [
-      { who: 'sys', text: '촬영 사진 셀렉 날.\n수백 장 중에 앨범에 넣을 사진을 골라야 한다.' },
-      { who: 'hee', text: '오빠, 이 사진이랑 이 사진 중에 뭐가 나아?' },
-      { who: 'hus', text: '응… 좋아…', do() { A_().hus.phone = true; } },
-      { who: 'hee', text: '…지금 뭐 해?', do() { A_().hee.sweat = true; } },
-      { who: 'hus', text: '아 잠깐만, 이번 판만…\n지금 보스전이라…' },
-      { who: 'hee', text: '뭐?????!!!!!!', do() { A_().hee.sweat = false; A_().hee.shake = true; A_().hee.alert = true; G.shake = 4; } },
-      { who: 'hee', text: '우리 결혼사진 고르는데\n지금 게임을 해?!', do() { A_().hee.shake = false; A_().hee.alert = false; A_().aura = true; sfx('ult'); } },
-      { who: 'sys', text: '그때, 오빠 핸드폰에서\n게임 마왕이 튀어나왔다!', do() { A_().hus.phone = false; A_().aura = false; A_().mons = [{ type: 'gphone', x: 62, y: -40, t0: G.time }]; G.shake = 5; sfx('slam'); } },
-      { who: 'mon', text: '크하하! 이 남자의 시간은 이제 내 거다!\n셀렉실은 이제 내 던전이다!' },
-      { who: 'sys', text: '가챠 캡슐이 셀렉실에 쏟아졌다.\n모니터 속 결혼사진들이 깜빡인다.', do() { G.shake = 3; sfx('slam'); } },
-      { who: 'hus', text: '자, 자기야… 내가 끌게… 지금 끌게…' },
-      { who: 'hee', text: '됐고. 사진 다 고를 때까지\n아무 데도 못 가.', do() { A_().hee.fist = true; sfx('smash'); } },
-      { who: 'hee', text: '…너부터 지워줄게.' }] },
+      { who: 'sys', text: tt('chapters/ch4.42') },
+      { who: 'hee', text: tt('chapters/ch4.43') },
+      { who: 'hus', text: tt('chapters/ch4.44'), do() { A_().hus.phone = true; } },
+      { who: 'hee', text: tt('chapters/ch4.45'), do() { A_().hee.sweat = true; } },
+      { who: 'hus', text: tt('chapters/ch4.46') },
+      { who: 'hee', text: tt('chapters/ch4.47'), do() { A_().hee.sweat = false; A_().hee.shake = true; A_().hee.alert = true; G.shake = 4; } },
+      { who: 'hee', text: tt('chapters/ch4.48'), do() { A_().hee.shake = false; A_().hee.alert = false; A_().aura = true; sfx('ult'); } },
+      { who: 'sys', text: tt('chapters/ch4.49'), do() { A_().hus.phone = false; A_().aura = false; A_().mons = [{ type: 'gphone', x: 62, y: -40, t0: G.time }]; G.shake = 5; sfx('slam'); } },
+      { who: 'mon', text: tt('chapters/ch4.50') },
+      { who: 'sys', text: tt('chapters/ch4.51'), do() { G.shake = 3; sfx('slam'); } },
+      { who: 'hus', text: tt('chapters/ch4.52') },
+      { who: 'hee', text: tt('chapters/ch4.53'), do() { A_().hee.fist = true; sfx('smash'); } },
+      { who: 'hee', text: tt('chapters/ch4.54') }] },
   { dur: 0.4 }
 ];
 const CH4_ENDING = [
   { scene: 'wwed', bgm: 'story',
     init(A) { clearA(A); Object.assign(A, { hee: { x: -22, pose: 'idle', dir: 'down', wed: true, bouquet: true }, bori: { x: -46, pose: 'sit', face: 1, y: 2, ring: true }, hus: { x: 22, tux: true } }); },
     delay: 0.8, lines: [
-      { who: 'sys', text: '게임 마왕이 쓰러지고,\n앨범 사진도 무사히 다 골랐다.' },
-      { who: 'sys', text: '…그리고 대망의 본식 날.' },
-      { who: 'hee', text: '오빠, 핸드폰 줘.\n오늘은 내가 들고 있을게.' },
-      { who: 'hus', text: '…넵.' },
-      { who: 'sys', text: '신부 입장—!', do() { A_().sparkle = true; sfx('ding'); } },
-      { who: 'hus', text: '자기야… 진짜 예쁘다.', do() { A_().sparkle = false; } },
-      { who: 'hee', text: '…「좋아」 말고 다른 말 해줘서 고마워.', do() { A_().sparkle = true; } },
-      { who: 'sys', text: '「신랑은 신부를 평생 아끼고\n사랑하겠습니까?」', do() { A_().sparkle = false; } },
-      { who: 'hus', text: '응! 좋아!' },
+      { who: 'sys', text: tt('chapters/ch4.55') },
+      { who: 'sys', text: tt('chapters/ch4.56') },
+      { who: 'hee', text: tt('chapters/ch4.57') },
+      { who: 'hus', text: tt('chapters/ch4.58') },
+      { who: 'sys', text: tt('chapters/ch4.59'), do() { A_().sparkle = true; sfx('ding'); } },
+      { who: 'hus', text: tt('chapters/ch4.60'), do() { A_().sparkle = false; } },
+      { who: 'hee', text: tt('chapters/ch4.61'), do() { A_().sparkle = true; } },
+      { who: 'sys', text: tt('chapters/ch4.62'), do() { A_().sparkle = false; } },
+      { who: 'hus', text: tt('chapters/ch4.3') },
       { who: 'hee', text: '…………', do() { A_().aura = true; A_().hee.shake = true; } },
-      { who: 'hus', text: '아, 아니! 네!!\n평생 잘할게요!!', do() { A_().aura = false; A_().hee.shake = false; } },
-      { who: 'hee', text: '오빠, 평생 잘해.', do() { A_().sparkle = true; sfx('ding'); } },
-      { who: 'bori', text: '멍멍!! (반지 배달 완료!)', do() { A_().bori.jump = true; sfx('bark'); } },
-      { who: 'sys', text: '희수와 오빠는 그렇게 부부가 되었다.', do() { A_().big = G.time + 0.3; A_().bigText = '결혼 축하해요!!'; A_().bigCol = '#ff7ab8'; sfx('lvl'); } },
-      { who: 'hus', text: '근데 자기야… 신혼여행은 어디로…?' },
-      { who: 'hee', text: '신혼여행지는 내가 정할 거야.\n낚시터만 아니면 다 돼.' }] },
+      { who: 'hus', text: tt('chapters/ch4.63'), do() { A_().aura = false; A_().hee.shake = false; } },
+      { who: 'hee', text: tt('chapters/ch4.64'), do() { A_().sparkle = true; sfx('ding'); } },
+      { who: 'bori', text: tt('chapters/ch4.65'), do() { A_().bori.jump = true; sfx('bark'); } },
+      { who: 'sys', text: tt('chapters/ch4.66'), do() { A_().big = G.time + 0.3; A_().bigText = tt('chapters/ch4.67'); A_().bigCol = '#ff7ab8'; sfx('lvl'); } },
+      { who: 'hus', text: tt('chapters/ch4.68') },
+      { who: 'hee', text: tt('chapters/ch4.69') }] },
   { dur: 1.0 }
 ];
 
@@ -261,28 +262,28 @@ function decorWed(X) {
 }
 
 regChapter({
-  c: 4, name: '결혼 대작전', title: '4장 · 결혼 대작전', pick: ['결혼식', '결혼식'], lv: 50, baseL: 24, // 3장 5회차 수준
+  c: 4, name: tt('chapters/ch4.70'), title: tt('chapters/ch4.71'), pick: [tt('chapters/ch4.72'), tt('chapters/ch4.72')], lv: 50, baseL: 24, // 3장 5회차 수준
   zones: [
-    { name: '웨딩홀 투어', sub: 'STAGE 13', quota: 36, max: 12, spawnInt: 1.15, mons: [['planner', 5], ['quote', 4], ['addon', 3]], boss: 'feeking', theme: 'hall', next: '드레스 숍' },
-    { name: '드레스 숍', sub: 'STAGE 14', quota: 38, max: 13, spawnInt: 1.1, mons: [['mannequin', 4], ['ribbon', 5], ['pin', 3]], boss: 'parrot', theme: 'dress', next: '웨딩 스튜디오' },
-    { name: '웨딩 스튜디오', sub: 'STAGE 15', quota: 40, max: 13, spawnInt: 1.1, mons: [['flashm', 4], ['reflector', 3], ['camera', 5]], boss: 'tuxboss', theme: 'studio', next: '사진 셀렉홀' },
-    { name: '사진 셀렉실', sub: 'FINAL STAGE', quota: 42, max: 14, spawnInt: 1.05, mons: [['gacha', 5], ['camera', 3], ['quote', 3], ['flashm', 2]], boss: 'gamelord', theme: 'select', next: '' },
+    { name: tt('chapters/ch4.73'), sub: 'STAGE 13', quota: 36, max: 12, spawnInt: 1.15, mons: [['planner', 5], ['quote', 4], ['addon', 3]], boss: 'feeking', theme: 'hall', next: tt('chapters/ch4.74') },
+    { name: tt('chapters/ch4.74'), sub: 'STAGE 14', quota: 38, max: 13, spawnInt: 1.1, mons: [['mannequin', 4], ['ribbon', 5], ['pin', 3]], boss: 'parrot', theme: 'dress', next: tt('chapters/ch4.75') },
+    { name: tt('chapters/ch4.75'), sub: 'STAGE 15', quota: 40, max: 13, spawnInt: 1.1, mons: [['flashm', 4], ['reflector', 3], ['camera', 5]], boss: 'tuxboss', theme: 'studio', next: tt('chapters/ch4.76') },
+    { name: tt('chapters/ch4.77'), sub: 'FINAL STAGE', quota: 42, max: 14, spawnInt: 1.05, mons: [['gacha', 5], ['camera', 3], ['quote', 3], ['flashm', 2]], boss: 'gamelord', theme: 'select', next: '' },
   ],
   mons: {
-    planner:   { name: '영업왕 웨딩플래너', spr: 'planner',   hp: 1100, atk: 84,  def: 15, spd: 32, xp: 170, gold: [38, 54], r: 6, ai: 'ranged', proj: 'ticket', col: '#2e3a5c' },
-    quote:     { name: '날아다니는 견적서', spr: 'quote',     hp: 900,  atk: 80,  def: 12, spd: 48, xp: 160, gold: [36, 52], r: 6, ai: 'float', col: '#f7f3ea', fly: 1 },
-    addon:     { name: '추가금 옵션',       spr: 'addon',     hp: 1300, atk: 88,  def: 16, spd: 30, xp: 170, gold: [40, 56], r: 6, ai: 'hop', col: '#ffd84a' },
-    mannequin: { name: '피팅룸 마네킹',     spr: 'mannequin', hp: 1600, atk: 90,  def: 20, spd: 26, xp: 180, gold: [40, 56], r: 7, ai: 'chase', col: '#fffaf4' },
-    ribbon:    { name: '레이스 리본',       spr: 'ribbon',    hp: 1000, atk: 86,  def: 12, spd: 50, xp: 170, gold: [38, 54], r: 6, ai: 'float', col: '#ffb3d9', fly: 1 },
-    pin:       { name: '시침핀',            spr: 'pin',       hp: 900,  atk: 100, def: 12, spd: 54, xp: 180, gold: [40, 56], r: 5, ai: 'charge', col: '#e8414f' },
-    flashm:    { name: '플래시 조명',       spr: 'flashm',    hp: 1200, atk: 92,  def: 14, spd: 28, xp: 180, gold: [42, 58], r: 6, ai: 'ranged', proj: 'flash', col: '#ffffff' },
-    reflector: { name: '금빛 반사판',       spr: 'reflector', hp: 1900, atk: 94,  def: 22, spd: 26, xp: 190, gold: [42, 58], r: 7, ai: 'chase', col: '#ffd84a' },
-    camera:    { name: '연사 카메라',       spr: 'camera',    hp: 1050, atk: 102, def: 14, spd: 52, xp: 190, gold: [42, 58], r: 6, ai: 'charge', col: '#30323d' },
-    gacha:     { name: '가챠 캡슐',         spr: 'gacha',     hp: 1400, atk: 96,  def: 16, spd: 32, xp: 190, gold: [44, 60], r: 6, ai: 'hop', col: '#ffb3d9' },
-    feeking:   { name: '추가금 대마왕',     spr: 'addon',     scale: 3.4, crown: 1, hp: 34000, atk: 92,  def: 22, spd: 28, xp: 9000,  gold: [1900, 2200], r: 22, ai: 'feeking', boss: 1, col: '#ffd84a', drops: ['ringbox', 'pearlpin'] },
-    parrot:    { name: '좋아무새',          spr: 'parrot',    scale: 3.4, crown: 1, hp: 42000, atk: 100, def: 24, spd: 34, xp: 10500, gold: [2100, 2400], r: 22, ai: 'parrot', boss: 1, col: '#7ccf5a', fly: 1, drops: ['dress2', 'b_tux'] },
-    tuxboss:   { name: '감량 실패 턱시도',  spr: 'tux',       scale: 3.4, crown: 1, hp: 50000, atk: 108, def: 26, spd: 26, xp: 12500, gold: [2300, 2600], r: 22, ai: 'tuxboss', boss: 1, col: '#30323d', drops: ['heels', 'envbag'] },
-    gamelord:  { name: '모바일 게임 마왕',  spr: 'gphone',    scale: 4.0, crown: 1, hp: 60000, atk: 116, def: 28, spd: 24, xp: 17000, gold: [0, 0],       r: 28, ai: 'gamelord', boss: 1, col: '#b45cff', drops: ['toy_ring'] },
+    planner:   { name: tt('chapters/ch4.78'), spr: 'planner',   hp: 1100, atk: 84,  def: 15, spd: 32, xp: 170, gold: [38, 54], r: 6, ai: 'ranged', proj: 'ticket', col: '#2e3a5c' },
+    quote:     { name: tt('chapters/ch4.79'), spr: 'quote',     hp: 900,  atk: 80,  def: 12, spd: 48, xp: 160, gold: [36, 52], r: 6, ai: 'float', col: '#f7f3ea', fly: 1 },
+    addon:     { name: tt('chapters/ch4.80'),       spr: 'addon',     hp: 1300, atk: 88,  def: 16, spd: 30, xp: 170, gold: [40, 56], r: 6, ai: 'hop', col: '#ffd84a' },
+    mannequin: { name: tt('chapters/ch4.81'),     spr: 'mannequin', hp: 1600, atk: 90,  def: 20, spd: 26, xp: 180, gold: [40, 56], r: 7, ai: 'chase', col: '#fffaf4' },
+    ribbon:    { name: tt('chapters/ch4.82'),       spr: 'ribbon',    hp: 1000, atk: 86,  def: 12, spd: 50, xp: 170, gold: [38, 54], r: 6, ai: 'float', col: '#ffb3d9', fly: 1 },
+    pin:       { name: tt('chapters/ch4.83'),            spr: 'pin',       hp: 900,  atk: 100, def: 12, spd: 54, xp: 180, gold: [40, 56], r: 5, ai: 'charge', col: '#e8414f' },
+    flashm:    { name: tt('chapters/ch4.84'),       spr: 'flashm',    hp: 1200, atk: 92,  def: 14, spd: 28, xp: 180, gold: [42, 58], r: 6, ai: 'ranged', proj: 'flash', col: '#ffffff' },
+    reflector: { name: tt('chapters/ch4.85'),       spr: 'reflector', hp: 1900, atk: 94,  def: 22, spd: 26, xp: 190, gold: [42, 58], r: 7, ai: 'chase', col: '#ffd84a' },
+    camera:    { name: tt('chapters/ch4.86'),       spr: 'camera',    hp: 1050, atk: 102, def: 14, spd: 52, xp: 190, gold: [42, 58], r: 6, ai: 'charge', col: '#30323d' },
+    gacha:     { name: tt('chapters/ch4.87'),         spr: 'gacha',     hp: 1400, atk: 96,  def: 16, spd: 32, xp: 190, gold: [44, 60], r: 6, ai: 'hop', col: '#ffb3d9' },
+    feeking:   { name: tt('chapters/ch4.88'),     spr: 'addon',     scale: 3.4, crown: 1, hp: 34000, atk: 92,  def: 22, spd: 28, xp: 9000,  gold: [1900, 2200], r: 22, ai: 'feeking', boss: 1, col: '#ffd84a', drops: ['ringbox', 'pearlpin'] },
+    parrot:    { name: tt('chapters/ch4.89'),          spr: 'parrot',    scale: 3.4, crown: 1, hp: 42000, atk: 100, def: 24, spd: 34, xp: 10500, gold: [2100, 2400], r: 22, ai: 'parrot', boss: 1, col: '#7ccf5a', fly: 1, drops: ['dress2', 'b_tux'] },
+    tuxboss:   { name: tt('chapters/ch4.90'),  spr: 'tux',       scale: 3.4, crown: 1, hp: 50000, atk: 108, def: 26, spd: 26, xp: 12500, gold: [2300, 2600], r: 22, ai: 'tuxboss', boss: 1, col: '#30323d', drops: ['heels', 'envbag'] },
+    gamelord:  { name: tt('chapters/ch4.91'),  spr: 'gphone',    scale: 4.0, crown: 1, hp: 60000, atk: 116, def: 28, spd: 24, xp: 17000, gold: [0, 0],       r: 28, ai: 'gamelord', boss: 1, col: '#b45cff', drops: ['toy_ring'] },
   },
   ai: {
     // 추가금 대마왕: 견적서 사방 발사 · 「부가세 별도」 도장 예고 원 · 추가금 옵션 호출
@@ -291,9 +292,9 @@ regChapter({
       if (e.st === 'idle') { e.st = 'roam'; e.stT = 1.6; e.cyc = 0; }
       if (e.st === 'roam') { moveToward(e, G.P.x, G.P.y, sp, dt); e.face = G.P.x > e.x ? -1 : 1;
         if (e.stT <= 0) { e.cyc++; const pat = ['bill', 'stamp', 'bill', 'call'][e.cyc % 4]; e.st = pat;
-          if (pat === 'bill') { e.stT = 0.5; bubble(e, choice(['식대 추가요~!', '꽃장식은 별도예요~', '주말 저녁은 할증!']), 1.2); }
-          if (pat === 'stamp') { e.stT = 1.0; e.marks = []; const n = enr ? 5 : 3; for (let i = 0; i < n; i++) { const m = { x: G.P.x + (i ? rand(-70, 70) : 0), y: G.P.y + (i ? rand(-50, 50) : 0) }; e.marks.push(m); G.fx.push({ k: 'circle', x: m.x, y: m.y, r: 30, t: 0, dur: 1.0 }); } bubble(e, '부가세 별도!!', 1.1); }
-          if (pat === 'call') { e.stT = 0.6; for (let i = 0; i < (enr ? 3 : 2); i++) spawnEnemy('addon', e.x + rand(-40, 40), e.y + rand(10, 30)); bubble(e, '옵션 추가 출동!', 1.1); } } return; }
+          if (pat === 'bill') { e.stT = 0.5; bubble(e, choice([tt('chapters/ch4.92'), tt('chapters/ch4.93'), tt('chapters/ch4.94')]), 1.2); }
+          if (pat === 'stamp') { e.stT = 1.0; e.marks = []; const n = enr ? 5 : 3; for (let i = 0; i < n; i++) { const m = { x: G.P.x + (i ? rand(-70, 70) : 0), y: G.P.y + (i ? rand(-50, 50) : 0) }; e.marks.push(m); G.fx.push({ k: 'circle', x: m.x, y: m.y, r: 30, t: 0, dur: 1.0 }); } bubble(e, tt('chapters/ch4.95'), 1.1); }
+          if (pat === 'call') { e.stT = 0.6; for (let i = 0; i < (enr ? 3 : 2); i++) spawnEnemy('addon', e.x + rand(-40, 40), e.y + rand(10, 30)); bubble(e, tt('chapters/ch4.96'), 1.1); } } return; }
       if (e.st === 'bill' && e.stT <= 0) { const n = enr ? 16 : 12, a0 = rand(0, 6.28); for (let i = 0; i < n; i++) shootAt(e, 'ticket', a0 + i / n * Math.PI * 2, 78); sfx('pop'); }
       if (e.st === 'stamp' && e.stT <= 0) { G.shake = 6; sfx('slam'); for (const m of e.marks || []) { G.fx.push({ k: 'ring', x: m.x, y: m.y, r: 30, col: '#e8414f', t: 0, dur: 0.35 }); burst(m.x, m.y, '#ffd84a', 10, 80); if (Math.hypot(G.P.x - m.x, G.P.y - m.y) < 30) hurtPlayer(e.atk * 1.4, e); } }
       if (e.stT <= 0) { e.st = 'roam'; e.stT = enr ? 1.2 : 1.9; }
@@ -304,9 +305,9 @@ regChapter({
       if (e.st === 'idle') { e.st = 'roam'; e.stT = 1.6; e.cyc = 0; }
       if (e.st === 'roam') { moveToward(e, G.P.x, G.P.y - 20, sp, dt); e.face = G.P.x > e.x ? -1 : 1;
         if (e.stT <= 0) { e.cyc++; const pat = ['dash', 'chirp', 'dash', 'call'][e.cyc % 4];
-          if (pat === 'dash') { e.st = 'tele'; e.stT = 0.7; aimDash(e, 300, e.r * 1.3, choice(['응! 좋아!!', '너무 좋아!!', '다 좋아!!'])); }
-          if (pat === 'chirp') { e.st = 'chirp'; e.stT = 2.4; e.shT = 0; e.sa = rand(0, 6.28); bubble(e, '좋아~ 좋아~ 너무 좋아~♪', 1.3); }
-          if (pat === 'call') { e.st = 'call'; e.stT = 0.6; for (let i = 0; i < (enr ? 4 : 3); i++) spawnEnemy('ribbon', e.x + rand(-40, 40), e.y + rand(-10, 20)); bubble(e, '이것도 좋아! 저것도 좋아!', 1.2); } } return; }
+          if (pat === 'dash') { e.st = 'tele'; e.stT = 0.7; aimDash(e, 300, e.r * 1.3, choice([tt('chapters/ch4.97'), tt('chapters/ch4.98'), tt('chapters/ch4.99')])); }
+          if (pat === 'chirp') { e.st = 'chirp'; e.stT = 2.4; e.shT = 0; e.sa = rand(0, 6.28); bubble(e, tt('chapters/ch4.100'), 1.3); }
+          if (pat === 'call') { e.st = 'call'; e.stT = 0.6; for (let i = 0; i < (enr ? 4 : 3); i++) spawnEnemy('ribbon', e.x + rand(-40, 40), e.y + rand(-10, 20)); bubble(e, tt('chapters/ch4.101'), 1.2); } } return; }
       if (e.st === 'tele') { if (e.stT <= 0) { e.st = 'dash'; e.stT = 1.0; } return; }
       if (e.st === 'dash') { if (dashStep(e, 260, dt) || e.stT <= 0) { e.st = 'roam'; e.stT = enr ? 1.0 : 1.6; G.shake = 4; } return; }
       if (e.st === 'chirp') { e.shT -= dt; if (e.shT <= 0) { e.shT = enr ? 0.09 : 0.13; e.sa += 0.45; shootAt(e, 'heart', e.sa, 68); if (enr) shootAt(e, 'heart', e.sa + Math.PI, 68); } }
@@ -318,9 +319,9 @@ regChapter({
       if (e.st === 'idle') { e.st = 'roam'; e.stT = 1.6; e.cyc = 0; }
       if (e.st === 'roam') { moveToward(e, G.P.x, G.P.y, sp, dt); e.face = G.P.x > e.x ? -1 : 1;
         if (e.stT <= 0) { e.cyc++; const pat = ['jump', 'pop', 'jump', 'snack'][e.cyc % 4]; e.st = pat;
-          if (pat === 'jump') { e.stT = enr ? 0.9 : 1.1; e.tx = G.P.x; e.ty = G.P.y; e.jx = e.x; e.jy = e.y; e.jT = e.stT; G.fx.push({ k: 'circle', x: e.tx, y: e.ty, r: 50, t: 0, dur: e.stT }); bubble(e, '흡—!! (숨 참기)', 1.1); }
-          if (pat === 'pop') { e.stT = 0.6; bubble(e, '단추가… 안 잠겨…!', 1.2); }
-          if (pat === 'snack') { e.stT = 0.6; spawnEnemy('chickbox', e.x - 30, e.y); if (enr) spawnEnemy('chickbox', e.x + 30, e.y); bubble(e, '치킨 한 마리만… 딱 한 마리만…', 1.3); } } return; }
+          if (pat === 'jump') { e.stT = enr ? 0.9 : 1.1; e.tx = G.P.x; e.ty = G.P.y; e.jx = e.x; e.jy = e.y; e.jT = e.stT; G.fx.push({ k: 'circle', x: e.tx, y: e.ty, r: 50, t: 0, dur: e.stT }); bubble(e, tt('chapters/ch4.102'), 1.1); }
+          if (pat === 'pop') { e.stT = 0.6; bubble(e, tt('chapters/ch4.103'), 1.2); }
+          if (pat === 'snack') { e.stT = 0.6; spawnEnemy('chickbox', e.x - 30, e.y); if (enr) spawnEnemy('chickbox', e.x + 30, e.y); bubble(e, tt('chapters/ch4.104'), 1.3); } } return; }
       if (e.st === 'jump') { const p = 1 - Math.max(0, e.stT) / e.jT; e.x = lerp(e.jx, e.tx, p); e.y = lerp(e.jy, e.ty, p); e.hopY = Math.sin(p * Math.PI) * 60;
         if (e.stT <= 0) { e.hopY = 0; G.shake = 8; sfx('slam'); burst(e.x, e.y, '#ffffff', 18, 100); G.fx.push({ k: 'ring', x: e.x, y: e.y - 4, r: 50, col: '#ffd84a', t: 0, dur: 0.4 }); if (Math.hypot(G.P.x - e.x, G.P.y - e.y) < 50) hurtPlayer(e.atk * 1.6, e); } }
       if (e.st === 'pop' && e.stT <= 0) { const a0 = Math.atan2(G.P.y - e.y, G.P.x - e.x), n = enr ? 9 : 7; for (let i = 0; i < n; i++) shootAt(e, 'button', a0 + (i - (n - 1) / 2) * 0.22, 96); sfx('pop'); }
@@ -332,9 +333,9 @@ regChapter({
       if (e.st === 'idle') { e.st = 'roam'; e.stT = 2; e.cyc = 0; }
       if (e.st === 'roam') { moveToward(e, G.P.x, G.P.y - 30, sp, dt);
         if (e.stT <= 0) { e.cyc++; const pat = ['laser', 'coin', 'laser', 'gacha'][e.cyc % 4]; e.st = pat; e.shT = 0;
-          if (pat === 'laser') { e.stT = enr ? 0.8 : 1.0; const a = Math.atan2(G.P.y - e.y, G.P.x - e.x); e.las = enr ? [a, a - 0.5, a + 0.5, a + Math.PI] : [a, a - 0.6, a + 0.6]; for (const l of e.las) G.fx.push({ k: 'line', x: e.x, y: e.y - 6, a: l, len: 220, w: 26, t: 0, dur: e.stT }); bubble(e, choice(['보스전 시작!', '이번 판만 하고!', '접속 보상 받아가~']), 1.1); }
-          if (pat === 'coin') { e.stT = 2.4; bubble(e, '과금하시겠습니까? [예] [예]', 1.3); }
-          if (pat === 'gacha') { e.stT = 0.6; for (let i = 0; i < (enr ? 4 : 3); i++) spawnEnemy('gacha', e.x + rand(-50, 50), e.y + rand(10, 40)); bubble(e, '10연차!! 확정 보상!!', 1.2); } } return; }
+          if (pat === 'laser') { e.stT = enr ? 0.8 : 1.0; const a = Math.atan2(G.P.y - e.y, G.P.x - e.x); e.las = enr ? [a, a - 0.5, a + 0.5, a + Math.PI] : [a, a - 0.6, a + 0.6]; for (const l of e.las) G.fx.push({ k: 'line', x: e.x, y: e.y - 6, a: l, len: 220, w: 26, t: 0, dur: e.stT }); bubble(e, choice([tt('chapters/ch4.105'), tt('chapters/ch4.106'), tt('chapters/ch4.107')]), 1.1); }
+          if (pat === 'coin') { e.stT = 2.4; bubble(e, tt('chapters/ch4.108'), 1.3); }
+          if (pat === 'gacha') { e.stT = 0.6; for (let i = 0; i < (enr ? 4 : 3); i++) spawnEnemy('gacha', e.x + rand(-50, 50), e.y + rand(10, 40)); bubble(e, tt('chapters/ch4.109'), 1.2); } } return; }
       if (e.st === 'laser' && e.stT <= 0) { G.flashT = 0.2; G.shake = 6; sfx('slam'); const d = Math.hypot(G.P.x - e.x, G.P.y - e.y), pa = Math.atan2(G.P.y - e.y, G.P.x - e.x);
         for (const l of e.las || []) { burst(e.x + Math.cos(l) * 60, e.y + Math.sin(l) * 60, '#b45cff', 10, 120); const da = Math.abs(((pa - l + Math.PI * 3) % (Math.PI * 2)) - Math.PI); if (d < 225 && Math.sin(da) * d < 15 && da < Math.PI / 2) { hurtPlayer(e.atk * 1.5, e); break; } } }
       if (e.st === 'coin') { e.shT -= dt; if (e.shT <= 0) { e.shT = enr ? 0.07 : 0.1; shootAt(e, 'coin', Math.PI / 2 + rand(-1.2, 1.2), 82); } }
@@ -351,24 +352,24 @@ regChapter({
     select: { bg: '#3a3450', hedge: ['#4a4462', '#5e5878', '#2e2a40'], tint: [40, 20, 90, 0.12], glow: 0.45, wall: 1, ground: groundSelect, decor: decorSelect },
   },
   items: {
-    ringbox:  { slot: 'weapon', name: '프러포즈 반지 상자', rar: 4, atk: 52, crit: 0.07, icon: 'ringbox', tier: 7, bossOnly: 1, ch: 4, w: { reach: 110, arc: 0, mul: 1.1, rate: 2.2, kb: 50, style: 'throw' }, desc: '지렁이 통 옆에서 나온 그 반지 상자. 반짝이를 날린다' },
-    dress2:   { slot: 'armor', name: '본식 2부 드레스', rar: 4, def: 30, hp: 300, color: '#f4a6c8', icon: 'dress', tier: 7, bossOnly: 1, ch: 4, desc: '「응 좋아」 말고 「예쁘다」를 들은 드레스' },
-    pearlpin: { slot: 'hat', name: '진주 헤어핀', rar: 4, def: 16, mp: 110, crit: 0.06, color: '#f6efe6', icon: 'hat', tier: 7, bossOnly: 1, ch: 4, desc: '머리에 꽂으면 마음도 단정해진다' },
-    heels:    { slot: 'shoes', name: '웨딩 하이힐', rar: 4, def: 10, spd: 0.3, color: '#fff6e0', icon: 'shoes', tier: 7, bossOnly: 1, ch: 4, desc: '버진로드 전용. 오빠 발 밟기에도 좋다' },
-    envbag:   { slot: 'bag', name: '축의금 봉투 클러치', rar: 4, atk: 14, mp: 110, crit: 0.06, color: '#f0d8a8', icon: 'handbag', tier: 7, bossOnly: 1, ch: 4, desc: '봉투가 두툼할수록 기분이 좋아진다' },
-    b_tux:    { slot: 'bcloth', bori: 1, name: '보리 링베어러 턱시도', rar: 4, bdmg: 0.8, color: '#2b2b34', pat: 'pad', icon: 'bpad', tier: 7, bossOnly: 1, ch: 4, desc: '반지 배달 담당. 나비넥타이가 포인트' },
-    toy_ring: { slot: 'btoy', bori: 1, name: '반지 쿠션', rar: 4, bdmg: 0.9, icon: 'cushion', tier: 7, bossOnly: 1, ch: 4, desc: '보리가 버진로드에서 물고 온 쿠션. 반지는 무사함' },
+    ringbox:  { slot: 'weapon', name: tt('chapters/ch4.110'), rar: 4, atk: 52, crit: 0.07, icon: 'ringbox', tier: 7, bossOnly: 1, ch: 4, w: { reach: 110, arc: 0, mul: 1.1, rate: 2.2, kb: 50, style: 'throw' }, desc: tt('chapters/ch4.111') },
+    dress2:   { slot: 'armor', name: tt('chapters/ch4.112'), rar: 4, def: 30, hp: 300, color: '#f4a6c8', icon: 'dress', tier: 7, bossOnly: 1, ch: 4, desc: tt('chapters/ch4.113') },
+    pearlpin: { slot: 'hat', name: tt('chapters/ch4.114'), rar: 4, def: 16, mp: 110, crit: 0.06, color: '#f6efe6', icon: 'hat', tier: 7, bossOnly: 1, ch: 4, desc: tt('chapters/ch4.115') },
+    heels:    { slot: 'shoes', name: tt('chapters/ch4.116'), rar: 4, def: 10, spd: 0.3, color: '#fff6e0', icon: 'shoes', tier: 7, bossOnly: 1, ch: 4, desc: tt('chapters/ch4.117') },
+    envbag:   { slot: 'bag', name: tt('chapters/ch4.118'), rar: 4, atk: 14, mp: 110, crit: 0.06, color: '#f0d8a8', icon: 'handbag', tier: 7, bossOnly: 1, ch: 4, desc: tt('chapters/ch4.119') },
+    b_tux:    { slot: 'bcloth', bori: 1, name: tt('chapters/ch4.120'), rar: 4, bdmg: 0.8, color: '#2b2b34', pat: 'pad', icon: 'bpad', tier: 7, bossOnly: 1, ch: 4, desc: tt('chapters/ch4.121') },
+    toy_ring: { slot: 'btoy', bori: 1, name: tt('chapters/ch4.122'), rar: 4, bdmg: 0.9, icon: 'cushion', tier: 7, bossOnly: 1, ch: 4, desc: tt('chapters/ch4.123') },
   },
-  book: { k: 'wed', name: '4장 웨딩 준비 장비', txt: '공격·방어 +6%', mul: 1.06 },
+  book: { k: 'wed', name: tt('chapters/ch4.124'), txt: tt('chapters/ch4.125'), mul: 1.06 },
   // 착용 세트 (11/25): 7개를 모두 끼고 있어야 효과 — 도감 세트와 별개로 둘 다 붙음
-  eqSets: [{ k: 'wed4', name: '웨딩 준비 세트', ids: ['ringbox', 'pearlpin', 'dress2', 'heels', 'envbag', 'b_tux', 'toy_ring'], txt: '공격·방어·최대 HP +15%', mul: { atk: 1.15, def: 1.15, hp: 1.15 } }],
-  hair: { k: 'pearl', name: '웨딩 펄', H: '#c9b8a8', h: '#fff4ea', need: 'ch4', cond: '4장 클리어' },
+  eqSets: [{ k: 'wed4', name: tt('chapters/ch4.126'), ids: ['ringbox', 'pearlpin', 'dress2', 'heels', 'envbag', 'b_tux', 'toy_ring'], txt: tt('chapters/ch4.127'), mul: { atk: 1.15, def: 1.15, hp: 1.15 } }],
+  hair: { k: 'pearl', name: tt('chapters/ch4.128'), H: '#c9b8a8', h: '#fff4ea', need: 'ch4', cond: tt('chapters/ch4.129') },
   ach: [
-    { id: 'c4s', t: '좋아무새 사육사', d: '4장 드레스 투어 통과', tier: 2, v: pd => pd.ch4 && (pd.ch4.cleared || pd.ch4.zone >= 14) ? 1 : 0, g: 1 },
-    { id: 'c4', t: '새신부', d: '4장 클리어 (결혼식)', tier: 3, v: pd => (pd.ch4 && pd.ch4.cleared) || 0, g: 1 },
-    { id: 'c4x5', t: '리마인드 웨딩', d: '4장 5번 클리어', tier: 4, v: pd => (pd.ch4 && pd.ch4.cleared) || 0, g: 5 },
+    { id: 'c4s', t: tt('chapters/ch4.130'), d: tt('chapters/ch4.131'), tier: 2, v: pd => pd.ch4 && (pd.ch4.cleared || pd.ch4.zone >= 14) ? 1 : 0, g: 1 },
+    { id: 'c4', t: tt('chapters/ch4.132'), d: tt('chapters/ch4.133'), tier: 3, v: pd => (pd.ch4 && pd.ch4.cleared) || 0, g: 1 },
+    { id: 'c4x5', t: tt('chapters/ch4.134'), d: tt('chapters/ch4.135'), tier: 4, v: pd => (pd.ch4 && pd.ch4.cleared) || 0, g: 5 },
   ],
   cut: { scenes: ['whall', 'wdress', 'wstudio', 'wselect', 'wwed'], draw: drawWedCut, actors: drawWedActors },
-  story: { prologue: ['프롤로그 · 낚시터 프러포즈', CH4_PROLOGUE], stages: { 1: ['STAGE 14 · 드레스 투어', CH4_DRESS], 2: ['STAGE 15 · 웨딩 촬영', CH4_STUDIO], 3: ['FINAL · 사진 셀렉', CH4_SELECT] }, ending: ['엔딩 · 본식', CH4_ENDING] },
-  end: { stats: lv => `결혼식 <b>1</b>번 · 「좋아」 <b>셀 수 없음</b><br>${lv}<br><br><b>신혼여행지는 희수 마음대로!</b><br><small>5장에서 계속…</small>`, again: '결혼은 한 번이지만 결혼 준비는 여러 번' }
+  story: { prologue: [tt('chapters/ch4.136'), CH4_PROLOGUE], stages: { 1: [tt('chapters/ch4.137'), CH4_DRESS], 2: [tt('chapters/ch4.138'), CH4_STUDIO], 3: [tt('chapters/ch4.139'), CH4_SELECT] }, ending: [tt('chapters/ch4.140'), CH4_ENDING] },
+  end: { stats: lv => tt('chapters/ch4.141', { lv }), again: tt('chapters/ch4.142') }
 });

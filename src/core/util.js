@@ -1,5 +1,6 @@
 // ===================== 공용 계산 도우미 (화면 없이 씀) =====================
 // ---------- utils ----------
+import { tt } from '../sys/i18n.js';
 export const rand = (a = 0, b = 1) => a + Math.random() * (b - a);
 export const randi = (a, b) => Math.floor(rand(a, b + 1));
 export const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
@@ -15,6 +16,6 @@ export function shadeHex(hex, amt) {
   const f = amt < 0 ? (v => v * (1 + amt)) : (v => v + (255 - v) * amt);
   return '#' + [r, g, b].map(v => Math.round(clamp(f(v), 0, 255)).toString(16).padStart(2, '0')).join('');
 }
-export function fmtTime(s) { s = Math.floor(s); const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, ss = s % 60; return (h ? h + '시간 ' : '') + m + '분 ' + ss + '초'; }
+export function fmtTime(s) { s = Math.floor(s); const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, ss = s % 60; return (h ? h + tt('core/util.1') : '') + m + tt('core/util.2') + ss + tt('core/util.3'); }
 /** 오늘 날짜 키 (기기 시간, 예: 2026-11-27) */
 export const todayKey = () => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };

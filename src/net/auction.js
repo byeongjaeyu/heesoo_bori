@@ -23,18 +23,19 @@ import { cloudSync } from './cloud.js';
 import { TRADE_ERR, tradableKey, tradeClaim, tradeWithPd } from './trade.js';
 import { xcClick, xcHtml, xcInput, xcLoad } from './xchg.js';
 import { RULES } from '../core/rules.js';
+import { tt } from '../sys/i18n.js';
 
 const AUC_FEE = RULES.auc.fee, AUC_HOURS = RULES.auc.hours; // 서버 hb_auc_* 와 같은 값 (core/rules.js)
 export const AUC = { tab: 'browse', slot: '', rar: 3, sort: 'end', list: /** @type {any[]} */ ([]), mine: /** @type {any} */ (null), sel: /** @type {string|null} */ (null), bidFor: /** @type {string|null} */ (null), hours: 24, busy: false, err: '' };
-const AUC_SLOTS = [['', '전체'], ['weapon', '무기'], ['hat', '모자'], ['armor', '옷'], ['shoes', '신발'], ['bag', '가방'], ['bori', '보리']];
-const AUC_RARS = [[3, '전설↑'], [4, '신화↑'], [5, '초월']];
-const AUC_SORTS = [['end', '마감 임박'], ['low', '낮은 가격'], ['high', '높은 가격'], ['new', '최신']];
-export const AUC_ERR = Object.assign({}, TRADE_ERR, { nick: '경매장은 랭킹에 닉네임을 등록한 희수만 이용할 수 있어요', hours: '기간을 골라주세요', price: `가격을 확인해 주세요 (시작가 ${RULES.auc.minStart.toLocaleString()}G 이상, 즉시 구매가는 시작가 이상)`,
-  too_many: `경매는 한 번에 ${RULES.auc.maxOpen}개까지 올릴 수 있어요`, closed: '이미 끝난 경매예요', own: '내가 올린 물건이에요', top: '이미 최고가로 입찰 중이에요', has_bids: '입찰이 있으면 취소할 수 없어요', balance: '골드가 부족해요' });
-const aucErr = r => r && r.reason === 'low' ? `최소 ${Number(r.min).toLocaleString()}G부터 입찰할 수 있어요` : (AUC_ERR[r && r.reason] || '처리하지 못했어요');
+const AUC_SLOTS = [['', tt('net/auction.1')], ['weapon', tt('net/auction.2')], ['hat', tt('net/auction.3')], ['armor', tt('net/auction.4')], ['shoes', tt('net/auction.5')], ['bag', tt('net/auction.6')], ['bori', tt('net/auction.7')]];
+const AUC_RARS = [[3, tt('net/auction.8')], [4, tt('net/auction.9')], [5, tt('net/auction.10')]];
+const AUC_SORTS = [['end', tt('net/auction.11')], ['low', tt('net/auction.12')], ['high', tt('net/auction.13')], ['new', tt('net/auction.14')]];
+export const AUC_ERR = Object.assign({}, TRADE_ERR, { nick: tt('net/auction.15'), hours: tt('net/auction.16'), price: tt('net/auction.17', { v1: RULES.auc.minStart.toLocaleString() }),
+  too_many: tt('net/auction.18', { maxOpen: RULES.auc.maxOpen }), closed: tt('net/auction.19'), own: tt('net/auction.20'), top: tt('net/auction.21'), has_bids: tt('net/auction.22'), balance: tt('net/auction.23') });
+const aucErr = r => r && r.reason === 'low' ? tt('net/auction.24', { v1: Number(r.min).toLocaleString() }) : (AUC_ERR[r && r.reason] || tt('net/auction.25'));
 export const aucG = n => Number(n || 0).toLocaleString() + 'G';
-export function aucLeft(iso) { const s = Math.max(0, Math.round((new Date(iso).getTime() - Date.now()) / 1000)); if (s <= 0) return '마감'; const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); return h ? `${h}시간 ${m}분` : m ? `${m}분` : `${s}초`; }
-export const aucRefTxt = ref => ref && ref.lines && ref.lines.length ? `<br><span class="refmini">옵션 ${ref.lines.map(l => `<b class="g${l.g}">${refLineTxt(l)}</b>`).join(' · ')}</span>` : '';
+export function aucLeft(iso) { const s = Math.max(0, Math.round((new Date(iso).getTime() - Date.now()) / 1000)); if (s <= 0) return tt('net/auction.26'); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); return h ? tt('net/auction.27', { h, m }) : m ? tt('net/auction.28', { m }) : tt('net/auction.29', { s }); }
+export const aucRefTxt = ref => ref && ref.lines && ref.lines.length ? tt('net/auction.30', { v1: ref.lines.map(l => `<b class="g${l.g}">${refLineTxt(l)}</b>`).join(' · ') }) : '';
 export const aucPd = () => G.pd || loadGame();
 /** 쉼표 들어간 입력칸 값 → 숫자 (비었으면 NaN) */
 export const numVal = (/** @type {string} */ sel) => { const v = String((/** @type {HTMLInputElement} */ ($(sel)) || { value: '' }).value).replace(/[^\d]/g, ''); return v ? Number(v) : NaN; };
@@ -52,14 +53,14 @@ export async function aucOpen() {
 export function aucClose() { $('#auc').hidden = true; if (!G.pd && G.state === 'title' && !$('#title').hidden) showTitle(); }
 /** 받을 것(밀린 입찰 골드·대금·장비) 먼저 받고 목록 불러오기 */
 export async function aucLoad() {
-  $('#aucBody').innerHTML = '<p class="aucmsg">불러오는 중...</p>'; aucHead();
+  $('#aucBody').innerHTML = tt('net/auction.31'); aucHead();
   try {
     await claimGifts(aucPd()).catch(() => { }); await tradeClaim().catch(() => 0);
     if (AUC.tab === 'browse') { const { data, error } = await SB.rpc('hb_auc_browse', { p_slot: AUC.slot, p_rar: AUC.rar, p_sort: AUC.sort }); if (error) throw error; AUC.list = data || []; }
     else if (AUC.tab === 'mine') { const { data, error } = await SB.rpc('hb_auc_mine'); if (error) throw error; AUC.mine = data || {}; }
     else if (AUC.tab === 'xchg') await xcLoad();
     AUC.err = '';
-  } catch (e) { AUC.err = '서버에 연결할 수 없어요: ' + pvErr(e); }
+  } catch (e) { AUC.err = tt('net/auction.32') + pvErr(e); }
   aucRender();
 }
 function aucHead() {
@@ -75,49 +76,49 @@ function aucItemHtml(def, rar, enh, ilv, ref, extra) {
 export function aucRender() {
   aucHead(); const b = $('#aucBody'); let h = AUC.err ? `<p class="aucmsg warn">${esc(AUC.err)}</p>` : '';
   if (AUC.tab === 'browse') {
-    h += `<div class="aucfil">${aucRow('부위', AUC_SLOTS.map(([v, t]) => aucChip('slot', v, t, AUC.slot === v)).join(''))}`
-      + aucRow('등급', AUC_RARS.map(([v, t]) => aucChip('rar', v, t, AUC.rar === v)).join(''))
-      + aucRow('정렬', AUC_SORTS.map(([v, t]) => aucChip('sort', v, t, AUC.sort === v)).join('')) + '</div>';
-    if (!AUC.list.length && !AUC.err) h += '<p class="aucmsg">올라온 물건이 없어요. 「판매하기」에서 첫 물건을 올려보세요!</p>';
+    h += `<div class="aucfil">${aucRow(tt('net/auction.33'), AUC_SLOTS.map(([v, t]) => aucChip('slot', v, t, AUC.slot === v)).join(''))}`
+      + aucRow(tt('net/auction.34'), AUC_RARS.map(([v, t]) => aucChip('rar', v, t, AUC.rar === v)).join(''))
+      + aucRow(tt('net/auction.35'), AUC_SORTS.map(([v, t]) => aucChip('sort', v, t, AUC.sort === v)).join('')) + '</div>';
+    if (!AUC.list.length && !AUC.err) h += tt('net/auction.36');
     for (const a of AUC.list) {
-      const now = a.bid ? `현재가 <b>${aucG(a.bid)}</b> · 입찰 ${a.bids}건` : `시작가 <b>${aucG(a.start)}</b>`;
-      const info = `<br><span class="aucp">${now}${a.buyout ? ` · 즉시 구매 <b>${aucG(a.buyout)}</b>` : ''}</span><br><small>${esc(a.seller)} · 남은 시간 ${aucLeft(a.ends)}</small>`;
+      const now = a.bid ? tt('net/auction.37', { v1: aucG(a.bid), bids: a.bids }) : tt('net/auction.38', { v1: aucG(a.start) });
+      const info = tt('net/auction.75', { now, v1: a.buyout ? tt('net/auction.39', { v1: aucG(a.buyout) }) : '', v2: esc(a.seller), v3: aucLeft(a.ends) });
       let act;
-      if (a.mine) act = '<em class="auctag">내 물건</em>';
-      else if (a.top) act = '<em class="auctag top">최고 입찰 중</em>';
-      else if (AUC.bidFor === a.id) act = `<div class="aucbid"><input type="text" inputmode="numeric" class="numin" id="aucAmt" value="${numF(a.min)}"><button class="btn pk sm" data-auc="bidGo" data-v="${a.id}">입찰</button><button class="btn wh sm" data-auc="bidX">취소</button></div>`;
-      else act = `<button class="btn pk sm" data-auc="bid" data-v="${a.id}">입찰 ${aucG(a.min)}~</button>${a.buyout ? `<button class="btn sm buy" data-auc="buy" data-v="${a.id}">즉시 구매</button>` : ''}`;
+      if (a.mine) act = tt('net/auction.40');
+      else if (a.top) act = tt('net/auction.41');
+      else if (AUC.bidFor === a.id) act = tt('net/auction.42', { v1: numF(a.min), id: a.id });
+      else act = tt('net/auction.76', { id: a.id, v1: aucG(a.min), v2: a.buyout ? tt('net/auction.43', { id: a.id }) : '' });
       h += `<div class="card aucc">${aucItemHtml(a.def, a.rar, a.enh, a.ilv, a.ref, info)}<div class="aucact">${act}</div></div>`;
     }
   } else if (AUC.tab === 'sell') {
     const pd = aucPd(), eqd = new Set([...Object.values(pd.eq), ...Object.values(pd.beq || {})]);
     const keys = Object.keys(pd.inv).filter(k => tradableKey(k) && !eqd.has(k)).sort((x, y) => ITEMS[y].rar - ITEMS[x].rar || ((pd.enh || {})[y] || 0) - ((pd.enh || {})[x] || 0));
-    h += `<p class="aucmsg">전설 이상 장비를 올릴 수 있어요 (착용 중인 장비는 빼고). 강화·장비 레벨·재련 옵션도 그대로 넘어가요. 팔리면 수수료 ${AUC_FEE * 100}%를 뺀 골드가 선물함으로 와요.</p>`;
-    if (!keys.length) h += '<p class="aucmsg">올릴 수 있는 장비가 없어요. 같은 장비 「가방에 보관」 설정을 켜면 예비 장비를 모을 수 있어요.</p>';
+    h += tt('net/auction.44', { v1: AUC_FEE * 100 });
+    if (!keys.length) h += tt('net/auction.45');
     for (const k of keys) {
       const it = ITEMS[k], en = (pd.enh || {})[k] || 0, ilv = (pd.ilv || {})[k] || 0, ref = (pd.ref || {})[k];
-      let act = `<button class="btn pk sm" data-auc="sel" data-v="${k}">올리기</button>`;
-      if (AUC.sel === k) act = `<div class="aucform"><label>시작가<input type="text" inputmode="numeric" class="numin" id="aucStart" value="${numF(aucSuggest(it.rar))}"></label>`
-        + `<label>즉시 구매가 <small>(비워두면 없음)</small><input type="text" inputmode="numeric" class="numin" id="aucBuy" placeholder="없음"></label>`
-        + aucRow('기간', AUC_HOURS.map(hr => aucChip('hours', hr, hr + '시간', AUC.hours === hr)).join(''))
-        + `<div class="aucf aucgo"><button class="btn pk" data-auc="sellGo" data-v="${k}">경매에 올리기</button><button class="btn wh" data-auc="selX">취소</button></div></div>`;
+      let act = tt('net/auction.46', { k });
+      if (AUC.sel === k) act = tt('net/auction.47', { v1: numF(aucSuggest(it.rar)) })
+        + tt('net/auction.48')
+        + aucRow(tt('net/auction.49'), AUC_HOURS.map(hr => aucChip('hours', hr, hr + tt('net/auction.50'), AUC.hours === hr)).join(''))
+        + tt('net/auction.51', { k });
       h += `<div class="card aucc${AUC.sel === k ? ' open' : ''}">${aucItemHtml(defOf(k), it.rar, en, ilv, ref)}<div class="aucact">${act}</div></div>`;
     }
   } else if (AUC.tab === 'xchg') {
     h += xcHtml();
   } else {
     const M = AUC.mine || {}, sell = M.selling || [], bid = M.bidding || [], done = M.done || [];
-    h += `<h4>판매 중 ${sell.length}/10</h4>` + (sell.length ? '' : '<p class="aucmsg">올린 물건이 없어요</p>');
-    for (const a of sell) h += `<div class="card aucc">${aucItemHtml(a.def, a.rar, a.enh, 0, null, `<br><span class="aucp">${a.bid ? `현재가 <b>${aucG(a.bid)}</b> · 입찰 ${a.bids}건` : `시작가 ${aucG(a.start)} · 아직 입찰 없음`}${a.buyout ? ` · 즉시 구매 ${aucG(a.buyout)}` : ''}</span><br><small>남은 시간 ${aucLeft(a.ends)}</small>`)}<div class="aucact">${a.bids ? '' : `<button class="btn wh sm" data-auc="cancel" data-v="${a.id}">내리기</button>`}</div></div>`;
-    h += `<h4>입찰 중 ${bid.length}</h4>` + (bid.length ? '' : '<p class="aucmsg">최고가로 입찰 중인 물건이 없어요. 다른 희수가 더 높게 부르면 골드는 선물함으로 돌아와요.</p>');
-    for (const a of bid) h += `<div class="card aucc">${aucItemHtml(a.def, a.rar, a.enh, 0, null, `<br><span class="aucp">내 입찰 <b>${aucG(a.bid)}</b>${a.buyout ? ` · 즉시 구매 ${aucG(a.buyout)}` : ''}</span><br><small>남은 시간 ${aucLeft(a.ends)}</small>`)}<div class="aucact"><em class="auctag top">최고 입찰 중</em></div></div>`;
-    if (done.length) { h += '<h4>최근 7일 결과</h4>'; for (const a of done) { const t = a.state === 'sold' ? (a.sold ? `판매 ${aucG(a.price)} → ${aucG(a.price - a.fee)} 받음` : `낙찰 ${aucG(a.price)}`) : a.state === 'expired' ? '유찰 (장비 돌아옴)' : '내림 (장비 돌아옴)'; h += `<div class="card aucc done">${aucItemHtml(a.def, a.rar, a.enh, 0, null, `<br><small>${t}</small>`)}</div>`; } }
+    h += tt('net/auction.52', { length: sell.length }) + (sell.length ? '' : tt('net/auction.53'));
+    for (const a of sell) h += `<div class="card aucc">${aucItemHtml(a.def, a.rar, a.enh, 0, null, tt('net/auction.77', { v1: a.bid ? tt('net/auction.37', { v1: aucG(a.bid), bids: a.bids }) : tt('net/auction.54', { v1: aucG(a.start) }), v2: a.buyout ? tt('net/auction.55', { v1: aucG(a.buyout) }) : '', v3: aucLeft(a.ends) }))}<div class="aucact">${a.bids ? '' : tt('net/auction.56', { id: a.id })}</div></div>`;
+    h += tt('net/auction.57', { length: bid.length }) + (bid.length ? '' : tt('net/auction.58'));
+    for (const a of bid) h += tt('net/auction.79', { v1: aucItemHtml(a.def, a.rar, a.enh, 0, null, tt('net/auction.78', { v1: aucG(a.bid), v2: a.buyout ? tt('net/auction.55', { v1: aucG(a.buyout) }) : '', v3: aucLeft(a.ends) })) });
+    if (done.length) { h += tt('net/auction.59'); for (const a of done) { const t = a.state === 'sold' ? (a.sold ? tt('net/auction.60', { v1: aucG(a.price), v2: aucG(a.price - a.fee) }) : tt('net/auction.61', { v1: aucG(a.price) })) : a.state === 'expired' ? tt('net/auction.62') : tt('net/auction.63'); h += `<div class="card aucc done">${aucItemHtml(a.def, a.rar, a.enh, 0, null, `<br><small>${t}</small>`)}</div>`; } }
   }
   b.innerHTML = h;
 }
 async function aucBid(id, amt, isBuy) {
   if (AUC.busy) return; const pd = aucPd(); amt = Math.floor(Number(amt));
-  if (!(amt > 0)) { toast('금액을 확인해 주세요', 'warn'); return; }
+  if (!(amt > 0)) { toast(tt('net/auction.64'), 'warn'); return; }
   if ((pd.gold || 0) < amt) { toast(AUC_ERR.balance, 'warn'); return; }
   AUC.busy = true;
   try {
@@ -125,9 +126,9 @@ async function aucBid(id, amt, isBuy) {
     const { data, error } = await SB.rpc('hb_auc_bid', { p_id: id, p_amount: amt }); if (error) throw error;
     if (!data || !data.ok) { toast(aucErr(data), 'warn'); if (data && data.reason === 'low') aucLoad(); return; }
     tradeWithPd(p => { p.gold = Math.max(0, (p.gold || 0) - data.bid); }); cloudSync(true);
-    sfx('coin'); toast(data.bought ? `즉시 구매 완료! (${aucG(data.bid)}) 장비가 곧 들어와요` : `${aucG(data.bid)}에 입찰했어요`, 'lvl');
+    sfx('coin'); toast(data.bought ? tt('net/auction.65', { v1: aucG(data.bid) }) : tt('net/auction.66', { v1: aucG(data.bid) }), 'lvl');
     AUC.bidFor = null; if (data.bought) await tradeClaim().catch(() => 0);
-  } catch (e) { toast('입찰하지 못했어요: ' + pvErr(e), 'warn'); }
+  } catch (e) { toast(tt('net/auction.67') + pvErr(e), 'warn'); }
   finally { AUC.busy = false; }
   aucLoad();
 }
@@ -142,14 +143,14 @@ async function aucSell(k) {
     const { data, error } = await SB.rpc('hb_auc_list', { p_key: k, p_start: start, p_buyout: buy, p_hours: AUC.hours }); if (error) throw error;
     if (!data || !data.ok) { toast(aucErr(data), 'warn'); return; }
     tradeWithPd(p => { dropItem(p, k); (p.tkeys = p.tkeys || []).push(k); }); cloudSync(true);
-    sfx('ding'); toast(`${it.name}을(를) 경매에 올렸어요 (${AUC.hours}시간)`, 'lvl'); AUC.sel = null; AUC.tab = 'mine';
-  } catch (e) { toast('올리지 못했어요: ' + pvErr(e), 'warn'); }
+    sfx('ding'); toast(tt('net/auction.68', { name: it.name, hours: AUC.hours }), 'lvl'); AUC.sel = null; AUC.tab = 'mine';
+  } catch (e) { toast(tt('net/auction.69') + pvErr(e), 'warn'); }
   finally { AUC.busy = false; }
   aucLoad();
 }
 async function aucCancel(id) {
-  try { const { data, error } = await SB.rpc('hb_auc_cancel', { p_id: id }); if (error) throw error; if (!data || !data.ok) { toast(aucErr(data), 'warn'); return; } toast('경매에서 내렸어요. 장비가 돌아와요', 'sub'); }
-  catch (e) { toast('내리지 못했어요: ' + pvErr(e), 'warn'); }
+  try { const { data, error } = await SB.rpc('hb_auc_cancel', { p_id: id }); if (error) throw error; if (!data || !data.ok) { toast(aucErr(data), 'warn'); return; } toast(tt('net/auction.70'), 'sub'); }
+  catch (e) { toast(tt('net/auction.71') + pvErr(e), 'warn'); }
   aucLoad();
 }
 export function aucBoot() {
@@ -169,11 +170,11 @@ export function aucBoot() {
     if (m === 'hours') { AUC.hours = +v; document.querySelectorAll('#auc [data-auc="hours"]').forEach(x => x.classList.toggle('on', x === b)); return; }
     if (m === 'bid') { AUC.bidFor = v; aucRender(); const i = /** @type {HTMLInputElement} */ ($('#aucAmt')); if (i) i.focus(); return; }
     if (m === 'bidX') { AUC.bidFor = null; return aucRender(); }
-    if (m === 'bidGo') { const a = AUC.list.find(x => x.id === v), amt = numVal('#aucAmt'); if (a && a.buyout && amt >= a.buyout) { confirmBox(`즉시 구매가(${aucG(a.buyout)}) 이상이라 바로 구매돼요. 계속할까요?`, () => aucBid(v, a.buyout, true)); return; } return aucBid(v, amt, false); }
-    if (m === 'buy') { const a = AUC.list.find(x => x.id === v); if (!a) return; confirmBox(`${ITEMS[a.def].name}${a.enh ? ' +' + a.enh : ''}\n즉시 구매 ${aucG(a.buyout)}에 살까요?`, () => aucBid(v, a.buyout, true)); return; }
+    if (m === 'bidGo') { const a = AUC.list.find(x => x.id === v), amt = numVal('#aucAmt'); if (a && a.buyout && amt >= a.buyout) { confirmBox(tt('net/auction.72', { v1: aucG(a.buyout) }), () => aucBid(v, a.buyout, true)); return; } return aucBid(v, amt, false); }
+    if (m === 'buy') { const a = AUC.list.find(x => x.id === v); if (!a) return; confirmBox(tt('net/auction.73', { name: ITEMS[a.def].name, v1: a.enh ? ' +' + a.enh : '', v2: aucG(a.buyout) }), () => aucBid(v, a.buyout, true)); return; }
     if (m === 'sel') { AUC.sel = v; return aucRender(); }
     if (m === 'selX') { AUC.sel = null; return aucRender(); }
-    if (m === 'sellGo') { const it = ITEMS[v]; confirmBox(`${it.name}을(를) 경매에 올릴까요?\n올리면 가방에서 빠지고, 입찰이 없을 때만 내릴 수 있어요.`, () => aucSell(v)); return; }
+    if (m === 'sellGo') { const it = ITEMS[v]; confirmBox(tt('net/auction.74', { name: it.name }), () => aucSell(v)); return; }
     if (m === 'cancel') return aucCancel(v);
   });
 }

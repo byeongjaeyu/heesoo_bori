@@ -19,56 +19,57 @@ import { cloudOpen, cloudSync } from './cloud.js';
 import { TRADE_ERR, tradableKey, tradeClaim, tradeWithPd } from './trade.js';
 import { AUC, AUC_ERR, aucClose, aucG, aucLeft, aucLoad, aucPd, aucRefTxt, aucRender, numVal } from './auction.js';
 import { RULES } from '../core/rules.js';
+import { tt } from '../sys/i18n.js';
 
 const XR = RULES.xchg, XC_FEE = XR.fee, XC_MAX_ITEMS = XR.maxItems; // 서버 hb_xchg_* 와 같은 값 (core/rules.js)
 const XC = { mine: /** @type {any} */ (null), partner: /** @type {any} */ (null), nick: '', give: /** @type {string[]} */ ([]), want: /** @type {string[]} */ ([]), gold: '', wantGold: '', msg: '' };
-const XC_ERR = { nick: '랭킹에 닉네임을 등록한 희수만 교환할 수 있어요', lv: `Lv${XR.lv}부터 교환할 수 있어요`, link: '구글·카카오 계정을 연결한 희수만 교환할 수 있어요 (기기 이동 → 계정 연결)',
-  no_user: '그 닉네임의 희수가 없어요', self: '나와는 교환할 수 없어요', empty: '서로 하나 이상은 줘야 해요', no_item: '장비가 하나는 들어가야 해요 (골드끼리 교환은 안 돼요)',
-  gold: `골드는 ${XR.minGold}G 이상으로 적어주세요`, want_item: '상대가 이미 가지고 있지 않은 장비가 있어요. 다시 찾아주세요', too_many: `보낸 제안은 ${XR.maxOpen}개까지예요`, too_many_items: `장비는 한쪽에 ${XC_MAX_ITEMS}개까지예요`,
-  want_gone: '내가 줄 장비가 없어졌어요', closed: '이미 끝난 제안이에요' };
-const xcErr = r => { if (r && r.reason === 'partner') return '상대가 아직 교환할 수 없는 상태예요' + (r.why === 'lv' ? ` (Lv${XR.lv} 미만)` : r.why === 'link' ? ' (계정 연결 안 함)' : ''); return XC_ERR[r && r.reason] || AUC_ERR[r && r.reason] || TRADE_ERR[r && r.reason] || '처리하지 못했어요'; };
+const XC_ERR = { nick: tt('net/xchg.1'), lv: tt('net/xchg.2', { lv: XR.lv }), link: tt('net/xchg.3'),
+  no_user: tt('net/xchg.4'), self: tt('net/xchg.5'), empty: tt('net/xchg.6'), no_item: tt('net/xchg.7'),
+  gold: tt('net/xchg.8', { minGold: XR.minGold }), want_item: tt('net/xchg.9'), too_many: tt('net/xchg.10', { maxOpen: XR.maxOpen }), too_many_items: tt('net/xchg.11', { XC_MAX_ITEMS }),
+  want_gone: tt('net/xchg.12'), closed: tt('net/xchg.13') };
+const xcErr = r => { if (r && r.reason === 'partner') return tt('net/xchg.14') + (r.why === 'lv' ? tt('net/xchg.15', { lv: XR.lv }) : r.why === 'link' ? tt('net/xchg.16') : ''); return XC_ERR[r && r.reason] || AUC_ERR[r && r.reason] || TRADE_ERR[r && r.reason] || tt('net/xchg.17'); };
 const xcName = it => `${ITEMS[it.def] ? ITEMS[it.def].name : it.def}${it.enh ? ' +' + it.enh : ''}`;
 function xcItemChip(it, grp, v, on) {
   const def = ITEMS[it.def]; if (!def) return '';
-  return `<button class="xcitem${on ? ' on' : ''}" data-auc="${grp}" data-v="${v}"><img src="${itemURL(it.def)}" alt=""><span class="r${it.rar}">${xcName(it)}</span>${it.ref && it.ref.lines && it.ref.lines.length ? `<small>옵션 ${it.ref.lines.length}줄</small>` : ''}</button>`;
+  return `<button class="xcitem${on ? ' on' : ''}" data-auc="${grp}" data-v="${v}"><img src="${itemURL(it.def)}" alt=""><span class="r${it.rar}">${xcName(it)}</span>${it.ref && it.ref.lines && it.ref.lines.length ? tt('net/xchg.18', { length: it.ref.lines.length }) : ''}</button>`;
 }
-const xcList = (items, gold) => (items || []).map(it => `<div class="xcl"><img src="${itemURL(it.def)}" alt=""><span class="r${it.rar}">${xcName(it)}</span>${aucRefTxt(it.ref)}</div>`).join('') + (gold ? `<div class="xcl gold"><img src="${iconURL('i_coin', ICONS.coin)}" alt=""><b>${aucG(gold)}</b> <small>(받는 쪽 ${aucG(gold - Math.floor(gold * XC_FEE))})</small></div>` : '') || '<div class="xcl none">없음</div>';
+const xcList = (items, gold) => (items || []).map(it => `<div class="xcl"><img src="${itemURL(it.def)}" alt=""><span class="r${it.rar}">${xcName(it)}</span>${aucRefTxt(it.ref)}</div>`).join('') + (gold ? tt('net/xchg.19', { v1: iconURL('i_coin', ICONS.coin), v2: aucG(gold), v3: aucG(gold - Math.floor(gold * XC_FEE)) }) : '') || tt('net/xchg.20');
 export function xcHtml() {
   const M = XC.mine || {}, why = M.why, list = M.list || [], pd = aucPd();
-  let h = `<p class="aucmsg">서로 원하는 걸 정해서 제안하고, 상대가 수락하면 한 번에 바뀌어요. 보낸 물건은 서버가 맡아두고, 거절·취소·24시간이 지나면 돌아와요. 골드는 받는 쪽에 수수료 ${XC_FEE * 100}%가 붙어요. 강화석은 교환할 수 없어요.</p>`;
-  if (why) h += `<div class="xcwarn"><b>${XC_ERR[why] || '아직 교환할 수 없어요'}</b>${why === 'link' ? '<button class="btn pk sm" data-auc="xcLink">계정 연결하러 가기</button>' : ''}</div>`;
+  let h = tt('net/xchg.21', { v1: XC_FEE * 100 });
+  if (why) h += `<div class="xcwarn"><b>${XC_ERR[why] || tt('net/xchg.22')}</b>${why === 'link' ? tt('net/xchg.23') : ''}</div>`;
   const open = list.filter(t => t.state === 'open'), inc = open.filter(t => t.dir === 'in'), out = open.filter(t => t.dir === 'out'), done = list.filter(t => t.state !== 'open');
-  h += `<h4>받은 제안 ${inc.length}</h4>` + (inc.length ? '' : '<p class="aucmsg">받은 제안이 없어요</p>');
-  for (const t of inc) h += `<div class="xccard"><div class="xchd"><b>${esc(t.who || '희수')}</b>님의 제안 <small>남은 시간 ${aucLeft(t.expires)}</small></div>${t.msg ? `<div class="xcmsg" data-raw>「${esc(t.msg)}」</div>` : ''}`
-    + `<div class="xccols"><div><em>받는 것</em>${xcList(t.give, t.gold)}</div><div><em>주는 것</em>${xcList(t.want, t.want_gold)}</div></div>`
-    + `<div class="aucact"><button class="btn wh sm" data-auc="xcDecline" data-v="${t.id}">거절</button><button class="btn pk sm" data-auc="xcAccept" data-v="${t.id}"${why ? ' disabled' : ''}>수락하고 교환</button></div></div>`;
-  h += `<h4>보낸 제안 ${out.length}/10</h4>` + (out.length ? '' : '<p class="aucmsg">보낸 제안이 없어요</p>');
-  for (const t of out) h += `<div class="xccard"><div class="xchd"><b>${esc(t.who || '희수')}</b>님에게 보낸 제안 <small>남은 시간 ${aucLeft(t.expires)}</small></div>`
-    + `<div class="xccols"><div><em>주는 것 (보관 중)</em>${xcList(t.give, t.gold)}</div><div><em>받고 싶은 것</em>${xcList(t.want, t.want_gold)}</div></div>`
-    + `<div class="aucact"><button class="btn wh sm" data-auc="xcCancel" data-v="${t.id}">제안 취소</button></div></div>`;
+  h += tt('net/xchg.24', { length: inc.length }) + (inc.length ? '' : tt('net/xchg.25'));
+  for (const t of inc) h += tt('net/xchg.61', { v1: esc(t.who || tt('net/xchg.26')), v2: aucLeft(t.expires), v3: t.msg ? `<div class="xcmsg" data-raw>「${esc(t.msg)}」</div>` : '' })
+    + tt('net/xchg.27', { v1: xcList(t.give, t.gold), v2: xcList(t.want, t.want_gold) })
+    + tt('net/xchg.28', { id: t.id, v1: why ? ' disabled' : '' });
+  h += tt('net/xchg.29', { length: out.length }) + (out.length ? '' : tt('net/xchg.30'));
+  for (const t of out) h += tt('net/xchg.62', { v1: esc(t.who || tt('net/xchg.26')), v2: aucLeft(t.expires) })
+    + tt('net/xchg.31', { v1: xcList(t.give, t.gold), v2: xcList(t.want, t.want_gold) })
+    + tt('net/xchg.32', { id: t.id });
   // 새 제안
-  h += '<h4>새 교환 제안</h4><div class="xcnew">';
-  h += `<div class="xcrow"><span class="lb">상대</span><input id="xcNick" maxlength="12" placeholder="상대 닉네임" value="${esc(XC.nick)}" autocomplete="off"><button class="btn sm" data-auc="xcFind">찾기</button></div>`;
+  h += tt('net/xchg.33');
+  h += tt('net/xchg.34', { v1: esc(XC.nick) });
   if (XC.partner) {
     const P = XC.partner, items = P.items || [];
-    h += `<div class="xcsec"><div class="xcst">받고 싶은 것 · <b>${esc(P.nick)}</b> <small>Lv.${P.lv}</small></div><div class="xcitems">${items.length ? items.map(it => xcItemChip(it, 'xcWant', it.id, XC.want.includes(it.id))).join('') : '<p class="aucmsg">상대가 교환할 수 있는 장비가 없어요</p>'}</div>`
-      + `<div class="xcrow"><span class="lb">골드</span><input type="text" inputmode="numeric" class="numin" id="xcWantGold" placeholder="0" value="${esc(XC.wantGold)}"><span class="unit">G</span></div></div>`;
+    h += tt('net/xchg.63', { v1: esc(P.nick), lv: P.lv, v2: items.length ? items.map(it => xcItemChip(it, 'xcWant', it.id, XC.want.includes(it.id))).join('') : tt('net/xchg.35') })
+      + tt('net/xchg.36', { v1: esc(XC.wantGold) });
     const eqd = new Set([...Object.values(pd.eq), ...Object.values(pd.beq || {})]);
     const mine = Object.keys(pd.inv).filter(k => tradableKey(k) && !eqd.has(k)).sort((x, y) => ITEMS[y].rar - ITEMS[x].rar);
-    h += `<div class="xcsec"><div class="xcst">내가 줄 것</div><div class="xcitems">${mine.length ? mine.map(k => xcItemChip({ def: defOf(k), rar: ITEMS[k].rar, enh: (pd.enh || {})[k] || 0, ref: (pd.ref || {})[k] }, 'xcGive', k, XC.give.includes(k))).join('') : '<p class="aucmsg">줄 수 있는 장비가 없어요 (전설 이상·착용 안 한 장비)</p>'}</div>`
-      + `<div class="xcrow"><span class="lb">골드</span><input type="text" inputmode="numeric" class="numin" id="xcGold" placeholder="0" value="${esc(XC.gold)}"><span class="unit">G</span></div></div>`
-      + `<div class="xcrow"><span class="lb">한마디</span><input id="xcMsg" maxlength="40" placeholder="(선택) 40자" value="${esc(XC.msg)}" autocomplete="off"></div>`
-      + `<div class="aucact"><button class="btn pk" data-auc="xcSend"${why ? ' disabled' : ''}>제안 보내기</button></div>`;
+    h += tt('net/xchg.64', { v1: mine.length ? mine.map(k => xcItemChip({ def: defOf(k), rar: ITEMS[k].rar, enh: (pd.enh || {})[k] || 0, ref: (pd.ref || {})[k] }, 'xcGive', k, XC.give.includes(k))).join('') : tt('net/xchg.37') })
+      + tt('net/xchg.38', { v1: esc(XC.gold) })
+      + tt('net/xchg.39', { v1: esc(XC.msg) })
+      + tt('net/xchg.40', { v1: why ? ' disabled' : '' });
   }
   h += '</div>';
-  if (done.length) { h += '<h4>최근 7일</h4>'; for (const t of done) { const st = { done: '교환 완료', cancelled: '취소함', declined: t.dir === 'in' ? '거절함' : '거절당함', expired: '기간 만료' }[t.state] || t.state; h += `<div class="xccard done"><div class="xchd">${esc(t.who || '희수')} · ${st}</div></div>`; } }
+  if (done.length) { h += tt('net/xchg.41'); for (const t of done) { const st = { done: tt('net/xchg.42'), cancelled: tt('net/xchg.43'), declined: t.dir === 'in' ? tt('net/xchg.44') : tt('net/xchg.45'), expired: tt('net/xchg.46') }[t.state] || t.state; h += `<div class="xccard done"><div class="xchd">${esc(t.who || tt('net/xchg.26'))} · ${st}</div></div>`; } }
   return h;
 }
 export async function xcLoad() { const { data, error } = await SB.rpc('hb_xchg_mine'); if (error) throw error; XC.mine = data || {}; }
 async function xcFind() {
-  const nick = String(/** @type {HTMLInputElement} */ ($('#xcNick')).value || '').trim(); XC.nick = nick; if (!nick) { toast('상대 닉네임을 적어주세요', 'warn'); return; }
+  const nick = String(/** @type {HTMLInputElement} */ ($('#xcNick')).value || '').trim(); XC.nick = nick; if (!nick) { toast(tt('net/xchg.47'), 'warn'); return; }
   try { const { data, error } = await SB.rpc('hb_xchg_find', { p_nick: nick }); if (error) throw error; if (!data || !data.ok) { XC.partner = null; toast(xcErr(data), 'warn'); aucRender(); return; } XC.partner = data; XC.want = []; aucRender(); }
-  catch (e) { toast('찾지 못했어요: ' + pvErr(e), 'warn'); }
+  catch (e) { toast(tt('net/xchg.48') + pvErr(e), 'warn'); }
 }
 function xcToggle(arr, v) { const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else if (arr.length >= XC_MAX_ITEMS) toast(XC_ERR.too_many_items, 'warn'); else arr.push(v); aucRender(); }
 function xcSendAsk() {
@@ -81,7 +82,7 @@ function xcSendAsk() {
   const wItems = (P.items || []).filter(it => XC.want.includes(it.id));
   const giveTxt = [...XC.give.map(k => xcName({ def: defOf(k), enh: (pd.enh || {})[k] })), ...(g ? [aucG(g)] : [])].join(', ');
   const wantTxt = [...wItems.map(xcName), ...(wg ? [aucG(wg)] : [])].join(', ');
-  confirmBox(`${P.nick}님에게 교환을 제안할까요?\n내가 줌: ${giveTxt}\n받음: ${wantTxt}\n(보내는 물건은 수락·거절 전까지 서버가 맡아둬요)`, xcSend);
+  confirmBox(tt('net/xchg.49', { nick: P.nick, giveTxt, wantTxt }), xcSend);
 }
 async function xcSend() {
   const P = XC.partner; if (!P || AUC.busy) return; AUC.busy = true;
@@ -91,17 +92,17 @@ async function xcSend() {
     const { data, error } = await SB.rpc('hb_xchg_propose', { p_nick: P.nick, p_give: give, p_gold: g, p_want: XC.want, p_want_gold: wg, p_msg: msg || null }); if (error) throw error;
     if (!data || !data.ok) { toast(xcErr(data), 'warn'); return; }
     tradeWithPd(p => { for (const k of give) { dropItem(p, k); (p.tkeys = p.tkeys || []).push(k); } if (g) p.gold = Math.max(0, (p.gold || 0) - g); }); cloudSync(true);
-    sfx('ding'); toast(`${P.nick}님에게 교환을 제안했어요`, 'lvl');
+    sfx('ding'); toast(tt('net/xchg.50', { nick: P.nick }), 'lvl');
     Object.assign(XC, { partner: null, give: [], want: [], gold: '', wantGold: '', msg: '' });
-  } catch (e) { toast('제안하지 못했어요: ' + pvErr(e), 'warn'); }
+  } catch (e) { toast(tt('net/xchg.51') + pvErr(e), 'warn'); }
   finally { AUC.busy = false; }
   aucLoad();
 }
 function xcAcceptAsk(id) {
   const t = ((XC.mine || {}).list || []).find(x => x.id === id); if (!t) return; const pd = aucPd();
-  for (const w of t.want) { if (!w.key || !pd.inv[w.key]) { toast(XC_ERR.want_gone, 'warn'); return; } if (Object.values(pd.eq).includes(w.key) || Object.values(pd.beq || {}).includes(w.key)) { toast(`${xcName(w)}을(를) 벗고 다시 해주세요`, 'warn'); return; } }
+  for (const w of t.want) { if (!w.key || !pd.inv[w.key]) { toast(XC_ERR.want_gone, 'warn'); return; } if (Object.values(pd.eq).includes(w.key) || Object.values(pd.beq || {}).includes(w.key)) { toast(tt('net/xchg.52', { v1: xcName(w) }), 'warn'); return; } }
   if ((t.want_gold || 0) > (pd.gold || 0)) { toast(AUC_ERR.balance, 'warn'); return; }
-  confirmBox(`${t.who}님과 교환할까요?\n받음: ${[...t.give.map(xcName), ...(t.gold ? [aucG(t.gold - Math.floor(t.gold * XC_FEE)) + ' (수수료 뺌)'] : [])].join(', ') || '없음'}\n줌: ${[...t.want.map(xcName), ...(t.want_gold ? [aucG(t.want_gold)] : [])].join(', ') || '없음'}`, () => xcAccept(t));
+  confirmBox(tt('net/xchg.65', { who: t.who, v1: [...t.give.map(xcName), ...(t.gold ? [aucG(t.gold - Math.floor(t.gold * XC_FEE)) + tt('net/xchg.53')] : [])].join(', ') || tt('net/xchg.54'), v2: [...t.want.map(xcName), ...(t.want_gold ? [aucG(t.want_gold)] : [])].join(', ') || tt('net/xchg.54') }), () => xcAccept(t));
 }
 async function xcAccept(t) {
   if (AUC.busy) return; AUC.busy = true;
@@ -111,14 +112,14 @@ async function xcAccept(t) {
     if (!data || !data.ok) { toast(xcErr(data), 'warn'); return; }
     tradeWithPd(p => { for (const w of t.want) if (w.key) { dropItem(p, w.key); (p.tkeys = p.tkeys || []).push(w.key); } if (t.want_gold) p.gold = Math.max(0, (p.gold || 0) - t.want_gold); });
     await claimGifts(aucPd()).catch(() => { }); await tradeClaim().catch(() => 0); cloudSync(true);
-    sfx('lvl'); toast('교환 완료!', 'lvl');
-  } catch (e) { toast('교환하지 못했어요: ' + pvErr(e), 'warn'); }
+    sfx('lvl'); toast(tt('net/xchg.55'), 'lvl');
+  } catch (e) { toast(tt('net/xchg.56') + pvErr(e), 'warn'); }
   finally { AUC.busy = false; }
   aucLoad();
 }
 async function xcCancel(id, decline) {
-  try { const { data, error } = await SB.rpc('hb_xchg_cancel', { p_id: id }); if (error) throw error; if (!data || !data.ok) { toast(xcErr(data), 'warn'); return; } toast(decline ? '제안을 거절했어요' : '제안을 취소했어요. 보낸 물건이 돌아와요', 'sub'); }
-  catch (e) { toast('처리하지 못했어요: ' + pvErr(e), 'warn'); }
+  try { const { data, error } = await SB.rpc('hb_xchg_cancel', { p_id: id }); if (error) throw error; if (!data || !data.ok) { toast(xcErr(data), 'warn'); return; } toast(decline ? tt('net/xchg.57') : tt('net/xchg.58'), 'sub'); }
+  catch (e) { toast(tt('net/xchg.59') + pvErr(e), 'warn'); }
   aucLoad();
 }
 /** 경매장 창 클릭 중 교환 탭 것 처리 (처리했으면 true) */
@@ -128,7 +129,7 @@ export function xcClick(m, v) {
   if (m === 'xcWant') { xcToggle(XC.want, v); return true; }
   if (m === 'xcSend') { xcSendAsk(); return true; }
   if (m === 'xcAccept') { xcAcceptAsk(v); return true; }
-  if (m === 'xcDecline') { confirmBox('이 제안을 거절할까요?', () => xcCancel(v, true)); return true; }
+  if (m === 'xcDecline') { confirmBox(tt('net/xchg.60'), () => xcCancel(v, true)); return true; }
   if (m === 'xcCancel') { xcCancel(v, false); return true; }
   if (m === 'xcLink') { aucClose(); cloudOpen('title'); return true; }
   return false;

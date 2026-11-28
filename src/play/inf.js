@@ -22,6 +22,7 @@ import { showHUD } from '../ui/hud.js';
 import { showTitle } from '../ui/lobby.js';
 import { dailyAdd } from '../features/daily.js';
 import { buddySpawn } from '../net/buddy.js';
+import { tt } from '../sys/i18n.js';
 
 export const INF_WAVE_KILLS = 40;
 function infBasis(pd) {
@@ -30,7 +31,7 @@ function infBasis(pd) {
   if (cl > 0) return { zone: CH1_N - 1, loop: loopEff(cl - 1), real: cl - 1 };
   return { zone: 0, loop: 0, none: true };
 }
-const infBasisLabel = b => `${(b.real != null ? b.real : b.loop) + 1}회차 ${ZONES[b.zone].name}${b.none ? ' (아직 깬 곳 없음)' : ''}`;
+const infBasisLabel = b => tt('play/inf.13', { v1: (b.real != null ? b.real : b.loop) + 1, name: ZONES[b.zone].name, v2: b.none ? tt('play/inf.1') : '' });
 const PUMPKIN = [
   "....K1K....",
   "..KKK1KKK..",
@@ -51,7 +52,7 @@ function halloweenize(W) {
   }
 }
 export function startInfinite() {
-  const saved = loadGame(); if (!saved) { toast('모험을 먼저 시작해야 들어갈 수 있어요', 'warn'); return; }
+  const saved = loadGame(); if (!saved) { toast(tt('play/inf.2'), 'warn'); return; }
   G.pd = saved; const b = infBasis(G.pd), pd = G.pd;
   G.pvp = null; G.husUsed = false; G.inf = { zone: b.zone, loop: b.loop, wave: 1, kills: 0, waveKills: 0 };
   G.zone = b.zone; G.world = buildWorld(b.zone); const W = G.world; halloweenize(W);
@@ -62,8 +63,8 @@ export function startInfinite() {
   for (let k = 0; k < 8; k++) { const e = spawnAround(wpick(ZONES[b.zone].mons), 120, 240); if (e) e.spawnT = 0; }
   G.cam.x = clamp(G.P.x - VW / 2, 0, Math.max(0, W.W - VW)); G.cam.y = clamp(G.P.y - 12 - VH / 2, 0, Math.max(0, W.H - VH));
   $('#title').hidden = true; G.state = 'play'; playBgm('boss'); showHUD(true);
-  banner('무한던전 · ' + infBasisLabel(b), '에버랜드: 할로윈파티', 'boss');
-  setTimeout(() => { if (G.inf && G.state === 'play') { toast('몬스터가 끝없이 몰려와요! 잡은 만큼 골드·경험치·장비가 전부 저장돼요', 'lvl'); bubble(G.P, choice(['할로윈이다! 털러 가자!', '오늘 밤은 안 잔다!', '보리야, 사탕 대신 골드 줍자!']), 1.8); } }, 1600);
+  banner(tt('play/inf.3') + infBasisLabel(b), tt('play/inf.4'), 'boss');
+  setTimeout(() => { if (G.inf && G.state === 'play') { toast(tt('play/inf.5'), 'lvl'); bubble(G.P, choice([tt('play/inf.6'), tt('play/inf.7'), tt('play/inf.8')]), 1.8); } }, 1600);
 }
 export function infSpawner(dt) {
   const V = G.inf, Z = ZONES[G.zone], L = V.loop;
@@ -74,15 +75,15 @@ export function infSpawner(dt) {
 }
 export function infKill(e) {
   const V = G.inf, pd = G.pd; V.kills++;
-  if (e.boss) { G.boss = null; banner(`WAVE ${V.wave}`, '할로윈 보스 격파!', 'stage'); sfx('lvl'); return; }
+  if (e.boss) { G.boss = null; banner(`WAVE ${V.wave}`, tt('play/inf.9'), 'stage'); sfx('lvl'); return; }
   if (++V.waveKills >= INF_WAVE_KILLS) {
     V.waveKills = 0; V.wave++; pd.infBest = Math.max(pd.infBest || 0, V.wave); sfx('ding'); dailyAdd('wave');
     if (V.wave % 5 === 0) {
       const W = G.world, P = G.P, a = rand(0, 6.28); const b = spawnEnemy(ZONES[G.zone].boss, clamp(P.x + Math.cos(a) * 120, 60, W.W - 60), clamp(P.y + Math.sin(a) * 120, 120, W.H - 80));
-      b.spawnT = 1.3; G.boss = b; G.husUsed = false; banner(`WAVE ${V.wave}`, '할로윈 보스 출현!', 'boss'); sfx('boss'); G.shake = 6;
-    } else banner('할로윈파티', `WAVE ${V.wave}`, 'stage');
+      b.spawnT = 1.3; G.boss = b; G.husUsed = false; banner(`WAVE ${V.wave}`, tt('play/inf.10'), 'boss'); sfx('boss'); G.shake = 6;
+    } else banner(tt('play/inf.11'), `WAVE ${V.wave}`, 'stage');
     saveGame();
   }
 }
 export const infWaveMul = () => G.inf ? { hp: 1 + 0.12 * (G.inf.wave - 1), atk: 1 + 0.06 * (G.inf.wave - 1), rew: 1 + 0.08 * (G.inf.wave - 1) } : { hp: 1, atk: 1, rew: 1 };
-export function infLeave() { if (!G.inf) return; saveGame(); G.inf = null; $('#menu').hidden = true; showTitle(); toast('할로윈파티에서 얻은 건 전부 저장됐어요!', 'sub'); }
+export function infLeave() { if (!G.inf) return; saveGame(); G.inf = null; $('#menu').hidden = true; showTitle(); toast(tt('play/inf.12'), 'sub'); }

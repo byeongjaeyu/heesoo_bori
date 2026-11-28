@@ -16,6 +16,7 @@ import { bubble, burst, hurtPlayer, moveToward } from '../play/player.js';
 import { aimDash, dashStep, shootAt, spawnEnemy } from '../play/enemies.js';
 import { CUTK, cloud, fr, pc, skyBands } from '../draw/render.js';
 import { A_, clearA } from '../story/story.js';
+import { tt } from '../sys/i18n.js';
 
 function drawSeaCut(SW, SH, mid, gy, T, mode) {
   const night = mode === 'seaN' || mode === 'rocks', sunset = mode === 'seaS';
@@ -51,62 +52,62 @@ const CH2_PROLOGUE = [
     init(A) { clearA(A); Object.assign(A, { hee: { x: -24, pose: 'idle', dir: 'down' }, bori: { x: -6, pose: 'sit', face: 1, y: 2 }, hus: { x: 34 } }); },
     update(A, dt) { if (A.hus && A.hus.run) A.hus.x += dt * 110; },
     delay: 0.8, lines: [
-      { who: 'sys', text: '그렇게 희수는 오빠 차에 실려…\n유료 바다낚시터에 도착했다.' },
-      { who: 'hus', text: '여기 참돔이랑 대물 우럭 나온대!\n12시간권 끊었어~', do() { A_().hus.rodUp = true; sfx('ding'); } },
-      { who: 'hee', text: '…12시간?', do() { A_().hee.sweat = true; } },
-      { who: 'sys', text: '그때, 미끼통이 덜컹거리더니…\n지렁이와 생새우가 기어 나왔다!', do() { const t = G.time; A_().mons = [{ type: 'worm', x: -70, y: 10, t0: t }, { type: 'shrimp', x: 76, y: 8, t0: t + 0.3 }, { type: 'mosquito', x: 14, y: -34, t0: t + 0.6 }]; A_().hee.sweat = false; A_().hee.alert = true; sfx('pop'); } },
-      { who: 'mon', text: '꿈틀꿈틀~ 윙윙윙!!' },
-      { who: 'hus', text: '자기야 미끼 좀 잡아줘~\n나 자리 맡으러 간다!', do() { A_().hus.rodUp = false; A_().hus.run = true; } },
-      { who: 'hee', text: '…진짜 이 남자가.', do() { A_().hee.alert = false; A_().aura = true; sfx('ult'); } }] },
+      { who: 'sys', text: tt('chapters/ch2.1') },
+      { who: 'hus', text: tt('chapters/ch2.2'), do() { A_().hus.rodUp = true; sfx('ding'); } },
+      { who: 'hee', text: tt('chapters/ch2.3'), do() { A_().hee.sweat = true; } },
+      { who: 'sys', text: tt('chapters/ch2.4'), do() { const t = G.time; A_().mons = [{ type: 'worm', x: -70, y: 10, t0: t }, { type: 'shrimp', x: 76, y: 8, t0: t + 0.3 }, { type: 'mosquito', x: 14, y: -34, t0: t + 0.6 }]; A_().hee.sweat = false; A_().hee.alert = true; sfx('pop'); } },
+      { who: 'mon', text: tt('chapters/ch2.5') },
+      { who: 'hus', text: tt('chapters/ch2.6'), do() { A_().hus.rodUp = false; A_().hus.run = true; } },
+      { who: 'hee', text: tt('chapters/ch2.7'), do() { A_().hee.alert = false; A_().aura = true; sfx('ult'); } }] },
   { dur: 0.4 }
 ];
 const CH2_DAY = [
   { scene: 'sea', bgm: 'story',
     init(A) { clearA(A); Object.assign(A, { hee: { x: -34, pose: 'idle', dir: 'down' }, bori: { x: -60, pose: 'sit', face: 1, y: 2 }, hus: { x: 40 }, pot: true }); },
     delay: 0.6, lines: [
-      { who: 'sys', text: '오빠는 자리를 잡자마자 낚싯대만 바라봤다.\n희수는 버너에 라면을 끓이는 중…' },
-      { who: 'hee', text: '난 밥하러 온 거지?', do() { A_().hee.sweat = true; } },
-      { who: 'hee', text: '오빤 진짜 낚시터 오면\n나한테 관심이 하나도 없네.' },
-      { who: 'hus', text: '…오 입질! 입질 왔다!!', do() { A_().hus.rodUp = true; sfx('ding'); } },
-      { who: 'sys', text: '그 순간, 바다에서 참돔과 줄돔이 튀어 올랐다!', do() { const t = G.time; A_().mons = [{ type: 'bream', x: 80, y: -6, t0: t }, { type: 'stripe', x: -4, y: 10, t0: t + 0.3 }]; A_().hee.sweat = false; A_().hee.alert = true; sfx('pop'); } },
-      { who: 'hee', text: '라면 불잖아!!!', do() { A_().hee.alert = false; A_().aura = true; sfx('ult'); } }] },
+      { who: 'sys', text: tt('chapters/ch2.8') },
+      { who: 'hee', text: tt('chapters/ch2.9'), do() { A_().hee.sweat = true; } },
+      { who: 'hee', text: tt('chapters/ch2.10') },
+      { who: 'hus', text: tt('chapters/ch2.11'), do() { A_().hus.rodUp = true; sfx('ding'); } },
+      { who: 'sys', text: tt('chapters/ch2.12'), do() { const t = G.time; A_().mons = [{ type: 'bream', x: 80, y: -6, t0: t }, { type: 'stripe', x: -4, y: 10, t0: t + 0.3 }]; A_().hee.sweat = false; A_().hee.alert = true; sfx('pop'); } },
+      { who: 'hee', text: tt('chapters/ch2.13'), do() { A_().hee.alert = false; A_().aura = true; sfx('ult'); } }] },
   { dur: 0.4 }
 ];
 const CH2_NIGHT = [
   { scene: 'seaS', bgm: 'story',
     init(A) { clearA(A); Object.assign(A, { hee: { x: -30, pose: 'idle', dir: 'down' }, bori: { x: -52, pose: 'sit', face: 1, y: 2 }, hus: { x: 36 } }); },
     delay: 0.6, lines: [
-      { who: 'sys', text: '해가 질 무렵. 오빠의 쿨러는 아직 텅 비어 있었다.' },
-      { who: 'hus', text: '아… 장비만 좀 더 좋았다면….' },
-      { who: 'hee', text: '뭐?????!!!!!!', do() { A_().hee.shake = true; A_().hee.alert = true; } },
-      { who: 'hee', text: '당장 낚시장비 다 팔아.', do() { A_().hee.shake = false; A_().hee.alert = false; A_().aura = true; sfx('ult'); } },
-      { who: 'bori', text: '멍…', do() { A_().aura = false; } }] },
+      { who: 'sys', text: tt('chapters/ch2.14') },
+      { who: 'hus', text: tt('chapters/ch2.15') },
+      { who: 'hee', text: tt('chapters/ch2.16'), do() { A_().hee.shake = true; A_().hee.alert = true; } },
+      { who: 'hee', text: tt('chapters/ch2.17'), do() { A_().hee.shake = false; A_().hee.alert = false; A_().aura = true; sfx('ult'); } },
+      { who: 'bori', text: tt('chapters/ch2.18'), do() { A_().aura = false; } }] },
   { scene: 'seaN',
     init(A) { Object.assign(A.hus, { zz: true, rodUp: false }); A.aura = false; },
     update(A, dt) { if (A.hus && A.hus.drag) { A.hus.x += dt * 70; A.splash = A.hus.x + 10; if (A.hus.x > 140) A.hus = null; } },
     delay: 0.6, lines: [
-      { who: 'sys', text: '밤이 되자, 오빠는 의자에서 코를 골기 시작했다…' },
-      { who: 'hus', text: '드르렁… 푸우…' },
-      { who: 'hee', text: '오빠 낚시터 와서 잠만 잘 거면\n앞으로 오지 마. 돈 아까워.' },
-      { who: 'sys', text: '그 순간— 오빠의 낚싯대가 활처럼 휘었다!', do() { A_().hus.zz = false; A_().hus.rodUp = true; G.shake = 4; sfx('slam'); } },
-      { who: 'hus', text: '어어어?! 으아아아아!!', do() { A_().hus.drag = true; } },
-      { who: 'hee', text: '오빠아아아!!!', do() { A_().hee.alert = true; A_().hee.shake = true; } },
-      { who: 'hee', text: '…랜턴 어딨어. 구하러 간다.', do() { A_().hee.alert = false; A_().hee.shake = false; A_().hee.fist = true; sfx('smash'); } }] },
+      { who: 'sys', text: tt('chapters/ch2.19') },
+      { who: 'hus', text: tt('chapters/ch2.20') },
+      { who: 'hee', text: tt('chapters/ch2.21') },
+      { who: 'sys', text: tt('chapters/ch2.22'), do() { A_().hus.zz = false; A_().hus.rodUp = true; G.shake = 4; sfx('slam'); } },
+      { who: 'hus', text: tt('chapters/ch2.23'), do() { A_().hus.drag = true; } },
+      { who: 'hee', text: tt('chapters/ch2.24'), do() { A_().hee.alert = true; A_().hee.shake = true; } },
+      { who: 'hee', text: tt('chapters/ch2.25'), do() { A_().hee.alert = false; A_().hee.shake = false; A_().hee.fist = true; sfx('smash'); } }] },
   { dur: 0.4 }
 ];
 const CH2_ENDING = [
   { scene: 'rocks', bgm: 'story',
     init(A) { clearA(A); Object.assign(A, { hee: { x: -26, pose: 'idle', dir: 'down' }, bori: { x: -48, pose: 'sit', face: 1, y: 2 }, hus: { x: 30 } }); },
     delay: 0.8, lines: [
-      { who: 'sys', text: '대왕자바리가 쓰러지자, 바다가 잔잔해졌다.\n흠뻑 젖은 오빠가 기어 올라왔다.' },
-      { who: 'hus', text: '자기야… 고마워.\n진짜 죽는 줄 알았어….' },
-      { who: 'hee', text: '다음부턴 조심 좀 해!' },
-      { who: 'hus', text: '근데… 시간 거의 다 됐는데 많이 못 잡았네…\n낚시터 연장할까..?', do() { A_().hus.rodUp = true; } },
-      { who: 'hee', text: '뭐?????!!!!!!!!!!\n12시간을 해놓고?????', do() { A_().hee.shake = true; A_().hee.alert = true; } },
-      { who: 'sys', text: '희수의 멘헤라 게이지가 한계를 넘었다…', do() { A_().hee.shake = false; A_().hee.alert = false; A_().aura = true; sfx('ult'); } },
-      { who: 'hus', text: '…다음 데이트는 자기 마음대로 해.', do() { A_().hus.rodUp = false; } },
-      { who: 'hee', text: '진짜지? 그럼 다음엔…!!', do() { A_().aura = false; A_().sparkle = true; sfx('ding'); } },
-      { who: 'bori', text: '멍멍!', do() { A_().bori.jump = true; sfx('bark'); } }] },
+      { who: 'sys', text: tt('chapters/ch2.26') },
+      { who: 'hus', text: tt('chapters/ch2.27') },
+      { who: 'hee', text: tt('chapters/ch2.28') },
+      { who: 'hus', text: tt('chapters/ch2.29'), do() { A_().hus.rodUp = true; } },
+      { who: 'hee', text: tt('chapters/ch2.30'), do() { A_().hee.shake = true; A_().hee.alert = true; } },
+      { who: 'sys', text: tt('chapters/ch2.31'), do() { A_().hee.shake = false; A_().hee.alert = false; A_().aura = true; sfx('ult'); } },
+      { who: 'hus', text: tt('chapters/ch2.32'), do() { A_().hus.rodUp = false; } },
+      { who: 'hee', text: tt('chapters/ch2.33'), do() { A_().aura = false; A_().sparkle = true; sfx('ding'); } },
+      { who: 'bori', text: tt('chapters/ch2.34'), do() { A_().bori.jump = true; sfx('bark'); } }] },
   { dur: 1.0 }
 ];
 
@@ -181,34 +182,34 @@ function decorRock(X) {
 }
 
 regChapter({
-  c: 2, name: '바다낚시터', title: '2장 · 유료 바다낚시터 대소동', pick: ['바다낚시터', '낚시터'], lv: 30, baseL: 9, // 1장 10회차 수준
+  c: 2, name: tt('chapters/ch2.35'), title: tt('chapters/ch2.36'), pick: [tt('chapters/ch2.35'), tt('chapters/ch2.37')], lv: 30, baseL: 9, // 1장 10회차 수준
   zones: [
-    { name: '유료낚시터 주차장',  sub: 'STAGE 5', quota: 30, max: 11, spawnInt: 1.25, mons: [['mosquito', 5], ['worm', 4], ['shrimp', 4]], boss: 'truck', theme: 'lot', next: '유료낚시터 (낮)' },
-    { name: '유료낚시터 · 낮낚시', sub: 'STAGE 6', quota: 34, max: 11, spawnInt: 1.2, mons: [['bream', 5], ['stripe', 4], ['shrimp', 2]], boss: 'breamking', theme: 'pier', next: '유료낚시터 (밤)' },
-    { name: '유료낚시터 · 밤낚시', sub: 'STAGE 7', quota: 36, max: 12, spawnInt: 1.2, mons: [['rockfish', 5], ['bass', 4], ['mosquito', 2]], boss: 'bassgen', theme: 'night', next: '대물탕' },
-    { name: '대물탕',             sub: 'FINAL STAGE', quota: 38, max: 12, spawnInt: 1.15, mons: [['rockfish', 4], ['bass', 4], ['bream', 3], ['stripe', 2]], boss: 'grouper', theme: 'rock', next: '' },
+    { name: tt('chapters/ch2.38'),  sub: 'STAGE 5', quota: 30, max: 11, spawnInt: 1.25, mons: [['mosquito', 5], ['worm', 4], ['shrimp', 4]], boss: 'truck', theme: 'lot', next: tt('chapters/ch2.39') },
+    { name: tt('chapters/ch2.40'), sub: 'STAGE 6', quota: 34, max: 11, spawnInt: 1.2, mons: [['bream', 5], ['stripe', 4], ['shrimp', 2]], boss: 'breamking', theme: 'pier', next: tt('chapters/ch2.41') },
+    { name: tt('chapters/ch2.42'), sub: 'STAGE 7', quota: 36, max: 12, spawnInt: 1.2, mons: [['rockfish', 5], ['bass', 4], ['mosquito', 2]], boss: 'bassgen', theme: 'night', next: tt('chapters/ch2.43') },
+    { name: tt('chapters/ch2.43'),             sub: 'FINAL STAGE', quota: 38, max: 12, spawnInt: 1.15, mons: [['rockfish', 4], ['bass', 4], ['bream', 3], ['stripe', 2]], boss: 'grouper', theme: 'rock', next: '' },
   ],
   mons: {
-    mosquito: { name: '피에 굶주린 모기떼', spr: 'mosquito', hp: 520,  atk: 58, def: 8,  spd: 46, xp: 70,  gold: [16, 26], r: 5, ai: 'float', col: '#6a6f7c', fly: 1 },
-    worm:     { name: '미끼 지렁이',       spr: 'worm',     hp: 900,  atk: 64, def: 12, spd: 22, xp: 84,  gold: [20, 30], r: 6, ai: 'chase', col: '#f28cc0' },
-    shrimp:   { name: '미끼 생새우',       spr: 'shrimp',   hp: 760,  atk: 70, def: 10, spd: 30, xp: 84,  gold: [20, 30], r: 6, ai: 'hop',   col: '#b9c0cc' },
-    bream:    { name: '팔딱 참돔',         spr: 'bream',    hp: 1150, atk: 78, def: 13, spd: 40, xp: 100, gold: [24, 36], r: 7, ai: 'charge', col: '#ff7b8a' },
-    stripe:   { name: '물총 줄돔',         spr: 'stripe',   hp: 1000, atk: 74, def: 12, spd: 28, xp: 100, gold: [24, 36], r: 6, ai: 'ranged', proj: 'water', col: '#f7f3ea' },
-    rockfish: { name: '대물 우럭',         spr: 'rockfish', hp: 1700, atk: 86, def: 16, spd: 26, xp: 118, gold: [28, 42], r: 7, ai: 'chase', col: '#8a5a3a' },
-    bass:     { name: '대물 농어',         spr: 'bass',     hp: 1350, atk: 92, def: 14, spd: 44, xp: 118, gold: [28, 42], r: 7, ai: 'charge', col: '#b9c0cc' },
-    truck:     { name: '주차 빌런 트럭',     spr: 'truck',    scale: 2.5, hp: 24000, atk: 72,  def: 16, spd: 34, xp: 3200, gold: [700, 900],   r: 24, ai: 'truck',  boss: 1, col: '#e8414f', drops: ['net', 'vest'] },
-    breamking: { name: '핑크 참돔 왕',       spr: 'bream',    scale: 3.5, crown: 1, hp: 30000, atk: 82,  def: 18, spd: 26, xp: 4200, gold: [900, 1100], r: 22, ai: 'bream',  boss: 1, col: '#ff7b8a', drops: ['bucket', 'b_life'] },
-    bassgen:   { name: '대물 농어 장군',     spr: 'bass',     scale: 3.5, crown: 1, hp: 38000, atk: 92,  def: 20, spd: 30, xp: 5200, gold: [1100, 1300], r: 22, ai: 'bassgen', boss: 1, col: '#b9c0cc', drops: ['rainboot', 'tackle'] },
-    grouper:   { name: '월척 중국 대왕자바리', spr: 'grouper', scale: 4.5, crown: 1, hp: 52000, atk: 108, def: 22, spd: 22, xp: 9000, gold: [0, 0],       r: 28, ai: 'grouper', boss: 1, col: '#d9822b', drops: ['toy_lure'] },
+    mosquito: { name: tt('chapters/ch2.44'), spr: 'mosquito', hp: 520,  atk: 58, def: 8,  spd: 46, xp: 70,  gold: [16, 26], r: 5, ai: 'float', col: '#6a6f7c', fly: 1 },
+    worm:     { name: tt('chapters/ch2.45'),       spr: 'worm',     hp: 900,  atk: 64, def: 12, spd: 22, xp: 84,  gold: [20, 30], r: 6, ai: 'chase', col: '#f28cc0' },
+    shrimp:   { name: tt('chapters/ch2.46'),       spr: 'shrimp',   hp: 760,  atk: 70, def: 10, spd: 30, xp: 84,  gold: [20, 30], r: 6, ai: 'hop',   col: '#b9c0cc' },
+    bream:    { name: tt('chapters/ch2.47'),         spr: 'bream',    hp: 1150, atk: 78, def: 13, spd: 40, xp: 100, gold: [24, 36], r: 7, ai: 'charge', col: '#ff7b8a' },
+    stripe:   { name: tt('chapters/ch2.48'),         spr: 'stripe',   hp: 1000, atk: 74, def: 12, spd: 28, xp: 100, gold: [24, 36], r: 6, ai: 'ranged', proj: 'water', col: '#f7f3ea' },
+    rockfish: { name: tt('chapters/ch2.49'),         spr: 'rockfish', hp: 1700, atk: 86, def: 16, spd: 26, xp: 118, gold: [28, 42], r: 7, ai: 'chase', col: '#8a5a3a' },
+    bass:     { name: tt('chapters/ch2.50'),         spr: 'bass',     hp: 1350, atk: 92, def: 14, spd: 44, xp: 118, gold: [28, 42], r: 7, ai: 'charge', col: '#b9c0cc' },
+    truck:     { name: tt('chapters/ch2.51'),     spr: 'truck',    scale: 2.5, hp: 24000, atk: 72,  def: 16, spd: 34, xp: 3200, gold: [700, 900],   r: 24, ai: 'truck',  boss: 1, col: '#e8414f', drops: ['net', 'vest'] },
+    breamking: { name: tt('chapters/ch2.52'),       spr: 'bream',    scale: 3.5, crown: 1, hp: 30000, atk: 82,  def: 18, spd: 26, xp: 4200, gold: [900, 1100], r: 22, ai: 'bream',  boss: 1, col: '#ff7b8a', drops: ['bucket', 'b_life'] },
+    bassgen:   { name: tt('chapters/ch2.53'),     spr: 'bass',     scale: 3.5, crown: 1, hp: 38000, atk: 92,  def: 20, spd: 30, xp: 5200, gold: [1100, 1300], r: 22, ai: 'bassgen', boss: 1, col: '#b9c0cc', drops: ['rainboot', 'tackle'] },
+    grouper:   { name: tt('chapters/ch2.54'), spr: 'grouper', scale: 4.5, crown: 1, hp: 52000, atk: 108, def: 22, spd: 22, xp: 9000, gold: [0, 0],       r: 28, ai: 'grouper', boss: 1, col: '#d9822b', drops: ['toy_lure'] },
   },
   ai: {
     // 주차 빌런 트럭: 빵빵 돌진 → 벽에 박으면 경적 충격파(근처 피해), 화나면 모기떼 소환
     truck(e, dt, sp, dP) {
       const enr = e.hp < e.maxHp * 0.5; e.stT -= dt;
       if (e.st === 'idle') { e.st = 'roam'; e.stT = 1.8; }
-      if (e.st === 'roam') { moveToward(e, G.P.x, G.P.y, sp, dt); e.face = G.P.x > e.x ? -1 : 1; if (e.stT <= 0) { e.st = 'tele'; e.stT = enr ? 0.65 : 0.85; aimDash(e, 320, e.r * 1.4, choice(['빵빵!! 비켜!!', '두 칸 내 자리야!', '부릉부릉!!'])); } }
+      if (e.st === 'roam') { moveToward(e, G.P.x, G.P.y, sp, dt); e.face = G.P.x > e.x ? -1 : 1; if (e.stT <= 0) { e.st = 'tele'; e.stT = enr ? 0.65 : 0.85; aimDash(e, 320, e.r * 1.4, choice([tt('chapters/ch2.55'), tt('chapters/ch2.56'), tt('chapters/ch2.57')])); } }
       else if (e.st === 'tele') { if (e.stT <= 0) { e.st = 'dash'; e.stT = 1.6; } }
-      else if (e.st === 'dash') { if (dashStep(e, 250, dt) || e.stT <= 0) { e.st = 'honk'; e.stT = 0.7; G.shake = 7; sfx('slam'); G.fx.push({ k: 'ring', x: e.x, y: e.y - 4, r: 72, col: '#ffd84a', t: 0, dur: 0.45 }); if (Math.hypot(G.P.x - e.x, G.P.y - e.y) < 72) hurtPlayer(e.atk * 1.2, e); bubble(e, '빠아아앙!!!', 1); if (enr) for (let i = 0; i < 3; i++) spawnEnemy('mosquito', e.x + rand(-30, 30), e.y + rand(-20, 20)); } }
+      else if (e.st === 'dash') { if (dashStep(e, 250, dt) || e.stT <= 0) { e.st = 'honk'; e.stT = 0.7; G.shake = 7; sfx('slam'); G.fx.push({ k: 'ring', x: e.x, y: e.y - 4, r: 72, col: '#ffd84a', t: 0, dur: 0.45 }); if (Math.hypot(G.P.x - e.x, G.P.y - e.y) < 72) hurtPlayer(e.atk * 1.2, e); bubble(e, tt('chapters/ch2.58'), 1); if (enr) for (let i = 0; i < 3; i++) spawnEnemy('mosquito', e.x + rand(-30, 30), e.y + rand(-20, 20)); } }
       else if (e.st === 'honk') { if (e.stT <= 0) { e.st = 'roam'; e.stT = enr ? 1.3 : 2.1; } }
     },
     // 핑크 참돔 왕: 높이 뛰어올라 내려찍기 → 물보라 탄막, 세 번마다 참돔 호출
@@ -219,7 +220,7 @@ regChapter({
         if (e.stT <= 0) { e.hopY = 0; e.st = 'land'; e.stT = 0.55; G.shake = 6; sfx('slam'); G.fx.push({ k: 'ring', x: e.x, y: e.y - 2, r: e.slamR, col: '#9fd8ff', t: 0, dur: 0.4 }); burst(e.x, e.y, '#9fd8ff', 18, 90);
           if (Math.hypot(G.P.x - e.x, G.P.y - e.y) < e.slamR + 4) hurtPlayer(e.atk * 1.4, e);
           const n = enr ? 14 : 10, off = rand(0, 6.28); for (let i = 0; i < n; i++) shootAt(e, 'water', off + i / n * 6.283, 70);
-          e.jumps = (e.jumps || 0) + 1; if (e.jumps % 3 === 0) { spawnEnemy('bream', e.x - 28, e.y + 8); spawnEnemy('bream', e.x + 28, e.y + 8); bubble(e, '얘들아 팔딱팔딱!', 1.3); } } return;
+          e.jumps = (e.jumps || 0) + 1; if (e.jumps % 3 === 0) { spawnEnemy('bream', e.x - 28, e.y + 8); spawnEnemy('bream', e.x + 28, e.y + 8); bubble(e, tt('chapters/ch2.59'), 1.3); } } return;
       }
       if (e.st === 'land') { e.stT -= dt; if (e.stT <= 0) { e.st = 'walk'; e.stT = enr ? 1.4 : 2.3; } return; }
       if (e.st === 'idle') { e.st = 'walk'; e.stT = 2; }
@@ -230,9 +231,9 @@ regChapter({
     bassgen(e, dt, sp, dP) {
       const enr = e.hp < e.maxHp * 0.5; e.stT -= dt;
       if (e.st === 'idle') { e.st = 'roam'; e.stT = 1.8; }
-      if (e.st === 'roam') { moveToward(e, G.P.x, G.P.y, sp, dt); e.face = G.P.x > e.x ? -1 : 1; if (e.stT <= 0) { e.combo = enr ? 4 : 3; e.st = 'tele'; e.stT = 0.7; aimDash(e, 240, e.r * 1.2, '돌격하라!!'); } }
+      if (e.st === 'roam') { moveToward(e, G.P.x, G.P.y, sp, dt); e.face = G.P.x > e.x ? -1 : 1; if (e.stT <= 0) { e.combo = enr ? 4 : 3; e.st = 'tele'; e.stT = 0.7; aimDash(e, 240, e.r * 1.2, tt('chapters/ch2.60')); } }
       else if (e.st === 'tele') { if (e.stT <= 0) { e.st = 'dash'; e.stT = 0.75; } }
-      else if (e.st === 'dash') { if (dashStep(e, 300, dt) || e.stT <= 0) { e.combo--; G.shake = 3; if (e.combo > 0) { e.st = 'tele'; e.stT = 0.45; aimDash(e, 240, e.r * 1.2); } else { e.st = 'rest'; e.stT = 1.2; spawnEnemy('bass', e.x - 30, e.y); if (enr) spawnEnemy('bass', e.x + 30, e.y); bubble(e, '헉헉… 부하들아!', 1.2); } } }
+      else if (e.st === 'dash') { if (dashStep(e, 300, dt) || e.stT <= 0) { e.combo--; G.shake = 3; if (e.combo > 0) { e.st = 'tele'; e.stT = 0.45; aimDash(e, 240, e.r * 1.2); } else { e.st = 'rest'; e.stT = 1.2; spawnEnemy('bass', e.x - 30, e.y); if (enr) spawnEnemy('bass', e.x + 30, e.y); bubble(e, tt('chapters/ch2.61'), 1.2); } } }
       else if (e.st === 'rest') { if (e.stT <= 0) { e.st = 'roam'; e.stT = enr ? 1.2 : 2; } }
     },
     // 월척 중국 대왕자바리: 빨아들이기(끌려감) → 크게 깨물기, 물대포 소용돌이, 물고기 호출
@@ -243,12 +244,12 @@ regChapter({
         moveToward(e, G.P.x, G.P.y - 8, sp, dt); e.face = G.P.x > e.x ? -1 : 1;
         if (e.stT <= 0) { e.cyc++; const pat = ['suck', 'spray', 'suck', 'summon', 'spray'][e.cyc % 5]; e.st = pat; e.shT = 0; e.sa = rand(0, 6.28);
           e.stT = { suck: 2.2, spray: 3.0, summon: 0.9 }[pat];
-          if (pat === 'suck') { G.fx.push({ k: 'circle', x: e.x, y: e.y, r: 64, t: 0, dur: 2.2 }); bubble(e, choice(['바닷물째 삼켜주마! 쓰읍~~!', '쓰으읍~~~!!', '이리 와라, 미끼야~']), 1.4); }
-          if (pat === 'summon') { spawnEnemy('rockfish', e.x - 34, e.y + 10); spawnEnemy('bass', e.x + 34, e.y + 10); if (enr) spawnEnemy('bream', e.x, e.y + 30); bubble(e, choice(['얘들아, 낚시꾼이 왔다!', '이 대물탕은 내 구역이다!', '감히 내 바다에 낚싯대를?!']), 1.4); } }
+          if (pat === 'suck') { G.fx.push({ k: 'circle', x: e.x, y: e.y, r: 64, t: 0, dur: 2.2 }); bubble(e, choice([tt('chapters/ch2.62'), tt('chapters/ch2.63'), tt('chapters/ch2.64')]), 1.4); }
+          if (pat === 'summon') { spawnEnemy('rockfish', e.x - 34, e.y + 10); spawnEnemy('bass', e.x + 34, e.y + 10); if (enr) spawnEnemy('bream', e.x, e.y + 30); bubble(e, choice([tt('chapters/ch2.65'), tt('chapters/ch2.66'), tt('chapters/ch2.67')]), 1.4); } }
         return;
       }
       if (e.st === 'suck') { const d = Math.hypot(e.x - G.P.x, e.y - G.P.y) || 1; if (d > e.r) { const k = (enr ? 52 : 40) * dt; G.P.x += (e.x - G.P.x) / d * k; G.P.y += (e.y - G.P.y) / d * k; } if (Math.random() < dt * 30) G.parts.push({ x: e.x + rand(-60, 60), y: e.y + rand(-36, 36), vx: 0, vy: 0, life: 0.4, max: 0.4, col: '#9fd8ff', sz: 2, grav: 0 });
-        if (e.stT <= 0) { G.shake = 8; sfx('slam'); G.fx.push({ k: 'ring', x: e.x, y: e.y - 4, r: 64, col: '#ff7b8a', t: 0, dur: 0.4 }); if (d < 64) hurtPlayer(e.atk * 1.8, e); bubble(e, '덥석!!', 0.9); e.st = 'walk'; e.stT = enr ? 1.3 : 2.1; } return; }
+        if (e.stT <= 0) { G.shake = 8; sfx('slam'); G.fx.push({ k: 'ring', x: e.x, y: e.y - 4, r: 64, col: '#ff7b8a', t: 0, dur: 0.4 }); if (d < 64) hurtPlayer(e.atk * 1.8, e); bubble(e, tt('chapters/ch2.68'), 0.9); e.st = 'walk'; e.stT = enr ? 1.3 : 2.1; } return; }
       if (e.st === 'spray') { e.shT -= dt; if (e.shT <= 0) { e.shT = enr ? 0.09 : 0.12; e.sa += 0.36; shootAt(e, 'water', e.sa, 70); if (enr) shootAt(e, 'water', e.sa + Math.PI, 70); } }
       if (e.stT <= 0) { e.st = 'walk'; e.stT = enr ? 1.3 : 2.1; }
     }
@@ -261,22 +262,22 @@ regChapter({
     rock: { bg: '#182848', hedge: ['#3a3a48', '#55556a', '#262632'], tint: [30, 20, 80, 0.26], glow: 0.4, sea: 1, ground: groundRock, decor: decorRock },
   },
   items: {
-    net:      { slot: 'weapon', name: '오빠의 뜰채', rar: 3, atk: 40, crit: 0.06, icon: 'net', tier: 5, bossOnly: 1, w: { reach: 30, arc: 140, mul: 1, rate: 2.0, kb: 120, style: 'swing' }, desc: '대물 건지라고 산 뜰채. 오늘은 몬스터를 건진다' },
-    vest:     { slot: 'armor', name: '구명 낚시조끼', rar: 3, def: 22, hp: 200, color: '#ee8a2a', icon: 'jacket', tier: 5, bossOnly: 1, desc: '주머니가 열두 개. 하나엔 오빠 간식' },
-    bucket:   { slot: 'hat', name: '벙거지 모자', rar: 3, def: 12, mp: 80, crit: 0.05, color: '#7a8a5a', icon: 'hat', tier: 5, bossOnly: 1, desc: '햇빛도 잔소리도 막아준다' },
-    rainboot: { slot: 'shoes', name: '미끄럼방지 장화', rar: 3, def: 7, spd: 0.24, color: '#2f6a3f', icon: 'boots', tier: 5, bossOnly: 1, desc: '미끄러운 좌대도 문제없다' },
-    tackle:   { slot: 'bag', name: '오빠의 태클박스', rar: 3, atk: 10, mp: 80, crit: 0.05, color: '#3a6ac0', icon: 'bag', tier: 5, bossOnly: 1, desc: '"이거 다 필요한 거야" 라던 그 상자' },
-    b_life:   { slot: 'bcloth', bori: 1, name: '보리 구명조끼', rar: 3, bdmg: 0.62, color: '#ff8a3c', pat: 'pad', icon: 'bpad', tier: 5, bossOnly: 1, desc: '물에 빠져도 둥둥. 보리 최애 주황색' },
-    toy_lure: { slot: 'btoy', bori: 1, name: '반짝이 루어 장난감', rar: 3, bdmg: 0.7, icon: 'lure', tier: 5, bossOnly: 1, desc: '대왕자바리도 홀린 반짝이. 바늘은 뺐어요' },
+    net:      { slot: 'weapon', name: tt('chapters/ch2.69'), rar: 3, atk: 40, crit: 0.06, icon: 'net', tier: 5, bossOnly: 1, w: { reach: 30, arc: 140, mul: 1, rate: 2.0, kb: 120, style: 'swing' }, desc: tt('chapters/ch2.70') },
+    vest:     { slot: 'armor', name: tt('chapters/ch2.71'), rar: 3, def: 22, hp: 200, color: '#ee8a2a', icon: 'jacket', tier: 5, bossOnly: 1, desc: tt('chapters/ch2.72') },
+    bucket:   { slot: 'hat', name: tt('chapters/ch2.73'), rar: 3, def: 12, mp: 80, crit: 0.05, color: '#7a8a5a', icon: 'hat', tier: 5, bossOnly: 1, desc: tt('chapters/ch2.74') },
+    rainboot: { slot: 'shoes', name: tt('chapters/ch2.75'), rar: 3, def: 7, spd: 0.24, color: '#2f6a3f', icon: 'boots', tier: 5, bossOnly: 1, desc: tt('chapters/ch2.76') },
+    tackle:   { slot: 'bag', name: tt('chapters/ch2.77'), rar: 3, atk: 10, mp: 80, crit: 0.05, color: '#3a6ac0', icon: 'bag', tier: 5, bossOnly: 1, desc: tt('chapters/ch2.78') },
+    b_life:   { slot: 'bcloth', bori: 1, name: tt('chapters/ch2.79'), rar: 3, bdmg: 0.62, color: '#ff8a3c', pat: 'pad', icon: 'bpad', tier: 5, bossOnly: 1, desc: tt('chapters/ch2.80') },
+    toy_lure: { slot: 'btoy', bori: 1, name: tt('chapters/ch2.81'), rar: 3, bdmg: 0.7, icon: 'lure', tier: 5, bossOnly: 1, desc: tt('chapters/ch2.82') },
   },
-  book: { k: 'sea', name: '2장 낚시 장비', txt: '공격·방어 +4%', mul: 1.04 },
-  hair: { k: 'ocean', name: '바다 블루', H: '#1f4f9a', h: '#5a9ae8', need: 'ch2', cond: '2장 클리어' },
+  book: { k: 'sea', name: tt('chapters/ch2.83'), txt: tt('chapters/ch2.84'), mul: 1.04 },
+  hair: { k: 'ocean', name: tt('chapters/ch2.85'), H: '#1f4f9a', h: '#5a9ae8', need: 'ch2', cond: tt('chapters/ch2.86') },
   ach: [
-    { id: 'c2n', t: '밤낚시 생존자', d: '2장 STAGE 7 밤낚시 통과', tier: 2, v: pd => pd.ch2 && (pd.ch2.cleared || pd.ch2.zone >= 7) ? 1 : 0, g: 1 },
-    { id: 'c2', t: '월척 헌터', d: '2장 클리어 (오빠 구출)', tier: 3, v: pd => (pd.ch2 && pd.ch2.cleared) || 0, g: 1 },
-    { id: 'c2x5', t: '바다의 주인', d: '2장 5번 클리어', tier: 4, v: pd => (pd.ch2 && pd.ch2.cleared) || 0, g: 5 },
+    { id: 'c2n', t: tt('chapters/ch2.87'), d: tt('chapters/ch2.88'), tier: 2, v: pd => pd.ch2 && (pd.ch2.cleared || pd.ch2.zone >= 7) ? 1 : 0, g: 1 },
+    { id: 'c2', t: tt('chapters/ch2.89'), d: tt('chapters/ch2.90'), tier: 3, v: pd => (pd.ch2 && pd.ch2.cleared) || 0, g: 1 },
+    { id: 'c2x5', t: tt('chapters/ch2.91'), d: tt('chapters/ch2.92'), tier: 4, v: pd => (pd.ch2 && pd.ch2.cleared) || 0, g: 5 },
   ],
   cut: { scenes: ['lot', 'sea', 'seaS', 'seaN', 'rocks'], draw: drawSeaCut, actors: drawSeaActors },
-  story: { prologue: ['프롤로그 · 주차장', CH2_PROLOGUE], stages: { 1: ['STAGE 6 · 낮낚시', CH2_DAY], 2: ['STAGE 7 · 밤낚시', CH2_NIGHT] }, ending: ['엔딩 · 12시간 낚시 끝', CH2_ENDING] },
-  end: { stats: lv => `구출한 오빠 <b>1</b>명<br>${lv}<br><br><b>다음 데이트는 희수 마음대로!</b><br><small>3장에서 계속…</small>`, again: '더 큰 대물이 기다려요' }
+  story: { prologue: [tt('chapters/ch2.93'), CH2_PROLOGUE], stages: { 1: [tt('chapters/ch2.94'), CH2_DAY], 2: [tt('chapters/ch2.95'), CH2_NIGHT] }, ending: [tt('chapters/ch2.96'), CH2_ENDING] },
+  end: { stats: lv => tt('chapters/ch2.97', { lv }), again: tt('chapters/ch2.98') }
 });
