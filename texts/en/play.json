@@ -68,7 +68,7 @@
  "play/inf.10": "A Halloween boss appears!",
  "play/inf.11": "Halloween Party",
  "play/inf.12": "Everything from the Halloween Party has been saved!",
- "play/inf.13": "Run {v1} {name}{v2}",
+ "play/inf.13": "Ch.{c} Run {v1} difficulty · {name}{v2}",
  "play/player.1": "{name} power-up wore off",
  "play/player.2": "Ow!",
  "play/player.3": "Ugh, seriously!",

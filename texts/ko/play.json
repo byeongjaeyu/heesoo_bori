@@ -68,7 +68,7 @@
  "play/inf.10": "할로윈 보스 출현!",
  "play/inf.11": "할로윈파티",
  "play/inf.12": "할로윈파티에서 얻은 건 전부 저장됐어요!",
- "play/inf.13": "{v1}회차 {name}{v2}",
+ "play/inf.13": "{c}장 {v1}회차 난이도 · {name}{v2}",
  "play/player.1": "{name} 보양 효과가 끝났어요",
  "play/player.2": "아야!",
  "play/player.3": "아 진짜!",

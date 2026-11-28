@@ -8,7 +8,7 @@ import { choice, clamp, mulberry, rand, wpick } from '../core/util.js';
 import { rowsToCanvas } from '../draw/sprite.js';
 import { playBgm, sfx } from '../sys/audio.js';
 import { ZONES } from '../core/data.js';
-import { CH1_N } from '../core/chapter.js';
+import { CH1_N, CH_Z0, chKey, chKeys, chOpen, zoneL } from '../core/chapter.js';
 import { buildWorld } from '../draw/world.js';
 import { G } from '../core/state.js';
 import { loadGame, saveGame } from '../core/save.js';
@@ -25,13 +25,21 @@ import { buddySpawn } from '../net/buddy.js';
 import { tt } from '../sys/i18n.js';
 
 export const INF_WAVE_KILLS = 40;
-function infBasis(pd) {
+/** 할로윈파티 기준 (11/28 사용자 요청 「1장만 보지 말고 전체로」): 맵·몬스터는 1장 진행 위치(에버랜드),
+ *  난이도 단계는 1~4장 중 지금 가장 어려운 곳 — 장마다 진행 중인 회차(첫 스테이지에 있으면 마지막으로 깬 회차)의 난이도 zoneL 중 최대 */
+export function infBasis(pd) {
   const cl = pd.cleared || 0, z = pd.zone || 0;
-  if (z > 0) return { zone: z - 1, loop: loopEff(cl), real: cl };
-  if (cl > 0) return { zone: CH1_N - 1, loop: loopEff(cl - 1), real: cl - 1 };
-  return { zone: 0, loop: 0, none: true };
+  const b = z > 0 ? { zone: z - 1, loop: loopEff(cl), real: cl, c: 1 } : cl > 0 ? { zone: CH1_N - 1, loop: loopEff(cl - 1), real: cl - 1, c: 1 } : { zone: 0, loop: 0, real: 0, c: 1, none: true };
+  for (const c of chKeys()) {
+    const o = pd[chKey(c)]; if (c === 1 || !o || !chOpen(pd, c)) continue;
+    const ccl = o.cleared || 0, mid = (o.zone || CH_Z0[c]) > CH_Z0[c];
+    if (!mid && !ccl) continue; // 그 장은 아직 시작 안 함
+    const run = mid ? ccl : ccl - 1, L = zoneL(pd, CH_Z0[c]) - loopEff(ccl) + loopEff(run);
+    if (L > b.loop) Object.assign(b, { loop: L, real: run, c, none: false });
+  }
+  return b;
 }
-const infBasisLabel = b => tt('play/inf.13', { v1: (b.real != null ? b.real : b.loop) + 1, name: ZONES[b.zone].name, v2: b.none ? tt('play/inf.1') : '' });
+const infBasisLabel = b => tt('play/inf.13', { c: b.c, v1: b.real + 1, name: ZONES[b.zone].name, v2: b.none ? tt('play/inf.1') : '' });
 const PUMPKIN = [
   "....K1K....",
   "..KKK1KKK..",
