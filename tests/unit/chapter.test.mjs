@@ -84,10 +84,10 @@ describe('4장 (결혼 대작전)', () => {
 });
 
 describe('장 등록부 (src/chapters/chN.js → regChapter)', () => {
-  test('1~4장이 순서대로 등록, 스테이지 번호가 이어짐, 장마다 필요한 게 다 있음', () => {
-    const cs = g.CHAPTERS.filter(Boolean); expect(cs.map(c => c.c)).toEqual([1, 2, 3, 4]);
-    expect(cs.map(c => g.CH_Z0[c.c])).toEqual([0, 4, 8, 12]); expect(g.ZONES.length).toBe(16);
-    expect(cs.map(c => g.CH_BASE_L[c.c])).toEqual([0, 9, 20, 24]);
+  test('1~5장이 순서대로 등록, 스테이지 번호가 이어짐, 장마다 필요한 게 다 있음', () => {
+    const cs = g.CHAPTERS.filter(Boolean); expect(cs.map(c => c.c)).toEqual([1, 2, 3, 4, 5]);
+    expect(cs.map(c => g.CH_Z0[c.c])).toEqual([0, 4, 8, 12, 16]); expect(g.ZONES.length).toBe(20);
+    expect(cs.map(c => g.CH_BASE_L[c.c])).toEqual([0, 9, 20, 24, 28]);
     for (const ch of cs) {
       ch.zones.forEach((Z, i) => {
         const z = g.CH_Z0[ch.c] + i; expect(g.ZONES[z].name).toBe(Z.name);
@@ -97,11 +97,46 @@ describe('장 등록부 (src/chapters/chN.js → regChapter)', () => {
       });
       expect(Array.isArray(ch.story.prologue[1])).toBe(true); expect(Array.isArray(ch.story.ending[1])).toBe(true);
       for (const i of Object.keys(ch.story.stages)) { expect(+i).toBeGreaterThan(0); expect(+i).toBeLessThan(ch.zones.length); }
-      if (ch.c > 1) { expect(g.HAIRS.some(h => h.need === 'ch' + ch.c)).toBe(true); expect(g.BOOK_SETS.some(s => s.ch === ch.c && s.mul > 1)).toBe(true); expect(ch.ach.length).toBeGreaterThan(0); }
+      if (ch.c > 1) { expect(g.HAIRS.some(h => h.need === 'ch' + ch.c)).toBe(true); if (Object.values(ch.items || {}).some(it => it.bossOnly && !it.quest)) expect(g.BOOK_SETS.some(s => s.ch === ch.c && s.mul > 1)).toBe(true); expect(ch.ach.length).toBeGreaterThan(0); }
     }
   });
   test('장 클리어 헤어는 그 장을 깨야 열림', () => {
     const pd = fresh(); const H = g.HAIRS.find(h => h.need === 'ch3');
     expect(g.hairOk(pd, H)).toBe(false); pd.ch3 = { zone: 8, cleared: 1 }; expect(g.hairOk(pd, H)).toBe(true);
+  });
+});
+
+describe('5장 (신혼여행 전날 밤 · 어린 시절)', () => {
+  const ch4done = over => { const pd = fresh(Object.assign({ lv: 50, cleared: 5, boriJoined: true }, over)); pd.ch2 = { zone: 4, cleared: 1 }; pd.ch3 = { zone: 8, cleared: 1 }; pd.ch4 = { zone: 12, cleared: 1 }; return pd; };
+  test('4장을 깨고 Lv50이면 열림 · ZONES 16~19 = 5장, 난이도 28단계부터 · 보리 없음', () => {
+    const pd = ch4done(); expect(g.chOpen(pd, 5)).toBe(true); pd.ch4.cleared = 0; expect(g.chOpen(pd, 5)).toBe(false);
+    expect([16, 17, 18, 19].map(z => g.zoneCh(z))).toEqual([5, 5, 5, 5]); expect(g.zoneL(pd, 16)).toBe(28);
+    expect(g.CHAPTERS[5].kid).toBe(true); expect(g.CHAPTERS[5].noBori).toBe(true);
+  });
+  test('버려진 나무자재: 4장 클리어 후 배달앱에서 하나만 (10만G), 판매·거래·분해·도감 제외', () => {
+    const pd = ch4done({ gold: 250000 }); pd.ch4.cleared = 0; expect(g.woodBuyable(pd)).toBe(false); pd.ch4.cleared = 1;
+    expect(g.buyWood(pd)).toBe(true); expect(pd.gold).toBe(150000); expect(g.woodBuyable(pd)).toBe(false); expect(g.buyWood(pd)).toBe(false);
+    for (const id of [g.WOOD, g.SWORD]) { expect(g.tradableKey(id)).toBe(false); expect(g.BOOK_ALL.includes(id)).toBe(false); }
+    g.G.pd = pd; expect(g.canDismantle(g.WOOD)).toBe(false);
+    const n0 = g.bookStats(pd).n; g.ch5Sword(pd); expect(g.bookStats(pd).n).toBe(n0); // 나무칼도 도감 칸 수엔 안 셈
+  });
+  test('첫 회차 STAGE 17~18만 나무자재 필수, 나무칼을 받거나 한 번 깨면 자유', () => {
+    const pd = ch4done(); expect(g.ch5NeedWood(pd, 16)).toBe(true); expect(g.ch5NeedWood(pd, 17)).toBe(true); expect(g.ch5NeedWood(pd, 18)).toBe(false); expect(g.ch5NeedWood(pd, 12)).toBe(false);
+    pd.ch5 = { zone: 17, cleared: 0, sword: 1 }; expect(g.ch5NeedWood(pd, 16)).toBe(false);
+    pd.ch5 = { zone: 16, cleared: 1 }; expect(g.ch5NeedWood(pd, 16)).toBe(false);
+  });
+  test('추억 보정: 5장 필드에서 나무자재를 들면 가진 가장 센 무기의 공격력, 밖에서는 나무자재 그대로', () => {
+    const pd = ch4done({ gold: 1e6 }); g.buyWood(pd); pd.inv.starstick = 1; pd.enh = { starstick: 20 };
+    const stat = (w, zone, state) => { pd.eq.weapon = w; g.G.pd = pd; g.G.zone = zone; g.G.world = { W: 1, H: 1 }; g.G.state = state; return g.calcStats().atk; };
+    const mac = stat('starstick', 16, 'play'), woodIn = stat(g.WOOD, 16, 'play'), woodOut = stat(g.WOOD, 12, 'play'), woodLobby = stat(g.WOOD, 16, 'lobbyMenu');
+    expect(woodIn).toBe(mac); expect(woodOut).toBeLessThan(mac * 0.6); expect(woodLobby).toBe(woodOut);
+    expect(g.G.st.weapon.reach).toBe(g.ITEMS[g.WOOD].w.reach); // 무기 모양은 나무자재
+    g.G.world = null; g.G.state = 'title';
+  });
+  test('STAGE 19 입장: 나무자재 → 기억을 되찾은 나무칼(초월, 맥북프로급) · 강화 이어받고 바로 착용 · 한 번만', () => {
+    const pd = ch4done({ gold: 1e6 }); g.buyWood(pd); const wk = Object.keys(pd.inv).find(k => k.startsWith(g.WOOD)); pd.enh = { [wk]: 7 }; pd.eq.weapon = wk;
+    expect(g.ch5Sword(pd)).toBe(true); expect(g.ch5Sword(pd)).toBe(false);
+    expect(Object.keys(pd.inv).some(k => k.startsWith(g.WOOD))).toBe(false); expect(pd.eq.weapon.startsWith(g.SWORD)).toBe(true); expect(pd.enh[pd.eq.weapon]).toBe(7); expect(pd.ch5.sword).toBe(1);
+    const S = g.ITEMS[g.SWORD], M = g.ITEMS.starstick; expect([S.rar, S.atk, S.crit]).toEqual([M.rar, M.atk, M.crit]);
   });
 });

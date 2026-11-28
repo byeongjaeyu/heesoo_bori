@@ -8,7 +8,8 @@ import { B2PAL, BORI2, SPR2 } from '../draw/sprites2.js';
 import { ICONURL, iconURL, mkCanvas } from '../draw/sprite.js';
 import { heeLook } from '../draw/hee2.js';
 import { G } from '../core/state.js';
-import { boriSpr, heeSet, husSpr } from '../draw/render.js';
+import { boriSpr, broSpr, dadSpr, heeSet, husSpr, kidSet } from '../draw/render.js';
+import { kidNow } from '../core/chapter.js';
 import { TITLE_PD } from './lobby.js';
 import { tt } from '../sys/i18n.js';
 
@@ -21,6 +22,9 @@ function hiURL(key, src, sx, sy, sw, sh) {
   return ICONURL[key] = o.toDataURL();
 }
 export function faceURL(who) {
+  if (who === 'kid' || (who === 'hee' && kidNow())) return hiURL('face2_kid', kidSet().down[0].n, 0, 4, 28, 26); // 5장 어린 희수
+  if (who === 'dad') return hiURL('face2_dad', dadSpr().n, 0, 0, 28, 30);
+  if (who === 'bro') return hiURL('face2_bro', broSpr(0).n, 0, 2, 28, 26);
   if (who === 'hee' || who === 'heePh') { const set = heeSet(), s = who === 'hee' ? set.down[0] : set.phone[0]; return hiURL('face2_' + who + JSON.stringify(heeLook(G.pd || (G.state === 'title' ? TITLE_PD : null))), s.n, 0, 0, 28, 32); }
   if (who === 'bori') { const s = boriSpr('sit'); return hiURL('face2_bori' + ((G.pd && G.pd.beq && G.pd.beq.bcloth) || ''), s.n, 0, 0, 24, 24); }
   if (who === 'hus') return hiURL('face2_hus', husSpr().n, 0, 0, 28, 32);
@@ -31,4 +35,4 @@ export function faceURL(who) {
   if (who === 'nurse') return iconURL('face_nurse', [...HS.headF, ...HS.bodyF.slice(0, 4)], { C: '#ffffff', c: '#e0e0e8', N: '#ff7ab8', W: '#bfe6ff', w: '#9cc8e8', G: '#bfe6ff', g: '#9cc8e8', H: '#5a3a2a' });
   return '';
 }
-export const SPEAK = { bori2: { name: tt('ui/common.1'), face: 'bori2' }, cat: { name: tt('ui/common.2'), face: 'cat' }, nurse: { name: tt('ui/common.3'), face: 'nurse' }, somi: { name: tt('ui/common.4'), face: 'somi' }, hee: { name: tt('ui/common.5'), face: 'hee' }, heePh: { name: tt('ui/common.5'), face: 'heePh' }, bori: { name: tt('ui/common.1'), face: 'bori' }, hus: { name: tt('ui/common.6'), face: 'hus' }, mon: { name: tt('ui/common.7'), face: 'mon' }, sys: {} };
+export const SPEAK = { bori2: { name: tt('ui/common.1'), face: 'bori2' }, cat: { name: tt('ui/common.2'), face: 'cat' }, nurse: { name: tt('ui/common.3'), face: 'nurse' }, somi: { name: tt('ui/common.4'), face: 'somi' }, hee: { name: tt('ui/common.5'), face: 'hee' }, heePh: { name: tt('ui/common.5'), face: 'heePh' }, bori: { name: tt('ui/common.1'), face: 'bori' }, hus: { name: tt('ui/common.6'), face: 'hus' }, kid: { name: tt('ui/common.5'), face: 'kid' }, dad: { name: tt('ui/common.8'), face: 'dad' }, bro: { name: tt('ui/common.9'), face: 'bro' }, mon: { name: tt('ui/common.7'), face: 'mon' }, sys: {} };

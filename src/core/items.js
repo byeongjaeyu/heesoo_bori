@@ -7,7 +7,7 @@
 import { emit } from './events.js';
 import { sfx } from '../sys/audio.js';
 import { AWK, BOOK_ALL, BOOK_PER_HP, BOOK_SETS, BSLOTS, EQ_SETS, HAIRS, ITEMS, LOOK_SLOTS, SLOTS, bookIds, defOf } from './data.js';
-import { chClr } from './chapter.js';
+import { chClr, kidNow } from './chapter.js';
 import { refSum } from './refine.js';
 import { G } from './state.js';
 import { ILV_BONUS, ILV_NEED, sk } from './save.js';
@@ -77,13 +77,21 @@ export function bookStats(pd) {
   for (const s of BOOK_SETS) done[s.k] = bookIds(s).every(id => b[id]);
   return { n, done };
 }
+/** 5장(어린 시절 `kidNow`)에서 「버려진 나무자재」(memory) 를 들면: 가진 무기 중 가장 센 것의 능력치·강화·장비 레벨·돌파를 빌려 씀 (무기 모양·사거리는 나무자재 그대로). 그 밖엔 착용 무기 키 */
+export function memoryKey(pd) {
+  const w = pd.eq.weapon, it = ITEMS[w]; if (!it || !it.memory || !kidNow()) return w;
+  let best = w, bv = -1;
+  for (const k of Object.keys(pd.inv)) { const d = ITEMS[k]; if (!d || d.slot !== 'weapon' || d.memory || d.bori) continue; const v = (d.atk || 0) * ilvMul(k) * brkMul(k) + ENH_FX.weapon.atk * ((pd.enh || {})[k] || 0); if (v > bv) { bv = v; best = k; } }
+  return best;
+}
 export function calcStats() {
   const pd = G.pd, lv = pd.lv;
   const st = { hp: 100 + (lv - 1) * 22, mp: 50 + (lv - 1) * 8, atk: 10 + (lv - 1) * 3.5, def: 2 + (lv - 1) * 1.2, spd: 1, crit: 0.08, critMul: 1.6 };
-  for (const slot of SLOTS) { const it = jobSigDef(pd, pd.eq[slot]) || ITEMS[pd.eq[slot]]; if (!it) continue; const m = ilvMul(pd.eq[slot]) * brkMul(pd.eq[slot]); st.hp += (it.hp || 0) * m; st.mp += (it.mp || 0) * m; st.atk += (it.atk || 0) * m; st.def += (it.def || 0) * m; st.spd += (it.spd || 0) * m; st.crit += (it.crit || 0) * m; }
+  const wk = memoryKey(pd), eqk = sl => sl === 'weapon' ? wk : pd.eq[sl]; // 5장 나무자재 추억 보정
+  for (const slot of SLOTS) { const it = jobSigDef(pd, eqk(slot)) || ITEMS[eqk(slot)]; if (!it) continue; const m = ilvMul(eqk(slot)) * brkMul(eqk(slot)); st.hp += (it.hp || 0) * m; st.mp += (it.mp || 0) * m; st.atk += (it.atk || 0) * m; st.def += (it.def || 0) * m; st.spd += (it.spd || 0) * m; st.crit += (it.crit || 0) * m; }
   st.spd += 0.05 * sk('shop'); st.goldMul = 1 + 0.15 * sk('shop');
   st.hp = Math.round(st.hp * (1 + 0.05 * sk('mukbang'))); st.foodMul = 1 + 0.2 * sk('mukbang');
-  st.enhs = {}; for (const sl of SLOTS) { const en = (pd.enh || {})[pd.eq[sl]] || 0; st.enhs[sl] = en; const f = ENH_FX[sl]; for (const k in f) if (k !== 'txt') st[k] += f[k] * en; } st.enh = st.enhs.weapon;
+  st.enhs = {}; for (const sl of SLOTS) { const en = (pd.enh || {})[eqk(sl)] || 0; st.enhs[sl] = en; const f = ENH_FX[sl]; for (const k in f) if (k !== 'txt') st[k] += f[k] * en; } st.enh = st.enhs.weapon;
   st.atk += AWK.atk.per * awkLv('atk'); st.def += AWK.def.per * awkLv('def'); st.hp += AWK.hp.per * awkLv('hp'); st.mp += AWK.mp.per * awkLv('mp'); st.crit += AWK.crit.per * awkLv('crit');
   st.skillMul = 1 + AWK.skill.per * awkLv('skill');
   const bk = bookStats(pd); st.book = bk.n;

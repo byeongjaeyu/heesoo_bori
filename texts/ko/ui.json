@@ -6,6 +6,8 @@
  "ui/common.5": "희수",
  "ui/common.6": "남편",
  "ui/common.7": "몬스터",
+ "ui/common.8": "아빠",
+ "ui/common.9": "동네 형들",
  "ui/hud.1": "PvP 아레나",
  "ui/hud.2": "희수 광장 {no}",
  "ui/hud.3": "월드 보스 레이드",
@@ -257,5 +259,8 @@
  "ui/menu.161": "강화",
  "ui/menu.162": "<button class=\"{v1}\" data-m=\"enhMode\" data-v=\"{grp}:ref\">재련</button>",
  "ui/menu.163": "<div class=\"enhgo\"><button class=\"estg{v1}\" data-m=\"enhStone\"{v2}><span><b>강화석 {sc}개 쓰기</b><small>{v3}</small></span><i class=\"sw\"></i></button>",
- "ui/menu.164": "<div class=\"eqseg\"><button class=\"{v1}\" data-m=\"enhMode\" data-v=\"{grp}:enh\">{v2}</button>{v3}<button class=\"eqjump\" data-m=\"eqJump\" data-v=\"{sl}\">장비 바꾸기 ↓</button></div>"
+ "ui/menu.164": "<div class=\"eqseg\"><button class=\"{v1}\" data-m=\"enhMode\" data-v=\"{grp}:enh\">{v2}</button>{v3}<button class=\"eqjump\" data-m=\"eqJump\" data-v=\"{sl}\">장비 바꾸기 ↓</button></div>",
+ "ui/menu.165": "<div class=\"card wood\"><div class=\"ic\"><img src=\"{v1}\"></div><div class=\"mid\"><div class=\"nm\"><span class=\"r0\">{name}</span><span class=\"tag\">5장</span></div><div class=\"ds\">5장 첫 회차 STAGE 17~18에 무기로 들고 가야 해요. 5장 안에서는 가진 가장 센 무기만큼 세지고, STAGE 19에서 아빠가 「기억을 되찾은 나무칼」(초월)로 만들어 줘요. 하나만 살 수 있어요.</div></div><button class=\"btn pk\" data-m=\"buyWood\"{v2}>{v3}G</button></div>",
+ "ui/menu.166": "「버려진 나무자재」를 샀어요! 5장에 들고 가세요",
+ "ui/menu.167": "지금은 어린 희수예요 — 아빠 공장 옆에서 주운 나무자재밖에 없어요!"
 }

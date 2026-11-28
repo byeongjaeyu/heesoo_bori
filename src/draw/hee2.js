@@ -348,3 +348,70 @@ export function boriPaint(kind, cl) {
   }
   return c;
 }
+
+// ===================== 5장 어린 시절 (11/28): 어린 희수 · 동네 형들 · 아빠 (28×42, 화면 14×21) =====================
+/** 어린아이 한 장. o: { hair: 'pig'(희수 양갈래)·'buzz'(짧은 머리)·'cap'(거꾸로 쓴 모자), H 머리색, T 윗옷, t 윗옷 그림자, B 바지·치마, skirt, O 신발, tie 머리끈, tall 키 +줄 } */
+export function kidPaint(dir, fr, o) {
+  o = Object.assign({ hair: 'pig', H: '#4a2c1e', T: '#ffd84a', t: '#e0b030', B: '#e8608a', skirt: true, O: '#ff7ab8', tie: '#e8414f', tall: 0, cap: '#e8414f' }, o || {});
+  const W = 28, H = 42, c = mkCanvas(W, H), g = c.getContext('2d');
+  const r = (x, y, w, h, col) => { if (w > 0 && h > 0 && col) { g.fillStyle = col; g.fillRect(x, y, w, h); } }, p = (x, y, col) => r(x, y, 1, 1, col);
+  const rf = (x, y, w, h, rad, col) => { for (let i = 0; i < h; i++) { const d = Math.min(i, h - 1 - i), ins = d >= rad ? 0 : Math.round(rad - Math.sqrt(rad * rad - (rad - d) * (rad - d))); r(x + ins, y + i, w - ins * 2, 1, col); } };
+  const orn = (x, y, w, h, rad, col) => { rf(x - 1, y - 1, w + 2, h + 2, rad + 1, HK); rf(x, y, w, h, rad, col); };
+  const side = dir === 'right', back = dir === 'up', SK = '#ffdcc2', sk = '#f0bb9c', walk = fr === 1 ? -1 : fr === 2 ? 1 : 0, T0 = 7 - o.tall; // 머리 맨 위 줄
+  const hy = T0, bodyY = T0 + 19; // 머리 19줄(큰 머리) · 몸
+  // ---- 다리·신발 ----
+  const legY = bodyY + 9, footY = 39;
+  const legL = (x, lift, dx) => { const top = legY, bot = footY - lift; for (let y = top; y < bot; y++) { const ox = Math.round(dx * (y - top) / Math.max(1, bot - top)); r(x + ox - 1, y, 5, 1, HK); r(x + ox, y, 3, 1, y >= bot - 2 ? '#ffffff' : SK); } const fx = x + dx; orn(fx - (side ? 0 : 1), bot, side ? 5 : 5, 2, 1, o.O); r(fx - (side ? 0 : 1), bot + 1, 5, 1, shadeHex(o.O, -0.25)); };
+  if (side) { if (!walk) { legL(12, 0, 0); legL(14, 0, 0); } else { legL(13, 0, -3 * walk); legL(13, 1, 3 * walk); } }
+  else { legL(10, fr === 1 ? 2 : 0, 0); legL(15, fr === 2 ? 2 : 0, 0); }
+  // ---- 몸 (티셔츠 + 바지/치마) ----
+  const bx = side ? 9 : 7, bw = side ? 10 : 14;
+  orn(bx, bodyY, bw, 7, 2, o.T); r(bx, bodyY + 3, bw, 1, o.t); if (!back) { r(bx + 2, bodyY + 1, bw - 4, 1, shadeHex(o.T, 0.25)); if (o.hair === 'pig' && !side) { p(13, bodyY + 4, '#ff7ab8'); p(14, bodyY + 4, '#ff7ab8'); p(13, bodyY + 5, '#ff7ab8'); } }
+  if (o.skirt) { for (let y = 0; y < 4; y++) { const k = Math.round(y * 0.7); r(bx - k - 1, bodyY + 7 + y, bw + k * 2 + 2, 1, HK); r(bx - k, bodyY + 7 + y, bw + k * 2, 1, y === 3 ? shadeHex(o.B, -0.2) : o.B); } }
+  else { orn(bx + 1, bodyY + 7, bw - 2, 3, 1, o.B); if (!side) r(13, bodyY + 8, 2, 2, shadeHex(o.B, -0.25)); }
+  // ---- 팔 (짧고 동그란 손) ----
+  if (side) { const sw = walk * 2; orn(12 + sw, bodyY + 1, 3, 5, 1, o.T); orn(12 + sw, bodyY + 6, 3, 2, 1, SK); }
+  else { orn(4, bodyY + 1, 3, 5, 1, o.T); orn(21, bodyY + 1, 3, 5, 1, o.T); orn(4, bodyY + 6, 3, 2, 1, SK); orn(21, bodyY + 6, 3, 2, 1, SK); }
+  // ---- 머리 ----
+  const Hh = o.H, Hd = shadeHex(o.H, -0.25);
+  if (o.hair === 'pig') { // 양갈래 (머리끈)
+    if (!side) { orn(1, hy + 7, 5, 8, 2, Hh); orn(22, hy + 7, 5, 8, 2, Hh); r(2, hy + 13, 3, 1, Hd); r(23, hy + 13, 3, 1, Hd); orn(4, hy + 7, 2, 2, 0, o.tie); orn(22, hy + 7, 2, 2, 0, o.tie); }
+    else { orn(2, hy + 8, 5, 8, 2, Hh); orn(6, hy + 8, 2, 2, 0, o.tie); }
+  }
+  const fx0 = side ? 6 : 4, fw = side ? 17 : 20;
+  orn(fx0, hy + 1, fw, 18, 7, SK);
+  if (back) { rf(fx0, hy + 1, fw, 18, 7, Hh); r(fx0 + 3, hy + 14, fw - 6, 1, Hd); if (o.hair === 'pig') { p(13, hy + 4, Hd); p(14, hy + 5, Hd); p(13, hy + 6, Hd); } }
+  else {
+    // 머리 윗부분·앞머리
+    if (o.hair === 'cap') { rf(fx0, hy, fw, 7, 4, o.cap); r(fx0, hy + 5, fw, 1, shadeHex(o.cap, -0.3)); if (!side) orn(fx0 + fw - 4, hy + 4, 5, 2, 1, o.cap); else orn(fx0 - 3, hy + 4, 4, 2, 1, o.cap); r(fx0 + 1, hy + 6, fw - 2, 2, Hh); }
+    else if (o.hair === 'buzz') { rf(fx0, hy + 1, fw, 7, 5, Hh); for (let x = fx0 + 2; x < fx0 + fw - 2; x += 2) p(x, hy + 7, Hh); }
+    else { rf(fx0, hy + 1, fw, 8, 6, Hh); if (side) { r(fx0 + 10, hy + 8, 6, 2, Hh); r(fx0, hy + 8, 6, 6, Hh); } else { for (const [x, d] of [[fx0 + 2, 3], [fx0 + 6, 2], [fx0 + 9, 3], [fx0 + 13, 2], [fx0 + 16, 3]]) r(x, hy + 8, 3, d, Hh); r(fx0, hy + 8, 2, 7, Hh); r(fx0 + fw - 2, hy + 8, 2, 7, Hh); } p(fx0 + 5, hy + 3, shadeHex(Hh, 0.35)); p(fx0 + 6, hy + 3, shadeHex(Hh, 0.35)); }
+    // 눈 (크고 동그랗게 · 반짝이) · 볼 · 입
+    const ey = hy + 11, eyes = side ? [fx0 + 12] : [fx0 + 4, fx0 + 13];
+    for (const ex of eyes) { r(ex, ey, 3, 4, '#1b1418'); p(ex, ey, '#ffffff'); p(ex + 1, ey + 2, '#5a3a2a'); if (o.hair === 'pig') p(ex - 1, ey, '#1b1418'); }
+    if (side) { r(fx0 + 11, ey + 5, 2, 1, '#ff9fa8'); p(fx0 + 15, ey + 6, '#d0606a'); p(fx0 + 16, ey + 5, SK); }
+    else { r(fx0 + 2, ey + 5, 3, 1, '#ff9fa8'); r(fx0 + 15, ey + 5, 3, 1, '#ff9fa8'); r(fx0 + 9, ey + 5, 2, 1, '#d0606a'); p(fx0 + 8, ey + 4, '#d0606a'); p(fx0 + 11, ey + 4, '#d0606a'); }
+  }
+  return c;
+}
+/** 아빠 (목공소에서 일하는 모습): 짧은 머리·콧수염·목에 두른 수건·남색 작업복·연필 */
+export function dadPaint() {
+  const W = 28, H = 42, c = mkCanvas(W, H), g = c.getContext('2d');
+  const r = (x, y, w, h, col) => { if (w > 0 && h > 0) { g.fillStyle = col; g.fillRect(x, y, w, h); } }, p = (x, y, col) => r(x, y, 1, 1, col);
+  const rf = (x, y, w, h, rad, col) => { for (let i = 0; i < h; i++) { const d = Math.min(i, h - 1 - i), ins = d >= rad ? 0 : Math.round(rad - Math.sqrt(rad * rad - (rad - d) * (rad - d))); r(x + ins, y + i, w - ins * 2, 1, col); } };
+  const orn = (x, y, w, h, rad, col) => { rf(x - 1, y - 1, w + 2, h + 2, rad + 1, HK); rf(x, y, w, h, rad, col); };
+  const SK = '#f4cfb0', jk = '#34466e', jd = '#26345a', pa = '#6a6f7c';
+  orn(9, 34, 4, 5, 0, pa); orn(15, 34, 4, 5, 0, pa); orn(8, 39, 5, 2, 1, '#6a4a2a'); orn(15, 39, 5, 2, 1, '#6a4a2a');
+  orn(6, 23, 16, 12, 2, jk); r(13, 23, 2, 11, jd); r(7, 28, 5, 4, jd); r(7, 28, 5, 1, HK); r(16, 26, 4, 3, '#ffffff'); r(17, 27, 2, 1, '#e8414f'); // 주머니·명찰
+  r(6, 34, 16, 1, jd); for (let y = 25; y < 34; y += 3) p(14, y, '#ffd84a'); // 지퍼
+  orn(3, 24, 3, 8, 1, jk); orn(22, 24, 3, 8, 1, jk); r(3, 32, 3, 2, SK); r(22, 32, 3, 2, SK);
+  orn(8, 21, 12, 3, 1, '#ffffff'); r(9, 23, 2, 3, '#ffffff'); r(9, 22, 10, 1, '#e8e8f0'); // 목 수건
+  orn(4, 3, 20, 18, 6, SK);
+  rf(4, 2, 20, 7, 5, '#22181a'); r(4, 7, 2, 6, '#22181a'); r(22, 7, 2, 6, '#22181a'); r(7, 3, 5, 1, '#4a3a3a'); // 짧은 머리
+  r(23, 9, 3, 1, '#c98a3a'); p(26, 9, '#2b1b24'); // 귀에 꽂은 연필
+  r(8, 12, 2, 3, '#1b1418'); r(18, 12, 2, 3, '#1b1418'); p(8, 12, '#ffffff'); p(18, 12, '#ffffff'); r(7, 10, 4, 1, '#22181a'); r(17, 10, 4, 1, '#22181a');
+  r(10, 17, 8, 2, '#22181a'); r(12, 19, 4, 1, '#d0606a'); r(6, 15, 2, 1, '#ff9fa8'); r(20, 15, 2, 1, '#ff9fa8'); // 콧수염·웃는 입
+  return c;
+}
+/** 동네 형 (v 0: 짧은 머리·파란 티 / 1: 거꾸로 쓴 빨간 모자·초록 티) — 어린 희수보다 조금 큼 */
+export const broPaint = (v, dir, fr) => kidPaint(dir || 'down', fr || 0, v ? { hair: 'cap', H: '#2a1c1c', T: '#5aa845', t: '#3f8a34', B: '#3b3f58', skirt: false, O: '#6fb8ff', tall: 2 } : { hair: 'buzz', H: '#2a1c1c', T: '#6fb8ff', t: '#3a78c0', B: '#6a4a2a', skirt: false, O: '#ffffff', tall: 3 });

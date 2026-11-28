@@ -23,6 +23,7 @@ import { JOBS, JOB_LV } from '../core/job.js';
 import { jobAsk, jobHtml } from '../features/job.js';
 import { boriSpr, itemURL } from '../draw/render.js';
 import { toast } from './dialog.js';
+import { WOOD, WOOD_PRICE, buyWood, ch5WeaponLocked, woodBuyable } from '../chapters/ch5.js';
 import { setHudImages } from './hud.js';
 import { newGame, showTitle } from './lobby.js';
 import { esc } from '../net/pvp.js';
@@ -230,7 +231,9 @@ const MREN = {
   },
   shop() {
     const pd = G.pd;
-    let h = tt('ui/menu.75', { v1: pd.gold.toLocaleString() }) + xchCardHtml(pd) + tt('ui/menu.76');
+    let h = tt('ui/menu.75', { v1: pd.gold.toLocaleString() }) + xchCardHtml(pd);
+    if (woodBuyable(pd)) h += tt('ui/menu.165', { v1: itemURL(WOOD), name: ITEMS[WOOD].name, v2: pd.gold >= WOOD_PRICE ? '' : ' disabled', v3: WOOD_PRICE.toLocaleString() });
+    h += tt('ui/menu.76');
     h += FOOD_ORDER.filter(id => !FOODS[id].noShop).map(id => { const f = FOODS[id]; return tt('ui/menu.143', { v1: iconURL('f_' + id, ICONS[f.icon]), v2: f.rar ? 'r' + f.rar : '', name: f.name, v3: f.rar === 3 ? tt('ui/menu.73') : '', v4: pd.foods[id] || 0, desc: f.desc, id, v5: pd.gold >= f.price ? '' : 'disabled', price: f.price }); }).join('');
     const bitems = Object.keys(ITEMS).filter(id => ITEMS[id].bori && ITEMS[id].price && (ITEMS[id].tier || 0) <= G.zone + 1 && !ownsDef(pd, id)).sort((a, b) => ITEMS[a].price - ITEMS[b].price);
     h += tt('ui/menu.144', { v1: pd.boriJoined ? tt('ui/menu.77') : tt('ui/menu.78') });
@@ -272,6 +275,8 @@ export function menuClick(e) {
   if (m === 'awk') { const A = AWK[v], lv = awkLv(v); if (!A || !(pd.ap > 0) || (A.max && lv >= A.max) || (A.bori && !pd.boriJoined)) return; pd.ap--; pd.awp = pd.awp || {}; pd.awp[v] = lv + 1; calcStats(); sfx('ding'); renderMenu(); saveGame(); return; }
   if (m === 'awkReset') { confirmBox(tt('ui/menu.89'), () => { const n = Object.values(pd.awp || {}).reduce((a, b) => a + b, 0); pd.ap = (pd.ap || 0) + n; pd.awp = {}; calcStats(); renderMenu(); sfx('select'); saveGame(); }); return; }
   if (m === 'reset') { confirmBox(tt('ui/menu.90'), () => { const used = Object.values(pd.skills).reduce((a, b) => a + b, 0); pd.sp += used; pd.skills = {}; if (G.P) G.P.cds = {}; calcStats(); renderMenu(); sfx('select'); saveGame(); }); return; }
+  if (m === 'buyWood') { if (buyWood(pd)) { sfx('ding'); toast(tt('ui/menu.166'), 'item'); saveGame(); } renderMenu(); return; }
+  if (m === 'equip' && ITEMS[v] && ITEMS[v].slot === 'weapon' && !ITEMS[v].bori && ch5WeaponLocked(pd) && defOf(v) !== WOOD) { toast(tt('ui/menu.167'), 'sub'); return; }
   if (m === 'equip') { const it = ITEMS[v]; if (it.bori) { pd.beq[it.slot] = v; if (G.bori) bubble(G.bori, it.slot === 'btoy' ? tt('ui/menu.91') : tt('ui/menu.92'), 1.4); } else pd.eq[it.slot] = v; calcStats(); sfx('ding'); renderMenu(); saveGame(); return; }
   if (m === 'keepDup') { const n = +v; if (n < 0) delete pd.keepDup; else pd.keepDup = n; sfx('select'); renderMenu(); saveGame(); return; }
   if (m === 'sell') { const it = ITEMS[v]; confirmBox(tt('ui/menu.93', { name: it.name, v1: sellPrice(v) }), () => { const g = sellPrice(v); dropItem(pd, v); pd.gold += g; sfx('coin'); renderMenu(); saveGame(); }); return; }

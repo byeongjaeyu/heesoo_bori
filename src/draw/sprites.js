@@ -1119,3 +1119,27 @@ Object.assign(MONSPR, {
 });
 ICONS.ringbox = ['..KKKKK..', '.KRRRRRK.', 'KRRrrrRRK', 'KKKKKKKKK', 'KRRKeKRRK', 'KRKeAeKRK', 'KRRKAKRRK', 'KRRRRRRRK', 'KKKKKKKKK'];
 ICONS.cushion = ['..KKKKK..', '.KQQeQQK.', 'KQQeAeQQK', 'KQQQeQQQK', 'KQqQQQqQK', '.KQQQQQK.', '..KKKKK..'];
+
+// ---------- 5장 몬스터 (어린 시절 · 공장 옆 골목 / 아빠 목공소 / 동네 공터 / 집으로 가는 길) ----------
+const padRows = rows => { const w = Math.max(...rows.map(r => r.length)); return rows.map(r => r.padEnd(w, '.')); };
+Object.assign(MONSPR, {
+  shadowkid: padRows(['...KKKK...', '..K4444K..', '..K4444K..', '..K4e4eK..', '..K4444K..', '...K44K...', '.KK4444KK.', 'K4K4444K4K', 'K4K4444K4K', '..K4444K..', '..K4KK4K..', '..K4KK4K..', '..KK..KK..']),
+  dust: padRows(['..K.KK.K..', '.KjKjjKjK.', 'KjjjjjjjjK', 'KjeEjjeEjK', 'KjjjjjjjjK', 'KjjjMMjjjK', '.KjjjjjjK.', '..KKKKKK..']),
+  can: padRows(['.KKKKKKK..', 'KJJJJJJJK.', 'KGGgGGGGK.', 'KRRRRRRRK.', 'KReERReEK.', 'KRRRRRRRRK', 'KRRMMRRRK.', '.KGGGgGGK.', '..KKKKKK..']),
+  bobber: padRows(['....K....', '...KAK...', '...KAK...', '..KRRRK..', '.KReReRK.', '.KRERERK.', '.KRRMRRK.', '.KeeeeeK.', '.KeeeeeK.', '..KeeeK..', '...KjK...', '....K....']),
+  lure: padRows(['..........KK', '.KKKKKKK.KUK', 'KUUUUUUUKUK', 'KUeEUUUUUUK', 'KLLLLLLLLUK', '.KLLLLLLLK', '..KKjKKjK', '...KjK.KjK', '....K...K']),
+  worm: padRows(['...KKKK', '..KQQQQK', '.KQEQQEQK', '.KQQQQQQKKK', '..KKQQQQQQQK', '....KKQQQQK', '......KKKK']),
+  reel: padRows(['..KKKKK...', '.KJJJJJK.K', 'KJXXXXXJKJ', 'KJXeXeXJKJ', 'KJXXXXXJK', 'KJXXMXXJK', '.KJJJJJK', '..KKKKK', '...KJK', '..KKKKK']),
+  ghostfish: padRows(['....KKKKKK......', '..KKVVVVVVKK..KK', '.KVVVVVVVVVVKKVK', 'KVVeEVVVVVVVVVVK', 'KVVEEVVVVVVVVVK', 'KVVVVVVVVVVVVVVK', '.KVVMMVVVVVVKKVK', '..KKVVVVVVKK..KK', '....KKKKKK']),
+  kidbro: personRows({ H: 'H', C: 'U', P: 'd' }),
+  slingbro: personRows({ H: 'R', C: '1', P: 'P', visor: 1 }),
+  bigbro: personRows({ H: 'H', C: 'R', P: 'N' }),
+  ddakji: padRows(['KKKKKKKKKK', 'KRRRRKUUUK', 'KRRRKKUUUK', 'KRRKeEKUUK', 'KRKKKKKKUK', 'KUKKKKKKRK', 'KUUKEeKRRK', 'KUUUKKRRRK', 'KUUUKRRRRK', 'KKKKKKKKKK']),
+  kite: padRows(['....K....', '...KAK...', '..KAeAK..', '.KAEAEAK.', 'KAAAAAAAK', '.KAAMAAK.', '..KAAAK..', '...KAK...', '....K....', '....R....', '...R.....', '....R....', '.....R...']),
+  moth: padRows(['K.......K', 'KyK...KyK', 'KyyKKKyyK', 'KyyKEKyyK', '.KyKKKyK.', '..KyKyK..', '...KKK...']),
+  nightshade: padRows(['...KKKK...', '.KKvvvvKK.', 'KvvvvvvvvK', 'KvAvvvvAvK', 'KvvvvvvvvK', 'KvvvMMvvvK', 'KvKvvvvKvK', '.K.KvvK.K.', '....KK....']),
+  tick: padRows(['..K....K..', '.KAK..KAK.', '..KKKKKK..', '.KeeeeeeK.', 'KeeeKeeeeK', 'KeeeKeeeeK', 'KeeeKKKeeK', 'KeeeeeeeeK', '.KeeeeeeK.', '..KKKKKK..', '.K......K.']),
+  clock: padRows(['.KK......KK.', 'KAAK....KAAK', 'KAAKKKKKKAAK', '.KKRRRRRRKK.', '.KRReeeeRRK.', 'KRReeeeeeRRK', 'KReKKeeKKeRK', 'KReeeeKeeeRK', 'KReeeeKeeeRK', 'KReeeeKKKeRK', 'KRReeMMeeRRK', '.KRReeeeRRK.', '..KKRRRRKK..', '.KK.KKKK.KK.', 'KK........KK'])
+});
+ICONS.plank = ['..........KK', '........KKDK', '......KKDDdK', '....KKDDdDK.', '..KKDDdDDK..', 'KKDDdDDKK...', 'KDdDDKK.....', 'KKKKK.......'];
+ICONS.woodsword = ['.........KK', '........KyK', '.......KyyK', '......KyyK.', '.....KyyK..', '..K.KyyK...', '..KKyyK....', '...KDK.....', '..KDKDK....', '.KDK.KK....', 'KKK........'];

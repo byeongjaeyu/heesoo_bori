@@ -85,6 +85,8 @@ interface SaveData {
   /** 3장 진행도 (zone 8~11) */
   ch3?: { zone: number; cleared: number; intro?: number; seen?: Record<string, number> };
   ch4?: { zone: number; cleared: number; intro?: number; seen?: Record<string, number> };
+  /** 5장 (어린 시절) — sword: STAGE 3 에서 나무자재가 나무칼이 됨 */
+  ch5?: { zone: number; cleared: number; intro?: number; seen?: Record<string, number>; sword?: number };
 
   /** 각성 단계 (Lv50 이후) */
   aw?: number;
@@ -115,6 +117,10 @@ interface ItemDef {
   job?: string;
   /** 보스 드롭 장비의 장 (2 낚시, 3 응원) */
   ch?: number;
+  /** 이야기 장비 (5장 나무자재·나무칼) — 거래·도감·드롭·분해 제외 */
+  quest?: number;
+  /** 5장(어린 시절)에서 들면 가진 가장 센 무기의 능력치를 빌림 (추억 보정) */
+  memory?: number;
   slot: EquipSlot;
   name: string;
   /** 0 일반 · 1 희귀 · 2 영웅 · 3 전설 · 4 신화 · 5 초월 */

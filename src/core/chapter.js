@@ -10,9 +10,12 @@
 import { BOOK_ALL, BOOK_SETS, EQ_SETS, HAIRS, ITEM_DEFS, MONS, ZONES } from './data.js';
 import { loopEff } from './loop.js';
 import { tt } from '../sys/i18n.js';
+import { G } from './state.js';
 
 /** @typedef {{ c: number, name: string, title: string, pick: string[], lv: number, baseL: number, zones: any[], mons: Record<string, any>, ai?: Record<string, Function>,
  *   themes?: Record<string, any>, items?: Record<string, any>, book?: any, eqSets?: any[], hair?: any, ach?: any[],
+ *   kid?: boolean, noBori?: boolean,
+ *   onZone?: Function, gate?: Function,
  *   cut?: { scenes: string[], draw: Function, actors: Function }, story: { prologue: [string, any[]], stages: Record<number, [string, any[]]>, ending: [string, any[]] },
  *   end?: { stats: (lv: string) => string, again: string } }} ChapterDef */
 /** @type {ChapterDef[]} 장 번호로 찾음 (0번은 비어 있음) */
@@ -26,7 +29,7 @@ export function regChapter(def) {
   const c = def.c; CHAPTERS[c] = def; CH_Z0[c] = ZONES.length; CH_BASE_L[c] = def.baseL; CH_NAME[c] = def.name;
   for (const z of def.zones) ZONES.push(c > 1 ? Object.assign({ ch: c }, z) : z);
   Object.assign(MONS, def.mons);
-  for (const [k, it] of Object.entries(def.items || {})) { ITEM_DEFS[k] = it; if (!it.start && !it.job) BOOK_ALL.push(k); }
+  for (const [k, it] of Object.entries(def.items || {})) { ITEM_DEFS[k] = it; if (!it.start && !it.job && !it.quest) BOOK_ALL.push(k); }
   if (def.book) BOOK_SETS.push(Object.assign({ rar: -1, ch: c }, def.book));
   if (def.eqSets) EQ_SETS.push(...def.eqSets);
   if (def.hair) { const i = HAIRS.findIndex(h => h.k === 'silver'); HAIRS.splice(i < 0 ? HAIRS.length : i, 0, def.hair); } // 조건 헤어 사이(은발 앞)에 장 순서대로
@@ -49,4 +52,6 @@ export const zoneL = (pd, z) => CH_BASE_L[zoneCh(z)] + loopEff(chCleared(pd, z))
 /** 「모험 계속하기」로 갈 스테이지 */
 export const curZone = pd => { const c = pd.chap || 1; return c > 1 && chOpen(pd, c) ? chOf(pd, c).zone : (pd.zone || 0); };
 export function setCurZone(pd, z) { const c = zoneCh(z); if (c === 1) pd.zone = z; else chOf(pd, c).zone = z; pd.chap = c; }
+/** 지금 어린 시절 장(5장 `kid`) 필드에 있는지 — 어린 희수 그림·나무자재 추억 보정·아빠가 일으켜 주기. 컷신·로비·다른 모드에선 false */
+export const kidNow = () => { if (!G.world || G.inf || G.tower || G.pvp || G.raid || G.plaza || ['title', 'lobbyMenu', 'end', 'cut'].includes(G.state)) return false; const ch = CHAPTERS[zoneCh(G.zone || 0)]; return !!(ch && ch.kid); };
 export const zoneTitle = (pd, z) => { const c = chCleared(pd, z); return (c ? tt('core/chapter.1', { v1: c + 1 }) : '') + ZONES[z].name; };

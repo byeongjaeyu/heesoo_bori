@@ -15,7 +15,7 @@ export const ORDER = [
   'sys/i18n', 'draw/sprites', 'draw/sprites2',
   'sys/dom', 'core/util', 'core/rules', 'core/events', 'draw/sprite', 'sys/audio', 'sys/input',
   'draw/hee2', 'core/data', 'core/chapter', 'play/chapter-flow',
-  'chapters/ch1', 'chapters/ch2', 'chapters/ch3', 'chapters/ch4',
+  'chapters/ch1', 'chapters/ch2', 'chapters/ch3', 'chapters/ch4', 'chapters/ch5',
   'draw/world', 'core/refine', 'features/refine',
   'core/state', 'core/save', 'core/items', 'play/player', 'play/skills', 'play/bori', 'core/loop', 'play/enemies', 'play/drops', 'core/enhance', 'play/food', 'core/progress', 'play/zone', 'play/fx',
   'core/job', 'features/job', 'draw/render',

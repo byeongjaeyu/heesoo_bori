@@ -35,7 +35,7 @@ const STONE_YIELD = [1, 2, 4, 10, 25, 60];
 const DUP_YIELD = [0.5, 1.5, 4, 10, 25, 60];
 export const dupStones = id => { const v = DUP_YIELD[ITEMS[id].rar] || 1, w = Math.floor(v); return w + (Math.random() < v - w ? 1 : 0); };
 export const stoneYield = id => STONE_YIELD[ITEMS[id].rar] || 1;
-export function canDismantle(id) { const it = ITEMS[id], pd = G.pd; return !!(it && !it.start && !it.job && pd.inv[id] && pd.eq[it.slot] !== id && (pd.beq || {})[it.slot] !== id && !((pd.enh || {})[id] > 0) && !ilvOf(id) && !((pd.iexp || {})[id] > 0)); }
+export function canDismantle(id) { const it = ITEMS[id], pd = G.pd; return !!(it && !it.start && !it.job && !it.quest && pd.inv[id] && pd.eq[it.slot] !== id && (pd.beq || {})[it.slot] !== id && !((pd.enh || {})[id] > 0) && !ilvOf(id) && !((pd.iexp || {})[id] > 0)); }
 export function dismantle(ids) { let s = 0, n = 0; for (const id of ids) { if (!canDismantle(id)) continue; s += stoneYield(id); n++; dropItem(G.pd, id); } G.pd.stones = (G.pd.stones || 0) + s; return { n, s }; }
 export function enhOdds(lv, useStone) { let p = ENH_P[lv], dn = ENH_DOWN[lv], ds = ENH_DEST[lv]; if (useStone) { const add = Math.min(0.1, 1 - p); p += add; const take = Math.min(add, dn); dn -= take; } return { p, dn, ds, protect: !!useStone }; }
 const enhTarget = slot => BSLOTS.includes(slot) ? (G.pd.beq || {})[slot] : G.pd.eq[slot || 'weapon'];

@@ -19,7 +19,7 @@ import { cloudSync } from './cloud.js';
 import { tt } from '../sys/i18n.js';
 
 const TRADE_MIN_RAR = 3; // 전설 이상 (supabase/item_defs.sql 의 tradable 과 같아야 함 — 테스트로 고정)
-export const tradableKey = k => { const it = ITEMS[k]; return !!it && !it.start && !it.job && (it.rar || 0) >= TRADE_MIN_RAR; };
+export const tradableKey = k => { const it = ITEMS[k]; return !!it && !it.start && !it.job && !it.quest && (it.rar || 0) >= TRADE_MIN_RAR; };
 export const TRADE_ERR = { balance: tt('net/trade.1'), equipped: tt('net/trade.2'), unregistered: tt('net/trade.3'),
   missing: tt('net/trade.4'), too_many: tt('net/trade.5'), amount: tt('net/trade.6'), no_save: tt('net/trade.7'), sync: tt('net/trade.8'), kind: tt('net/trade.9') };
 const tradeErr = r => TRADE_ERR[r && r.reason] || tt('net/trade.10');

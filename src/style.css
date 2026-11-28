@@ -715,3 +715,4 @@ body.inPlaza #ctrl,body.inPlaza #guide,body.inPlaza #bossBar,body.inPlaza #keyHi
 .eqth b{font-size:13px}.eqth small{flex:1;font-size:11px;color:#7a5b6a}.eqth i{font-style:normal;font-size:11px;color:#7a5b6a}
 .eqtb{padding:0 8px 8px}.eqtb .gbar{margin-top:0}
 .eqpick.b{grid-template-columns:repeat(2,minmax(0,1fr))}#mbody .slots:empty{display:none}
+.tchap.c5{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}.tchap.c5 .tch{font-size:10.5px;padding:5px 1px 6px}.tchap.c5 .tch b{font-size:11.5px}

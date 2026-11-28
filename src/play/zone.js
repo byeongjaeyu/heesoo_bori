@@ -7,7 +7,7 @@ import { choice, clamp, rand, wpick } from '../core/util.js';
 import { playBgm, sfx } from '../sys/audio.js';
 import { INP } from '../sys/input.js';
 import { MONS, ZONES } from '../core/data.js';
-import { CH1_N, chCleared, isChLast, setCurZone, zoneCh } from '../core/chapter.js';
+import { CHAPTERS, CH1_N, chCleared, isChLast, kidNow, setCurZone, zoneCh } from '../core/chapter.js';
 import { chFinish, chStageStory } from './chapter-flow.js';
 import { ENDING } from '../chapters/ch1.js';
 import { buildWorld } from '../draw/world.js';
@@ -89,13 +89,14 @@ export function startZone(i) {
   G.enemies = []; G.projs = []; G.fx = []; G.drops = []; G.parts = []; G.texts = []; G.bubbles = [];
   G.zoneKills = 0; G.bossSpawned = false; G.bossDefeated = false; G.boss = null; G.exitOpen = false; G.spawnT = 1.5; G.ult = null;
   G.P = null; calcStats(); G.P = newPlayer(W.start.x, W.start.y); G.P.fy = -1; G.P.dir = 'up';
-  G.bori = G.pd.boriJoined ? newBori(W.start.x + 14, W.start.y + 3) : null; buddySpawn();
+  const CHD = CHAPTERS[zoneCh(i)]; G.bori = G.pd.boriJoined && !CHD.noBori ? newBori(W.start.x + 14, W.start.y + 3) : null; buddySpawn(); // 5장 어린 시절엔 보리가 없음
   for (let k = 0; k < 5; k++) { const e = spawnAround(wpick(ZONES[i].mons), 140, 260); if (e) e.spawnT = 0; }
   G.cam.x = clamp(G.P.x - VW / 2, 0, Math.max(0, W.W - VW)); G.cam.y = clamp(G.P.y - 12 - VH / 2, 0, Math.max(0, W.H - VH));
   G.state = 'play'; playBgm('field'); showHUD(true); saveGame();
   { const L = loopLv(), RL = chCleared(G.pd, i); banner(RL ? tt('play/zone.13', { v1: RL + 1, sub: ZONES[i].sub }) : ZONES[i].sub, ZONES[i].name, 'stage'); if (L && i === 0) setTimeout(() => { if (G.state === 'play' && !G.pvp) loopIntro(L); }, 1700); }
+  if (CHD.onZone) { CHD.onZone(G.pd, i); calcStats(); } // 장별 입장 처리 (5장: STAGE 3 에서 나무자재 → 나무칼)
   { const st = zoneCh(i) > 1 && chStageStory(i); if (st) { saveGame(); playCut(st, () => { G.state = 'play'; showHUD(true); playBgm('field'); }); } }
-  if (!G.pd.boriJoined) { if (G.pd.lv >= 3) G.pendingEvent = 'bori'; else setTimeout(() => { if (G.state === 'play' && !G.pd.boriJoined) bubble(G.P, tt('play/zone.14'), 2.6); }, 1800); }
+  if (!G.pd.boriJoined && !CHD.noBori) { if (G.pd.lv >= 3) G.pendingEvent = 'bori'; else setTimeout(() => { if (G.state === 'play' && !G.pd.boriJoined) bubble(G.P, tt('play/zone.14'), 2.6); }, 1800); }
 }
 export function playerDie() {
   if (!G.pvp && husbandSave()) return;
@@ -165,9 +166,10 @@ function husbandSave() {
   const lv = sk('husband'), P = G.P; if (!lv || G.husUsed || !P) return false;
   G.husUsed = true; P.hp = Math.round(G.st.hp * (lv >= 2 ? 0.6 : 0.3)); P.inv = lv >= 2 ? 3 : 1.5; P.kbx = P.kby = 0;
   for (const e of G.enemies) if (!e.dead && !e.boss && Math.hypot(e.x - P.x, e.y - P.y) < 50) { const a = Math.atan2(e.y - P.y, e.x - P.x); e.kbx = Math.cos(a) * 160; e.kby = Math.sin(a) * 160; e.stun = Math.max(e.stun, 0.8); }
-  G.fx.push({ k: 'hus', x: P.x - 16, y: P.y, t: 0, dur: 1.6 }); G.fx.push({ k: 'ring', x: P.x, y: P.y - 8, r: 50, col: '#7ec8ff', t: 0, dur: 0.6 });
-  G.shake = 5; sfx('lvl'); word(P.x, P.y - 34, tt('play/zone.43'), '#7ec8ff', 1.6);
-  bubble(P, choice([tt('play/zone.44'), tt('play/zone.45'), tt('play/zone.46')]), 1.8);
-  toast(tt('play/zone.48', { v1: lv >= 2 ? 60 : 30, v2: lv >= 2 ? tt('play/zone.47') : '' }), 'lvl');
+  const kid = kidNow(); // 5장 어린 시절엔 오빠 대신 아빠가 달려옴
+  G.fx.push({ k: kid ? 'dad' : 'hus', x: P.x - 16, y: P.y, t: 0, dur: 1.6 }); G.fx.push({ k: 'ring', x: P.x, y: P.y - 8, r: 50, col: '#7ec8ff', t: 0, dur: 0.6 });
+  G.shake = 5; sfx('lvl'); word(P.x, P.y - 34, kid ? tt('play/zone.49') : tt('play/zone.43'), '#7ec8ff', 1.6);
+  bubble(P, kid ? choice([tt('play/zone.50'), tt('play/zone.51'), tt('play/zone.52')]) : choice([tt('play/zone.44'), tt('play/zone.45'), tt('play/zone.46')]), 1.8);
+  toast(kid ? tt('play/zone.53', { v1: lv >= 2 ? 60 : 30, v2: lv >= 2 ? tt('play/zone.47') : '' }) : tt('play/zone.48', { v1: lv >= 2 ? 60 : 30, v2: lv >= 2 ? tt('play/zone.47') : '' }), 'lvl');
   return true;
 }

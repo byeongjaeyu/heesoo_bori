@@ -58,7 +58,7 @@ function drawActors(A, mid, gy, T) {
   if (A.hee) {
     const hx = mid + A.hee.x * CUTK + (A.hee.shake ? Math.round(Math.sin(T * 50)) : 0), hy = gy + (A.hee.y || 0);
     if (A.aura) { for (let i = 0; i < 10; i++) { const a = T * 2 + i * 0.63, r = 10 + Math.sin(T * 5 + i) * 2; fr(hx + Math.cos(a) * r, hy - 10 + Math.sin(a) * r * 0.9, 2, 2, i % 2 ? '#b45cff' : '#ff7ab8'); } }
-    shadow(hx, hy, 12); drawHeeAt(hx, hy, A.hee.pose, A.hee.dir, T, { pal: A.hee.wed ? WED_PAL : null });
+    shadow(hx, hy, 12); drawHeeAt(hx, hy, A.hee.pose, A.hee.dir, T, { pal: A.hee.wed ? WED_PAL : null, kid: !!A.hee.kid });
     if (A.hee.fist) { drawSpr(ispr('fist'), hx - 9, hy - 9 + Math.round(Math.sin(T * 8))); drawSpr(ispr('fist'), hx + 9, hy - 9 - Math.round(Math.sin(T * 8))); }
     if (A.hee.sweat) { fr(hx + 7, hy - 22, 2, 3, '#7ec8ff'); fr(hx + 7, hy - 23, 1, 1, '#7ec8ff'); }
   }

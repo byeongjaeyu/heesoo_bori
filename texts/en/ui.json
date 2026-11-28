@@ -6,6 +6,8 @@
  "ui/common.5": "Heesu",
  "ui/common.6": "Hubby",
  "ui/common.7": "Monster",
+ "ui/common.8": "Dad",
+ "ui/common.9": "Big Bros",
  "ui/hud.1": "PvP Arena",
  "ui/hud.2": "Heesu Plaza {no}",
  "ui/hud.3": "World Boss Raid",
@@ -257,5 +259,8 @@
  "ui/menu.161": "Enhance",
  "ui/menu.162": "<button class=\"{v1}\" data-m=\"enhMode\" data-v=\"{grp}:ref\">Reforge</button>",
  "ui/menu.163": "<div class=\"enhgo\"><button class=\"estg{v1}\" data-m=\"enhStone\"{v2}><span><b>Use {sc} Enhance Stones</b><small>{v3}</small></span><i class=\"sw\"></i></button>",
- "ui/menu.164": "<div class=\"eqseg\"><button class=\"{v1}\" data-m=\"enhMode\" data-v=\"{grp}:enh\">{v2}</button>{v3}<button class=\"eqjump\" data-m=\"eqJump\" data-v=\"{sl}\">Change gear ↓</button></div>"
+ "ui/menu.164": "<div class=\"eqseg\"><button class=\"{v1}\" data-m=\"enhMode\" data-v=\"{grp}:enh\">{v2}</button>{v3}<button class=\"eqjump\" data-m=\"eqJump\" data-v=\"{sl}\">Change gear ↓</button></div>",
+ "ui/menu.165": "<div class=\"card wood\"><div class=\"ic\"><img src=\"{v1}\"></div><div class=\"mid\"><div class=\"nm\"><span class=\"r0\">{name}</span><span class=\"tag\">Ch.5</span></div><div class=\"ds\">Must be carried as your weapon in STAGE 17–18 on the first run of Chapter 5. Inside Chapter 5 it becomes as strong as your best weapon, and in STAGE 19 Dad turns it into the 「Wooden Sword of Memories」 (Transcendent). Only one can be bought.</div></div><button class=\"btn pk\" data-m=\"buyWood\"{v2}>{v3}G</button></div>",
+ "ui/menu.166": "Bought the 「Discarded Plank」! Bring it to Chapter 5",
+ "ui/menu.167": "You're little Heesu right now — all you have is the plank from Dad's factory!"
 }

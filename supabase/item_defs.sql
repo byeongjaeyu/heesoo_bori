@@ -1,4 +1,4 @@
--- 자동 생성 (tests/unit/itemdefs.test.mjs) — 손으로 고치지 말 것. 장비 73종
+-- 자동 생성 (tests/unit/itemdefs.test.mjs) — 손으로 고치지 말 것. 장비 75종
 insert into public.hb_item_defs (id, rar, slot, bori, tradable) values
   ('airshoes', 4, 'shoes', false, true),
   ('aurorabag', 5, 'bag', false, true),
@@ -72,6 +72,8 @@ insert into public.hb_item_defs (id, rar, slot, bori, tradable) values
   ('veil', 4, 'hat', false, false),
   ('vest', 3, 'armor', false, true),
   ('wdress', 4, 'armor', false, false),
-  ('wingshoes', 5, 'shoes', false, true)
+  ('wingshoes', 5, 'shoes', false, true),
+  ('woodplank', 0, 'weapon', false, false),
+  ('woodsword', 5, 'weapon', false, false)
 on conflict (id) do update set rar = excluded.rar, slot = excluded.slot, bori = excluded.bori, tradable = excluded.tradable;
-delete from public.hb_item_defs where id not in ('airshoes', 'aurorabag', 'aurorapad', 'b_blanket', 'b_cheer', 'b_jump', 'b_knit', 'b_life', 'b_pad', 'b_royal', 'b_tux', 'b_xmas', 'backpack', 'bat', 'bouquet', 'bucket', 'cap_black', 'cap_gold', 'cap_grey', 'cap_pink', 'cap_rainbow', 'cap_sky', 'cap_tiara', 'cheerbag', 'cheercap', 'churros', 'clutch', 'coat', 'crossbag', 'dress2', 'ecobag', 'envbag', 'fist', 'fleece', 'goldpan', 'goosepad', 'handbag', 'heels', 'hoodie', 'lightstick', 'limitbag', 'longpad', 'net', 'padding', 'pan', 'pearlpin', 'rainboot', 'ringbox', 'running', 'selfie', 'silverbag', 'skates', 'slipon', 'sneakers', 'spike', 'starstick', 'tackle', 'toy_ball', 'toy_bone', 'toy_carp', 'toy_doll', 'toy_duck', 'toy_goldbone', 'toy_lure', 'toy_melon', 'toy_ring', 'ugly', 'umbrella', 'uniform', 'veil', 'vest', 'wdress', 'wingshoes');
+delete from public.hb_item_defs where id not in ('airshoes', 'aurorabag', 'aurorapad', 'b_blanket', 'b_cheer', 'b_jump', 'b_knit', 'b_life', 'b_pad', 'b_royal', 'b_tux', 'b_xmas', 'backpack', 'bat', 'bouquet', 'bucket', 'cap_black', 'cap_gold', 'cap_grey', 'cap_pink', 'cap_rainbow', 'cap_sky', 'cap_tiara', 'cheerbag', 'cheercap', 'churros', 'clutch', 'coat', 'crossbag', 'dress2', 'ecobag', 'envbag', 'fist', 'fleece', 'goldpan', 'goosepad', 'handbag', 'heels', 'hoodie', 'lightstick', 'limitbag', 'longpad', 'net', 'padding', 'pan', 'pearlpin', 'rainboot', 'ringbox', 'running', 'selfie', 'silverbag', 'skates', 'slipon', 'sneakers', 'spike', 'starstick', 'tackle', 'toy_ball', 'toy_bone', 'toy_carp', 'toy_doll', 'toy_duck', 'toy_goldbone', 'toy_lure', 'toy_melon', 'toy_ring', 'ugly', 'umbrella', 'uniform', 'veil', 'vest', 'wdress', 'wingshoes', 'woodplank', 'woodsword');

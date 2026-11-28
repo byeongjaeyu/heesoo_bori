@@ -6,9 +6,9 @@ import { ICONS, MONSPR } from './sprites.js';
 import { DPR, S, VH, VW, ctx, cv, fmtNumText } from '../sys/dom.js';
 import { clamp, lerp, rand, shadeHex } from '../core/util.js';
 import { SPRC, drawSpr, iconURL, makeSpr, mkCanvas, monSpr, pCirc, pEll, spr, sprFn } from './sprite.js';
-import { HR, boriPaint, heeLook, heePaint, husPaint } from './hee2.js';
+import { HR, boriPaint, broPaint, dadPaint, heeLook, heePaint, husPaint, kidPaint } from './hee2.js';
 import { FOODS, ITEMS, SLOTS, ZONES, defOf } from '../core/data.js';
-import { isChLast } from '../core/chapter.js';
+import { isChLast, kidNow } from '../core/chapter.js';
 import { THEME, dGate } from './world.js';
 import { G } from '../core/state.js';
 import { newPD } from '../core/save.js';
@@ -75,6 +75,15 @@ export function heeSet(over) {
   SPRC[key] = set; return set;
 }
 export const husSpr = () => sprFn('hus2', () => husPaint(), 2);
+/** 5장 어린 희수 (희수와 같은 꼴의 세트: down/up/right ×3, phone 은 down 으로) */
+export function kidSet() {
+  if (SPRC.kid2) return SPRC.kid2;
+  const f = (d, fr) => makeSpr(kidPaint(d, fr), HR);
+  const down = [f('down', 0), f('down', 1), f('down', 2)];
+  return SPRC.kid2 = { down, up: [f('up', 0), f('up', 1), f('up', 2)], right: [f('right', 0), f('right', 1), f('right', 2)], phone: [down[0], down[0]] };
+}
+export const dadSpr = () => sprFn('dad2', () => dadPaint(), 2);
+export const broSpr = v => sprFn('bro2_' + v, () => broPaint(v), 2);
 const husSleepSpr = () => sprFn('husZ2', () => husPaint({ sleep: true }), 2);
 /** 오빠의 찌낚시대 (항상 들고 다님): 손잡이·릴·대·낚싯줄·찌(빨강·흰색, 위에 노란 케미) */
 function drawFloat(x, y) { x = Math.round(x); y = Math.round(y); fr(x, y - 3, 1, 2, '#ffd84a'); fr(x - 1, y - 1, 3, 2, '#e8414f'); fr(x - 1, y + 1, 3, 2, '#ffffff'); fr(x, y + 3, 1, 1, '#2b1b24'); }
@@ -88,7 +97,7 @@ export function drawHusSleep(x, y, t) { drawHusRod(x, y, t, true); drawSpr(husSl
 
 // draw heesu at x,y (feet). opts: pose, dir, t, flash, alpha
 export function drawHeeAt(x, y, pose, dir, t, o) {
-  o = o || {}; const set = heeSet(o.pal); let s, flip = false, bob = 0;
+  o = o || {}; const set = (o.kid != null ? o.kid : kidNow()) ? kidSet() : heeSet(o.pal); let s, flip = false, bob = 0;
   if (pose === 'phone') { s = set.phone[Math.floor(t * 1.3) % 2]; }
   else {
     const d = dir === 'left' ? 'right' : (dir || 'down'); flip = dir === 'left'; const arr = set[d];
@@ -205,7 +214,8 @@ function drawEnemy(e) {
   const sq = e.m.ai === 'hop' && hy === 0 && (e.t % 1.1) > 1.0;
   if (e.type === 'horse') { fr(e.x - 1, e.y - hy - e.h - 6, 2, e.h + 8, '#d9a520'); fr(e.x - 1, e.y - hy - e.h - 6, 1, e.h + 8, '#ffd84a'); }
   const flip = e.m.ai === 'boss2' ? e.face < 0 : e.face < 0;
-  drawSpr(s, e.x, e.y - hy + dy + (sq ? 1 : 0), { flip, white: e.flash > 0 || e.dead, alpha: e.dead ? e.deadT / 0.25 : 1, scale: e.sc });
+  drawSpr(s, e.x, e.y - hy + dy + (sq ? 1 : 0), { flip, white: e.flash > 0 || e.dead, alpha: e.dead ? e.deadT / 0.25 : e.ghost != null ? e.ghost : 1, scale: e.sc });
+  if (e.m.stick && !e.dead) { const k = e.sc || 1, hx = e.x + (e.face > 0 ? 5 : -6) * k; fr(hx, e.y - hy - 13 * k, 2 * k, 10 * k, '#2b1b24'); fr(hx, e.y - hy - 12 * k, k, 8 * k, '#d8a868'); }
   if (e.type === 'soldier') { const hx = e.x + (e.face > 0 ? 5 : -6); fr(hx, e.y - hy - 13, 2, 9, '#2b1b24'); fr(hx, e.y - hy - 12, 1, 7, '#c98a3a'); }
   if (e.m.crown || e.elite) { const cs = Math.max(1, e.sc - 1); drawSpr(spr('m_crown', MONSPR.crown), e.x, e.y - hy - e.h + 3 * cs, { scale: cs }); }
   if (!e.boss && !e.dead && e.hp < e.maxHp) { const w = 12, x = Math.round(e.x - w / 2), y = Math.round(e.y - hy - e.h - 4); fr(x - 1, y - 1, w + 2, 4, '#2b1b24'); fr(x, y, w, 2, '#5a2030'); fr(x, y, Math.max(1, Math.round(w * e.hp / e.maxHp)), 2, '#ff5a6e'); }
@@ -228,6 +238,9 @@ function drawProj(p) {
   else if (p.k === 'button') { const x = Math.round(p.x), y = Math.round(p.y); fr(x - 2, y - 2, 5, 5, '#2b1b24'); fr(x - 1, y - 1, 3, 3, '#ffd84a'); fr(x, y, 1, 1, '#2b1b24'); }
   else if (p.k === 'flash') { const x = Math.round(p.x), y = Math.round(p.y); fr(x - 3, y, 7, 1, '#fffbe0'); fr(x, y - 3, 1, 7, '#fffbe0'); fr(x - 1, y - 1, 3, 3, '#ffffff'); }
   else if (p.k === 'tea') drawSpr(pspr('tea'), p.x, p.y + 2);
+  else if (p.k === 'pebble') { const x = Math.round(p.x), y = Math.round(p.y); fr(x - 2, y - 2, 4, 4, '#2b1b24'); fr(x - 1, y - 1, 2, 2, '#a0a6b0'); fr(x - 1, y - 1, 1, 1, '#e0e4ec'); }
+  else if (p.k === 'chip') { ctx.save(); ctx.translate(Math.round(p.x), Math.round(p.y)); ctx.rotate(p.rot + G.time * 8); ctx.fillStyle = '#2b1b24'; ctx.fillRect(-4, -2, 8, 4); ctx.fillStyle = '#d8a868'; ctx.fillRect(-3, -1, 6, 2); ctx.fillStyle = '#f0d0a0'; ctx.fillRect(-3, -1, 2, 1); ctx.restore(); }
+  else if (p.k === 'zzz') { const x = Math.round(p.x) - 3, y = Math.round(p.y) - 3; for (const [dx, dy, w, h] of [[0, 0, 6, 2], [0, 5, 6, 2], [3, 2, 2, 1], [2, 3, 2, 1], [1, 4, 2, 1]]) fr(x + dx - 1, y + dy - 1, w + 2, h + 2, '#2b1b24'); for (const [dx, dy, w, h] of [[0, 0, 6, 2], [0, 5, 6, 2], [3, 2, 2, 1], [2, 3, 2, 1], [1, 4, 2, 1]]) fr(x + dx, y + dy, w, h, '#cfd8ff'); }
   else if (p.k === 'ticket') { const x = Math.round(p.x), y = Math.round(p.y); fr(x - 3, y - 2, 7, 5, '#2b1b24'); fr(x - 2, y - 1, 5, 3, '#ffffff'); fr(x - 2, y, 5, 1, '#e8414f'); }
   else if (p.k === 'water') { const x = Math.round(p.x), y = Math.round(p.y); fr(x - 2, y - 2, 4, 4, '#2b1b24'); fr(x - 1, y - 3, 2, 1, '#2b1b24'); fr(x - 1, y - 1, 2, 2, '#6fb8ff'); fr(x - 1, y - 2, 1, 1, '#d6f0ff'); }
   else if (p.k === 'card') { ctx.save(); ctx.translate(Math.round(p.x), Math.round(p.y)); ctx.rotate(p.rot); ctx.fillStyle = '#2b1b24'; ctx.fillRect(-4, -3, 8, 6); ctx.fillStyle = '#ffffff'; ctx.fillRect(-3, -2, 6, 4); ctx.fillStyle = '#6fb8ff'; ctx.fillRect(-3, 1, 6, 1); ctx.fillStyle = '#ffdcc2'; ctx.fillRect(-2, -1, 2, 2); ctx.restore(); }
@@ -258,6 +271,7 @@ function drawFx(f) {
     case 'ring': { const r = f.r * (0.3 + 0.7 * Math.sqrt(p)); ctx.globalAlpha = 1 - p; pRingE(f.x, f.y, r, r * 0.65, f.col); pRingE(f.x, f.y, r - 2, (r - 2) * 0.65, f.col); ctx.globalAlpha = 1; break; }
     case 'bite': { ctx.globalAlpha = 1 - p; for (const ox of [-3, 1]) { fr(f.x + ox, f.y - 2, 3, 1, '#ffffff'); fr(f.x + ox + 1, f.y - 1, 1, 1, '#ffffff'); fr(f.x + ox, f.y + 2, 3, 1, '#ffffff'); fr(f.x + ox + 1, f.y + 1, 1, 1, '#ffffff'); } ctx.globalAlpha = 1; break; }
     case 'lvl': { const a = 1 - p; ctx.fillStyle = `rgba(255,240,150,${a * 0.5})`; const w = Math.round(16 * (1 - p * 0.6)); ctx.fillRect(Math.round(f.x - w / 2), Math.round(f.y - 70), w, 70); for (let i = 0; i < 10; i++) fr(f.x + Math.sin(i * 7.3) * 10, f.y - ((f.t * 60 + i * 9) % 60), 1, 2, '#fff6b0'); break; }
+    case 'dad': { const a = p < 0.15 ? p / 0.15 : p > 0.8 ? (1 - p) / 0.2 : 1, hx = f.x - (1 - Math.min(1, p * 4)) * 30; drawSpr(dadSpr(), hx, f.y, { alpha: a }); break; }
     case 'hus': { const a = p < 0.15 ? p / 0.15 : p > 0.8 ? (1 - p) / 0.2 : 1; { const hx = f.x - (1 - Math.min(1, p * 4)) * 30; ctx.globalAlpha = a; drawHusRod(hx, f.y, G.time); ctx.globalAlpha = 1; drawSpr(husSpr(), hx, f.y, { alpha: a }); } break; }
     case 'eat': drawSpr(ispr(f.icon), f.x, f.y - p * 10, { alpha: 1 - p * 0.6 }); break;
     case 'icon': drawSpr(pspr('phone'), f.x, f.y - p * 4, { alpha: 1 - p }); break;

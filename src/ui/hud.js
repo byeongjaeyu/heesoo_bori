@@ -50,7 +50,7 @@ export function updateHUD() {
   hset('bossDone', v => HE.bossBar.classList.toggle('done', v), !!(b && b.raidDone));
   if (b) { hset('bossName', v => HE.bossName.textContent = v, b.m.name); hset('bossF', v => HE.bossF.style.width = v + '%', Math.round(Math.max(0, b.hp) / b.maxHp * 1000) / 10); }
   hset('badge', v => { HE.badge.hidden = !v; HE.badge.textContent = v; }, pd.sp > 0 ? String(pd.sp) : (pd.newItem || pd.newBori ? 'N' : ''));
-  hset('bori', v => HE.boriHud.hidden = !v, !!pd.boriJoined && !G.pvp);
+  hset('bori', v => HE.boriHud.hidden = !v, !!pd.boriJoined && !G.pvp && !!G.bori); // 5장(어린 시절)엔 보리 없음
   const bt = Object.values(P.buffs || {}).map(b => tt('ui/hud.18', { name: b.name, v1: Math.ceil(b.t) })).join(' · ');
   hset('buff', v => { const el = $('#buffHud'); el.hidden = !v; el.textContent = v; }, bt);
   for (const [id, bid] of SKBTN) {

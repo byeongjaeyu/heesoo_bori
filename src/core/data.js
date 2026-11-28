@@ -151,8 +151,8 @@ export const BOOK_SETS = [
   { k: 'bori', name: tt('core/data.202'), rar: -1, bori: true, txt: tt('core/data.203') },
 ];
 /** 세트에 들어가는 장비 id (시작 장비 제외) */
-export const bookIds = set => Object.keys(ITEMS).filter(id => { const it = ITEMS[id]; if (it.start || it.job) return false; if (set.ch) return !!it.bossOnly && (it.ch || 2) === set.ch; if (it.bossOnly) return false; return set.bori ? !!it.bori : !it.bori && it.rar === set.rar; });
-export const BOOK_ALL = Object.keys(ITEMS).filter(id => !ITEMS[id].start && !ITEMS[id].job);
+export const bookIds = set => Object.keys(ITEMS).filter(id => { const it = ITEMS[id]; if (it.start || it.job || it.quest) return false; if (set.ch) return !!it.bossOnly && (it.ch || 2) === set.ch; if (it.bossOnly) return false; return set.bori ? !!it.bori : !it.bori && it.rar === set.rar; });
+export const BOOK_ALL = Object.keys(ITEMS).filter(id => !ITEMS[id].start && !ITEMS[id].job && !ITEMS[id].quest);
 
 // ===== 희수 꾸미기 (능력치 없음, 겉모습만) =====
 /** 겉모습을 바꿀 수 있는 부위 (도감에 등록한 장비의 모습으로) */

@@ -20,7 +20,7 @@ export function chapterPickHtml(pd) {
   const shown = chKeys().filter(c => c <= 2 || chClr(pd, c - 1) >= 1), n = shown.length, sep = n >= 4 ? '<br>' : ' ';
   const btn = c => { const def = CHAPTERS[c], open = chOpen(pd, c), fresh = c > 1 && open && !pd[chKey(c)], label = def.pick[n >= 3 ? 1 : 0];
     return tt('play/chapter-flow.1', { v1: cur === c ? ' on' : '', v2: open ? '' : ' lock', c, sep, label, v3: fresh ? ' <em>NEW</em>' : '', v4: open ? '' : `${sep}<small>Lv${def.lv}</small>` }); };
-  return `<div class="tchap${n >= 4 ? ' c4' : n === 3 ? ' c3' : ''}">${shown.map(btn).join('')}</div>`;
+  return `<div class="tchap${n >= 5 ? ' c4 c5' : n >= 4 ? ' c4' : n === 3 ? ' c3' : ''}">${shown.map(btn).join('')}</div>`;
 }
 export function chapterPick(c) {
   const pd = loadGame(); if (!pd) return;
@@ -30,6 +30,7 @@ export function chapterPick(c) {
 /** 「모험 계속하기」: 2장 이상 처음이면 프롤로그부터 */
 export function adventureGo(pd) {
   G.pd = pd; const z = curZone(pd), c = zoneCh(z);
+  if (CHAPTERS[c].gate && CHAPTERS[c].gate(pd, z, () => adventureGo(loadGame() || pd))) return; // 장별 입장 조건 (5장: 첫 회차 나무자재)
   if (c > 1 && !chOf(pd, c).intro) { chOf(pd, c).intro = 1; saveGame(); $('#title').hidden = true; playCut(CHAPTERS[c].story.prologue[1], () => fadeTo(() => startZone(CH_Z0[c]))); return; }
   $('#title').hidden = true; fadeTo(() => startZone(z));
 }
