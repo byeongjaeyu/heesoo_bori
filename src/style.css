@@ -613,3 +613,9 @@ body.inPlaza #ctrl,body.inPlaza #guide,body.inPlaza #bossBar,body.inPlaza #keyHi
 .rprow{display:flex;align-items:center;gap:8px;text-align:left;padding:9px 11px;border:2px solid #e8c0d4;border-radius:10px;background:#fff;font:inherit;font-size:13px;color:#4a2a3a}
 .rprow b{width:18px;color:#ff7ab8;flex:none}.rprow span{flex:1}.rprow small{font-size:11px;color:#a08090}
 .rprow.lock{opacity:.5;background:#f6eef2}
+/* 언어 바꾸기 버튼 (로비 왼쪽 맨 아래, 11/28) */
+.tlang .tlg{display:block;font-size:20px;line-height:26px;height:26px;color:#e0407a;font-weight:700}
+/* 영어처럼 긴 글: 로비 모드 타일은 칸 폭을 넘지 않고 두 줄까지 (11/28) */
+.tmodes{grid-template-columns:repeat(4,minmax(0,1fr))}
+.tmode b{white-space:normal;text-align:center;line-height:1.1}.tmode small{white-space:normal;text-align:center;line-height:1.1}
+.ticon small{max-width:100%;text-align:center;line-height:1.1}

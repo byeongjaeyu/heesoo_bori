@@ -62,7 +62,7 @@ const ST_HOME = {
   render() {
     const S = this; S.layout(); if (!S.bg) S.bg = homeRoomCanvas();
     fr(0, 0, EW, EH, '#2b1b24'); ctx.drawImage(S.bg, Math.round(S.ox), Math.round(S.oy), Math.round(240 * S.k), Math.round(300 * S.k));
-    for (const c of S.clues) drawSpr(s2(c.n === '고양이 털' ? 'hair' : c.n === '양말 한 짝' ? 'sock' : 'paw2'), c.x, c.y + 4);
+    for (const c of S.clues) drawSpr(s2(c.n === tt('minigame/ep2easy.10') ? 'hair' : c.n === tt('minigame/ep2easy.12') ? 'sock' : 'paw2'), c.x, c.y + 4);
     if (S.cloud) { const c = S.cloud, p = c.t / c.life; ctx.globalAlpha = p > 0.75 ? (1 - p) / 0.25 : 1; drawScent(S.ox + c.x * S.k, S.oy + c.y * S.k, c.kind, S.t, 10); ctx.globalAlpha = 1; }
     if (S.treat) drawCaesar(S.treat.x, S.treat.y, S.lock / 5.6);
     const B = S.b; if (B.x) { shadow(B.x, B.y, 12);

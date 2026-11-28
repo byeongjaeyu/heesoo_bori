@@ -37,7 +37,7 @@ import { towerOpen } from '../play/tower.js';
 import { plazaLeave, plazaOpen } from '../net/plaza.js';
 import { endCut, playCut } from '../story/story.js';
 import { E2KEY, e2Go, e2HideAll, e2MenuClick, e2Open, e2Pause, e2PauseClick, e2ResClick } from '../minigame/ep2core.js';
-import { tt } from '../sys/i18n.js';
+import { tt, langNext, langToggle } from '../sys/i18n.js';
 
 export let TITLE_PD = /** @type {any} */ (null);
 export function setTitlePd(pd) { TITLE_PD = pd; }
@@ -94,7 +94,8 @@ export function showTitle() {
     + tt('ui/lobby.13', { v1: I('trophy') })
     + (saved ? tt('ui/lobby.14', { v1: I('camera') }) : '')
     + (saved ? tt('ui/lobby.15', { v1: I('auc') }) : '')
-    + tt('ui/lobby.16', { v1: I('phone') });
+    + tt('ui/lobby.16', { v1: I('phone') })
+    + `<button class="ticon tlang" id="tLang"><b class="tlg">${langNext().code}</b><small>${langNext().name}</small></button>`;
   // 오른쪽: 방치 보상·회차 보상 (미니게임 「보리 주세요」는 11/27 메인에서 뺌 — 원터치판에만, 나중에 새로 만들 예정)
   $('#tsideR').innerHTML = saved ? idleTileHtml(saved) + msTileHtml(saved) : '';
   // 하단: 모드 타일 + 시작
@@ -120,6 +121,7 @@ export function showTitle() {
     for (const b of document.querySelectorAll('.tch')) /** @type {HTMLElement} */ (b).onclick = () => { audioInit(); chapterPick(+b.getAttribute('data-ch')); }; }
   $('#tRank').onclick = () => { audioInit(); rankOpen('title'); };
   $('#tCloud').onclick = () => { audioInit(); cloudOpen('title'); };
+  if ($('#tLang')) $('#tLang').onclick = () => langToggle();
   if ($('#tAuc')) $('#tAuc').onclick = () => { audioInit(); aucOpen(); };
   if ($('#tDaily')) $('#tDaily').onclick = () => { audioInit(); dailyOpen(); };
   if ($('#tPlaza')) $('#tPlaza').onclick = () => { audioInit(); sfx('select'); plazaOpen(); };

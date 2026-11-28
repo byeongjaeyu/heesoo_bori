@@ -1,0 +1,5 @@
+{
+ "story/replay.1": "<small>Not seen yet</small>",
+ "story/replay.2": "<p class=\"ds\" style=\"margin:0 2px 8px\">You can rewatch the <b>{n}</b> stories you've seen so far. Tap the screen to advance dialogue, or skip.</p>",
+ "story/story.1": "Exit Sealed"
+}

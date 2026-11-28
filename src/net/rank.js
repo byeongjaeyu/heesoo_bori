@@ -23,8 +23,8 @@ import { tradeClaim } from './trade.js';
 import { GUIDE_DONE } from '../features/guide.js';
 import { raidGotOpen } from './raid.js';
 import { achTag } from '../features/achv.js';
-import { RULES, seasonLabel } from '../core/rules.js';
-import { tt } from '../sys/i18n.js';
+import { RULES } from '../core/rules.js';
+import { tt, LANG } from '../sys/i18n.js';
 
 export const RK = { tab: 'power', cache: {}, from: 'title' };
 const validEq = eq => (eq && SLOTS.every(sl => eq[sl] && ITEMS[eq[sl]])) ? eq : newPD().eq;
@@ -141,7 +141,7 @@ export async function claimGifts(pd) {
       if (g.kind === 'stones') tgt.stones = (tgt.stones || 0) + n; else if (g.kind === 'gold') tgt.gold = (tgt.gold || 0) + n; else tgt.autoBonus = (tgt.autoBonus || 0) + n;
       continue;
     }
-    const lead = /데려갔어요/.test(note) ? `🤝 ${note}!` : tt('net/rank.22');
+    const bm = /^(.*)님이 내 희수를 데려갔어요/.exec(note), lead = bm ? '🤝 ' + tt('net/rank.47', { v1: bm[1] }) : tt('net/rank.22');
     if (g.kind === 'auto') {
       const sec = Number(g.amount) || 0; if (!sec) continue;
       tgt.autoBonus = (tgt.autoBonus || 0) + sec;
@@ -196,7 +196,8 @@ function seasonLeft() {
   return d ? tt('net/rank.31', { d, h }) : h ? tt('net/rank.32', { h, m }) : tt('net/rank.33', { m });
 }
 /** 시즌 보상표 — core/rules.js RULES.season (서버 hb_season_rollover 도 같은 표에서 만들어짐). k = 그 줄의 첫 순위 */
-const SEASON_REWARDS = RULES.season.map((t, i) => ({ k: i ? RULES.season[i - 1].to + 1 : 1, label: seasonLabel(i), s: t.s, g: t.g, a: t.a }));
+const seasonLbl = (/** @type {number} */ i) => { const t = RULES.season[i], prev = i ? RULES.season[i - 1].to : 0; return !t.to ? tt('net/rank.48') : t.to === prev + 1 ? tt('net/rank.49', { to: t.to }) : tt('net/rank.50', { v1: prev + 1, to: t.to }); };
+const SEASON_REWARDS = RULES.season.map((t, i) => ({ k: i ? RULES.season[i - 1].to + 1 : 1, label: seasonLbl(i), s: t.s, g: t.g, a: t.a }));
 // ---------- 픽셀 메달·리본 ----------
 const PX_DIG = { 1: ['.m.', 'mm.', '.m.', '.m.', 'mmm'], 2: ['mm.', '..m', '.m.', 'm..', 'mmm'], 3: ['mm.', '..m', '.m.', '..m', 'mm.'] };
 function pxMedalRows(M, m, d) {
@@ -209,7 +210,7 @@ ICONS.rosette = ['..KK.K.KK..', '.KQQKQKQQK.', 'KQQQQQQQQQK', '.KQQeeeQQK.', 'KQ
 /** 픽셀 아이콘 <img> (medal1~4·rosette·trophy 등) */
 export const PXI = (k, cls) => `<img class="pxi${cls ? ' ' + cls : ''}" src="${iconURL('px_' + k, ICONS[k])}" alt="">`;
 export const MEDAL = r => PXI(r === 1 ? 'medal1' : r === 2 ? 'medal2' : r === 3 ? 'medal3' : 'medal4');
-export const fmtGold = n => n >= 10000 ? tt('net/rank.34', { v1: (n / 10000).toLocaleString() }) : n.toLocaleString();
+export const fmtGold = n => n < 10000 ? n.toLocaleString() : LANG === 'ko' ? tt('net/rank.34', { v1: (n / 10000).toLocaleString() }) : new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(n); // 한국어는 「300만」, 다른 언어는 3M
 const fmtAuto = s => s >= 3600 ? tt('net/rank.23', { v1: Math.round(s / 360) / 10 }) : tt('net/rank.24', { v1: Math.round(s / 60) });
 /** 보상 아이콘 카드 HTML. items: [{kind:'stones'|'gold'|'auto', amount}] */
 export function rewardCards(items, big) {

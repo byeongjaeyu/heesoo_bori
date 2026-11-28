@@ -16,6 +16,7 @@ function fakeCtx(canvas) {
   return new Proxy(base, { get: (t, k) => (k in t ? t[k] : () => { }), set: (t, k, v) => { t[k] = v; return true; } });
 }
 function setupDom() {
+  try { localStorage.setItem('hb_lang', 'ko'); } catch (e) { /* 없음 */ } // jsdom 브라우저 언어는 en-US — 테스트는 한국어 기준
   document.documentElement.innerHTML = HTML.replace(/^[\s\S]*?<html[^>]*>/, '').replace(/<\/html>[\s\S]*$/, '').replace(/<script>[\s\S]*?<\/script>/g, '');
   HTMLCanvasElement.prototype.getContext = function () { return this.__ctx || (this.__ctx = fakeCtx(this)); };
   HTMLCanvasElement.prototype.toDataURL = () => 'data:image/png;base64,';
