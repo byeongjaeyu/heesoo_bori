@@ -12,9 +12,10 @@ import { bubble, collide, dealDamage, isOnPhone, moveToward } from './player.js'
 import { eatFood, pickQuickFood } from './food.js';
 import { tt } from '../sys/i18n.js';
 
+export const boriFeeds = () => !!(sk('feed') && G.bori && !G.bori.hidden && G.pd.boriJoined);
 const FEED_TH = [[0, 0], [0.4, 0.3], [0.5, 0.4], [0.6, 0.5]];
 export function autoFeed(dt) {
-  const lv = sk('feed'), P = G.P, B = G.bori, st = G.st; if (!lv || !B || !G.pd.boriJoined || !P || G.ult) return;
+  const lv = sk('feed'), P = G.P, B = G.bori, st = G.st; if (!boriFeeds() || !P || G.ult) return;
   G.feedCd = (G.feedCd || 0) - dt; if (G.feedCd > 0 || P.eatCd > 0) return;
   const [th, tm] = FEED_TH[lv];
   for (const k of ['hp', 'mp']) {

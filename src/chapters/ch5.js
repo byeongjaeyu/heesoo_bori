@@ -20,7 +20,7 @@ import { addItem, dropItem, keysOf, ownsDef } from '../core/items.js';
 import { saveGame } from '../core/save.js';
 import { bubble, burst, hurtPlayer, moveToward } from '../play/player.js';
 import { aimDash, dashStep, shootAt, spawnEnemy } from '../play/enemies.js';
-import { CUTK, broSpr, dadSpr, fr, pc, pxLine, shadow } from '../draw/render.js';
+import { CUTK, broSpr, dadSpr, drawHusSleep, fr, pc, pxLine, shadow } from '../draw/render.js';
 import { A_, clearA } from '../story/story.js';
 import { toast } from '../ui/dialog.js';
 import { confirmBox, lobbyMenu } from '../ui/menu.js';
@@ -73,8 +73,19 @@ function drawKidCut(SW, SH, mid, gy, T, mode) {
     else { pc(wx + 30, wy + 10, 6, '#fff6c0'); pc(wx + 33, wy + 8, 5, '#121834'); for (let i = 0; i < 9; i++) if ((Math.floor(T * 2) + i) % 4) fr(wx + 3 + (i * 13) % 38, wy + 3 + (i * 7) % 26, 1, 1, '#ffffff'); }
     fr(wx + 20, wy, 2, 32, '#2b1b24'); fr(wx, wy + 15, 42, 2, '#2b1b24'); fr(wx - 6, wy - 4, 6, 40, morn ? '#ff9fcf' : '#7a5a9a'); fr(wx + 42, wy - 4, 6, 40, morn ? '#ff9fcf' : '#7a5a9a');
     const bx = Math.round(mid - 130 * K); fr(bx, gy - 24, 76, 22, '#2b1b24'); fr(bx + 1, gy - 23, 74, 8, '#ffffff'); fr(bx + 1, gy - 15, 74, 12, morn ? '#ffb3d9' : '#7a6aa8'); fr(bx + 4, gy - 30, 20, 8, '#2b1b24'); fr(bx + 5, gy - 29, 18, 6, '#ffffff'); fr(bx + 28, gy - 30, 20, 8, '#2b1b24'); fr(bx + 29, gy - 29, 18, 6, '#ffffff');
-    if (!morn) { pc(Math.round(mid - 40 * K), gy - 44, 9, 'rgba(255,220,140,0.18)'); fr(Math.round(mid - 42 * K), gy - 40, 4, 36, '#2b1b24'); fr(Math.round(mid - 46 * K), gy - 46, 12, 7, '#ffe8a8'); }
+    if (!morn) { const off = A_().lampOff; if (!off) pc(Math.round(mid - 40 * K), gy - 44, 9, 'rgba(255,220,140,0.18)'); fr(Math.round(mid - 42 * K), gy - 40, 4, 36, '#2b1b24'); fr(Math.round(mid - 46 * K), gy - 46, 12, 7, off ? '#8a8070' : '#ffe8a8'); }
     fr(0, gy - 4, SW, SH - gy + 4, morn ? '#d8b088' : '#4a3c5a'); for (let y = gy; y < SH; y += 7) fr(0, y, SW, 1, morn ? '#c49a70' : '#3c3050');
+  } else if (mode === 'kdream') {
+    // 꿈속으로: 보랏빛 하늘 · 빙글빙글 별 · 몽글몽글 구름 · 떠다니는 어린 시절 추억(연·딱지·나무자재·비눗방울)
+    band(SW, 0, SH, ['#2a1f4e', '#3e2a6a', '#5a3a84', '#7a4a98', '#a060a8', '#c878b0']);
+    for (let i = 0; i < 40; i++) { const a = T * 0.25 + i * 0.7, r = 18 + (i * 37) % Math.max(40, SW * 0.6); const x = mid + Math.cos(a) * r, y = gy - 40 + Math.sin(a) * r * 0.55; if ((Math.floor(T * 3) + i) % 5) fr(x, y, i % 4 ? 1 : 2, i % 4 ? 1 : 2, i % 3 ? '#fff6d0' : '#ffd0f0'); }
+    ctx.globalCompositeOperation = 'lighter'; pc(mid, gy - 34, 34 + Math.sin(T * 2) * 3, 'rgba(255,200,240,0.10)'); pc(mid, gy - 34, 20, 'rgba(255,240,255,0.10)'); ctx.globalCompositeOperation = 'source-over';
+    for (let i = 0; i < 5; i++) { const x = ((i * 90 + T * 6) % (SW + 80)) - 40, y = gy + 4 + (i % 2) * 14; for (const [dx, r] of [[0, 9], [10, 12], [22, 8]]) { pc(x + dx, y, r, '#c8a8e0'); pc(x + dx, y - 2, r - 2, '#f0e0ff'); } }
+    for (let i = 0; i < 4; i++) { const p = (T * 0.08 + i / 4) % 1, x = Math.round(mid + Math.sin(i * 2.3 + T * 0.6) * SW * 0.36), y = Math.round(SH - p * (SH + 30)); pc(x, y, 9, 'rgba(255,255,255,0.35)'); pc(x, y, 8, 'rgba(160,200,255,0.18)'); fr(x - 4, y - 5, 2, 2, '#ffffff');
+      if (i === 0) { pxLine(x - 4, y, x, y - 5, '#ff6a8a'); pxLine(x, y - 5, x + 4, y, '#ff6a8a'); pxLine(x + 4, y, x, y + 5, '#ff6a8a'); pxLine(x, y + 5, x - 4, y, '#ff6a8a'); pxLine(x, y + 5, x + 2, y + 9, '#ffd84a'); }
+      else if (i === 1) { fr(x - 4, y - 3, 8, 7, '#2b1b24'); fr(x - 3, y - 2, 6, 5, '#4a8ae0'); pxLine(x - 3, y - 2, x + 2, y + 2, '#ffd84a'); }
+      else if (i === 2) { pxLine(x - 5, y + 3, x + 5, y - 3, '#2b1b24', 3); pxLine(x - 4, y + 2, x + 4, y - 2, '#d8a868'); }
+      else { fr(x - 1, y - 4, 2, 8, '#2b1b24'); fr(x - 3, y - 2, 6, 2, '#2b1b24'); fr(x, y - 3, 1, 6, '#ffd84a'); } }
   } else if (mode === 'kalley') {
     // 공장 옆 골목 (저녁): 벽돌 공장 · 굴뚝 연기 · 함석 담장 · 전봇대
     band(SW, 0, gy - 30, ['#6a4a9a', '#9a5a9a', '#e0789a', '#ffa87a']);
@@ -113,8 +124,16 @@ function drawKidCut(SW, SH, mid, gy, T, mode) {
     fr(0, gy - 4, SW, SH - gy + 4, '#5a4a5a'); fr(0, gy - 4, SW, 6, '#8a7a7a'); for (let x = 0; x < SW; x += 30) fr(x, gy + 16, 14, 2, '#c8b8a0');
   }
 }
+function zzzAt(x, y, T, k) { for (let i = 0; i < 3; i++) { const p = (T * 0.45 + i / 3 + k) % 1; ctx.globalAlpha = 1 - p; const zx = Math.round(x + p * 10 + Math.sin(p * 6) * 2), zy = Math.round(y - p * 18), s = p > 0.5 ? 2 : 1;
+  for (const [dx, dy, w, h] of [[0, 0, 4, 1], [2, 1, 1, 1], [1, 2, 1, 1], [0, 3, 4, 1]]) fr(zx + dx * s, zy + dy * s, w * s, h * s, '#cfd8ff'); } ctx.globalAlpha = 1; }
 function drawKidActors(A, mid, gy, T) {
   const K = CUTK;
+  if (A.bed) { const bx = Math.round(mid - 130 * K) + 38, by = gy - 27; // 침대에 누운 희수 (오른쪽 베개 — 좁은 화면에서도 보이게) (베개 위 얼굴 + 이불)
+    pc(bx, by - 1, 7, '#2b1b24'); pc(bx, by - 1, 6, '#6a3a2a'); fr(bx + 5, by - 2, 6, 3, '#2b1b24'); fr(bx + 5, by - 1, 5, 1, '#6a3a2a');
+    fr(bx - 4, by - 1, 8, 6, '#2b1b24'); fr(bx - 3, by, 6, 5, '#ffe0cc'); fr(bx - 3, by - 1, 6, 1, '#6a3a2a');
+    fr(bx - 2, by + 2, 2, 1, '#2b1b24'); fr(bx + 1, by + 2, 2, 1, '#2b1b24'); fr(bx - 3, by + 3, 1, 1, '#ff9fb0'); fr(bx + 3, by + 3, 1, 1, '#ff9fb0');
+    fr(bx - 12, by + 4, 30, 4, '#2b1b24'); fr(bx - 11, by + 5, 28, 2, '#8a7ab8'); if (A.zzz) zzzAt(bx + 6, by - 8, T, 0); }
+  if (A.husSleep) { const x = Math.round(mid + A.husSleep.x * K); shadow(x, gy, 12); drawHusSleep(x, gy, T); if (A.zzz) zzzAt(x + 4, gy - 14, T, 0.5); }
   if (A.case) { const x = Math.round(mid + A.case.x * K), y = gy; fr(x - 11, y - 17, 22, 17, '#2b1b24'); fr(x - 10, y - 16, 20, 15, '#ff9fcf'); fr(x - 10, y - 9, 20, 1, '#e8608a'); fr(x - 4, y - 21, 8, 4, '#2b1b24'); fr(x - 3, y - 20, 6, 2, '#ff9fcf'); fr(x - 7, y - 14, 4, 3, '#ffd84a'); fr(x + 3, y - 6, 4, 3, '#6fb8ff'); if (A.case.rod) { pxLine(x + 6, y - 16, x + 22, y - 44, '#3a3a46'); fr(x + 4, y - 18, 3, 4, '#c98a3a'); } }
   if (A.dad) { const x = Math.round(mid + A.dad.x * K); shadow(x, gy, 12); drawSpr(dadSpr(), x, gy, { flip: !!A.dad.flip });
     if (A.dad.plane) { const px = x - 12, py = gy - 10; pxLine(px - 10, py, px + 2, py - 6, '#2b1b24', 3); pxLine(px - 9, py - 1, px + 1, py - 5, A.dad.done ? '#f0d090' : '#c8945a', 1); for (let i = 0; i < 5; i++) { const p = (T * 1.5 + i / 5) % 1; fr(px - 6 + Math.sin(i * 3 + T * 4) * 6, py - 2 - p * 14, 2, 1, '#f0d0a0'); } } }
@@ -136,13 +155,39 @@ const CH5_PROLOGUE = [
       { who: 'hee', text: tt('chapters/ch5.7'), do() { A_().hee.shake = true; A_().hee.alert = true; } },
       { who: 'hus', text: tt('chapters/ch5.8') },
       { who: 'hee', text: tt('chapters/ch5.9'), do() { A_().hee.shake = false; A_().hee.alert = false; A_().aura = true; sfx('ult'); } },
-      { who: 'sys', text: tt('chapters/ch5.10'), do() { A_().aura = false; A_().case.rod = false; } }] },
+      { who: 'sys', text: tt('chapters/ch5.135'), do() { A_().aura = false; A_().case.rod = false; } },
+      { who: 'hee', text: tt('chapters/ch5.136') },
+      { who: 'hus', text: tt('chapters/ch5.137') }] },
+  // 잠드는 장면: 불 끄기 → 침대에서 Zzz → 화면이 몽글몽글(꿈) → 하얗게
+  { scene: 'kroom', bgm: 'story',
+    init(A) { clearA(A); Object.assign(A, { bed: true, husSleep: { x: 26 }, case: { x: 58 }, bori: { x: -50, pose: 'sit', face: 1, y: 2 }, lampOff: true, dim: 0.7, zzz: true }); },
+    update(A, dt) { if (A.sleepy) { A.dream = Math.min(1, (A.dream || 0) + dt * 0.3); A.dim = Math.max(0.35, A.dim - dt * 0.2); } },
+    delay: 0.6, lines: [
+      { who: 'sys', text: tt('chapters/ch5.138') },
+      { who: 'hee', text: tt('chapters/ch5.139') },
+      { who: 'hus', text: tt('chapters/ch5.140') },
+      { who: 'sys', text: tt('chapters/ch5.10'), do() { A_().sleepy = true; } },
+      { who: 'hee', text: tt('chapters/ch5.141') }] },
+  { dur: 1.4, update(A, dt) { A.dream = 1; A.haze = Math.min(1, (A.haze || 0) + dt * 0.9); } },
+  // 꿈속: 별이 빙글빙글 · 추억이 떠다님 → 희수가 어린 희수로
+  { scene: 'kdream', bgm: 'story',
+    init(A) { clearA(A); Object.assign(A, { hee: { x: 0, y: -6, pose: 'idle', dir: 'down' }, dream: 1, haze: 1 }); },
+    update(A, dt, t) { A.haze = Math.max(0, A.haze - dt * 0.8); if (A.hee) A.hee.y = -8 + Math.round(Math.sin(t * 2) * 3); },
+    delay: 1.0, lines: [
+      { who: 'sys', text: tt('chapters/ch5.142') },
+      { who: 'bro', text: tt('chapters/ch5.143') },
+      { who: 'hee', text: tt('chapters/ch5.144') },
+      { who: 'sys', text: tt('chapters/ch5.145'), do() { const A = A_(); A.hee.kid = true; A.haze = 0.9; sfx('ding'); } },
+      { who: 'kid', text: tt('chapters/ch5.146') }] },
+  { dur: 1.2, update(A, dt) { A.haze = Math.min(1, (A.haze || 0) + dt * 1.0); } },
   { scene: 'kalley', bgm: 'story',
-    init(A) { clearA(A); Object.assign(A, { hee: Object.assign({}, KID, { plank: true }), bros: [{ x: 44, v: 0 }, { x: 70, v: 1, flip: true }] }); },
-    delay: 0.8, lines: [
+    init(A) { clearA(A); Object.assign(A, { hee: Object.assign({}, KID, { plank: true }), bros: [{ x: 44, v: 0 }, { x: 70, v: 1, flip: true }], haze: 1, dream: 0.8 }); },
+    update(A, dt) { A.haze = Math.max(0, A.haze - dt * 0.6); A.dream = Math.max(0.2, A.dream - dt * 0.12); },
+    delay: 1.2, lines: [
       { who: 'sys', text: tt('chapters/ch5.11') },
       { who: 'kid', text: tt('chapters/ch5.12') },
       { who: 'kid', text: tt('chapters/ch5.13'), do() { A_().sparkle = true; sfx('ding'); } },
+      { who: 'kid', text: tt('chapters/ch5.147') },
       { who: 'bro', text: tt('chapters/ch5.14'), do() { A_().sparkle = false; } },
       { who: 'kid', text: tt('chapters/ch5.15'), do() { A_().bros = []; sfx('pop'); } },
       { who: 'kid', text: tt('chapters/ch5.16') },
@@ -405,7 +450,7 @@ regChapter({
     { id: 'k5', t: tt('chapters/ch5.124'), d: tt('chapters/ch5.125'), tier: 3, v: pd => (pd.ch5 && pd.ch5.cleared) || 0, g: 1 },
     { id: 'k5x5', t: tt('chapters/ch5.126'), d: tt('chapters/ch5.127'), tier: 4, v: pd => (pd.ch5 && pd.ch5.cleared) || 0, g: 5 },
   ],
-  cut: { scenes: ['kroom', 'kmorn', 'kalley', 'kshop', 'klot', 'kdusk'], draw: drawKidCut, actors: drawKidActors },
+  cut: { scenes: ['kroom', 'kmorn', 'kdream', 'kalley', 'kshop', 'klot', 'kdusk'], draw: drawKidCut, actors: drawKidActors },
   story: { prologue: [tt('chapters/ch5.128'), CH5_PROLOGUE], stages: { 1: [tt('chapters/ch5.129'), CH5_SHOP], 2: [tt('chapters/ch5.130'), CH5_LOT], 3: [tt('chapters/ch5.131'), CH5_HOME] }, ending: [tt('chapters/ch5.132'), CH5_ENDING] },
   end: { stats: lv => tt('chapters/ch5.133', { lv }), again: tt('chapters/ch5.134') }
 });

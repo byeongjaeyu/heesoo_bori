@@ -11,6 +11,7 @@ import { saveGame, sk } from '../core/save.js';
 import { bubble, dirOf } from './player.js';
 import { trySkill } from './skills.js';
 import { eatFood, pickQuickFood } from './food.js';
+import { boriFeeds } from './bori.js';
 import { toast } from '../ui/dialog.js';
 import { tt } from '../sys/i18n.js';
 
@@ -62,7 +63,11 @@ export function autoTick(dt) {
   let drop = null, dd = 1e9; for (const o of G.drops) { const d = Math.hypot(o.x - P.x, o.y - P.y); if (d < dd) { dd = d; drop = o; } }
   let mv = [0, 0]; G.autoAtk = false;
   const hpR = P.hp / G.st.hp;
-  if (hpR < 0.35 && !sk('feed') && P.eatCd <= 0) { const id = pickQuickFood('hp', G.st.hp - P.hp); if (id && !PREMIUM.includes(id)) eatFood(id); }
+  // 물약(음식): 보리가 「언니줘!」로 먹여 줄 수 없을 때(스킬 없음·보리 없음 — 5장 어린 시절 등)는 직접 먹음
+  if (P.eatCd <= 0 && !boriFeeds()) {
+    const mpR = P.mp / G.st.mp; let k = hpR < 0.4 ? 'hp' : mpR < 0.25 ? 'mp' : null;
+    if (k) { const id = pickQuickFood(k, k === 'hp' ? G.st.hp - P.hp : G.st.mp - P.mp); if (id && (!PREMIUM.includes(id) || (k === 'hp' && hpR < 0.2))) eatFood(id); else if (!id && k === 'hp' && !G.autoNoFood) { G.autoNoFood = true; toast(tt('play/auto.16'), 'warn'); } }
+  }
   // 보스를 잡아 출구가 열리면: 근처 드롭만 줍고 출구로 → 다음 스테이지에서도 자동사냥 계속
   const W = G.world, exitGo = G.exitOpen && !G.inf && !G.raid && !G.tower && W && W.gate;
   if (exitGo) { const go = drop && dd < 140 ? drop : { x: W.gate.x, y: W.gate.y + 4 }, dx = go.x - P.x, dy = go.y - P.y, d = Math.hypot(dx, dy) || 1; if (d > 2) mv = [dx / d, dy / d]; G.autoAtk = !!tgt && td < w.reach + 4;
